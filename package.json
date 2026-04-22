@@ -17,7 +17,12 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
+    "@egjs/ngx-view360": "^3.0.4",
+    "@microsoft/signalr": "^10.0.0",
+    "@tailwindcss/vite": "^4.1.18",
+    "bootstrap": "^5.3.8",
     "rxjs": "~7.8.0",
+    "tailwindcss": "^4.1.18",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },

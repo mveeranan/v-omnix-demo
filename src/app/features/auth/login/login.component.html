@@ -1,0 +1,25 @@
+<div class="login-wrapper">
+  <form class="login-card" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <h2>Sign in</h2>
+
+    <label for="email">Email</label>
+    <input id="email" type="email" formControlName="email" placeholder="you@example.com" />
+    @if (loginForm.controls.email.invalid && loginForm.controls.email.touched) {
+      <small class="error">Enter a valid email address.</small>
+    }
+
+    <label for="password">Password</label>
+    <input id="password" type="password" formControlName="password" placeholder="********" />
+    @if (loginForm.controls.password.invalid && loginForm.controls.password.touched) {
+      <small class="error">Password is required.</small>
+    }
+
+    @if (errorMessage) {
+      <p class="error">{{ errorMessage }}</p>
+    }
+
+    <button type="submit" [disabled]="isSubmitting">
+      {{ isSubmitting ? 'Signing in...' : 'Login' }}
+    </button>
+  </form>
+</div>
