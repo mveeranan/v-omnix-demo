@@ -44,12 +44,12 @@
                     formControlName="confirmPassword">
                     <div class="validation-error"
                 *ngIf="userInfoForm.get('confirmPassword')?.touched &&
-                        userInfoForm.get('confirmPassword')?.errors?.['invalid']">
-                please confirm your password
+                        userInfoForm.get('confirmPassword')?.errors?.['required']">
+                Please confirm your password
             </div>
             <div class="validation-error"
                 *ngIf="userInfoForm.get('confirmPassword')?.touched &&
-                        userInfoForm.get('confirmPassword')?.value !== userInfoForm.get('password')?.value">
+                        userInfoForm.errors?.['passwordMismatch']">
                 Passwords do not match
             </div>
             </div>

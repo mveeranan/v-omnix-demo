@@ -10,14 +10,17 @@ import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, catchError, filter, switchMap, take, throwError } from 'rxjs';
 import { AuthTokens } from './models/auth.model';
 import { AuthService } from './auth.service';
+import { LoggerService } from '../logging/logger.service';
+import { API_ENDPOINTS } from '../../../environments/api.constants';
 
-const authEndpoints = ['/Auth/login', '/Auth/refresh'];
+const authEndpoints = [API_ENDPOINTS.auth.login, API_ENDPOINTS.auth.refresh];
 let isRefreshing = false;
 const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const logger = inject(LoggerService);
 
   if (isAuthEndpoint(req.url)) {
     return next(req);
@@ -32,7 +35,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
-      return handleUnauthorized(req, next, authService, router);
+      return handleUnauthorized(req, next, authService, router, logger);
     })
   );
 };
@@ -41,7 +44,8 @@ function handleUnauthorized(
   req: HttpRequest<unknown>,
   next: HttpHandlerFn,
   authService: AuthService,
-  router: Router
+  router: Router,
+  logger: LoggerService
 ): Observable<HttpEvent<unknown>> {
   if (!isRefreshing) {
     isRefreshing = true;
@@ -55,6 +59,7 @@ function handleUnauthorized(
       }),
       catchError((refreshError) => {
         isRefreshing = false;
+        logger.warn('Token refresh failed. Redirecting to login.', refreshError);
         authService.logout();
         router.navigate(['/login']);
         return throwError(() => refreshError);
