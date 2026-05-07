@@ -22,6 +22,7 @@
     "@tailwindcss/browser": "^4.2.4",
     "alpinejs": "^3.15.12",
     "bootstrap": "^5.3.8",
+    "lucide-angular": "^1.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

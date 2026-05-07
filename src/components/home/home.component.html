@@ -1,57 +1,41 @@
-<!-- <script defer="" src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> -->
-<section x-data="{annual: false}" class="relative flex flex-col overflow-hidden overflow-y-auto h-svh items-center justify-center bg-zinc-950">
+
+
+
+
+
+<!-- pricing -->
+
+<section class="relative my-8 flex flex-col overflow-hidden rounded-3xl bg-zinc-950">
  <!-- Background image --> <img class="absolute w-full h-full lg:w-auto lg:h-auto" src="assets/images/blueBlob.svg" alt="alt text"> <!-- Ends Background image -->
- <div class="relative items-center px-8 py-12 mx-auto md:px-12  max-w-7xl">
+ <div class="relative items-center px-8 py-12 mx-auto md:px-12 max-w-7xl">
   <!-- Pricing Toggle Buttons -->
   <div class="md:max-w-sm mx-auto">
    <!-- Toggle Button Container -->
    <div class="inline-flex w-full border rounded-full mt-6 overflow-hidden border-white/20 p-0.5 z-0">
-    <!-- Monthly Button: Sets 'annual' to false when clicked --> <button class="font-medium rounded-full transition h-12 w-full py-2 block px-8 text-xs bg-black/50 text-white" :class="{ '  bg-black/50  text-white': !annual, ' text-white': annual }" @click="annual = false" type="button">
+    <!-- Monthly Button: Sets 'annual' to false when clicked --> <button [class]="annual ? 'font-medium rounded-full transition h-12 w-full py-2 block px-8 text-xs text-white' : 'font-medium rounded-full transition h-12 w-full py-2 block px-8 text-xs bg-black/50 text-white'" (click)="annual = false" type="button">
      Monthly
-    </button> <!-- Annual Button: Sets 'annual' to true when clicked --> <button class="font-medium rounded-full transition h-12 w-full py-2 block px-8 text-xs border-white text-white" :class="{ '  bg-black/50  text-white': annual, ' text-white': !annual }" @click="annual = true" type="button">
+    </button> <!-- Annual Button: Sets 'annual' to true when clicked --> <button [class]="annual ? 'font-medium rounded-full transition h-12 w-full py-2 block px-8 text-xs border-white bg-black/50 text-white' : 'font-medium rounded-full transition h-12 w-full py-2 block px-8 text-xs border-white text-white'" (click)="annual = true" type="button">
      Annual
     </button>
    </div>
   </div>
-  <!--------------------------------------------------------------------------------------------------------------------------------------------------------
-//Alpinejs part
-//
-// This section uses Alpine.js to switch between monthly and annual pricing.
-// - The `x-data` directive initializes component state (not shown here).
-// - The `:class` directive dynamically updates class attributes based on the `annual` state.
-// - The `@click` directive toggles the `annual` state between true and false.
-// - The `x-show` directive conditionally renders elements based on the `annual` state.
-// Pricing plans are dynamically generated using `.map()`, with each plan's details being displayed.
-// Features and unavailable features are also dynamically listed, using conditional rendering based on the plan's data.
-//
-// Template
-//
-// The following unordered list (ul) element contains a list of features and unavailable features for each plan.
-// It uses Tailwind CSS for layout, spacing, and text styling.
-//
-//
-// This paragraph displays the description of each pricing plan.
-// It uses Tailwind CSS classes for margin, font size, and text color.
-///// <p class="mt-8 text-xs text-white/80">{plan.description}</p>
-//
-//
-// Maps over the 'features' array of the current plan to generate list items (li) for each feature.
-// Each list item displays a check icon to indicate that the feature is available in this plan.
-///// {plan.features.map((feature)
-//
-//
-// Maps over the 'unavailableFeatures' array of the current plan to generate list items for each.
-// These items are styled with reduced opacity to indicate that they are not available in this plan.
-///// {plan.unavailableFeatures.map((feature)
--------------------------------------------------------------------------------------------------------------------------------------------------------->
+
+  <!--
+  Alpinejs part
+  This section uses Alpine.js to switch between monthly and annual pricing.
+  - The x-data directive initializes component state.
+  - The :class directive dynamically updates class attributes.
+  - The @click directive toggles the annual state.
+  - The x-show directive conditionally renders elements.
+  -->
   <div class="grid grid-cols-1 gap-2 mt-12 lg:grid-cols-3">
    <div class="flex flex-col justify-between p-8 shadow-2xl  rounded-3xl bg-black/20 backdrop-blur-3xl backdrop-blur-3xl shadow-gray-900/50">
     <div>
      <div class="flex flex-col justify-between gap-3">
       <p class="text-xl font-medium tracking-tight text-white"> Starter Pack </p>
-      <p class="text-white"> <span class="text-2xl tracking-tight"> <span x-show="!annual">$15</span> <span x-show="annual" style="display: none;">$8</span> </span> <span class="text-base font-medium">
+      <p class="text-white"> <span class="text-2xl tracking-tight"> <span [style.display]="annual ? 'none' : ''">$15</span> <span [style.display]="annual ? '' : 'none'">$8</span> </span> <span class="text-base font-medium">
         /m
-        <span x-show="annual" style="display: none;">
+        <span [style.display]="annual ? '' : 'none'">
          (billed annually)
         </span> </span> </p>
      </div>
@@ -102,9 +86,9 @@
     <div>
      <div class="flex flex-col justify-between gap-3">
       <p class="text-xl font-medium tracking-tight text-white"> Silver Surfer </p>
-      <p class="text-white"> <span class="text-2xl tracking-tight"> <span x-show="!annual">$25</span> <span x-show="annual" style="display: none;">$20</span> </span> <span class="text-base font-medium">
+      <p class="text-white"> <span class="text-2xl tracking-tight"> <span [style.display]="annual ? 'none' : ''">$25</span> <span [style.display]="annual ? '' : 'none'">$20</span> </span> <span class="text-base font-medium">
         /m
-        <span x-show="annual" style="display: none;">
+        <span [style.display]="annual ? '' : 'none'">
          (billed annually)
         </span> </span> </p>
      </div>
@@ -155,9 +139,9 @@
     <div>
      <div class="flex flex-col justify-between gap-3">
       <p class="text-xl font-medium tracking-tight text-white"> Golden Unicorn </p>
-      <p class="text-white"> <span class="text-2xl tracking-tight"> <span x-show="!annual">$50</span> <span x-show="annual" style="display: none;">$40</span> </span> <span class="text-base font-medium">
+      <p class="text-white"> <span class="text-2xl tracking-tight"> <span [style.display]="annual ? 'none' : ''">$50</span> <span [style.display]="annual ? '' : 'none'">$40</span> </span> <span class="text-base font-medium">
         /m
-        <span x-show="annual" style="display: none;">
+        <span [style.display]="annual ? '' : 'none'">
          (billed annually)
         </span> </span> </p>
      </div>
