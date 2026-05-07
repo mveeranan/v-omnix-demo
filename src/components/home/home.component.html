@@ -1,0 +1,214 @@
+<!-- <script defer="" src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> -->
+<section x-data="{annual: false}" class="relative flex flex-col overflow-hidden overflow-y-auto h-svh items-center justify-center bg-zinc-950">
+ <!-- Background image --> <img class="absolute w-full h-full lg:w-auto lg:h-auto" src="assets/images/blueBlob.svg" alt="alt text"> <!-- Ends Background image -->
+ <div class="relative items-center px-8 py-12 mx-auto md:px-12  max-w-7xl">
+  <!-- Pricing Toggle Buttons -->
+  <div class="md:max-w-sm mx-auto">
+   <!-- Toggle Button Container -->
+   <div class="inline-flex w-full border rounded-full mt-6 overflow-hidden border-white/20 p-0.5 z-0">
+    <!-- Monthly Button: Sets 'annual' to false when clicked --> <button class="font-medium rounded-full transition h-12 w-full py-2 block px-8 text-xs bg-black/50 text-white" :class="{ '  bg-black/50  text-white': !annual, ' text-white': annual }" @click="annual = false" type="button">
+     Monthly
+    </button> <!-- Annual Button: Sets 'annual' to true when clicked --> <button class="font-medium rounded-full transition h-12 w-full py-2 block px-8 text-xs border-white text-white" :class="{ '  bg-black/50  text-white': annual, ' text-white': !annual }" @click="annual = true" type="button">
+     Annual
+    </button>
+   </div>
+  </div>
+  <!--------------------------------------------------------------------------------------------------------------------------------------------------------
+//Alpinejs part
+//
+// This section uses Alpine.js to switch between monthly and annual pricing.
+// - The `x-data` directive initializes component state (not shown here).
+// - The `:class` directive dynamically updates class attributes based on the `annual` state.
+// - The `@click` directive toggles the `annual` state between true and false.
+// - The `x-show` directive conditionally renders elements based on the `annual` state.
+// Pricing plans are dynamically generated using `.map()`, with each plan's details being displayed.
+// Features and unavailable features are also dynamically listed, using conditional rendering based on the plan's data.
+//
+// Template
+//
+// The following unordered list (ul) element contains a list of features and unavailable features for each plan.
+// It uses Tailwind CSS for layout, spacing, and text styling.
+//
+//
+// This paragraph displays the description of each pricing plan.
+// It uses Tailwind CSS classes for margin, font size, and text color.
+///// <p class="mt-8 text-xs text-white/80">{plan.description}</p>
+//
+//
+// Maps over the 'features' array of the current plan to generate list items (li) for each feature.
+// Each list item displays a check icon to indicate that the feature is available in this plan.
+///// {plan.features.map((feature)
+//
+//
+// Maps over the 'unavailableFeatures' array of the current plan to generate list items for each.
+// These items are styled with reduced opacity to indicate that they are not available in this plan.
+///// {plan.unavailableFeatures.map((feature)
+-------------------------------------------------------------------------------------------------------------------------------------------------------->
+  <div class="grid grid-cols-1 gap-2 mt-12 lg:grid-cols-3">
+   <div class="flex flex-col justify-between p-8 shadow-2xl  rounded-3xl bg-black/20 backdrop-blur-3xl backdrop-blur-3xl shadow-gray-900/50">
+    <div>
+     <div class="flex flex-col justify-between gap-3">
+      <p class="text-xl font-medium tracking-tight text-white"> Starter Pack </p>
+      <p class="text-white"> <span class="text-2xl tracking-tight"> <span x-show="!annual">$15</span> <span x-show="annual" style="display: none;">$8</span> </span> <span class="text-base font-medium">
+        /m
+        <span x-show="annual" style="display: none;">
+         (billed annually)
+        </span> </span> </p>
+     </div>
+     <p class="mt-8 text-xs text-white/80">This plan is ideal for individual users and hobbyists who are looking for essential functionalities to support their projects.</p>
+     <ul class="flex flex-col order-last mt-8 text-sm text-white gap-y-3">
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> 5 mb/PDF </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> 75 pages/PDF </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> 10 messages/Day </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> Up to 3 PDFs </li>
+      <li class="inline-flex items-center gap-2 opacity-50"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-x" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M10 10l4 4m0 -4l-4 4"></path>
+       </svg> Gpt-3.5-turbo model </li>
+      <li class="inline-flex items-center gap-2 opacity-50"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-x" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M10 10l4 4m0 -4l-4 4"></path>
+       </svg> Test mode </li>
+      <li class="inline-flex items-center gap-2 opacity-50"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-x" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M10 10l4 4m0 -4l-4 4"></path>
+       </svg> Doc summary </li>
+     </ul>
+    </div>
+    <div class="flex mt-6"> <a href="#_" title="Starter Pack" aria-label="get started" class="flex items-center justify-center w-full  h-12 px-4 py-2 text-base font-medium transition-all duration-200 rounded-xl text-white bg-black/50 hover:bg-black/20 ">
+      Get started
+     </a> </div>
+   </div>
+   <div class="flex flex-col justify-between p-8 shadow-2xl  rounded-3xl bg-black/50 backdrop-blur-3xl backdrop-blur-3xl shadow-gray-900/50">
+    <div>
+     <div class="flex flex-col justify-between gap-3">
+      <p class="text-xl font-medium tracking-tight text-white"> Silver Surfer </p>
+      <p class="text-white"> <span class="text-2xl tracking-tight"> <span x-show="!annual">$25</span> <span x-show="annual" style="display: none;">$20</span> </span> <span class="text-base font-medium">
+        /m
+        <span x-show="annual" style="display: none;">
+         (billed annually)
+        </span> </span> </p>
+     </div>
+     <p class="mt-8 text-xs text-white/80">If you're a small business or a startup, this plan is designed to cater to your needs. It offers a balance of essential features.</p>
+     <ul class="flex flex-col order-last mt-8 text-sm text-white gap-y-3">
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> 10 mb/PDF </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> 150 pages/PDF </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> 25 messages/Day </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> Up to 5 PDFs </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> Gpt-3.5-turbo model </li>
+      <li class="inline-flex items-center gap-2 opacity-50"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-x" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M10 10l4 4m0 -4l-4 4"></path>
+       </svg> Test mode </li>
+      <li class="inline-flex items-center gap-2 opacity-50"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-x" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M10 10l4 4m0 -4l-4 4"></path>
+       </svg> Doc summary </li>
+     </ul>
+    </div>
+    <div class="flex mt-6"> <a href="#_" title="Silver Surfer" aria-label="get started" class="flex items-center justify-center w-full  h-12 px-4 py-2 text-base font-medium transition-all duration-200 rounded-xl text-black bg-white hover:bg-white/5 hover:text-white ">
+      Get started
+     </a> </div>
+   </div>
+   <div class="flex flex-col justify-between p-8 shadow-2xl  rounded-3xl bg-black/20 backdrop-blur-3xl backdrop-blur-3xl shadow-gray-900/50">
+    <div>
+     <div class="flex flex-col justify-between gap-3">
+      <p class="text-xl font-medium tracking-tight text-white"> Golden Unicorn </p>
+      <p class="text-white"> <span class="text-2xl tracking-tight"> <span x-show="!annual">$50</span> <span x-show="annual" style="display: none;">$40</span> </span> <span class="text-base font-medium">
+        /m
+        <span x-show="annual" style="display: none;">
+         (billed annually)
+        </span> </span> </p>
+     </div>
+     <p class="mt-8 text-xs text-white/80">Tailored for medium-sized businesses, this plan offers advanced tools and features to support your growing demands.</p>
+     <ul class="flex flex-col order-last mt-8 text-sm text-white gap-y-3">
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> 32 mb/PDF </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> 1500 pages/PDF </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> 1000 messages/Day </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> Up to 50 PDFs </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> Gpt-3.5-turbo-16k model </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> Test mode </li>
+      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+        <path d="M9 12l2 2l4 -4"></path>
+       </svg> Doc summary </li>
+     </ul>
+    </div>
+    <div class="flex mt-6"> <a href="#_" title="Golden Unicorn" aria-label="get started" class="flex items-center justify-center w-full  h-12 px-4 py-2 text-base font-medium transition-all duration-200 rounded-xl text-white bg-black/50 hover:bg-black/20 ">
+      Get started
+     </a> </div>
+
+
+   </div>
+  </div> 
+ </div>
+</section>
+
+
+

@@ -3,12 +3,13 @@ import { SampleComponent } from '../components/sample/sample.component';
 import { authGuard } from './core/auth/auth.guard';
 import { guestGuard } from './core/auth/guest.guard';
 import { LoginComponent } from './features/auth/login/login.component';
+import { HomeComponent } from '../components/home/home.component';
 
 export const routes: Routes = [
     {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'sample'
+        redirectTo: 'home'
     },
     {
         path: 'login',
@@ -26,7 +27,11 @@ export const routes: Routes = [
         loadComponent: () => import('../components/signal-r/signal-r.component').then(m => m.SignalRComponent)
     },
     {
+        path: 'home',
+        component: HomeComponent,
+    },
+    {
         path: '**',
-        redirectTo: 'sample'
+        redirectTo: 'home'
     }
 ];

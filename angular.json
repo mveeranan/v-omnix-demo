@@ -29,10 +29,15 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
               }
             ],
             "styles": [
-              "src/styles.scss",
+              "src/styles.css",
               "bootstrap/dist/css/bootstrap.min.css"
             ],
             "scripts": []
@@ -95,10 +100,15 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
               }
             ],
             "styles": [
-              "src/styles.scss",
+              "src/styles.css",
               "bootstrap/dist/css/bootstrap.min.css"
             ],
             "scripts": []
