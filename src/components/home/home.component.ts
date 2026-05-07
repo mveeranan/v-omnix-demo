@@ -23,7 +23,6 @@ import {
   Moon,
   PlayCircle,
   ShieldCheck,
-  Star,
   Sun,
   Twitter,
   Users,
@@ -98,6 +97,8 @@ export class HomeComponent {
   private userThemePreference = false;
   private revealObserver?: IntersectionObserver;
   private statsObserver?: IntersectionObserver;
+  private revealFallbackTimer?: ReturnType<typeof setTimeout>;
+  private readonly themeStorageKey = 'v-omnix-theme';
 
   readonly statItems: StatItem[] = [
     { label: 'Businesses', value: 100, suffix: '+', displayValue: 0 },
@@ -205,7 +206,7 @@ export class HomeComponent {
       name: 'Ayesha Khan',
       role: 'Operations Lead, Lumina Clinics',
       quote:
-        'Orbit cut our booking admin time by 42% in the first month and gave our team full visibility.'
+        'V-omnix cut our booking admin time by 42% in the first month and gave our team full visibility.'
     },
     {
       name: 'Marcus Reed',
@@ -261,7 +262,6 @@ export class HomeComponent {
   readonly checkIcon = Check;
   readonly xIcon = X;
   readonly chevronDownIcon = ChevronDown;
-
   ngOnInit(): void {
     this.initializeTheme();
   }
@@ -274,13 +274,16 @@ export class HomeComponent {
   ngOnDestroy(): void {
     this.revealObserver?.disconnect();
     this.statsObserver?.disconnect();
+    if (this.revealFallbackTimer) {
+      clearTimeout(this.revealFallbackTimer);
+    }
   }
 
   toggleTheme(): void {
     this.userThemePreference = true;
     this.isDarkMode = !this.isDarkMode;
     this.applyTheme(this.isDarkMode);
-    localStorage.setItem('orbit-theme', this.isDarkMode ? 'dark' : 'light');
+    localStorage.setItem(this.themeStorageKey, this.isDarkMode ? 'dark' : 'light');
   }
 
   toggleBillingCycle(isAnnual: boolean): void {
@@ -300,7 +303,7 @@ export class HomeComponent {
   }
 
   private initializeTheme(): void {
-    const savedTheme = localStorage.getItem('orbit-theme');
+    const savedTheme = localStorage.getItem(this.themeStorageKey);
     if (savedTheme === 'dark' || savedTheme === 'light') {
       this.userThemePreference = true;
       this.isDarkMode = savedTheme === 'dark';
@@ -326,6 +329,11 @@ export class HomeComponent {
   }
 
   private setupRevealObserver(): void {
+    if (typeof IntersectionObserver === 'undefined') {
+      this.forceShowAllRevealSections();
+      return;
+    }
+
     this.revealObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -335,10 +343,23 @@ export class HomeComponent {
           }
         }
       },
-      { threshold: 0.15, rootMargin: '0px 0px -10% 0px' }
+      { threshold: 0.25, rootMargin: '0px 0px -5% 0px' }
     );
 
     this.revealElements.forEach((item) => this.revealObserver?.observe(item.nativeElement));
+
+    this.revealElements.changes.subscribe((elements: QueryList<ElementRef<HTMLElement>>) => {
+      elements.forEach((item) => this.revealObserver?.observe(item.nativeElement));
+    });
+
+    // Refresh/load safety: never leave sections hidden if observer misses.
+    this.revealFallbackTimer = setTimeout(() => {
+      this.forceShowAllRevealSections();
+    }, 1400);
+  }
+
+  private forceShowAllRevealSections(): void {
+    this.revealElements.forEach((item) => item.nativeElement.classList.add('is-visible'));
   }
 
   private setupStatsObserver(): void {

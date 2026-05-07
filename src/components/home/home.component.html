@@ -1,5 +1,6 @@
 <main class="relative overflow-hidden bg-gray-50 text-gray-900 transition-colors duration-500 dark:bg-zinc-950 dark:text-zinc-100">
   <div class="pointer-events-none absolute inset-0 overflow-hidden">
+    <div class="bg-mesh"></div>
     <div class="blob blob-one"></div>
     <div class="blob blob-two"></div>
     <div class="blob blob-three"></div>
@@ -7,24 +8,40 @@
 
   <header class="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/80 backdrop-blur-xl transition-colors duration-500 dark:border-zinc-800 dark:bg-zinc-950/80">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-      <a class="inline-flex items-center gap-2 text-sm font-semibold tracking-wide" href="#hero">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white">O</span>
-        Orbit Platform
+      <a class="inline-flex items-center gap-2 text-base font-semibold tracking-[0.06em] no-underline" href="#hero">
+        <span class="logo-mark">
+          <svg class="brand-logo-svg" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="vOmnixMark" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#22d3ee"></stop>
+                <stop offset="0.55" stop-color="#3b82f6"></stop>
+                <stop offset="1" stop-color="#8b5cf6"></stop>
+              </linearGradient>
+            </defs>
+            <circle cx="32" cy="32" r="23" stroke="url(#vOmnixMark)" stroke-width="3.5" opacity="0.6"></circle>
+            <path d="M15 20L28 46C29.5 49 34.5 49 36 46L50 20" stroke="url(#vOmnixMark)" stroke-width="5" stroke-linecap="round"></path>
+            <path d="M20 31C25 27.8 39 27.8 44 31" stroke="#67e8f9" stroke-opacity="0.9" stroke-width="2.2" stroke-linecap="round"></path>
+            <circle cx="15" cy="20" r="3" fill="#22d3ee"></circle>
+            <circle cx="50" cy="20" r="3" fill="#3b82f6"></circle>
+            <circle cx="32" cy="48" r="3" fill="#8b5cf6"></circle>
+          </svg>
+        </span>
+        V-omnix
       </a>
-      <nav class="hidden items-center gap-8 text-sm text-zinc-600 dark:text-zinc-300 lg:flex">
-        <a class="hover:text-blue-600 dark:hover:text-blue-400" href="#features">Features</a>
-        <a class="hover:text-blue-600 dark:hover:text-blue-400" href="#pricing">Pricing</a>
-        <a class="hover:text-blue-600 dark:hover:text-blue-400" href="#faq">FAQ</a>
+      <nav class="header-nav hidden items-center gap-8 text-base font-medium text-zinc-600 dark:text-zinc-200 lg:flex">
+        <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#features">Features</a>
+        <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#pricing">Pricing</a>
+        <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#faq">FAQ</a>
       </nav>
       <div class="flex items-center gap-3">
         <button
           (click)="toggleTheme()"
           [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-          class="theme-switch inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 transition-all duration-300 hover:scale-105 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-          type="button">
-          <lucide-icon [img]="isDarkMode ? sunIcon : moonIcon" class="h-4 w-4"></lucide-icon>
+          class="theme-switch inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-zinc-800 transition-all duration-300 hover:scale-105 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+          type="button" style="border-radius: 50%;">
+          <lucide-icon [img]="isDarkMode ? sunIcon : moonIcon" class="h-5 w-5"></lucide-icon>
         </button>
-        <a class="hidden rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-all duration-300 hover:scale-[1.02] hover:bg-blue-600 dark:bg-white dark:text-zinc-900 dark:hover:bg-blue-500 dark:hover:text-white sm:inline-flex" href="#pricing">
+        <a class="header-cta hidden rounded-xl bg-zinc-900 px-5 py-2.5 text-base font-semibold text-white no-underline transition-all duration-300 hover:scale-[1.02] hover:bg-blue-600 dark:bg-white dark:text-zinc-900 dark:hover:bg-blue-500 dark:hover:text-white sm:inline-flex" href="#pricing">
           Start Free Trial
         </a>
       </div>
@@ -135,41 +152,43 @@
       <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">How it works</h2>
       <p class="mt-3 text-zinc-600 dark:text-zinc-300">Go live quickly with a step-by-step tenant setup flow.</p>
     </div>
-    <div class="relative pl-8">
-      <span class="timeline-line"></span>
+    <div class="process-grid relative grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       @for (step of steps; track step.title; let i = $index) {
-        <div class="relative mb-8">
-          <span class="timeline-dot">{{ i + 1 }}</span>
-          <h3 class="text-lg font-semibold">{{ step.title }}</h3>
-          <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{{ step.description }}</p>
-        </div>
+        <article class="process-card relative rounded-2xl border border-zinc-200/80 bg-white/85 p-5 backdrop-blur-sm transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900/70">
+          <span class="process-index">{{ i + 1 }}</span>
+          <h3 class="mt-10 text-lg font-semibold tracking-tight">{{ step.title }}</h3>
+          <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{{ step.description }}</p>
+          @if (i < steps.length - 1) {
+            <span class="process-link hidden xl:block"></span>
+          }
+        </article>
       }
     </div>
   </section>
 
   <section #revealEl id="dashboard" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-    <div class="dashboard-wrap relative overflow-hidden rounded-3xl border border-zinc-200/70 bg-white/70 p-6 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/50 lg:p-10">
-      <div class="absolute -left-3 top-14 floating-card hidden rounded-xl bg-white p-4 shadow-xl dark:bg-zinc-900 md:block">
+    <div class="dashboard-wrap relative overflow-visible rounded-3xl border border-zinc-200/70 bg-gradient-to-b from-white/95 via-blue-50/60 to-zinc-100/70 p-6 backdrop-blur-xl dark:border-zinc-800 dark:from-zinc-900/80 dark:via-indigo-950/25 dark:to-zinc-950/80 lg:p-10">
+      <div class="absolute -left-4 top-16 z-10 floating-card hidden rounded-xl border border-zinc-200/80 bg-white/95 p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900/95 md:block">
         <p class="text-xs text-zinc-500 dark:text-zinc-400">Pending confirmations</p>
         <p class="mt-1 text-lg font-semibold">32</p>
       </div>
-      <div class="absolute -right-4 bottom-16 floating-card-delayed hidden rounded-xl bg-white p-4 shadow-xl dark:bg-zinc-900 md:block">
+      <div class="absolute -right-4 bottom-16 z-10 floating-card-delayed hidden rounded-xl border border-zinc-200/80 bg-white/95 p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900/95 md:block">
         <p class="text-xs text-zinc-500 dark:text-zinc-400">Net revenue</p>
         <p class="mt-1 text-lg font-semibold">$82.4k</p>
       </div>
 
       <h2 class="text-center text-3xl font-semibold tracking-tight sm:text-4xl">A dashboard teams actually love to use</h2>
-      <div class="mt-8 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-700 dark:bg-zinc-950">
+      <div class="mt-8 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100/90 p-4 dark:border-zinc-700 dark:bg-zinc-950/95">
         <div class="grid gap-4 md:grid-cols-3">
-          <div class="rounded-xl bg-white p-4 dark:bg-zinc-900">
+          <div class="rounded-xl border border-zinc-200/80 bg-white/90 p-4 dark:border-zinc-700 dark:bg-zinc-900/90">
             <p class="text-xs text-zinc-500 dark:text-zinc-400">Bookings this week</p>
             <p class="mt-2 text-2xl font-semibold">846</p>
           </div>
-          <div class="rounded-xl bg-white p-4 dark:bg-zinc-900">
+          <div class="rounded-xl border border-zinc-200/80 bg-white/90 p-4 dark:border-zinc-700 dark:bg-zinc-900/90">
             <p class="text-xs text-zinc-500 dark:text-zinc-400">No-show rate</p>
             <p class="mt-2 text-2xl font-semibold">2.1%</p>
           </div>
-          <div class="rounded-xl bg-white p-4 dark:bg-zinc-900">
+          <div class="rounded-xl border border-zinc-200/80 bg-white/90 p-4 dark:border-zinc-700 dark:bg-zinc-900/90">
             <p class="text-xs text-zinc-500 dark:text-zinc-400">Avg response time</p>
             <p class="mt-2 text-2xl font-semibold">36s</p>
           </div>
@@ -183,31 +202,27 @@
       <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Simple pricing for every growth stage</h2>
       <p class="mt-3 text-zinc-600 dark:text-zinc-300">Switch between monthly and annual billing any time.</p>
 
-      <div class="mx-auto mt-6 inline-flex rounded-full border border-zinc-300 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-900">
+      <div class="pricing-toggle mx-auto mt-6 inline-flex overflow-hidden rounded-full border border-zinc-300 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-900">
         <button (click)="toggleBillingCycle(false)" [class.bg-zinc-900]="!annual" [class.text-white]="!annual" class="rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 dark:[&:not(.bg-zinc-900)]:text-zinc-300" type="button">Monthly</button>
         <button (click)="toggleBillingCycle(true)" [class.bg-zinc-900]="annual" [class.text-white]="annual" class="rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 dark:[&:not(.bg-zinc-900)]:text-zinc-300" type="button">Annual</button>
       </div>
     </div>
 
-    <div class="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
+    <div class="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 pt-4 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
       @for (plan of pricingPlans; track plan.name) {
-        <article class="pricing-card relative min-w-[280px] snap-center rounded-3xl border p-6 md:min-w-0"
-          [class.border-blue-500]="plan.popular"
-          [class.bg-white]="!plan.popular"
-          [class.dark:bg-zinc-900]="!plan.popular"
-          [class.bg-gradient-to-b]="plan.popular"
-          [class.from-blue-600]="plan.popular"
-          [class.to-indigo-700]="plan.popular"
-          [class.text-white]="plan.popular"
-          [class.border-zinc-200]="!plan.popular"
-          [class.dark:border-zinc-700]="!plan.popular">
+        <article
+          [class.popular-plan]="plan.popular"
+          [class.regular-plan]="!plan.popular"
+          [class]="plan.popular
+            ? 'pricing-card relative min-w-[280px] snap-center rounded-3xl border border-blue-500 bg-gradient-to-b from-blue-600 to-indigo-700 p-6 text-white md:min-w-0'
+            : 'pricing-card relative min-w-[280px] snap-center rounded-3xl border border-zinc-200 bg-white p-6 text-zinc-900 md:min-w-0 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100'">
           @if (plan.popular) {
-            <span class="absolute -top-3 left-6 rounded-full bg-white px-3 py-1 text-xs font-semibold text-blue-700">Most Popular</span>
+            <span class="absolute right-6 top-4 z-10 rounded-full bg-white px-3 py-1 text-xs font-semibold text-blue-700 shadow-md dark:bg-zinc-950 dark:text-blue-300">Most Popular</span>
           }
-          <h3 class="text-xl font-semibold">{{ plan.name }}</h3>
-          <p class="mt-2 text-sm" [class.text-zinc-600]="!plan.popular" [class.dark:text-zinc-300]="!plan.popular">{{ plan.description }}</p>
+          <h3 class="text-xl font-semibold" [class.mt-8]="plan.popular">{{ plan.name }}</h3>
+          <p class="mt-2 text-sm" [class]="plan.popular ? 'text-blue-50' : 'text-zinc-600 dark:text-zinc-300'">{{ plan.description }}</p>
           <p class="mt-6 text-4xl font-semibold">${{ annual ? plan.annualPrice : plan.monthlyPrice }}</p>
-          <p class="mt-1 text-xs" [class.text-zinc-500]="!plan.popular" [class.dark:text-zinc-400]="!plan.popular">
+          <p class="mt-1 text-xs" [class]="plan.popular ? 'text-blue-100' : 'text-zinc-500 dark:text-zinc-400'">
             /month {{ annual ? '(billed annually)' : '' }}
           </p>
           <ul class="mt-6 space-y-3 text-sm">
@@ -218,13 +233,10 @@
               </li>
             }
           </ul>
-          <a class="mt-7 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 hover:scale-[1.01]"
-             [class.bg-white]="plan.popular"
-             [class.text-blue-700]="plan.popular"
-             [class.bg-zinc-900]="!plan.popular"
-             [class.text-white]="!plan.popular"
-             [class.dark:bg-white]="!plan.popular"
-             [class.dark:text-zinc-900]="!plan.popular"
+          <a
+             [class]="plan.popular
+              ? 'mt-7 inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-semibold text-blue-700 transition-all duration-300 hover:scale-[1.01]'
+              : 'mt-7 inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:scale-[1.01] dark:bg-white dark:text-zinc-900'"
              href="#hero">
             Choose {{ plan.name }}
           </a>
@@ -260,12 +272,12 @@
     </div>
     <div class="space-y-3">
       @for (faq of faqItems; track faq.question; let i = $index) {
-        <article class="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        <article class="faq-card overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900/95">
           <button
             (click)="toggleFaq(i)"
             [attr.aria-expanded]="isFaqOpen(i)"
             [attr.aria-controls]="'faq-content-' + i"
-            class="flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            class="faq-button flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-sm font-medium text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-zinc-100"
             type="button">
             {{ faq.question }}
             <lucide-icon [img]="chevronDownIcon" class="h-4 w-4 transition-transform duration-300" [class.rotate-180]="isFaqOpen(i)"></lucide-icon>
@@ -281,18 +293,18 @@
   <footer class="border-t border-zinc-200 bg-white/80 px-4 py-10 backdrop-blur-lg transition-colors duration-500 dark:border-zinc-800 dark:bg-zinc-950/70 sm:px-6 lg:px-8">
     <div class="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
       <div>
-        <p class="text-lg font-semibold">Orbit Platform</p>
-        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">Multi-tenant booking and management for ambitious teams.</p>
+        <p class="text-base font-semibold tracking-[0.06em]">V-omnix</p>
+        <p class="mt-1 text-base text-zinc-600 dark:text-zinc-300">Multi-tenant booking and management for ambitious teams.</p>
       </div>
-      <div class="flex flex-wrap items-center gap-5 text-sm">
-        <a class="hover:text-blue-600 dark:hover:text-blue-400" href="#">Privacy</a>
-        <a class="hover:text-blue-600 dark:hover:text-blue-400" href="#">Terms</a>
-        <a class="hover:text-blue-600 dark:hover:text-blue-400" href="#">Contact</a>
+      <div class="flex flex-wrap items-center gap-5 text-base">
+        <a class="footer-link no-underline hover:text-blue-600 dark:hover:text-blue-400" href="#">Privacy</a>
+        <a class="footer-link no-underline hover:text-blue-600 dark:hover:text-blue-400" href="#">Terms</a>
+        <a class="footer-link no-underline hover:text-blue-600 dark:hover:text-blue-400" href="#">Contact</a>
       </div>
       <div class="flex items-center gap-3">
         @for (social of socialLinks; track social.label) {
-          <a [href]="social.href" [attr.aria-label]="social.label" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 text-zinc-600 transition-all duration-300 hover:border-blue-500 hover:text-blue-600 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-blue-400 dark:hover:text-blue-300">
-            <lucide-icon [img]="social.icon" class="h-4 w-4"></lucide-icon>
+          <a [href]="social.href" [attr.aria-label]="social.label" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-300 text-zinc-600 transition-all duration-300 hover:border-blue-500 hover:text-blue-600 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-blue-400 dark:hover:text-blue-300">
+            <lucide-icon [img]="social.icon" class="h-5 w-5"></lucide-icon>
           </a>
         }
       </div>
