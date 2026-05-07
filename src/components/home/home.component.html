@@ -1,198 +1,301 @@
-
-
-
-
-
-<!-- pricing -->
-
-<section class="relative my-8 flex flex-col overflow-hidden rounded-3xl bg-zinc-950">
- <!-- Background image --> <img class="absolute w-full h-full lg:w-auto lg:h-auto" src="assets/images/blueBlob.svg" alt="alt text"> <!-- Ends Background image -->
- <div class="relative items-center px-8 py-12 mx-auto md:px-12 max-w-7xl">
-  <!-- Pricing Toggle Buttons -->
-  <div class="md:max-w-sm mx-auto">
-   <!-- Toggle Button Container -->
-   <div class="inline-flex w-full border rounded-full mt-6 overflow-hidden border-white/20 p-0.5 z-0">
-    <!-- Monthly Button: Sets 'annual' to false when clicked --> <button [class]="annual ? 'font-medium rounded-full transition h-12 w-full py-2 block px-8 text-xs text-white' : 'font-medium rounded-full transition h-12 w-full py-2 block px-8 text-xs bg-black/50 text-white'" (click)="annual = false" type="button">
-     Monthly
-    </button> <!-- Annual Button: Sets 'annual' to true when clicked --> <button [class]="annual ? 'font-medium rounded-full transition h-12 w-full py-2 block px-8 text-xs border-white bg-black/50 text-white' : 'font-medium rounded-full transition h-12 w-full py-2 block px-8 text-xs border-white text-white'" (click)="annual = true" type="button">
-     Annual
-    </button>
-   </div>
+<main class="relative overflow-hidden bg-gray-50 text-gray-900 transition-colors duration-500 dark:bg-zinc-950 dark:text-zinc-100">
+  <div class="pointer-events-none absolute inset-0 overflow-hidden">
+    <div class="blob blob-one"></div>
+    <div class="blob blob-two"></div>
+    <div class="blob blob-three"></div>
   </div>
 
-  <!--
-  Alpinejs part
-  This section uses Alpine.js to switch between monthly and annual pricing.
-  - The x-data directive initializes component state.
-  - The :class directive dynamically updates class attributes.
-  - The @click directive toggles the annual state.
-  - The x-show directive conditionally renders elements.
-  -->
-  <div class="grid grid-cols-1 gap-2 mt-12 lg:grid-cols-3">
-   <div class="flex flex-col justify-between p-8 shadow-2xl  rounded-3xl bg-black/20 backdrop-blur-3xl backdrop-blur-3xl shadow-gray-900/50">
-    <div>
-     <div class="flex flex-col justify-between gap-3">
-      <p class="text-xl font-medium tracking-tight text-white"> Starter Pack </p>
-      <p class="text-white"> <span class="text-2xl tracking-tight"> <span [style.display]="annual ? 'none' : ''">$15</span> <span [style.display]="annual ? '' : 'none'">$8</span> </span> <span class="text-base font-medium">
-        /m
-        <span [style.display]="annual ? '' : 'none'">
-         (billed annually)
-        </span> </span> </p>
-     </div>
-     <p class="mt-8 text-xs text-white/80">This plan is ideal for individual users and hobbyists who are looking for essential functionalities to support their projects.</p>
-     <ul class="flex flex-col order-last mt-8 text-sm text-white gap-y-3">
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> 5 mb/PDF </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> 75 pages/PDF </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> 10 messages/Day </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> Up to 3 PDFs </li>
-      <li class="inline-flex items-center gap-2 opacity-50"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-x" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M10 10l4 4m0 -4l-4 4"></path>
-       </svg> Gpt-3.5-turbo model </li>
-      <li class="inline-flex items-center gap-2 opacity-50"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-x" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M10 10l4 4m0 -4l-4 4"></path>
-       </svg> Test mode </li>
-      <li class="inline-flex items-center gap-2 opacity-50"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-x" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M10 10l4 4m0 -4l-4 4"></path>
-       </svg> Doc summary </li>
-     </ul>
+  <header class="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/80 backdrop-blur-xl transition-colors duration-500 dark:border-zinc-800 dark:bg-zinc-950/80">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <a class="inline-flex items-center gap-2 text-sm font-semibold tracking-wide" href="#hero">
+        <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white">O</span>
+        Orbit Platform
+      </a>
+      <nav class="hidden items-center gap-8 text-sm text-zinc-600 dark:text-zinc-300 lg:flex">
+        <a class="hover:text-blue-600 dark:hover:text-blue-400" href="#features">Features</a>
+        <a class="hover:text-blue-600 dark:hover:text-blue-400" href="#pricing">Pricing</a>
+        <a class="hover:text-blue-600 dark:hover:text-blue-400" href="#faq">FAQ</a>
+      </nav>
+      <div class="flex items-center gap-3">
+        <button
+          (click)="toggleTheme()"
+          [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+          class="theme-switch inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 transition-all duration-300 hover:scale-105 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          type="button">
+          <lucide-icon [img]="isDarkMode ? sunIcon : moonIcon" class="h-4 w-4"></lucide-icon>
+        </button>
+        <a class="hidden rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-all duration-300 hover:scale-[1.02] hover:bg-blue-600 dark:bg-white dark:text-zinc-900 dark:hover:bg-blue-500 dark:hover:text-white sm:inline-flex" href="#pricing">
+          Start Free Trial
+        </a>
+      </div>
     </div>
-    <div class="flex mt-6"> <a href="#_" title="Starter Pack" aria-label="get started" class="flex items-center justify-center w-full  h-12 px-4 py-2 text-base font-medium transition-all duration-200 rounded-xl text-white bg-black/50 hover:bg-black/20 ">
-      Get started
-     </a> </div>
-   </div>
-   <div class="flex flex-col justify-between p-8 shadow-2xl  rounded-3xl bg-black/50 backdrop-blur-3xl backdrop-blur-3xl shadow-gray-900/50">
-    <div>
-     <div class="flex flex-col justify-between gap-3">
-      <p class="text-xl font-medium tracking-tight text-white"> Silver Surfer </p>
-      <p class="text-white"> <span class="text-2xl tracking-tight"> <span [style.display]="annual ? 'none' : ''">$25</span> <span [style.display]="annual ? '' : 'none'">$20</span> </span> <span class="text-base font-medium">
-        /m
-        <span [style.display]="annual ? '' : 'none'">
-         (billed annually)
-        </span> </span> </p>
-     </div>
-     <p class="mt-8 text-xs text-white/80">If you're a small business or a startup, this plan is designed to cater to your needs. It offers a balance of essential features.</p>
-     <ul class="flex flex-col order-last mt-8 text-sm text-white gap-y-3">
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> 10 mb/PDF </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> 150 pages/PDF </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> 25 messages/Day </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> Up to 5 PDFs </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> Gpt-3.5-turbo model </li>
-      <li class="inline-flex items-center gap-2 opacity-50"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-x" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M10 10l4 4m0 -4l-4 4"></path>
-       </svg> Test mode </li>
-      <li class="inline-flex items-center gap-2 opacity-50"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-x" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M10 10l4 4m0 -4l-4 4"></path>
-       </svg> Doc summary </li>
-     </ul>
+  </header>
+
+  <section #revealEl id="hero" class="fade-up relative mx-auto grid max-w-7xl gap-12 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-2 lg:px-8 lg:pt-20">
+    <div class="relative z-10 space-y-8">
+      <span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-300">
+        <lucide-icon [img]="layersIcon" class="h-4 w-4"></lucide-icon>
+        Multi-tenant booking made effortless
+      </span>
+      <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+        Run every location, booking, and team from one premium command center.
+      </h1>
+      <p class="max-w-xl text-base text-zinc-600 dark:text-zinc-300 sm:text-lg">
+        Orbit helps modern service businesses automate scheduling, track payments, and scale operations without operational chaos.
+      </p>
+      <div class="flex flex-wrap items-center gap-3">
+        <a class="group btn-glow inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-blue-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" href="#pricing">
+          Get Started
+          <lucide-icon [img]="arrowRightIcon" class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"></lucide-icon>
+        </a>
+        <a class="inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-white px-6 py-3 text-sm font-semibold text-zinc-700 transition-all duration-300 hover:scale-[1.02] hover:border-blue-500 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-blue-400 dark:hover:text-blue-300" href="#dashboard">
+          <lucide-icon [img]="playCircleIcon" class="h-4 w-4"></lucide-icon>
+          View Demo
+        </a>
+      </div>
+      <div class="grid max-w-xl gap-3 sm:grid-cols-3">
+        <div class="glass-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:text-sm">
+          <lucide-icon [img]="usersIcon" class="h-4 w-4 text-blue-500"></lucide-icon>
+          Team-friendly
+        </div>
+        <div class="glass-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:text-sm">
+          <lucide-icon [img]="shieldCheckIcon" class="h-4 w-4 text-blue-500"></lucide-icon>
+          Secure by default
+        </div>
+        <div class="glass-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:text-sm">
+          <lucide-icon [img]="zapIcon" class="h-4 w-4 text-blue-500"></lucide-icon>
+          Fast setup
+        </div>
+      </div>
     </div>
-    <div class="flex mt-6"> <a href="#_" title="Silver Surfer" aria-label="get started" class="flex items-center justify-center w-full  h-12 px-4 py-2 text-base font-medium transition-all duration-200 rounded-xl text-black bg-white hover:bg-white/5 hover:text-white ">
-      Get started
-     </a> </div>
-   </div>
-   <div class="flex flex-col justify-between p-8 shadow-2xl  rounded-3xl bg-black/20 backdrop-blur-3xl backdrop-blur-3xl shadow-gray-900/50">
-    <div>
-     <div class="flex flex-col justify-between gap-3">
-      <p class="text-xl font-medium tracking-tight text-white"> Golden Unicorn </p>
-      <p class="text-white"> <span class="text-2xl tracking-tight"> <span [style.display]="annual ? 'none' : ''">$50</span> <span [style.display]="annual ? '' : 'none'">$40</span> </span> <span class="text-base font-medium">
-        /m
-        <span [style.display]="annual ? '' : 'none'">
-         (billed annually)
-        </span> </span> </p>
-     </div>
-     <p class="mt-8 text-xs text-white/80">Tailored for medium-sized businesses, this plan offers advanced tools and features to support your growing demands.</p>
-     <ul class="flex flex-col order-last mt-8 text-sm text-white gap-y-3">
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> 32 mb/PDF </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> 1500 pages/PDF </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> 1000 messages/Day </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> Up to 50 PDFs </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> Gpt-3.5-turbo-16k model </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> Test mode </li>
-      <li class="inline-flex items-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-        <path d="M9 12l2 2l4 -4"></path>
-       </svg> Doc summary </li>
-     </ul>
+
+    <div class="slide-right relative z-10">
+      <div class="glass-card relative overflow-hidden rounded-3xl p-5 sm:p-6">
+        <div class="mb-5 flex items-center justify-between">
+          <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Live dashboard preview</p>
+          <span class="rounded-full bg-emerald-500/20 px-2 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-300">Online</span>
+        </div>
+        <div class="grid gap-4">
+          <div class="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white">
+            <p class="text-xs uppercase tracking-wider text-blue-100">Today bookings</p>
+            <p class="mt-2 text-2xl font-semibold">124</p>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+              <p class="text-xs text-zinc-500 dark:text-zinc-400">Conversion</p>
+              <p class="mt-2 text-xl font-semibold">18.4%</p>
+            </div>
+            <div class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+              <p class="text-xs text-zinc-500 dark:text-zinc-400">Revenue</p>
+              <p class="mt-2 text-xl font-semibold">$24.7k</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="flex mt-6"> <a href="#_" title="Golden Unicorn" aria-label="get started" class="flex items-center justify-center w-full  h-12 px-4 py-2 text-base font-medium transition-all duration-200 rounded-xl text-white bg-black/50 hover:bg-black/20 ">
-      Get started
-     </a> </div>
+  </section>
 
+  <section #revealEl id="stats" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="grid gap-4 md:grid-cols-3">
+      @for (stat of statItems; track stat.label) {
+        <article class="glass-card scale-in rounded-2xl p-6 text-center">
+          <p class="text-3xl font-semibold sm:text-4xl">
+            @if (stat.label === 'Uptime') {
+              {{ stat.value }}{{ stat.suffix }}
+            } @else {
+              {{ stat.displayValue }}{{ stat.suffix }}
+            }
+          </p>
+          <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{{ stat.label }}</p>
+        </article>
+      }
+    </div>
+  </section>
 
-   </div>
-  </div> 
- </div>
-</section>
+  <section #revealEl id="features" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="mb-10 max-w-2xl">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Powerful features for multi-location growth</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Every workflow your team needs, designed for speed, visibility, and control.</p>
+    </div>
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      @for (feature of featureItems; track feature.title; let i = $index) {
+        <article #revealEl class="scale-in feature-card rounded-2xl p-6 [transition-delay:calc(var(--i)*70ms)]" [style.--i]="i">
+          <div class="mb-4 inline-flex rounded-xl bg-blue-500/10 p-3 text-blue-600 dark:text-blue-300">
+            <lucide-icon [img]="feature.icon" class="feature-icon h-5 w-5"></lucide-icon>
+          </div>
+          <h3 class="text-lg font-semibold">{{ feature.title }}</h3>
+          <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{{ feature.description }}</p>
+        </article>
+      }
+    </div>
+  </section>
 
+  <section #revealEl class="slide-left mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="mb-10 max-w-2xl">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">How it works</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Go live quickly with a step-by-step tenant setup flow.</p>
+    </div>
+    <div class="relative pl-8">
+      <span class="timeline-line"></span>
+      @for (step of steps; track step.title; let i = $index) {
+        <div class="relative mb-8">
+          <span class="timeline-dot">{{ i + 1 }}</span>
+          <h3 class="text-lg font-semibold">{{ step.title }}</h3>
+          <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{{ step.description }}</p>
+        </div>
+      }
+    </div>
+  </section>
 
+  <section #revealEl id="dashboard" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="dashboard-wrap relative overflow-hidden rounded-3xl border border-zinc-200/70 bg-white/70 p-6 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/50 lg:p-10">
+      <div class="absolute -left-3 top-14 floating-card hidden rounded-xl bg-white p-4 shadow-xl dark:bg-zinc-900 md:block">
+        <p class="text-xs text-zinc-500 dark:text-zinc-400">Pending confirmations</p>
+        <p class="mt-1 text-lg font-semibold">32</p>
+      </div>
+      <div class="absolute -right-4 bottom-16 floating-card-delayed hidden rounded-xl bg-white p-4 shadow-xl dark:bg-zinc-900 md:block">
+        <p class="text-xs text-zinc-500 dark:text-zinc-400">Net revenue</p>
+        <p class="mt-1 text-lg font-semibold">$82.4k</p>
+      </div>
 
+      <h2 class="text-center text-3xl font-semibold tracking-tight sm:text-4xl">A dashboard teams actually love to use</h2>
+      <div class="mt-8 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-700 dark:bg-zinc-950">
+        <div class="grid gap-4 md:grid-cols-3">
+          <div class="rounded-xl bg-white p-4 dark:bg-zinc-900">
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">Bookings this week</p>
+            <p class="mt-2 text-2xl font-semibold">846</p>
+          </div>
+          <div class="rounded-xl bg-white p-4 dark:bg-zinc-900">
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">No-show rate</p>
+            <p class="mt-2 text-2xl font-semibold">2.1%</p>
+          </div>
+          <div class="rounded-xl bg-white p-4 dark:bg-zinc-900">
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">Avg response time</p>
+            <p class="mt-2 text-2xl font-semibold">36s</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section #revealEl id="pricing" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="mb-10 text-center">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Simple pricing for every growth stage</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Switch between monthly and annual billing any time.</p>
+
+      <div class="mx-auto mt-6 inline-flex rounded-full border border-zinc-300 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-900">
+        <button (click)="toggleBillingCycle(false)" [class.bg-zinc-900]="!annual" [class.text-white]="!annual" class="rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 dark:[&:not(.bg-zinc-900)]:text-zinc-300" type="button">Monthly</button>
+        <button (click)="toggleBillingCycle(true)" [class.bg-zinc-900]="annual" [class.text-white]="annual" class="rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 dark:[&:not(.bg-zinc-900)]:text-zinc-300" type="button">Annual</button>
+      </div>
+    </div>
+
+    <div class="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
+      @for (plan of pricingPlans; track plan.name) {
+        <article class="pricing-card relative min-w-[280px] snap-center rounded-3xl border p-6 md:min-w-0"
+          [class.border-blue-500]="plan.popular"
+          [class.bg-white]="!plan.popular"
+          [class.dark:bg-zinc-900]="!plan.popular"
+          [class.bg-gradient-to-b]="plan.popular"
+          [class.from-blue-600]="plan.popular"
+          [class.to-indigo-700]="plan.popular"
+          [class.text-white]="plan.popular"
+          [class.border-zinc-200]="!plan.popular"
+          [class.dark:border-zinc-700]="!plan.popular">
+          @if (plan.popular) {
+            <span class="absolute -top-3 left-6 rounded-full bg-white px-3 py-1 text-xs font-semibold text-blue-700">Most Popular</span>
+          }
+          <h3 class="text-xl font-semibold">{{ plan.name }}</h3>
+          <p class="mt-2 text-sm" [class.text-zinc-600]="!plan.popular" [class.dark:text-zinc-300]="!plan.popular">{{ plan.description }}</p>
+          <p class="mt-6 text-4xl font-semibold">${{ annual ? plan.annualPrice : plan.monthlyPrice }}</p>
+          <p class="mt-1 text-xs" [class.text-zinc-500]="!plan.popular" [class.dark:text-zinc-400]="!plan.popular">
+            /month {{ annual ? '(billed annually)' : '' }}
+          </p>
+          <ul class="mt-6 space-y-3 text-sm">
+            @for (feature of plan.features; track feature.name) {
+              <li class="flex items-center gap-2">
+                <lucide-icon [img]="feature.included ? checkIcon : xIcon" class="h-4 w-4" [class.text-emerald-500]="feature.included" [class.text-zinc-400]="!feature.included"></lucide-icon>
+                {{ feature.name }}
+              </li>
+            }
+          </ul>
+          <a class="mt-7 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 hover:scale-[1.01]"
+             [class.bg-white]="plan.popular"
+             [class.text-blue-700]="plan.popular"
+             [class.bg-zinc-900]="!plan.popular"
+             [class.text-white]="!plan.popular"
+             [class.dark:bg-white]="!plan.popular"
+             [class.dark:text-zinc-900]="!plan.popular"
+             href="#hero">
+            Choose {{ plan.name }}
+          </a>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section #revealEl class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="mb-10 max-w-2xl">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Loved by operators and growth teams</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Real outcomes from teams using Orbit every day.</p>
+    </div>
+    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      @for (item of testimonials; track item.name) {
+        <article class="glass-card rounded-2xl p-6">
+          <div class="mb-3 inline-flex text-yellow-500">
+            <lucide-icon [img]="zapIcon" class="h-4 w-4"></lucide-icon>
+            <lucide-icon [img]="zapIcon" class="h-4 w-4"></lucide-icon>
+            <lucide-icon [img]="zapIcon" class="h-4 w-4"></lucide-icon>
+          </div>
+          <p class="text-sm leading-6 text-zinc-700 dark:text-zinc-200">"{{ item.quote }}"</p>
+          <p class="mt-4 text-sm font-semibold">{{ item.name }}</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ item.role }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section #revealEl id="faq" class="fade-up mx-auto max-w-4xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="mb-10 text-center">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Frequently asked questions</h2>
+    </div>
+    <div class="space-y-3">
+      @for (faq of faqItems; track faq.question; let i = $index) {
+        <article class="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+          <button
+            (click)="toggleFaq(i)"
+            [attr.aria-expanded]="isFaqOpen(i)"
+            [attr.aria-controls]="'faq-content-' + i"
+            class="flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            type="button">
+            {{ faq.question }}
+            <lucide-icon [img]="chevronDownIcon" class="h-4 w-4 transition-transform duration-300" [class.rotate-180]="isFaqOpen(i)"></lucide-icon>
+          </button>
+          <div [id]="'faq-content-' + i" class="faq-content px-5" [class.open]="isFaqOpen(i)">
+            <p class="pb-4 text-sm text-zinc-600 dark:text-zinc-300">{{ faq.answer }}</p>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+
+  <footer class="border-t border-zinc-200 bg-white/80 px-4 py-10 backdrop-blur-lg transition-colors duration-500 dark:border-zinc-800 dark:bg-zinc-950/70 sm:px-6 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
+      <div>
+        <p class="text-lg font-semibold">Orbit Platform</p>
+        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">Multi-tenant booking and management for ambitious teams.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-5 text-sm">
+        <a class="hover:text-blue-600 dark:hover:text-blue-400" href="#">Privacy</a>
+        <a class="hover:text-blue-600 dark:hover:text-blue-400" href="#">Terms</a>
+        <a class="hover:text-blue-600 dark:hover:text-blue-400" href="#">Contact</a>
+      </div>
+      <div class="flex items-center gap-3">
+        @for (social of socialLinks; track social.label) {
+          <a [href]="social.href" [attr.aria-label]="social.label" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 text-zinc-600 transition-all duration-300 hover:border-blue-500 hover:text-blue-600 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-blue-400 dark:hover:text-blue-300">
+            <lucide-icon [img]="social.icon" class="h-4 w-4"></lucide-icon>
+          </a>
+        }
+      </div>
+    </div>
+  </footer>
+</main>
