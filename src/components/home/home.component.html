@@ -1,0 +1,359 @@
+<main class="relative overflow-hidden bg-gray-50 text-gray-900 transition-colors duration-500 dark:bg-zinc-950 dark:text-zinc-100">
+  <div class="pointer-events-none absolute inset-0 overflow-hidden">
+    <div class="bg-mesh"></div>
+    <div class="blob blob-one"></div>
+    <div class="blob blob-two"></div>
+    <div class="blob blob-three"></div>
+  </div>
+
+  <header class="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/80 backdrop-blur-xl transition-colors duration-500 dark:border-zinc-800 dark:bg-zinc-950/80">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <a class="inline-flex items-center gap-2 text-base font-semibold tracking-[0.06em] no-underline" href="#hero">
+        <span class="logo-mark">
+          <svg class="brand-logo-svg" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="vOmnixMark" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#22d3ee"></stop>
+                <stop offset="0.55" stop-color="#3b82f6"></stop>
+                <stop offset="1" stop-color="#8b5cf6"></stop>
+              </linearGradient>
+            </defs>
+            <circle cx="32" cy="32" r="23" stroke="url(#vOmnixMark)" stroke-width="3.5" opacity="0.6"></circle>
+            <path d="M15 20L28 46C29.5 49 34.5 49 36 46L50 20" stroke="url(#vOmnixMark)" stroke-width="5" stroke-linecap="round"></path>
+            <path d="M20 31C25 27.8 39 27.8 44 31" stroke="#67e8f9" stroke-opacity="0.9" stroke-width="2.2" stroke-linecap="round"></path>
+            <circle cx="15" cy="20" r="3" fill="#22d3ee"></circle>
+            <circle cx="50" cy="20" r="3" fill="#3b82f6"></circle>
+            <circle cx="32" cy="48" r="3" fill="#8b5cf6"></circle>
+          </svg>
+        </span>
+        V-omnix
+      </a>
+      <nav class="header-nav hidden items-center gap-8 text-base font-medium text-zinc-600 dark:text-zinc-200 lg:flex">
+        <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#features">Features</a>
+        <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#pricing">Pricing</a>
+        <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#faq">FAQ</a>
+      </nav>
+      <div class="flex items-center gap-3">
+        <button
+          (click)="toggleTheme()"
+          [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+          class="theme-switch inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-zinc-800 transition-all duration-300 hover:scale-105 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+          type="button" style="border-radius: 50%;">
+          <lucide-icon [img]="isDarkMode ? sunIcon : moonIcon" class="h-5 w-5"></lucide-icon>
+        </button>
+        <a class="header-cta hidden rounded-xl bg-zinc-900 px-5 py-2.5 text-base font-semibold text-white no-underline transition-all duration-300 hover:scale-[1.02] hover:bg-blue-600 dark:bg-white dark:text-zinc-900 dark:hover:bg-blue-500 dark:hover:text-white sm:inline-flex" href="#pricing">
+          Start Free Trial
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <section #revealEl id="hero" class="fade-up relative mx-auto grid max-w-7xl gap-12 px-4 pb-14 pt-14 sm:px-6 lg:grid-cols-2 lg:px-8 lg:pb-16 lg:pt-20">
+    <div class="relative z-10 space-y-8">
+      <span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-300">
+        <lucide-icon [img]="layersIcon" class="h-4 w-4"></lucide-icon>
+        Multi-tenant booking made effortless
+      </span>
+      <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+        Run every location, booking, and team from one premium command center.
+      </h1>
+      <p class="max-w-xl text-base text-zinc-600 dark:text-zinc-300 sm:text-lg">
+        Orbit helps modern service businesses automate scheduling, track payments, and scale operations without operational chaos.
+      </p>
+      <div class="flex flex-wrap items-center gap-3">
+        <a class="group btn-glow no-underline inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-blue-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" href="#pricing">
+          Get Started
+          <lucide-icon [img]="arrowRightIcon" class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"></lucide-icon>
+        </a>
+        <a class="no-underline inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-white px-6 py-3 text-sm font-semibold text-zinc-700 transition-all duration-300 hover:scale-[1.02] hover:border-blue-500 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-blue-400 dark:hover:text-blue-300" href="#dashboard">
+          <lucide-icon [img]="playCircleIcon" class="h-4 w-4"></lucide-icon>
+          View Demo
+        </a>
+      </div>
+      <div class="grid max-w-xl gap-3 sm:grid-cols-3">
+        <div class="glass-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:text-sm">
+          <lucide-icon [img]="usersIcon" class="h-4 w-4 text-blue-500"></lucide-icon>
+          Team-friendly
+        </div>
+        <div class="glass-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:text-sm">
+          <lucide-icon [img]="shieldCheckIcon" class="h-4 w-4 text-blue-500"></lucide-icon>
+          Secure by default
+        </div>
+        <div class="glass-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:text-sm">
+          <lucide-icon [img]="zapIcon" class="h-4 w-4 text-blue-500"></lucide-icon>
+          Fast setup
+        </div>
+      </div>
+    </div>
+
+    <div #revealEl class="slide-right relative z-10">
+      <div class="glass-card relative overflow-hidden rounded-3xl p-5 sm:p-6">
+        <div class="mb-5 flex items-center justify-between">
+          <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Live dashboard preview</p>
+          <span class="rounded-full bg-emerald-500/20 px-2 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-300">Online</span>
+        </div>
+        <div class="grid gap-4">
+          <div class="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white">
+            <p class="text-xs uppercase tracking-wider text-blue-100">Today bookings</p>
+            <p class="mt-2 text-2xl font-semibold">124</p>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="dashboard-mini-card rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+              <p class="dashboard-mini-label text-xs text-zinc-500 dark:text-zinc-400">Conversion</p>
+              <p class="dashboard-mini-value mt-2 text-xl font-semibold">18.4%</p>
+            </div>
+            <div class="dashboard-mini-card rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+              <p class="dashboard-mini-label text-xs text-zinc-500 dark:text-zinc-400">Revenue</p>
+              <p class="dashboard-mini-value mt-2 text-xl font-semibold">$24.7k</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section #revealEl id="stats" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="grid gap-4 md:grid-cols-3">
+      @for (stat of statItems; track stat.label) {
+        <article #revealEl class="glass-card scale-in rounded-2xl p-6 text-center">
+          <p class="text-3xl font-semibold sm:text-4xl">
+            @if (stat.label === 'Uptime') {
+              {{ stat.value }}{{ stat.suffix }}
+            } @else {
+              {{ stat.displayValue }}{{ stat.suffix }}
+            }
+          </p>
+          <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{{ stat.label }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section #revealEl id="showcase" class="fade-up is-visible mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="mb-8 max-w-2xl">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Platform showcase</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Real product moments that drive bookings, retention, and scale.</p>
+    </div>
+    <div class="showcase-frame relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800">
+      <div class="showcase-track" [style.transform]="'translateX(-' + activeShowcaseSlide * 100 + '%)'">
+        @for (slide of showcaseSlides; track slide.title) {
+          <article [class]="'showcase-slide relative min-h-[320px] w-full shrink-0 p-6 sm:p-8 ' + slide.backgroundClass">
+            <div class="showcase-overlay absolute inset-0"></div>
+            <div class="relative z-10 flex h-full flex-col justify-between">
+              <div class="max-w-xl">
+                <p class="inline-flex rounded-full border border-white/30 bg-black/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white/90">
+                  Product highlight
+                </p>
+                <h3 class="mt-4 text-2xl font-semibold text-white sm:text-3xl">{{ slide.title }}</h3>
+                <p class="mt-3 text-sm text-zinc-100 sm:text-base">{{ slide.description }}</p>
+              </div>
+              <div class="inline-flex w-fit items-end gap-3 rounded-2xl border border-white/25 bg-black/25 px-4 py-3 text-white backdrop-blur-sm">
+                <p class="text-3xl font-semibold">{{ slide.kpi }}</p>
+                <p class="pb-1 text-xs uppercase tracking-[0.12em] text-zinc-200">{{ slide.kpiLabel }}</p>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+
+      <button type="button" (click)="prevShowcaseSlide()" aria-label="Previous slide" class="showcase-arrow left-4">
+        <lucide-icon [img]="arrowLeftIcon" class="h-5 w-5"></lucide-icon>
+      </button>
+      <button type="button" (click)="nextShowcaseSlide()" aria-label="Next slide" class="showcase-arrow right-4">
+        <lucide-icon [img]="arrowRightIcon" class="h-5 w-5"></lucide-icon>
+      </button>
+
+      <div class="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+        @for (slide of showcaseSlides; track slide.title; let i = $index) {
+          <button type="button" (click)="setShowcaseSlide(i)" [attr.aria-label]="'Go to slide ' + (i + 1)"
+            class="h-2.5 w-2.5 rounded-full border border-white/50 transition-all duration-300"
+            [class.bg-white]="activeShowcaseSlide === i"
+            [class.bg-zinc-100]="activeShowcaseSlide !== i"
+            [class.opacity-40]="activeShowcaseSlide !== i"></button>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section #revealEl id="features" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="mb-10 max-w-2xl">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Powerful features for multi-location growth</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Every workflow your team needs, designed for speed, visibility, and control.</p>
+    </div>
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      @for (feature of featureItems; track feature.title; let i = $index) {
+        <article #revealEl class="scale-in feature-card rounded-2xl p-6 [transition-delay:calc(var(--i)*70ms)]" [style.--i]="i">
+          <div class="mb-4 inline-flex rounded-xl bg-blue-500/10 p-3 text-blue-600 dark:text-blue-300">
+            <lucide-icon [img]="feature.icon" class="feature-icon h-5 w-5"></lucide-icon>
+          </div>
+          <h3 class="text-lg font-semibold">{{ feature.title }}</h3>
+          <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{{ feature.description }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section #revealEl class="slide-left mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="mb-10 max-w-2xl">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">How it works</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Go live quickly with a step-by-step tenant setup flow.</p>
+    </div>
+    <div class="process-grid relative grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      @for (step of steps; track step.title; let i = $index) {
+        <article class="process-card relative rounded-2xl border border-zinc-200/80 bg-white/85 p-5 backdrop-blur-sm transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900/70">
+          <span class="process-index">{{ i + 1 }}</span>
+          <h3 class="mt-10 text-lg font-semibold tracking-tight">{{ step.title }}</h3>
+          <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{{ step.description }}</p>
+          @if (i < steps.length - 1) {
+            <span class="process-link hidden xl:block"></span>
+          }
+        </article>
+      }
+    </div>
+  </section>
+
+  <section #revealEl id="dashboard" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="dashboard-wrap relative overflow-visible rounded-3xl border border-zinc-200/70 bg-gradient-to-b from-white/95 via-blue-50/60 to-zinc-100/70 p-6 backdrop-blur-xl dark:border-zinc-800 dark:from-zinc-900/80 dark:via-indigo-950/25 dark:to-zinc-950/80 lg:p-10">
+      <div class="absolute -left-4 top-16 z-10 floating-card hidden rounded-xl border border-zinc-200/80 bg-white/95 p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900/95 md:block">
+        <p class="text-xs text-zinc-500 dark:text-zinc-400">Pending confirmations</p>
+        <p class="mt-1 text-lg font-semibold">32</p>
+      </div>
+      <div class="absolute -right-4 bottom-16 z-10 floating-card-delayed hidden rounded-xl border border-zinc-200/80 bg-white/95 p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900/95 md:block">
+        <p class="text-xs text-zinc-500 dark:text-zinc-400">Net revenue</p>
+        <p class="mt-1 text-lg font-semibold">$82.4k</p>
+      </div>
+
+      <h2 class="text-center text-3xl font-semibold tracking-tight sm:text-4xl">A dashboard teams actually love to use</h2>
+      <div class="mt-8 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100/90 p-4 dark:border-zinc-700 dark:bg-zinc-950/95">
+        <div class="grid gap-4 md:grid-cols-3">
+          <div class="rounded-xl border border-zinc-200/80 bg-white/90 p-4 dark:border-zinc-700 dark:bg-zinc-900/90">
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">Bookings this week</p>
+            <p class="mt-2 text-2xl font-semibold">846</p>
+          </div>
+          <div class="rounded-xl border border-zinc-200/80 bg-white/90 p-4 dark:border-zinc-700 dark:bg-zinc-900/90">
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">No-show rate</p>
+            <p class="mt-2 text-2xl font-semibold">2.1%</p>
+          </div>
+          <div class="rounded-xl border border-zinc-200/80 bg-white/90 p-4 dark:border-zinc-700 dark:bg-zinc-900/90">
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">Avg response time</p>
+            <p class="mt-2 text-2xl font-semibold">36s</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section #revealEl id="pricing" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="mb-10 text-center">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Simple pricing for every growth stage</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Switch between monthly and annual billing any time.</p>
+
+      <div class="pricing-toggle mx-auto mt-6 inline-flex overflow-hidden rounded-full border border-zinc-300 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-900">
+        <button (click)="toggleBillingCycle(false)" [class.bg-zinc-900]="!annual" [class.text-white]="!annual" class="pricing-toggle-btn rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 dark:[&:not(.bg-zinc-900)]:text-zinc-300" type="button">Monthly</button>
+        <button (click)="toggleBillingCycle(true)" [class.bg-zinc-900]="annual" [class.text-white]="annual" class="pricing-toggle-btn rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 dark:[&:not(.bg-zinc-900)]:text-zinc-300" type="button">Annual</button>
+      </div>
+    </div>
+
+    <div class="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 pt-4 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
+      @for (plan of pricingPlans; track plan.name) {
+        <article
+          [class.popular-plan]="plan.popular"
+          [class.regular-plan]="!plan.popular"
+          [class]="plan.popular
+            ? 'pricing-card relative min-w-[280px] snap-center rounded-3xl border border-blue-500 bg-gradient-to-b from-blue-600 to-indigo-700 p-6 text-white md:min-w-0'
+            : 'pricing-card relative min-w-[280px] snap-center rounded-3xl border border-zinc-200 bg-white p-6 text-zinc-900 md:min-w-0 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100'">
+          @if (plan.popular) {
+            <span class="absolute right-6 top-4 z-10 rounded-full bg-white px-3 py-1 text-xs font-semibold text-blue-700 shadow-md dark:bg-zinc-950 dark:text-blue-300">Most Popular</span>
+          }
+          <h3 class="text-xl font-semibold" [class.mt-8]="plan.popular">{{ plan.name }}</h3>
+          <p class="mt-2 text-sm" [class]="plan.popular ? 'text-blue-50' : 'text-zinc-600 dark:text-zinc-300'">{{ plan.description }}</p>
+          <p class="mt-6 text-4xl font-semibold">${{ annual ? plan.annualPrice : plan.monthlyPrice }}</p>
+          <p class="mt-1 text-xs" [class]="plan.popular ? 'text-blue-100' : 'text-zinc-500 dark:text-zinc-400'">
+            /month {{ annual ? '(billed annually)' : '' }}
+          </p>
+          <ul class="mt-6 space-y-3 text-sm">
+            @for (feature of plan.features; track feature.name) {
+              <li class="flex items-center gap-2">
+                <lucide-icon [img]="feature.included ? checkIcon : xIcon" class="h-4 w-4" [class.text-emerald-500]="feature.included" [class.text-zinc-400]="!feature.included"></lucide-icon>
+                {{ feature.name }}
+              </li>
+            }
+          </ul>
+          <a
+             [class]="plan.popular
+              ? 'no-underline mt-7 inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-semibold text-blue-700 transition-all duration-300 hover:scale-[1.01]'
+              : 'no-underline mt-7 inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:scale-[1.01] dark:bg-white dark:text-zinc-900'"
+             href="#hero">
+            Choose {{ plan.name }}
+          </a>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section #revealEl class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="mb-10 max-w-2xl">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Loved by operators and growth teams</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Real outcomes from teams using Orbit every day.</p>
+    </div>
+    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      @for (item of testimonials; track item.name) {
+        <article class="glass-card rounded-2xl p-6">
+          <div class="mb-3 inline-flex text-yellow-500">
+            <lucide-icon [img]="zapIcon" class="h-4 w-4"></lucide-icon>
+            <lucide-icon [img]="zapIcon" class="h-4 w-4"></lucide-icon>
+            <lucide-icon [img]="zapIcon" class="h-4 w-4"></lucide-icon>
+          </div>
+          <p class="text-sm leading-6 text-zinc-700 dark:text-zinc-200">"{{ item.quote }}"</p>
+          <p class="mt-4 text-sm font-semibold">{{ item.name }}</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ item.role }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section #revealEl id="faq" class="fade-up mx-auto max-w-4xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="mb-10 text-center">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Frequently asked questions</h2>
+    </div>
+    <div class="space-y-3">
+      @for (faq of faqItems; track faq.question; let i = $index) {
+        <article class="faq-card overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900/95">
+          <button
+            (click)="toggleFaq(i)"
+            [attr.aria-expanded]="isFaqOpen(i)"
+            [attr.aria-controls]="'faq-content-' + i"
+            class="faq-button flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-sm font-medium text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-zinc-100"
+            type="button">
+            {{ faq.question }}
+            <lucide-icon [img]="chevronDownIcon" class="h-4 w-4 transition-transform duration-300" [class.rotate-180]="isFaqOpen(i)"></lucide-icon>
+          </button>
+          <div [id]="'faq-content-' + i" class="faq-content px-5" [class.open]="isFaqOpen(i)">
+            <p class="pb-4 text-sm text-zinc-600 dark:text-zinc-300">{{ faq.answer }}</p>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+
+  <footer class="border-t border-zinc-200 bg-white/80 px-4 py-10 backdrop-blur-lg transition-colors duration-500 dark:border-zinc-800 dark:bg-zinc-950/70 sm:px-6 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
+      <div>
+        <p class="text-base font-semibold tracking-[0.06em]">V-omnix</p>
+        <p class="mt-1 text-base text-zinc-600 dark:text-zinc-300">Multi-tenant booking and management for ambitious teams.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-5 text-base">
+        <a class="footer-link no-underline hover:text-blue-600 dark:hover:text-blue-400" href="#">Privacy</a>
+        <a class="footer-link no-underline hover:text-blue-600 dark:hover:text-blue-400" href="#">Terms</a>
+        <a class="footer-link no-underline hover:text-blue-600 dark:hover:text-blue-400" href="#">Contact</a>
+      </div>
+      <div class="flex items-center gap-3">
+        @for (social of socialLinks; track social.label) {
+          <a [href]="social.href" [attr.aria-label]="social.label" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-300 text-zinc-600 transition-all duration-300 hover:border-blue-500 hover:text-blue-600 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-blue-400 dark:hover:text-blue-300">
+            <lucide-icon [img]="social.icon" class="h-5 w-5"></lucide-icon>
+          </a>
+        }
+      </div>
+    </div>
+  </footer>
+</main>
