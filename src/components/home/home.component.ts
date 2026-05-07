@@ -8,6 +8,7 @@ import {
   ViewChildren
 } from '@angular/core';
 import {
+  ArrowLeft,
   ArrowRight,
   BarChart3,
   Building2,
@@ -78,6 +79,14 @@ interface SocialLink {
   icon: LucideIconData;
   label: string;
   href: string;
+}
+
+interface ShowcaseSlide {
+  title: string;
+  description: string;
+  kpi: string;
+  kpiLabel: string;
+  backgroundClass: string;
 }
 
 @Component({
@@ -251,8 +260,34 @@ export class HomeComponent {
     { icon: Github, label: 'GitHub', href: '#' }
   ];
 
+  readonly showcaseSlides: ShowcaseSlide[] = [
+    {
+      title: 'Centralized multi-tenant command center',
+      description: 'Manage locations, teams, and schedules from one clean real-time workspace.',
+      kpi: '12',
+      kpiLabel: 'Active branches',
+      backgroundClass: 'slide-bg-one'
+    },
+    {
+      title: 'Booking pipeline that converts faster',
+      description: 'Track drop-offs and optimize your booking journey with instant funnel visibility.',
+      kpi: '31%',
+      kpiLabel: 'Conversion uplift',
+      backgroundClass: 'slide-bg-two'
+    },
+    {
+      title: 'Operations intelligence at a glance',
+      description: 'Surface occupancy, no-show patterns, and revenue health in one executive view.',
+      kpi: '99.9%',
+      kpiLabel: 'Platform uptime',
+      backgroundClass: 'slide-bg-three'
+    }
+  ];
+  activeShowcaseSlide = 0;
+
   readonly sunIcon = Sun;
   readonly moonIcon = Moon;
+  readonly arrowLeftIcon = ArrowLeft;
   readonly arrowRightIcon = ArrowRight;
   readonly playCircleIcon = PlayCircle;
   readonly usersIcon = Users;
@@ -292,6 +327,19 @@ export class HomeComponent {
 
   toggleFaq(index: number): void {
     this.openFaqIndex = this.openFaqIndex === index ? null : index;
+  }
+
+  nextShowcaseSlide(): void {
+    this.activeShowcaseSlide = (this.activeShowcaseSlide + 1) % this.showcaseSlides.length;
+  }
+
+  prevShowcaseSlide(): void {
+    this.activeShowcaseSlide =
+      (this.activeShowcaseSlide - 1 + this.showcaseSlides.length) % this.showcaseSlides.length;
+  }
+
+  setShowcaseSlide(index: number): void {
+    this.activeShowcaseSlide = index;
   }
 
   isFaqOpen(index: number): boolean {

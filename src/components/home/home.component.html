@@ -48,7 +48,7 @@
     </div>
   </header>
 
-  <section #revealEl id="hero" class="fade-up relative mx-auto grid max-w-7xl gap-12 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-2 lg:px-8 lg:pt-20">
+  <section #revealEl id="hero" class="fade-up relative mx-auto grid max-w-7xl gap-12 px-4 pb-14 pt-14 sm:px-6 lg:grid-cols-2 lg:px-8 lg:pb-16 lg:pt-20">
     <div class="relative z-10 space-y-8">
       <span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-300">
         <lucide-icon [img]="layersIcon" class="h-4 w-4"></lucide-icon>
@@ -61,11 +61,11 @@
         Orbit helps modern service businesses automate scheduling, track payments, and scale operations without operational chaos.
       </p>
       <div class="flex flex-wrap items-center gap-3">
-        <a class="group btn-glow inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-blue-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" href="#pricing">
+        <a class="group btn-glow no-underline inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-blue-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" href="#pricing">
           Get Started
           <lucide-icon [img]="arrowRightIcon" class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"></lucide-icon>
         </a>
-        <a class="inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-white px-6 py-3 text-sm font-semibold text-zinc-700 transition-all duration-300 hover:scale-[1.02] hover:border-blue-500 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-blue-400 dark:hover:text-blue-300" href="#dashboard">
+        <a class="no-underline inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-white px-6 py-3 text-sm font-semibold text-zinc-700 transition-all duration-300 hover:scale-[1.02] hover:border-blue-500 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-blue-400 dark:hover:text-blue-300" href="#dashboard">
           <lucide-icon [img]="playCircleIcon" class="h-4 w-4"></lucide-icon>
           View Demo
         </a>
@@ -86,7 +86,7 @@
       </div>
     </div>
 
-    <div class="slide-right relative z-10">
+    <div #revealEl class="slide-right relative z-10">
       <div class="glass-card relative overflow-hidden rounded-3xl p-5 sm:p-6">
         <div class="mb-5 flex items-center justify-between">
           <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Live dashboard preview</p>
@@ -98,13 +98,13 @@
             <p class="mt-2 text-2xl font-semibold">124</p>
           </div>
           <div class="grid gap-3 sm:grid-cols-2">
-            <div class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-              <p class="text-xs text-zinc-500 dark:text-zinc-400">Conversion</p>
-              <p class="mt-2 text-xl font-semibold">18.4%</p>
+            <div class="dashboard-mini-card rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+              <p class="dashboard-mini-label text-xs text-zinc-500 dark:text-zinc-400">Conversion</p>
+              <p class="dashboard-mini-value mt-2 text-xl font-semibold">18.4%</p>
             </div>
-            <div class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-              <p class="text-xs text-zinc-500 dark:text-zinc-400">Revenue</p>
-              <p class="mt-2 text-xl font-semibold">$24.7k</p>
+            <div class="dashboard-mini-card rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+              <p class="dashboard-mini-label text-xs text-zinc-500 dark:text-zinc-400">Revenue</p>
+              <p class="dashboard-mini-value mt-2 text-xl font-semibold">$24.7k</p>
             </div>
           </div>
         </div>
@@ -115,7 +115,7 @@
   <section #revealEl id="stats" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
     <div class="grid gap-4 md:grid-cols-3">
       @for (stat of statItems; track stat.label) {
-        <article class="glass-card scale-in rounded-2xl p-6 text-center">
+        <article #revealEl class="glass-card scale-in rounded-2xl p-6 text-center">
           <p class="text-3xl font-semibold sm:text-4xl">
             @if (stat.label === 'Uptime') {
               {{ stat.value }}{{ stat.suffix }}
@@ -126,6 +126,52 @@
           <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{{ stat.label }}</p>
         </article>
       }
+    </div>
+  </section>
+
+  <section #revealEl id="showcase" class="fade-up is-visible mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+    <div class="mb-8 max-w-2xl">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Platform showcase</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Real product moments that drive bookings, retention, and scale.</p>
+    </div>
+    <div class="showcase-frame relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800">
+      <div class="showcase-track" [style.transform]="'translateX(-' + activeShowcaseSlide * 100 + '%)'">
+        @for (slide of showcaseSlides; track slide.title) {
+          <article [class]="'showcase-slide relative min-h-[320px] w-full shrink-0 p-6 sm:p-8 ' + slide.backgroundClass">
+            <div class="showcase-overlay absolute inset-0"></div>
+            <div class="relative z-10 flex h-full flex-col justify-between">
+              <div class="max-w-xl">
+                <p class="inline-flex rounded-full border border-white/30 bg-black/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white/90">
+                  Product highlight
+                </p>
+                <h3 class="mt-4 text-2xl font-semibold text-white sm:text-3xl">{{ slide.title }}</h3>
+                <p class="mt-3 text-sm text-zinc-100 sm:text-base">{{ slide.description }}</p>
+              </div>
+              <div class="inline-flex w-fit items-end gap-3 rounded-2xl border border-white/25 bg-black/25 px-4 py-3 text-white backdrop-blur-sm">
+                <p class="text-3xl font-semibold">{{ slide.kpi }}</p>
+                <p class="pb-1 text-xs uppercase tracking-[0.12em] text-zinc-200">{{ slide.kpiLabel }}</p>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+
+      <button type="button" (click)="prevShowcaseSlide()" aria-label="Previous slide" class="showcase-arrow left-4">
+        <lucide-icon [img]="arrowLeftIcon" class="h-5 w-5"></lucide-icon>
+      </button>
+      <button type="button" (click)="nextShowcaseSlide()" aria-label="Next slide" class="showcase-arrow right-4">
+        <lucide-icon [img]="arrowRightIcon" class="h-5 w-5"></lucide-icon>
+      </button>
+
+      <div class="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+        @for (slide of showcaseSlides; track slide.title; let i = $index) {
+          <button type="button" (click)="setShowcaseSlide(i)" [attr.aria-label]="'Go to slide ' + (i + 1)"
+            class="h-2.5 w-2.5 rounded-full border border-white/50 transition-all duration-300"
+            [class.bg-white]="activeShowcaseSlide === i"
+            [class.bg-zinc-100]="activeShowcaseSlide !== i"
+            [class.opacity-40]="activeShowcaseSlide !== i"></button>
+        }
+      </div>
     </div>
   </section>
 
@@ -203,8 +249,8 @@
       <p class="mt-3 text-zinc-600 dark:text-zinc-300">Switch between monthly and annual billing any time.</p>
 
       <div class="pricing-toggle mx-auto mt-6 inline-flex overflow-hidden rounded-full border border-zinc-300 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-900">
-        <button (click)="toggleBillingCycle(false)" [class.bg-zinc-900]="!annual" [class.text-white]="!annual" class="rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 dark:[&:not(.bg-zinc-900)]:text-zinc-300" type="button">Monthly</button>
-        <button (click)="toggleBillingCycle(true)" [class.bg-zinc-900]="annual" [class.text-white]="annual" class="rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 dark:[&:not(.bg-zinc-900)]:text-zinc-300" type="button">Annual</button>
+        <button (click)="toggleBillingCycle(false)" [class.bg-zinc-900]="!annual" [class.text-white]="!annual" class="pricing-toggle-btn rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 dark:[&:not(.bg-zinc-900)]:text-zinc-300" type="button">Monthly</button>
+        <button (click)="toggleBillingCycle(true)" [class.bg-zinc-900]="annual" [class.text-white]="annual" class="pricing-toggle-btn rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 dark:[&:not(.bg-zinc-900)]:text-zinc-300" type="button">Annual</button>
       </div>
     </div>
 
@@ -235,8 +281,8 @@
           </ul>
           <a
              [class]="plan.popular
-              ? 'mt-7 inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-semibold text-blue-700 transition-all duration-300 hover:scale-[1.01]'
-              : 'mt-7 inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:scale-[1.01] dark:bg-white dark:text-zinc-900'"
+              ? 'no-underline mt-7 inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-semibold text-blue-700 transition-all duration-300 hover:scale-[1.01]'
+              : 'no-underline mt-7 inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:scale-[1.01] dark:bg-white dark:text-zinc-900'"
              href="#hero">
             Choose {{ plan.name }}
           </a>
