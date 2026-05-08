@@ -1,0 +1,93 @@
+<main class="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 p-5 text-zinc-900 transition-colors dark:from-zinc-950 dark:via-slate-950 dark:to-indigo-950 dark:text-zinc-100">
+  <section class="mx-auto max-w-7xl rounded-3xl border border-white/40 bg-white/70 p-6 shadow-2xl backdrop-blur-xl dark:border-zinc-700 dark:bg-zinc-900/70">
+    <p class="text-xs uppercase tracking-[0.22em] text-indigo-500">Admin dashboard</p>
+    <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-3xl font-semibold">Welcome to V-Omnix</h1>
+      <span class="rounded-full border border-indigo-300 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-700 dark:border-indigo-400/30 dark:text-indigo-300">
+        Selected Plan: {{ selectedPlanId }}
+      </span>
+    </div>
+    <div class="mt-8 grid gap-4 md:grid-cols-3">
+      <article class="rounded-2xl border border-zinc-200 bg-white/80 p-4 dark:border-zinc-700 dark:bg-zinc-900/80">
+        <p class="text-xs text-zinc-500 dark:text-zinc-400">Active Tenants</p>
+        <p class="mt-2 text-2xl font-semibold">12</p>
+      </article>
+      <article class="rounded-2xl border border-zinc-200 bg-white/80 p-4 dark:border-zinc-700 dark:bg-zinc-900/80">
+        <p class="text-xs text-zinc-500 dark:text-zinc-400">This Month MRR</p>
+        <p class="mt-2 text-2xl font-semibold">$18.4k</p>
+      </article>
+      <article class="rounded-2xl border border-zinc-200 bg-white/80 p-4 dark:border-zinc-700 dark:bg-zinc-900/80">
+        <p class="text-xs text-zinc-500 dark:text-zinc-400">Automations Running</p>
+        <p class="mt-2 text-2xl font-semibold">34</p>
+      </article>
+    </div>
+  </section>
+
+  @if (showOnboarding()) {
+    <section class="fixed inset-0 z-50 grid place-items-center p-4">
+      <div class="absolute inset-0 bg-zinc-950/65 backdrop-blur-[7px]"></div>
+      <article class="onboarding-modal relative w-full max-w-2xl rounded-3xl border border-white/40 bg-white/85 p-6 shadow-2xl backdrop-blur-xl dark:border-zinc-700 dark:bg-zinc-900/85">
+        <h2 class="text-2xl font-semibold">Complete Your Business Setup</h2>
+        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">Professional onboarding wizard for your admin workspace.</p>
+
+        <div class="mt-5">
+          <div class="h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-800">
+            <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-300" [style.width.%]="progress()"></div>
+          </div>
+          <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Step {{ onboardingStep() }} of {{ totalSteps }}</p>
+        </div>
+
+        <form [formGroup]="setupForm" class="mt-6 space-y-4">
+          @if (onboardingStep() === 1) {
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Business Name</span>
+              <input formControlName="businessName" placeholder="Enter business name" class="onboarding-control w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500" />
+            </label>
+          }
+          @if (onboardingStep() === 2) {
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Business Type</span>
+              <select formControlName="businessType" class="onboarding-control onboarding-select w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
+                <option value="">Select type</option>
+                <option value="clinic">Clinic</option>
+                <option value="salon">Salon</option>
+                <option value="studio">Studio</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+          }
+          @if (onboardingStep() === 3) {
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Workspace Details</span>
+              <textarea formControlName="workspaceDetails" rows="4" placeholder="Describe your workspace setup, locations, and team workflow" class="onboarding-control w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"></textarea>
+            </label>
+          }
+          @if (onboardingStep() === 4) {
+            <div class="rounded-2xl border border-indigo-300 bg-indigo-500/10 p-4 dark:border-indigo-400/30">
+              <p class="text-sm font-medium">Continue Purchase / Subscription</p>
+              <p class="mt-1 text-xs text-zinc-600 dark:text-zinc-300">Connect billing and activate the selected plan to finalize your setup.</p>
+            </div>
+          }
+        </form>
+
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <button type="button" (click)="skipForNow()" class="onboarding-action-btn rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800">Skip For Now</button>
+          <div class="flex items-center gap-2">
+            <button type="button" (click)="previousStep()" [disabled]="onboardingStep() === 1" class="onboarding-action-btn rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800">Back</button>
+            @if (onboardingStep() < totalSteps) {
+              <button
+                type="button"
+                (click)="nextStep()"
+                [disabled]="(onboardingStep() === 1 && setupForm.controls.businessName.invalid) || (onboardingStep() === 2 && setupForm.controls.businessType.invalid) || (onboardingStep() === 3 && setupForm.controls.workspaceDetails.invalid)"
+                class="onboarding-primary-btn rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-zinc-900">
+                Continue Setup
+              </button>
+            } @else {
+              <button type="button" (click)="completeSetup()" class="onboarding-primary-btn rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white">Finish Setup</button>
+            }
+          </div>
+        </div>
+      </article>
+    </section>
+  }
+</main>

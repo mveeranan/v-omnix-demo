@@ -2,11 +2,14 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  HostListener,
+  inject,
   OnDestroy,
   OnInit,
   QueryList,
   ViewChildren
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import {
   ArrowLeft,
   ArrowRight,
@@ -21,6 +24,7 @@ import {
   Layers3,
   Linkedin,
   LucideAngularModule,
+  Menu,
   Moon,
   PlayCircle,
   ShieldCheck,
@@ -29,8 +33,14 @@ import {
   Users,
   X,
   Zap,
-  LucideIconData
+  LucideIconData,
+  Eye,
+  EyeOff,
+  UploadCloud,
+  Sparkles
 } from 'lucide-angular';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 interface StatItem {
   label: string;
@@ -56,6 +66,7 @@ interface PricingFeature {
 }
 
 interface PricingPlan {
+  id: string;
   name: string;
   monthlyPrice: number;
   annualPrice: number;
@@ -89,20 +100,48 @@ interface ShowcaseSlide {
   backgroundClass: string;
 }
 
+interface CountryCodeOption {
+  name: string;
+  dialCode: string;
+  flag: string;
+}
+
 @Component({
   selector: 'app-home',
   standalone: true,
-   imports: [LucideAngularModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
   @ViewChildren('revealEl') revealElements!: QueryList<ElementRef<HTMLElement>>;
 
   annual = false;
   isDarkMode = false;
+  mobileMenuOpen = false;
   openFaqIndex: number | null = 0;
   countersStarted = false;
+  showAuthChoiceModal = false;
+  showAuthPanel = false;
+  authMode: 'login' | 'register' = 'login';
+  selectedPlanId = 'starter';
+  selectedPlanName = 'Starter';
+  showLoginPassword = false;
+  showRegisterPassword = false;
+  authSubmitting = false;
+  authError = '';
+  onboardingRequired = true;
+  profileImagePreview = '';
+  isDragOver = false;
+  readonly countryCodes: CountryCodeOption[] = [
+    { name: 'United States', dialCode: '+1', flag: '🇺🇸' },
+    { name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧' },
+    { name: 'United Arab Emirates', dialCode: '+971', flag: '🇦🇪' },
+    { name: 'India', dialCode: '+91', flag: '🇮🇳' },
+    { name: 'Pakistan', dialCode: '+92', flag: '🇵🇰' }
+  ];
   private userThemePreference = false;
   private revealObserver?: IntersectionObserver;
   private statsObserver?: IntersectionObserver;
@@ -169,6 +208,7 @@ export class HomeComponent {
 
   readonly pricingPlans: PricingPlan[] = [
     {
+      id: 'starter',
       name: 'Starter',
       monthlyPrice: 29,
       annualPrice: 23,
@@ -182,6 +222,7 @@ export class HomeComponent {
       ]
     },
     {
+      id: 'silver',
       name: 'Silver',
       monthlyPrice: 79,
       annualPrice: 63,
@@ -196,6 +237,7 @@ export class HomeComponent {
       ]
     },
     {
+      id: 'gold',
       name: 'Gold',
       monthlyPrice: 149,
       annualPrice: 119,
@@ -287,6 +329,7 @@ export class HomeComponent {
 
   readonly sunIcon = Sun;
   readonly moonIcon = Moon;
+  readonly menuIcon = Menu;
   readonly arrowLeftIcon = ArrowLeft;
   readonly arrowRightIcon = ArrowRight;
   readonly playCircleIcon = PlayCircle;
@@ -297,6 +340,27 @@ export class HomeComponent {
   readonly checkIcon = Check;
   readonly xIcon = X;
   readonly chevronDownIcon = ChevronDown;
+  readonly eyeIcon = Eye;
+  readonly eyeOffIcon = EyeOff;
+  readonly uploadCloudIcon = UploadCloud;
+  readonly sparklesIcon = Sparkles;
+
+  readonly loginForm = this.fb.nonNullable.group({
+    emailOrMobile: ['', [Validators.required, Validators.minLength(3)]],
+    password: ['', [Validators.required, Validators.minLength(8)]]
+  });
+
+  readonly registerForm = this.fb.nonNullable.group({
+    firstName: ['', [Validators.required, Validators.maxLength(30)]],
+    lastName: ['', [Validators.required, Validators.maxLength(30)]],
+    countryCode: [this.countryCodes[2].dialCode, [Validators.required]],
+    mobileNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{7,14}$/)]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
+    acceptTerms: [false, [Validators.requiredTrue]],
+    profileImage: [null as File | null]
+  });
+
   ngOnInit(): void {
     this.initializeTheme();
   }
@@ -321,8 +385,132 @@ export class HomeComponent {
     localStorage.setItem(this.themeStorageKey, this.isDarkMode ? 'dark' : 'light');
   }
 
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen = false;
+  }
+
   toggleBillingCycle(isAnnual: boolean): void {
     this.annual = isAnnual;
+  }
+
+  openAuthChoice(plan?: PricingPlan): void {
+    if (plan) {
+      this.selectedPlanId = plan.id;
+      this.selectedPlanName = plan.name;
+    }
+    this.showAuthChoiceModal = true;
+    this.showAuthPanel = false;
+    this.authError = '';
+  }
+
+  openAuthPanel(mode: 'login' | 'register'): void {
+    this.authMode = mode;
+    this.showAuthChoiceModal = false;
+    this.showAuthPanel = true;
+    this.authError = '';
+  }
+
+  closeAuthOverlays(): void {
+    this.showAuthChoiceModal = false;
+    this.showAuthPanel = false;
+    this.authError = '';
+    this.isDragOver = false;
+    this.refreshRevealAnimations();
+  }
+
+  switchAuthMode(mode: 'login' | 'register'): void {
+    this.authMode = mode;
+    this.authError = '';
+  }
+
+  togglePasswordVisibility(type: 'login' | 'register'): void {
+    if (type === 'login') {
+      this.showLoginPassword = !this.showLoginPassword;
+      return;
+    }
+    this.showRegisterPassword = !this.showRegisterPassword;
+  }
+
+  onProfileFilePicked(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    this.applyProfileImage(file);
+  }
+
+  onUploadDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = true;
+  }
+
+  onUploadDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+  }
+
+  onUploadDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+    const file = event.dataTransfer?.files?.[0];
+    if (!file) {
+      return;
+    }
+    this.applyProfileImage(file);
+  }
+
+  async submitAuth(): Promise<void> {
+    const targetForm = this.authMode === 'login' ? this.loginForm : this.registerForm;
+    if (targetForm.invalid || this.authSubmitting) {
+      targetForm.markAllAsTouched();
+      return;
+    }
+
+    this.authSubmitting = true;
+    this.authError = '';
+
+    await new Promise((resolve) => setTimeout(resolve, 900));
+
+    this.authSubmitting = false;
+    this.closeAuthOverlays();
+    this.router.navigate(['/admin/dashboard'], {
+      queryParams: {
+        planId: this.selectedPlanId,
+        setupIncomplete: this.onboardingRequired ? '1' : '0'
+      }
+    });
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapePress(): void {
+    if (this.showAuthChoiceModal || this.showAuthPanel) {
+      this.closeAuthOverlays();
+    }
+  }
+
+  hasLoginError(controlName: 'emailOrMobile' | 'password'): boolean {
+    const control = this.loginForm.controls[controlName];
+    return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+
+  hasRegisterError(
+    controlName:
+      | 'firstName'
+      | 'lastName'
+      | 'countryCode'
+      | 'mobileNumber'
+      | 'email'
+      | 'password'
+      | 'acceptTerms'
+      | 'profileImage'
+  ): boolean {
+    const control = this.registerForm.controls[controlName];
+    return !!(control && control.invalid && (control.dirty || control.touched));
   }
 
   toggleFaq(index: number): void {
@@ -400,14 +588,38 @@ export class HomeComponent {
       elements.forEach((item) => this.revealObserver?.observe(item.nativeElement));
     });
 
-    // Refresh/load safety: never leave sections hidden if observer misses.
+    // Refresh/load safety: only reveal items that should already be on screen.
     this.revealFallbackTimer = setTimeout(() => {
-      this.forceShowAllRevealSections();
+      this.forceShowVisibleRevealSections();
     }, 1400);
   }
 
   private forceShowAllRevealSections(): void {
     this.revealElements.forEach((item) => item.nativeElement.classList.add('is-visible'));
+  }
+
+  private forceShowVisibleRevealSections(): void {
+    const viewportLimit = window.innerHeight * 0.9;
+    this.revealElements.forEach((item) => {
+      const rect = item.nativeElement.getBoundingClientRect();
+      if (rect.top <= viewportLimit) {
+        item.nativeElement.classList.add('is-visible');
+      }
+    });
+  }
+
+  private refreshRevealAnimations(): void {
+    // Re-check reveal elements after modal close so sections do not remain hidden.
+    this.forceShowVisibleRevealSections();
+    setTimeout(() => {
+      this.forceShowVisibleRevealSections();
+      this.revealElements.forEach((item) => {
+        const element = item.nativeElement;
+        if (!element.classList.contains('is-visible')) {
+          this.revealObserver?.observe(element);
+        }
+      });
+    }, 90);
   }
 
   private setupStatsObserver(): void {
@@ -450,5 +662,18 @@ export class HomeComponent {
     };
 
     requestAnimationFrame(tick);
+  }
+
+  private applyProfileImage(file: File): void {
+    if (!file.type.startsWith('image/')) {
+      this.authError = 'Please upload a valid image file.';
+      return;
+    }
+    this.registerForm.patchValue({ profileImage: file });
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.profileImagePreview = typeof reader.result === 'string' ? reader.result : '';
+    };
+    reader.readAsDataURL(file);
   }
 }
