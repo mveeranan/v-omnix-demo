@@ -36,11 +36,22 @@ import {
   LucideIconData,
   Eye,
   EyeOff,
-  UploadCloud,
   Sparkles
 } from 'lucide-angular';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
 import { Router } from '@angular/router';
+import { API_ENDPOINTS } from '../../environments/api.constants';
+import { AuthService } from '../../app/core/auth/auth.service';
+import { NotificationService } from '../../app/core/notifications/notification.service';
+import { firstValueFrom, Subscription } from 'rxjs';
 
 interface StatItem {
   label: string;
@@ -61,18 +72,69 @@ interface StepItem {
 }
 
 interface PricingFeature {
+  id?: string;
   name: string;
   included: boolean;
+}
+
+interface PlanPrice {
+  planPriceId: string;
+  billingCycle: 'Monthly' | 'Yearly' | string;
+  amount: number;
+  currency: string;
+  stripePriceId: string;
 }
 
 interface PricingPlan {
   id: string;
   name: string;
-  monthlyPrice: number;
-  annualPrice: number;
+  monthlyPrice?: PlanPrice;
+  annualPrice?: PlanPrice;
   description: string;
   popular?: boolean;
   features: PricingFeature[];
+}
+
+interface PlanApiDto {
+  planId: string;
+  name: string;
+  prices: PlanPrice[];
+  features: Array<{
+    id: string;
+    name: string;
+  }>;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  errors?: string[];
+}
+
+interface AuthContext {
+  tenantId: string;
+  tenantName: string;
+  roleId: string;
+  roleName: string;
+}
+
+interface LoginData {
+  token: string;
+  refreshToken: string;
+  expiresAt: string;
+  userId: string;
+  email: string;
+  contexts: AuthContext[];
+}
+
+interface SelectContextData {
+  userId: string;
+  email: string;
+  tenantId: string;
+  tenantName: string;
+  roleId: string;
+  roleName: string;
 }
 
 interface Testimonial {
@@ -101,9 +163,30 @@ interface ShowcaseSlide {
 }
 
 interface CountryCodeOption {
+  id?: string;
   name: string;
+  isoCode?: string;
   dialCode: string;
-  flag: string;
+  flagEmoji: string;
+  phoneNumberRegex?: string;
+  phoneNumberExample?: string;
+  nationalNumberMinLength?: number;
+  nationalNumberMaxLength?: number;
+}
+
+enum BusinessType {
+  Salon = 1,
+  Spa,
+  Studio,
+  Clinic,
+  Freelancer,
+  Other
+}
+
+
+interface BusinessTypeOption {
+  value: BusinessType;
+  label: string;
 }
 
 @Component({
@@ -116,6 +199,9 @@ interface CountryCodeOption {
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
+  private readonly notificationService = inject(NotificationService);
   @ViewChildren('revealEl') revealElements!: QueryList<ElementRef<HTMLElement>>;
 
   annual = false;
@@ -126,27 +212,44 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   showAuthChoiceModal = false;
   showAuthPanel = false;
   authMode: 'login' | 'register' = 'login';
-  selectedPlanId = 'starter';
-  selectedPlanName = 'Starter';
+  selectedPlanId = '';
+  selectedPlanName = '';
+  selectedPlanPriceId = '';
+  selectedStripePriceId = '';
+  pricingLoading = false;
+  pricingError = '';
   showLoginPassword = false;
   showRegisterPassword = false;
+  registerStep = 1;
   authSubmitting = false;
   authError = '';
   onboardingRequired = true;
-  profileImagePreview = '';
-  isDragOver = false;
-  readonly countryCodes: CountryCodeOption[] = [
-    { name: 'United States', dialCode: '+1', flag: '🇺🇸' },
-    { name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧' },
-    { name: 'United Arab Emirates', dialCode: '+971', flag: '🇦🇪' },
-    { name: 'India', dialCode: '+91', flag: '🇮🇳' },
-    { name: 'Pakistan', dialCode: '+92', flag: '🇵🇰' }
-  ];
+  showContextSelectionModal = false;
+  contextSubmitting = false;
+  contextError = '';
+  loginUserId = '';
+  loginUserEmail = '';
+  availableContexts: AuthContext[] = [];
+  selectedContextTenantId = '';
+  isCountryDropdownOpen = false;
+  countrySearchTerm = '';
+  countryOptions: CountryCodeOption[] = [];
+  countriesLoading = false;
+  countriesError = '';
   private userThemePreference = false;
   private revealObserver?: IntersectionObserver;
   private statsObserver?: IntersectionObserver;
   private revealFallbackTimer?: ReturnType<typeof setTimeout>;
   private readonly themeStorageKey = 'v-omnix-theme';
+  private countryCodeSubscription?: Subscription;
+  readonly businessTypeOptions: BusinessTypeOption[] = [
+    { value: BusinessType.Salon, label: 'Salon' },
+    { value: BusinessType.Spa, label: 'Spa' },
+    { value: BusinessType.Studio, label: 'Studio' },
+    { value: BusinessType.Clinic, label: 'Clinic' },
+    { value: BusinessType.Freelancer, label: 'Freelancer' },
+    { value: BusinessType.Other, label: 'Other' }
+  ];
 
   readonly statItems: StatItem[] = [
     { label: 'Businesses', value: 100, suffix: '+', displayValue: 0 },
@@ -206,51 +309,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   ];
 
-  readonly pricingPlans: PricingPlan[] = [
-    {
-      id: 'starter',
-      name: 'Starter',
-      monthlyPrice: 29,
-      annualPrice: 23,
-      description: 'For early-stage teams launching their first booking workflow.',
-      features: [
-        { name: '1 tenant / business', included: true },
-        { name: 'Up to 3 staff accounts', included: true },
-        { name: 'Basic booking calendar', included: true },
-        { name: 'Payments and invoicing', included: false },
-        { name: 'Advanced analytics', included: false }
-      ]
-    },
-    {
-      id: 'silver',
-      name: 'Silver',
-      monthlyPrice: 79,
-      annualPrice: 63,
-      description: 'For growing teams scaling operations across locations.',
-      popular: true,
-      features: [
-        { name: '5 tenants / businesses', included: true },
-        { name: 'Unlimited staff accounts', included: true },
-        { name: 'Automations and reminders', included: true },
-        { name: 'Payments and invoicing', included: true },
-        { name: 'Advanced analytics', included: false }
-      ]
-    },
-    {
-      id: 'gold',
-      name: 'Gold',
-      monthlyPrice: 149,
-      annualPrice: 119,
-      description: 'For high-volume operators that need enterprise-grade controls.',
-      features: [
-        { name: 'Unlimited tenants', included: true },
-        { name: 'Priority onboarding', included: true },
-        { name: 'Role-based access controls', included: true },
-        { name: 'Payments and invoicing', included: true },
-        { name: 'Advanced analytics', included: true }
-      ]
-    }
-  ];
+  pricingPlans: PricingPlan[] = [];
 
   readonly testimonials: Testimonial[] = [
     {
@@ -342,27 +401,31 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly chevronDownIcon = ChevronDown;
   readonly eyeIcon = Eye;
   readonly eyeOffIcon = EyeOff;
-  readonly uploadCloudIcon = UploadCloud;
   readonly sparklesIcon = Sparkles;
 
   readonly loginForm = this.fb.nonNullable.group({
-    emailOrMobile: ['', [Validators.required, Validators.minLength(3)]],
+    email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]]
   });
 
   readonly registerForm = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(30)]],
     lastName: ['', [Validators.required, Validators.maxLength(30)]],
-    countryCode: [this.countryCodes[2].dialCode, [Validators.required]],
-    mobileNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{7,14}$/)]],
+    countryCode: ['', [Validators.required]],
+    mobileNumber: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
-    acceptTerms: [false, [Validators.requiredTrue]],
-    profileImage: [null as File | null]
+    businessName: ['', [Validators.required, Validators.maxLength(80)]],
+    businessType: [0 as number, [Validators.required, Validators.min(1)]],
+    description: [''],
+    acceptTerms: [false, [Validators.requiredTrue]]
   });
 
   ngOnInit(): void {
     this.initializeTheme();
+    this.loadPricingPlans();
+    this.setupCountryValidationWatcher();
+    this.loadCountries();
   }
 
   ngAfterViewInit(): void {
@@ -376,6 +439,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.revealFallbackTimer) {
       clearTimeout(this.revealFallbackTimer);
     }
+    this.countryCodeSubscription?.unsubscribe();
   }
 
   toggleTheme(): void {
@@ -401,6 +465,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (plan) {
       this.selectedPlanId = plan.id;
       this.selectedPlanName = plan.name;
+      const selectedPrice = this.getPlanPrice(plan);
+      this.selectedPlanPriceId = selectedPrice?.planPriceId ?? '';
+      this.selectedStripePriceId = selectedPrice?.stripePriceId ?? '';
     }
     this.showAuthChoiceModal = true;
     this.showAuthPanel = false;
@@ -411,19 +478,63 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.authMode = mode;
     this.showAuthChoiceModal = false;
     this.showAuthPanel = true;
+    this.registerStep = 1;
     this.authError = '';
   }
 
   closeAuthOverlays(): void {
     this.showAuthChoiceModal = false;
     this.showAuthPanel = false;
+    this.showContextSelectionModal = false;
     this.authError = '';
-    this.isDragOver = false;
+    this.contextError = '';
+    this.resetAuthForms();
     this.refreshRevealAnimations();
+  }
+
+  private resetAuthForms(): void {
+    this.authSubmitting = false;
+    this.contextSubmitting = false;
+
+    this.loginForm.reset({
+      email: '',
+      password: ''
+    });
+
+    const preferredDial =
+      this.countryOptions.find((item) => item.dialCode === '+971')?.dialCode ??
+      this.countryOptions[0]?.dialCode ??
+      '';
+
+    this.registerForm.reset({
+      firstName: '',
+      lastName: '',
+      countryCode: preferredDial,
+      mobileNumber: '',
+      email: '',
+      password: '',
+      businessName: '',
+      businessType: 0,
+      description: '',
+      acceptTerms: false
+    });
+    this.applyCountryValidators();
+
+    this.registerStep = 1;
+    this.showLoginPassword = false;
+    this.showRegisterPassword = false;
+    this.isCountryDropdownOpen = false;
+    this.countrySearchTerm = '';
+
+    this.loginUserId = '';
+    this.loginUserEmail = '';
+    this.availableContexts = [];
+    this.selectedContextTenantId = '';
   }
 
   switchAuthMode(mode: 'login' | 'register'): void {
     this.authMode = mode;
+    this.registerStep = 1;
     this.authError = '';
   }
 
@@ -435,65 +546,474 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showRegisterPassword = !this.showRegisterPassword;
   }
 
-  onProfileFilePicked(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) {
-      return;
-    }
-    this.applyProfileImage(file);
-  }
-
-  onUploadDragOver(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragOver = true;
-  }
-
-  onUploadDragLeave(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragOver = false;
-  }
-
-  onUploadDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragOver = false;
-    const file = event.dataTransfer?.files?.[0];
-    if (!file) {
-      return;
-    }
-    this.applyProfileImage(file);
-  }
-
   async submitAuth(): Promise<void> {
     const targetForm = this.authMode === 'login' ? this.loginForm : this.registerForm;
-    if (targetForm.invalid || this.authSubmitting) {
+    if (this.authSubmitting) {
+      return;
+    }
+    if (this.authMode === 'login' && targetForm.invalid) {
       targetForm.markAllAsTouched();
+      return;
+    }
+
+    if (this.authMode !== 'login') {
+      this.authSubmitting = true;
+      this.authError = '';
+      await this.submitRegister();
       return;
     }
 
     this.authSubmitting = true;
     this.authError = '';
 
-    await new Promise((resolve) => setTimeout(resolve, 900));
-
-    this.authSubmitting = false;
-    this.closeAuthOverlays();
-    this.router.navigate(['/admin/dashboard'], {
-      queryParams: {
-        planId: this.selectedPlanId,
-        setupIncomplete: this.onboardingRequired ? '1' : '0'
+    try {
+      const payload = {
+        email: this.loginForm.controls.email.value.trim(),
+        password: this.loginForm.controls.password.value
+      };
+      const response = await firstValueFrom(
+        this.http.post<ApiResponse<LoginData>>(API_ENDPOINTS.auth.login, payload)
+      );
+      if (!response.success || !response.data?.token) {
+        this.authError = response.message || this.getFirstError(response.errors) || 'Login failed.';
+        this.notificationService.error(this.authError);
+        this.authSubmitting = false;
+        return;
       }
+
+      this.authService.setTokens({
+        accessToken: response.data.token,
+        refreshToken: response.data.refreshToken ?? ''
+      });
+
+      this.loginUserId = response.data.userId;
+      this.loginUserEmail = response.data.email;
+      this.availableContexts = response.data.contexts ?? [];
+
+      if (this.availableContexts.length === 0) {
+        this.authSubmitting = false;
+        this.authError = 'No tenant context is assigned for this account.';
+        this.notificationService.warning(this.authError);
+        return;
+      }
+
+      if (this.availableContexts.length > 1) {
+        this.showAuthPanel = false;
+        this.showAuthChoiceModal = false;
+        this.showContextSelectionModal = true;
+        this.selectedContextTenantId = this.availableContexts[0]?.tenantId ?? '';
+        this.notificationService.info('Multiple contexts found. Select one to continue.');
+        this.authSubmitting = false;
+        return;
+      }
+
+      this.authSubmitting = false;
+      this.notificationService.success('Login successful.');
+      this.navigateToDashboard(false);
+    } catch (error) {
+      this.authSubmitting = false;
+      this.authError = this.extractErrorMessage(error) || 'Login failed. Please try again.';
+      this.notificationService.error(this.authError);
+    }
+  }
+
+  selectContext(tenantId: string): void {
+    this.selectedContextTenantId = tenantId;
+    this.contextError = '';
+  }
+
+  async continueWithSelectedContext(): Promise<void> {
+    if (!this.selectedContextTenantId || !this.loginUserId || this.contextSubmitting) {
+      return;
+    }
+
+    this.contextSubmitting = true;
+    this.contextError = '';
+
+    try {
+      const response = await firstValueFrom(
+        this.http.post<ApiResponse<SelectContextData>>(API_ENDPOINTS.auth.selectContext, {
+          userId: this.loginUserId,
+          tenantId: this.selectedContextTenantId
+        })
+      );
+
+      if (!response.success) {
+        this.contextSubmitting = false;
+        this.contextError =
+          response.message || this.getFirstError(response.errors) || 'Context selection failed.';
+        this.notificationService.error(this.contextError);
+        return;
+      }
+
+      this.contextSubmitting = false;
+      this.notificationService.success('Context selected successfully.');
+      this.closeAuthOverlays();
+      this.navigateToDashboard(false);
+    } catch (error) {
+      this.contextSubmitting = false;
+      this.contextError =
+        this.extractErrorMessage(error) || 'Unable to select context. Please try again.';
+      this.notificationService.error(this.contextError);
+    }
+  }
+
+  cancelContextSelection(): void {
+    this.showContextSelectionModal = false;
+    this.showAuthPanel = true;
+    this.contextError = '';
+  }
+
+  getContextContinueText(context: AuthContext): string {
+    return `Continue with ${context.tenantName} (${context.roleName}) - ${this.loginUserEmail}`;
+  }
+
+  getMobileNumberError(): string {
+    const control = this.registerForm.controls.mobileNumber;
+    if (!(control.invalid && (control.dirty || control.touched))) {
+      return '';
+    }
+
+    if (control.hasError('required')) {
+      return 'Mobile number is required.';
+    }
+
+    const selectedCountry = this.getSelectedCountry();
+    const minLength = selectedCountry?.nationalNumberMinLength;
+    const maxLength = selectedCountry?.nationalNumberMaxLength;
+
+    if ((control.hasError('minlength') || control.hasError('mobileLength')) && minLength) {
+      return `Mobile number must be at least ${minLength} digits.`;
+    }
+
+    if ((control.hasError('maxlength') || control.hasError('mobileLength')) && maxLength) {
+      return `Mobile number must be at most ${maxLength} digits.`;
+    }
+
+    if (control.hasError('pattern') || control.hasError('mobilePattern')) {
+      if (selectedCountry?.phoneNumberExample) {
+        return `Invalid format. Example: ${selectedCountry.phoneNumberExample}`;
+      }
+      return 'Invalid mobile number format.';
+    }
+
+    return 'Invalid mobile number.';
+  }
+
+  getRegisterFieldError(
+    controlName:
+      | 'firstName'
+      | 'lastName'
+      | 'countryCode'
+      | 'businessName'
+      | 'businessType'
+      | 'email'
+      | 'password'
+      | 'acceptTerms'
+  ): string {
+    const control = this.registerForm.controls[controlName];
+    if (!(control.invalid && (control.dirty || control.touched))) {
+      return '';
+    }
+
+    if (control.hasError('required')) {
+      if (controlName === 'firstName') {
+        return 'First name is required.';
+      }
+      if (controlName === 'lastName') {
+        return 'Last name is required.';
+      }
+      if (controlName === 'countryCode') {
+        return 'Country code is required.';
+      }
+      if (controlName === 'email') {
+        return 'Email address is required.';
+      }
+      if (controlName === 'password') {
+        return 'Password is required.';
+      }
+      if (controlName === 'businessName') {
+        return 'Business name is required.';
+      }
+      if (controlName === 'businessType') {
+        return 'Business type is required.';
+      }
+    }
+
+    if (control.hasError('email')) {
+      return 'Enter a valid email address.';
+    }
+
+    if (control.hasError('minlength') && controlName === 'password') {
+      return 'Password must be at least 8 characters.';
+    }
+
+    if (control.hasError('maxlength') && (controlName === 'firstName' || controlName === 'lastName')) {
+      return 'Maximum 30 characters allowed.';
+    }
+
+    if (control.hasError('maxlength') && controlName === 'businessName') {
+      return 'Maximum 80 characters allowed.';
+    }
+
+    if (controlName === 'businessType' && control.hasError('min')) {
+      return 'Business type is required.';
+    }
+
+    if (controlName === 'acceptTerms' && control.hasError('requiredTrue')) {
+      return 'Please accept terms to continue.';
+    }
+
+    return 'This field is required.';
+  }
+
+  canProceedToRegisterStepTwo(): boolean {
+    return (
+      this.registerForm.controls.firstName.valid &&
+      this.registerForm.controls.lastName.valid &&
+      this.registerForm.controls.countryCode.valid &&
+      this.registerForm.controls.mobileNumber.valid &&
+      this.registerForm.controls.email.valid &&
+      this.registerForm.controls.password.valid &&
+      this.registerForm.controls.acceptTerms.valid
+    );
+  }
+
+  goToRegisterStepTwo(): void {
+    if (!this.canProceedToRegisterStepTwo()) {
+      this.registerForm.controls.firstName.markAsTouched();
+      this.registerForm.controls.lastName.markAsTouched();
+      this.registerForm.controls.countryCode.markAsTouched();
+      this.registerForm.controls.mobileNumber.markAsTouched();
+      this.registerForm.controls.email.markAsTouched();
+      this.registerForm.controls.password.markAsTouched();
+      this.registerForm.controls.acceptTerms.markAsTouched();
+      this.notificationService.warning('Complete all required user details first.');
+      return;
+    }
+    this.registerStep = 2;
+  }
+
+  goToRegisterStepOne(): void {
+    this.registerStep = 1;
+  }
+
+
+  getSelectedCountryLabel(): string {
+    const selectedCountry = this.getSelectedCountry();
+    if (!selectedCountry) {
+      return 'Select country code';
+    }
+    return `${selectedCountry.name} (${selectedCountry.dialCode})`;
+  }
+
+  getFilteredCountryOptions(): CountryCodeOption[] {
+    const search = this.countrySearchTerm.trim().toLowerCase();
+    if (!search) {
+      return this.countryOptions;
+    }
+    return this.countryOptions.filter(
+      (country) =>
+        country.name.toLowerCase().includes(search) || country.dialCode.toLowerCase().includes(search)
+    );
+  }
+
+  toggleCountryDropdown(): void {
+    this.isCountryDropdownOpen = !this.isCountryDropdownOpen;
+    if (this.isCountryDropdownOpen) {
+      this.countrySearchTerm = '';
+    }
+  }
+
+  onCountrySearchInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.countrySearchTerm = input.value;
+  }
+
+  selectCountryOption(country: CountryCodeOption): void {
+    this.registerForm.controls.countryCode.setValue(country.dialCode);
+    this.registerForm.controls.countryCode.markAsTouched();
+    this.isCountryDropdownOpen = false;
+    this.countrySearchTerm = '';
+    this.applyCountryValidators();
+  }
+
+  private navigateToDashboard(includeSetupState: boolean): void {
+    this.closeAuthOverlays();
+    const queryParams: Record<string, string> = {
+      planId: this.selectedPlanId,
+      planPriceId: this.selectedPlanPriceId,
+      stripePriceId: this.selectedStripePriceId
+    };
+    if (includeSetupState) {
+      queryParams['setupIncomplete'] = this.onboardingRequired ? '1' : '0';
+    }
+    this.router.navigate(['/admin/dashboard'], {
+      queryParams
     });
   }
+
+  private async submitRegister(): Promise<void> {
+    try {
+      if (this.registerStep === 1) {
+        this.authSubmitting = false;
+        this.goToRegisterStepTwo();
+        return;
+      }
+
+      this.registerForm.controls.businessName.markAsTouched();
+      this.registerForm.controls.businessType.markAsTouched();
+      if (this.registerForm.controls.businessName.invalid || this.registerForm.controls.businessType.invalid) {
+        this.authSubmitting = false;
+        this.notificationService.warning('Complete business details to continue.');
+        return;
+      }
+
+      const selectedCountry = this.getSelectedCountry();
+      if (!selectedCountry) {
+        this.authSubmitting = false;
+        this.authError = 'Please select a country code.';
+        this.notificationService.warning(this.authError);
+        return;
+      }
+
+      const nationalNumber = this.registerForm.controls.mobileNumber.value.trim();
+      const description = this.registerForm.controls.description.value.trim();
+
+      const payload: Record<string, unknown> = {
+        firstName: this.registerForm.controls.firstName.value.trim(),
+        lastName: this.registerForm.controls.lastName.value.trim(),
+        email: this.registerForm.controls.email.value.trim(),
+        password: this.registerForm.controls.password.value,
+        businessName: this.registerForm.controls.businessName.value.trim(),
+        businessType: this.registerForm.controls.businessType.value,
+        mobileNumber: `${selectedCountry.dialCode} ${nationalNumber}`
+      };
+
+      if (description) {
+        payload['description'] = description;
+      }
+      if (this.selectedPlanName) {
+        payload['planName'] = this.selectedPlanName;
+      }
+
+      const response = await firstValueFrom(
+        this.http.post<ApiResponse<unknown>>(API_ENDPOINTS.auth.registerAdmin, payload)
+      );
+
+      if (!response.success) {
+        this.authSubmitting = false;
+        this.authError = response.message || this.getFirstError(response.errors) || 'Registration failed.';
+        this.notificationService.error(this.authError);
+        return;
+      }
+
+      this.authSubmitting = false;
+      this.notificationService.success(response.message || 'Account created successfully.');
+      this.navigateToDashboard(false);
+    } catch (error) {
+      this.authSubmitting = false;
+      this.authError = this.extractErrorMessage(error) || 'Registration failed. Please try again.';
+      this.notificationService.error(this.authError);
+    }
+  }
+
+  private setupCountryValidationWatcher(): void {
+    this.countryCodeSubscription = this.registerForm.controls.countryCode.valueChanges.subscribe(() => {
+      this.applyCountryValidators();
+    });
+  }
+
+  private async loadCountries(): Promise<void> {
+    this.countriesLoading = true;
+    this.countriesError = '';
+
+    try {
+      const response = await firstValueFrom(
+        this.http.get<ApiResponse<CountryCodeOption[]>>(API_ENDPOINTS.countries.list)
+      );
+      if (!response.success || !Array.isArray(response.data) || response.data.length === 0) {
+        this.countriesLoading = false;
+        this.countriesError = response.message || 'Unable to load countries.';
+        return;
+      }
+
+      this.countryOptions = response.data;
+      const preferred = response.data.find((item) => item.dialCode === '+971') ?? response.data[0];
+      this.registerForm.controls.countryCode.setValue(preferred.dialCode);
+      this.applyCountryValidators();
+      this.countriesLoading = false;
+    } catch {
+      this.countriesLoading = false;
+      this.countriesError = 'Unable to load countries.';
+    }
+  }
+
+  private applyCountryValidators(): void {
+    const selectedCountry = this.getSelectedCountry();
+    const validators: ValidatorFn[] = [Validators.required];
+
+    if (selectedCountry?.nationalNumberMinLength) {
+      validators.push(Validators.minLength(selectedCountry.nationalNumberMinLength));
+    }
+    if (selectedCountry?.nationalNumberMaxLength) {
+      validators.push(Validators.maxLength(selectedCountry.nationalNumberMaxLength));
+    }
+    if (selectedCountry?.phoneNumberRegex) {
+      try {
+        validators.push(Validators.pattern(new RegExp(selectedCountry.phoneNumberRegex)));
+      } catch {
+        // Ignore malformed regex from backend and continue with length validation.
+      }
+    }
+
+    validators.push(this.mobileDigitsValidator(selectedCountry));
+    this.registerForm.controls.mobileNumber.setValidators(validators);
+    this.registerForm.controls.mobileNumber.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private mobileDigitsValidator(country?: CountryCodeOption): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = typeof control.value === 'string' ? control.value.trim() : '';
+      if (!value) {
+        return null;
+      }
+      if (!/^\d+$/.test(value)) {
+        return { mobilePattern: true };
+      }
+      if (country?.nationalNumberMinLength && value.length < country.nationalNumberMinLength) {
+        return { mobileLength: true };
+      }
+      if (country?.nationalNumberMaxLength && value.length > country.nationalNumberMaxLength) {
+        return { mobileLength: true };
+      }
+      return null;
+    };
+  }
+
+  private getSelectedCountry(): CountryCodeOption | undefined {
+    const selectedDialCode = this.registerForm.controls.countryCode.value;
+    return this.countryOptions.find((option) => option.dialCode === selectedDialCode);
+  }
+
 
   @HostListener('document:keydown.escape')
   onEscapePress(): void {
     if (this.showAuthChoiceModal || this.showAuthPanel) {
       this.closeAuthOverlays();
     }
+    this.isCountryDropdownOpen = false;
   }
 
-  hasLoginError(controlName: 'emailOrMobile' | 'password'): boolean {
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (!target?.closest('.country-picker-shell')) {
+      this.isCountryDropdownOpen = false;
+    }
+  }
+
+  hasLoginError(controlName: 'email' | 'password'): boolean {
     const control = this.loginForm.controls[controlName];
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
@@ -507,7 +1027,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       | 'email'
       | 'password'
       | 'acceptTerms'
-      | 'profileImage'
   ): boolean {
     const control = this.registerForm.controls[controlName];
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -536,6 +1055,109 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   trackByIndex(index: number): number {
     return index;
+  }
+
+  getPlanPrice(plan: PricingPlan): PlanPrice | undefined {
+    return this.annual ? plan.annualPrice : plan.monthlyPrice;
+  }
+
+  getDisplayPrice(plan: PricingPlan): string {
+    const price = this.getPlanPrice(plan);
+    if (!price) {
+      return '--';
+    }
+    return Number.isInteger(price.amount) ? price.amount.toString() : price.amount.toFixed(2);
+  }
+
+  getDisplayCurrency(plan: PricingPlan): string {
+    const price = this.getPlanPrice(plan);
+    return price?.currency ?? 'USD';
+  }
+
+  private loadPricingPlans(): void {
+    this.pricingLoading = true;
+    this.pricingError = '';
+
+    this.http.get<ApiResponse<PlanApiDto[]>>(API_ENDPOINTS.plans.list).subscribe({
+      next: (response) => {
+        if (!response.success || !Array.isArray(response.data)) {
+          this.pricingError = response.message || 'Unable to load pricing plans right now.';
+          this.pricingLoading = false;
+          return;
+        }
+
+        const mappedPlans = response.data.map((plan, index) => this.mapApiPlan(plan, index));
+        if (mappedPlans.length > 0) {
+          this.pricingPlans = mappedPlans;
+          const defaultPlan = mappedPlans[0];
+          this.selectedPlanId = defaultPlan.id;
+          this.selectedPlanName = defaultPlan.name;
+          const selectedPrice = this.getPlanPrice(defaultPlan);
+          this.selectedPlanPriceId = selectedPrice?.planPriceId ?? '';
+          this.selectedStripePriceId = selectedPrice?.stripePriceId ?? '';
+        } else {
+          this.pricingPlans = [];
+        }
+        this.pricingLoading = false;
+      },
+      error: () => {
+        this.pricingError = 'Unable to load pricing plans right now.';
+        this.pricingLoading = false;
+      }
+    });
+  }
+
+  private mapApiPlan(plan: PlanApiDto, index: number): PricingPlan {
+    const monthlyPrice = plan.prices.find((price) => price.billingCycle === 'Monthly');
+    const annualPrice = plan.prices.find((price) => price.billingCycle === 'Yearly');
+
+    return {
+      id: plan.planId,
+      name: plan.name,
+      description: this.buildPlanDescription(plan.name),
+      popular: index === 1,
+      monthlyPrice,
+      annualPrice,
+      features: plan.features.map((feature) => ({
+        id: feature.id,
+        name: feature.name,
+        included: true
+      }))
+    };
+  }
+
+  private buildPlanDescription(planName: string): string {
+    const normalized = planName.toLowerCase();
+    if (normalized.includes('starter')) {
+      return 'For early-stage teams launching their first booking workflow.';
+    }
+    if (normalized.includes('silver') || normalized.includes('growth')) {
+      return 'For growing teams scaling operations across locations.';
+    }
+    if (normalized.includes('gold') || normalized.includes('pro') || normalized.includes('enterprise')) {
+      return 'For high-volume operators that need enterprise-grade controls.';
+    }
+    return 'A scalable plan designed for booking operations growth.';
+  }
+
+  private getFirstError(errors?: string[]): string {
+    return Array.isArray(errors) && errors.length > 0 ? errors[0] : '';
+  }
+
+  private extractErrorMessage(error: unknown): string {
+    if (typeof error !== 'object' || !error) {
+      return '';
+    }
+    const httpError = error as {
+      error?: { message?: string; errors?: string[] };
+      message?: string;
+    };
+    return (
+      httpError.error?.message ||
+      this.getFirstError(httpError.error?.errors) ||
+      httpError.message ||
+      ''
+    );
   }
 
   private initializeTheme(): void {
@@ -664,16 +1286,4 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     requestAnimationFrame(tick);
   }
 
-  private applyProfileImage(file: File): void {
-    if (!file.type.startsWith('image/')) {
-      this.authError = 'Please upload a valid image file.';
-      return;
-    }
-    this.registerForm.patchValue({ profileImage: file });
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.profileImagePreview = typeof reader.result === 'string' ? reader.result : '';
-    };
-    reader.readAsDataURL(file);
-  }
 }

@@ -522,6 +522,123 @@
   animation-delay: 1.2s;
 }
 
+.register-terms {
+  transition: border-color 220ms ease, background-color 220ms ease, color 220ms ease;
+}
+
+.register-terms .terms-checkbox {
+  accent-color: #4f46e5;
+}
+
+.register-field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.register-field-error {
+  margin-top: 0 !important;
+  color: #dc2626;
+  font-size: 0.76rem;
+  line-height: 1.2;
+}
+
+.country-picker-trigger {
+  border-color: rgba(161, 161, 170, 0.8) !important;
+  background: #ffffff !important;
+  color: #18181b !important;
+}
+
+.country-picker-panel {
+  border-color: rgba(161, 161, 170, 0.75) !important;
+  background: #ffffff !important;
+}
+
+.country-picker-search {
+  border-color: rgba(161, 161, 170, 0.8) !important;
+  background: #ffffff !important;
+  color: #18181b !important;
+}
+
+.country-picker-list {
+  border-color: rgba(212, 212, 216, 0.9) !important;
+  background: #ffffff !important;
+}
+
+.country-picker-option {
+  color: #27272a !important;
+  background: transparent !important;
+}
+
+.country-picker-option:hover {
+  background: #f4f4f5 !important;
+}
+
+:host-context(.dark) .country-picker-trigger {
+  border-color: rgba(82, 82, 91, 0.95) !important;
+  background: rgba(24, 24, 27, 0.96) !important;
+  color: #f4f4f5 !important;
+}
+
+:host-context(.dark) .country-picker-panel {
+  border-color: rgba(82, 82, 91, 0.95) !important;
+  background: rgba(24, 24, 27, 0.98) !important;
+}
+
+:host-context(.dark) .country-picker-search {
+  border-color: rgba(82, 82, 91, 0.95) !important;
+  background: rgba(9, 9, 11, 0.95) !important;
+  color: #f4f4f5 !important;
+}
+
+:host-context(.dark) .country-picker-search::placeholder {
+  color: #71717a !important;
+}
+
+:host-context(.dark) .country-picker-list {
+  border-color: rgba(82, 82, 91, 0.95) !important;
+  background: rgba(24, 24, 27, 0.98) !important;
+}
+
+:host-context(.dark) .country-picker-option {
+  color: #e4e4e7 !important;
+}
+
+:host-context(.dark) .country-picker-option:hover {
+  background: rgba(63, 63, 70, 0.85) !important;
+}
+
+.context-back-btn {
+  border-color: rgba(212, 212, 216, 0.95) !important;
+  background: #ffffff !important;
+  color: #3f3f46 !important;
+}
+
+.context-back-btn:hover {
+  background: #f4f4f5 !important;
+}
+
+:host-context(.dark) .context-back-btn {
+  border-color: rgba(82, 82, 91, 0.95) !important;
+  background: rgba(39, 39, 42, 0.98) !important;
+  color: #f4f4f5 !important;
+}
+
+:host-context(.dark) .context-back-btn:hover {
+  background: rgba(63, 63, 70, 0.98) !important;
+}
+
+:host-context(.dark) .register-terms {
+  border-color: rgba(82, 82, 91, 0.95) !important;
+  background: rgba(24, 24, 27, 0.95) !important;
+  color: #e4e4e7 !important;
+}
+
+:host-context(.dark) .register-terms .terms-checkbox {
+  border-color: rgba(161, 161, 170, 0.85) !important;
+  background-color: rgba(24, 24, 27, 0.95) !important;
+}
+
 lucide-icon,
 lucide-icon svg {
   display: block;

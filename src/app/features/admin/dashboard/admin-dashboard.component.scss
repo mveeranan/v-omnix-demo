@@ -16,8 +16,25 @@
   border-radius: 0.9rem !important;
 }
 
+.onboarding-primary-btn:disabled,
+.onboarding-action-btn:disabled {
+  background: #e4e4e7 !important;
+  color: #71717a !important;
+  border: 1px solid #d4d4d8 !important;
+  box-shadow: none !important;
+}
+
 .onboarding-control {
   border-radius: 0.95rem !important;
+}
+
+.logo-dropzone {
+  transition: border-color 220ms ease, background-color 220ms ease;
+}
+
+.logo-dropzone.drag-active {
+  border-color: #4f46e5 !important;
+  background: rgba(79, 70, 229, 0.08) !important;
 }
 
 :host-context(.dark) .onboarding-modal {
@@ -36,6 +53,16 @@
 
 :host-context(.dark) .onboarding-select {
   color-scheme: dark;
+}
+
+:host-context(.dark) .logo-dropzone {
+  border-color: rgba(82, 82, 91, 0.9) !important;
+  background: rgba(24, 24, 27, 0.88) !important;
+}
+
+:host-context(.dark) .logo-dropzone.drag-active {
+  border-color: rgba(129, 140, 248, 0.95) !important;
+  background: rgba(79, 70, 229, 0.2) !important;
 }
 
 :host-context(.dark) select option {
