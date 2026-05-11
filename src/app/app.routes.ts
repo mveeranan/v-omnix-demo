@@ -4,6 +4,7 @@ import { authGuard } from './core/auth/auth.guard';
 import { guestGuard } from './core/auth/guest.guard';
 import { LoginComponent } from './features/auth/login/login.component';
 import { HomeComponent } from '../components/home/home.component';
+import { AdminDashboardComponent } from './features/admin/dashboard/admin-dashboard.component';
 
 export const routes: Routes = [
     {
@@ -25,6 +26,10 @@ export const routes: Routes = [
         path: 'signalr',
         canActivate: [authGuard],
         loadComponent: () => import('../components/signal-r/signal-r.component').then(m => m.SignalRComponent)
+    },
+    {
+        path: 'admin/dashboard',
+        component: AdminDashboardComponent
     },
     {
         path: 'home',

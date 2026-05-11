@@ -6,9 +6,9 @@
     <div class="blob blob-three"></div>
   </div>
 
-  <header class="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/80 backdrop-blur-xl transition-colors duration-500 dark:border-zinc-800 dark:bg-zinc-950/80">
-    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-      <a class="inline-flex items-center gap-2 text-base font-semibold tracking-[0.06em] no-underline" href="#hero">
+  <header class="premium-header sticky top-0 z-50 border-b border-zinc-200/70 bg-white/80 backdrop-blur-xl transition-colors duration-500 dark:border-zinc-800 dark:bg-zinc-950/80">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-4 sm:px-6 lg:px-8">
+      <a class="brand-link inline-flex items-center gap-2 text-base font-semibold tracking-[0.06em] no-underline" href="#hero">
         <span class="logo-mark">
           <svg class="brand-logo-svg" viewBox="0 0 64 64" fill="none" aria-hidden="true">
             <defs>
@@ -28,12 +28,12 @@
         </span>
         V-omnix
       </a>
-      <nav class="header-nav hidden items-center gap-8 text-base font-medium text-zinc-600 dark:text-zinc-200 lg:flex">
+      <nav class="header-nav order-3 hidden w-full items-center justify-center gap-6 text-sm font-medium text-zinc-600 dark:text-zinc-200 md:order-none md:flex md:w-auto md:justify-start md:gap-8 md:text-base">
         <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#features">Features</a>
         <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#pricing">Pricing</a>
         <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#faq">FAQ</a>
       </nav>
-      <div class="flex items-center gap-3">
+      <div class="ml-auto flex items-center gap-2 sm:gap-3">
         <button
           (click)="toggleTheme()"
           [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
@@ -41,10 +41,39 @@
           type="button" style="border-radius: 50%;">
           <lucide-icon [img]="isDarkMode ? sunIcon : moonIcon" class="h-5 w-5"></lucide-icon>
         </button>
-        <a class="header-cta hidden rounded-xl bg-zinc-900 px-5 py-2.5 text-base font-semibold text-white no-underline transition-all duration-300 hover:scale-[1.02] hover:bg-blue-600 dark:bg-white dark:text-zinc-900 dark:hover:bg-blue-500 dark:hover:text-white sm:inline-flex" href="#pricing">
+        <button
+          (click)="toggleMobileMenu()"
+          [attr.aria-expanded]="mobileMenuOpen"
+          aria-label="Toggle menu"
+          class="mobile-menu-toggle inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-700 transition-all duration-300 hover:scale-105 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 md:hidden"
+          type="button">
+          <lucide-icon [img]="mobileMenuOpen ? xIcon : menuIcon" class="h-5 w-5"></lucide-icon>
+        </button>
+        <button (click)="openAuthPanel('login')" class="btn-radius header-login hidden border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 no-underline transition-all duration-300 hover:scale-[1.02] hover:border-blue-500 hover:text-blue-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-cyan-400 dark:hover:text-cyan-300 sm:px-5 sm:py-2.5 sm:text-base md:inline-flex" type="button">
+          Login
+        </button>
+        <a class="btn-radius header-cta hidden bg-zinc-900 px-3 py-2 text-sm font-semibold text-white no-underline transition-all duration-300 hover:scale-[1.02] hover:bg-blue-600 dark:bg-white dark:text-zinc-900 dark:hover:bg-blue-500 dark:hover:text-white sm:px-5 sm:py-2.5 sm:text-base md:inline-flex" href="#pricing">
           Start Free Trial
         </a>
       </div>
+
+      @if (mobileMenuOpen) {
+        <div class="mobile-menu-panel order-4 w-full rounded-2xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur-xl dark:border-zinc-700 dark:bg-zinc-900/95 md:hidden">
+          <div class="flex flex-col gap-2 text-sm font-medium">
+            <a (click)="closeMobileMenu()" class="mobile-menu-link no-underline rounded-lg px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800" href="#features">Features</a>
+            <a (click)="closeMobileMenu()" class="mobile-menu-link no-underline rounded-lg px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800" href="#pricing">Pricing</a>
+            <a (click)="closeMobileMenu()" class="mobile-menu-link no-underline rounded-lg px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800" href="#faq">FAQ</a>
+          </div>
+          <div class="mt-3 grid grid-cols-2 gap-2">
+            <button (click)="closeMobileMenu(); openAuthPanel('login')" class="btn-radius mobile-menu-login header-login inline-flex items-center justify-center border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 no-underline transition-all duration-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" type="button">
+              Login
+            </button>
+            <a (click)="closeMobileMenu()" class="btn-radius mobile-menu-cta header-cta inline-flex items-center justify-center bg-zinc-900 px-3 py-2 text-sm font-semibold text-white no-underline transition-all duration-300 dark:bg-white dark:text-zinc-900" href="#pricing">
+              Start Free Trial
+            </a>
+          </div>
+        </div>
+      }
     </div>
   </header>
 
@@ -131,8 +160,8 @@
 
   <section #revealEl id="showcase" class="fade-up is-visible mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
     <div class="mb-8 max-w-2xl">
-      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Platform showcase</h2>
-      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Real product moments that drive bookings, retention, and scale.</p>
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Built to impress clients and win trust fast</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Premium product moments that make your brand feel polished, reliable, and enterprise-ready.</p>
     </div>
     <div class="showcase-frame relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800">
       <div class="showcase-track" [style.transform]="'translateX(-' + activeShowcaseSlide * 100 + '%)'">
@@ -177,8 +206,8 @@
 
   <section #revealEl id="features" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
     <div class="mb-10 max-w-2xl">
-      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Powerful features for multi-location growth</h2>
-      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Every workflow your team needs, designed for speed, visibility, and control.</p>
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Features clients notice, teams love, and operators trust</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Every mission-critical workflow is designed for speed, visibility, and business confidence.</p>
     </div>
     <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       @for (feature of featureItems; track feature.title; let i = $index) {
@@ -195,8 +224,8 @@
 
   <section #revealEl class="slide-left mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
     <div class="mb-10 max-w-2xl">
-      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">How it works</h2>
-      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Go live quickly with a step-by-step tenant setup flow.</p>
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">From setup to scale in a client-ready flow</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Launch quickly with a clear onboarding path your team can execute without friction.</p>
     </div>
     <div class="process-grid relative grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       @for (step of steps; track step.title; let i = $index) {
@@ -245,8 +274,8 @@
 
   <section #revealEl id="pricing" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
     <div class="mb-10 text-center">
-      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Simple pricing for every growth stage</h2>
-      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Switch between monthly and annual billing any time.</p>
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Transparent pricing clients can approve in minutes</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Choose monthly or annual billing with clear value at every growth stage.</p>
 
       <div class="pricing-toggle mx-auto mt-6 inline-flex overflow-hidden rounded-full border border-zinc-300 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-900">
         <button (click)="toggleBillingCycle(false)" [class.bg-zinc-900]="!annual" [class.text-white]="!annual" class="pricing-toggle-btn rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 dark:[&:not(.bg-zinc-900)]:text-zinc-300" type="button">Monthly</button>
@@ -254,8 +283,13 @@
       </div>
     </div>
 
+    @if (pricingLoading) {
+      <p class="text-center text-sm text-zinc-600 dark:text-zinc-300">Loading plans...</p>
+    } @else if (pricingError) {
+      <p class="text-center text-sm text-rose-600 dark:text-rose-300">{{ pricingError }}</p>
+    } @else {
     <div class="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 pt-4 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
-      @for (plan of pricingPlans; track plan.name) {
+      @for (plan of pricingPlans; track plan.id) {
         <article
           [class.popular-plan]="plan.popular"
           [class.regular-plan]="!plan.popular"
@@ -267,7 +301,7 @@
           }
           <h3 class="text-xl font-semibold" [class.mt-8]="plan.popular">{{ plan.name }}</h3>
           <p class="mt-2 text-sm" [class]="plan.popular ? 'text-blue-50' : 'text-zinc-600 dark:text-zinc-300'">{{ plan.description }}</p>
-          <p class="mt-6 text-4xl font-semibold">${{ annual ? plan.annualPrice : plan.monthlyPrice }}</p>
+          <p class="mt-6 text-4xl font-semibold">{{ getDisplayCurrency(plan) }} ${{ getDisplayPrice(plan) }}</p>
           <p class="mt-1 text-xs" [class]="plan.popular ? 'text-blue-100' : 'text-zinc-500 dark:text-zinc-400'">
             /month {{ annual ? '(billed annually)' : '' }}
           </p>
@@ -279,22 +313,25 @@
               </li>
             }
           </ul>
-          <a
+          <button
+             (click)="openAuthChoice(plan)"
+             class="pricing-choose-btn"
              [class]="plan.popular
-              ? 'no-underline mt-7 inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-semibold text-blue-700 transition-all duration-300 hover:scale-[1.01]'
-              : 'no-underline mt-7 inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:scale-[1.01] dark:bg-white dark:text-zinc-900'"
-             href="#hero">
+              ? 'btn-radius no-underline mt-7 inline-flex w-full items-center justify-center bg-white px-4 py-3 text-sm font-semibold text-blue-700 transition-all duration-300 hover:scale-[1.01]'
+              : 'btn-radius no-underline mt-7 inline-flex w-full items-center justify-center bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:scale-[1.01] dark:bg-white dark:text-zinc-900'"
+             type="button">
             Choose {{ plan.name }}
-          </a>
+          </button>
         </article>
       }
     </div>
+    }
   </section>
 
   <section #revealEl class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
     <div class="mb-10 max-w-2xl">
-      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Loved by operators and growth teams</h2>
-      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Real outcomes from teams using Orbit every day.</p>
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Loved by clients, praised by growth teams</h2>
+      <p class="mt-3 text-zinc-600 dark:text-zinc-300">Real-world outcomes from businesses that run mission-critical operations on Orbit.</p>
     </div>
     <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       @for (item of testimonials; track item.name) {
@@ -314,7 +351,7 @@
 
   <section #revealEl id="faq" class="fade-up mx-auto max-w-4xl px-4 pb-20 sm:px-6 lg:px-8">
     <div class="mb-10 text-center">
-      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Frequently asked questions</h2>
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Everything your team and clients ask before switching</h2>
     </div>
     <div class="space-y-3">
       @for (faq of faqItems; track faq.question; let i = $index) {
@@ -336,10 +373,10 @@
     </div>
   </section>
 
-  <footer class="border-t border-zinc-200 bg-white/80 px-4 py-10 backdrop-blur-lg transition-colors duration-500 dark:border-zinc-800 dark:bg-zinc-950/70 sm:px-6 lg:px-8">
+  <footer class="premium-footer border-t border-zinc-200 bg-white/80 px-4 py-10 backdrop-blur-lg transition-colors duration-500 dark:border-zinc-800 dark:bg-zinc-950/70 sm:px-6 lg:px-8">
     <div class="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
       <div>
-        <p class="text-base font-semibold tracking-[0.06em]">V-omnix</p>
+        <p class="footer-brand text-base font-semibold tracking-[0.06em]">V-omnix</p>
         <p class="mt-1 text-base text-zinc-600 dark:text-zinc-300">Multi-tenant booking and management for ambitious teams.</p>
       </div>
       <div class="flex flex-wrap items-center gap-5 text-base">
@@ -356,4 +393,289 @@
       </div>
     </div>
   </footer>
+
+  @if (showAuthChoiceModal) {
+    <section class="auth-overlay fixed inset-0 z-[70] grid place-items-center p-4">
+      <button class="auth-backdrop fixed inset-0 z-0" type="button" (click)="closeAuthOverlays()" aria-label="Close auth choice"></button>
+      <article class="auth-choice-modal relative z-10 w-full max-w-lg rounded-3xl border border-white/40 bg-white/80 p-6 shadow-2xl backdrop-blur-2xl dark:border-zinc-700 dark:bg-zinc-900/80">
+        <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-300">
+          <lucide-icon [img]="sparklesIcon" class="h-4 w-4"></lucide-icon>
+          Account Authentication
+        </div>
+        <h3 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Continue with {{ selectedPlanName }} plan</h3>
+        <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Already have account?</p>
+        <div class="mt-6 grid gap-3 sm:grid-cols-2">
+          <button type="button" (click)="openAuthPanel('login')" class="btn-radius auth-choice-login-btn border border-zinc-300 bg-white px-4 py-3 text-sm font-semibold text-zinc-800 transition-all hover:-translate-y-0.5 hover:border-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
+            Login
+          </button>
+          <button type="button" (click)="openAuthPanel('register')" class="btn-radius auth-choice-register-btn bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:-translate-y-0.5">
+            Create New
+          </button>
+        </div>
+      </article>
+    </section>
+  }
+
+  @if (showAuthPanel) {
+    <section class="auth-overlay fixed inset-0 z-[80] overflow-y-auto p-3 sm:p-6">
+      <button class="auth-backdrop fixed inset-0 z-0" type="button" (click)="closeAuthOverlays()" aria-label="Close auth form"></button>
+      <article class="auth-shell auth-form-panel-surface relative z-10 mx-auto w-full max-w-2xl overflow-hidden rounded-[2rem] border border-white/45 p-6 shadow-2xl backdrop-blur-2xl dark:border-zinc-700 sm:p-8">
+          <div class="mb-5 flex items-center justify-between">
+            <span class="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 dark:border-indigo-400/40 dark:bg-indigo-500/10 dark:text-indigo-300">V-Omnix Workspace</span>
+            <button type="button" (click)="closeAuthOverlays()" class="btn-radius border border-zinc-300 px-3 py-1 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">Close</button>
+          </div>
+
+        <h4 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ authMode === 'login' ? 'Welcome back' : 'Create workspace account' }}</h4>
+          <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">Selected Plan: {{ selectedPlanName }}</p>
+
+          @if (authError) {
+            <p class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-400/40 dark:bg-rose-400/10 dark:text-rose-300">{{ authError }}</p>
+          }
+
+          @if (authMode === 'login') {
+            <form [formGroup]="loginForm" (ngSubmit)="submitAuth()" class="mt-6 space-y-4">
+              <label class="floating-field">
+                <input formControlName="email" type="email" placeholder=" " class="floating-input" />
+                <span>Email Address</span>
+              </label>
+              @if (hasLoginError('email')) {
+                <p class="field-error">Enter a valid email address.</p>
+              }
+              <label class="floating-field">
+                <input formControlName="password" [type]="showLoginPassword ? 'text' : 'password'" placeholder=" " class="floating-input pr-12" />
+                <span>Password</span>
+                <button type="button" class="field-icon-btn" (click)="togglePasswordVisibility('login')" [attr.aria-label]="showLoginPassword ? 'Hide password' : 'Show password'">
+                  <lucide-icon [img]="showLoginPassword ? eyeOffIcon : eyeIcon" class="h-4 w-4"></lucide-icon>
+                </button>
+              </label>
+              @if (hasLoginError('password')) {
+                <p class="field-error">Password must be at least 8 characters.</p>
+              }
+              <button type="submit" [disabled]="authSubmitting" class="premium-submit-btn">
+                {{ authSubmitting ? 'Signing in...' : 'Login to Dashboard' }}
+              </button>
+              <p class="text-center text-sm text-zinc-600 dark:text-zinc-300">
+                Need a new account?
+                <button type="button" (click)="switchAuthMode('register')" class="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200">Create account</button>
+              </p>
+            </form>
+          } @else {
+            <form [formGroup]="registerForm" (ngSubmit)="submitAuth()" class="mt-6 grid gap-4 sm:grid-cols-2">
+              <div class="sm:col-span-2 mb-1 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">
+                <span>Step {{ registerStep }} of 2</span>
+                <span>{{ registerStep === 1 ? 'User Details' : 'Business Details' }}</span>
+              </div>
+
+              @if (registerStep === 1) {
+                <div class="register-field-block">
+                  <label class="floating-field">
+                    <input formControlName="firstName" type="text" placeholder=" " class="floating-input" />
+                    <span>First Name</span>
+                  </label>
+                  @if (getRegisterFieldError('firstName')) {
+                    <p class="register-field-error">{{ getRegisterFieldError('firstName') }}</p>
+                  }
+                </div>
+                <div class="register-field-block">
+                  <label class="floating-field">
+                    <input formControlName="lastName" type="text" placeholder=" " class="floating-input" />
+                    <span>Last Name</span>
+                  </label>
+                  @if (getRegisterFieldError('lastName')) {
+                    <p class="register-field-error">{{ getRegisterFieldError('lastName') }}</p>
+                  }
+                </div>
+                <div class="register-field-block sm:col-span-2">
+                  <div class="country-picker-shell relative">
+                    <span class="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-200">Country Code</span>
+                    <button
+                      type="button"
+                      (click)="toggleCountryDropdown()"
+                      class="country-picker-btn country-picker-trigger btn-radius w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-left text-sm text-zinc-900 transition-all hover:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
+                      {{ getSelectedCountryLabel() }}
+                    </button>
+
+                    @if (isCountryDropdownOpen) {
+                      <div class="country-picker-panel btn-radius absolute z-30 mt-2 w-full rounded-xl border border-zinc-300 bg-white p-2 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
+                        <input
+                          type="text"
+                          [value]="countrySearchTerm"
+                          (input)="onCountrySearchInput($event)"
+                          placeholder="Search country..."
+                          class="country-picker-search btn-radius w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-indigo-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500" />
+                        <div class="country-picker-list btn-radius mt-2 max-h-52 overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
+                          @if (getFilteredCountryOptions().length === 0) {
+                            <p class="px-3 py-2 text-xs text-zinc-500 dark:text-zinc-400">No countries found.</p>
+                          } @else {
+                            @for (country of getFilteredCountryOptions(); track country.id ?? country.dialCode) {
+                              <button
+                                type="button"
+                                (click)="selectCountryOption(country)"
+                                class="country-picker-option block w-full border-0 px-3 py-2 text-left text-sm text-zinc-800 transition-colors hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                                {{ country.name }} ({{ country.dialCode }})
+                              </button>
+                            }
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                  @if (getRegisterFieldError('countryCode')) {
+                    <p class="register-field-error">{{ getRegisterFieldError('countryCode') }}</p>
+                  }
+                  @if (countriesLoading) {
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">Loading countries...</p>
+                  }
+                  @if (countriesError) {
+                    <p class="register-field-error">{{ countriesError }}</p>
+                  }
+                </div>
+                <div class="register-field-block sm:col-span-2">
+                  <label class="floating-field">
+                    <input formControlName="mobileNumber" type="text" placeholder=" " class="floating-input" />
+                    <span>Mobile Number</span>
+                  </label>
+                  @if (getMobileNumberError()) {
+                    <p class="register-field-error">{{ getMobileNumberError() }}</p>
+                  }
+                </div>
+                <div class="register-field-block sm:col-span-2">
+                  <label class="floating-field">
+                    <input formControlName="email" type="email" placeholder=" " class="floating-input" />
+                    <span>Email Address</span>
+                  </label>
+                  @if (getRegisterFieldError('email')) {
+                    <p class="register-field-error">{{ getRegisterFieldError('email') }}</p>
+                  }
+                </div>
+                <div class="register-field-block sm:col-span-2">
+                  <label class="floating-field">
+                    <input formControlName="password" [type]="showRegisterPassword ? 'text' : 'password'" placeholder=" " class="floating-input pr-12" />
+                    <span>Password</span>
+                    <button type="button" class="field-icon-btn" (click)="togglePasswordVisibility('register')" [attr.aria-label]="showRegisterPassword ? 'Hide password' : 'Show password'">
+                      <lucide-icon [img]="showRegisterPassword ? eyeOffIcon : eyeIcon" class="h-4 w-4"></lucide-icon>
+                    </button>
+                  </label>
+                  @if (getRegisterFieldError('password')) {
+                    <p class="register-field-error">{{ getRegisterFieldError('password') }}</p>
+                  }
+                </div>
+
+                <div class="register-field-block sm:col-span-2">
+                  <label class="register-terms inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                    <input formControlName="acceptTerms" type="checkbox" class="terms-checkbox h-4 w-4 rounded border-zinc-400 text-indigo-600 focus:ring-indigo-500" />
+                    I agree to terms and privacy policy.
+                  </label>
+                  @if (getRegisterFieldError('acceptTerms')) {
+                    <p class="register-field-error">{{ getRegisterFieldError('acceptTerms') }}</p>
+                  }
+                </div>
+              } @else {
+                <div class="register-field-block sm:col-span-2">
+                  <label class="floating-field">
+                    <input formControlName="businessName" type="text" placeholder=" " class="floating-input" />
+                    <span>Business Name</span>
+                  </label>
+                  @if (getRegisterFieldError('businessName')) {
+                    <p class="register-field-error">{{ getRegisterFieldError('businessName') }}</p>
+                  }
+                </div>
+
+                <div class="register-field-block sm:col-span-2">
+                  <label class="floating-field">
+                    <select formControlName="businessType" class="floating-input">
+                      <option [ngValue]="0">Select business type</option>
+                      @for (item of businessTypeOptions; track item.value) {
+                        <option [ngValue]="item.value">{{ item.label }}</option>
+                      }
+                    </select>
+                    <span>Business Type</span>
+                  </label>
+                  @if (getRegisterFieldError('businessType')) {
+                    <p class="register-field-error">{{ getRegisterFieldError('businessType') }}</p>
+                  }
+                </div>
+
+                <div class="register-field-block sm:col-span-2">
+                  <label class="floating-field">
+                    <textarea formControlName="description" rows="3" placeholder=" " class="floating-input"></textarea>
+                    <span>Description (optional)</span>
+                  </label>
+                </div>
+
+              }
+
+              <div class="sm:col-span-2 flex items-center justify-between gap-2">
+                @if (registerStep === 2) {
+                  <button type="button" (click)="goToRegisterStepOne()" class="context-back-btn btn-radius rounded-xl border px-4 py-2 text-sm font-semibold transition-all duration-200">
+                    Back
+                  </button>
+                } @else {
+                  <span></span>
+                }
+                <button
+                  type="submit"
+                  [disabled]="authSubmitting"
+                  class="premium-submit-btn !w-auto min-w-[170px] px-6">
+                  {{ authSubmitting ? 'Creating account...' : registerStep === 1 ? 'Continue' : 'Create Account' }}
+                </button>
+              </div>
+              <p class="sm:col-span-2 text-center text-sm text-zinc-600 dark:text-zinc-300">
+                Already have an account?
+                <button type="button" (click)="switchAuthMode('login')" class="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200">Login</button>
+              </p>
+            </form>
+          }
+      </article>
+    </section>
+  }
+
+  @if (showContextSelectionModal) {
+    <section class="auth-overlay fixed inset-0 z-[85] grid place-items-center p-4">
+      <button class="auth-backdrop fixed inset-0 z-0" type="button" (click)="cancelContextSelection()" aria-label="Close context selection"></button>
+      <article class="auth-choice-modal relative z-10 w-full max-w-2xl rounded-3xl border border-white/40 bg-white/85 p-6 shadow-2xl backdrop-blur-2xl dark:border-zinc-700 dark:bg-zinc-900/85">
+        <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-300">
+          <lucide-icon [img]="sparklesIcon" class="h-4 w-4"></lucide-icon>
+          Select Workspace Context
+        </div>
+        <h3 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Choose account context</h3>
+        <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">This account has multiple tenants and roles. Select one to continue.</p>
+
+        @if (contextError) {
+          <p class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-400/40 dark:bg-rose-400/10 dark:text-rose-300">{{ contextError }}</p>
+        }
+
+        <div class="mt-5 grid gap-3">
+          @for (context of availableContexts; track context.tenantId) {
+            <button
+              type="button"
+              (click)="selectContext(context.tenantId)"
+              class="btn-radius rounded-xl border px-4 py-3 text-left transition-all duration-200"
+              [ngClass]="
+                selectedContextTenantId === context.tenantId
+                  ? 'border-indigo-500 bg-indigo-50 text-zinc-900 dark:border-indigo-400 dark:bg-indigo-500/20 dark:text-zinc-100'
+                  : 'border-zinc-300 bg-zinc-50 text-zinc-900 hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100 dark:hover:border-zinc-500'
+              ">
+              <p class="text-sm font-semibold">{{ context.tenantName }}</p>
+              <p class="mt-1 text-xs text-zinc-600 dark:text-zinc-300">{{ context.roleName }}</p>
+              <p class="mt-2 text-xs text-indigo-700 dark:text-indigo-300">{{ getContextContinueText(context) }}</p>
+            </button>
+          }
+        </div>
+
+        <div class="mt-6 flex items-center justify-end gap-2">
+          <button type="button" (click)="cancelContextSelection()" class="context-back-btn btn-radius rounded-xl border px-4 py-2 text-sm font-semibold transition-all duration-200">
+            Back
+          </button>
+          <button
+            type="button"
+            (click)="continueWithSelectedContext()"
+            [disabled]="!selectedContextTenantId || contextSubmitting"
+            class="btn-radius rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
+            {{ contextSubmitting ? 'Continuing...' : 'Continue' }}
+          </button>
+        </div>
+      </article>
+    </section>
+  }
 </main>
