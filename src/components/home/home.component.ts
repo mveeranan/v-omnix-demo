@@ -36,7 +36,8 @@ import {
   LucideIconData,
   Eye,
   EyeOff,
-  Sparkles
+  Sparkles,
+  Upload
 } from 'lucide-angular';
 import { HttpClient } from '@angular/common/http';
 import {
@@ -191,6 +192,30 @@ enum BusinessType {
   Other
 }
 
+enum FileCategory {
+  Unknown = 0,
+  ProfileImage = 1,
+  BusinessLogo = 2,
+  PortfolioImage = 3,
+  PortfolioVideo = 4,
+  BookingAttachment = 5,
+  InvoiceDocument = 6,
+  IdentityVerification = 7,
+  ChatAttachment = 8,
+  BannerImage = 9
+}
+
+interface UploadDocumentFile {
+  fileName: string;
+  contentType: string;
+  base64Content: string;
+}
+
+interface UploadDocumentRequest {
+  files: UploadDocumentFile[];
+  fileCategory: FileCategory;
+  tenantId?: string;
+}
 
 interface BusinessTypeOption {
   value: BusinessType;
@@ -239,6 +264,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   loginUserEmail = '';
   availableContexts: AuthContext[] = [];
   selectedContextTenantId = '';
+  businessLogoFile: File | null = null;
+  businessLogoPreview: string | null = null;
   isCountryDropdownOpen = false;
   countrySearchTerm = '';
   countryOptions: CountryCodeOption[] = [];
@@ -410,6 +437,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly eyeIcon = Eye;
   readonly eyeOffIcon = EyeOff;
   readonly sparklesIcon = Sparkles;
+  readonly uploadIcon = Upload;
 
   readonly loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -528,6 +556,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     this.applyCountryValidators();
 
+    this.removeLogoFile();
     this.registerStep = 1;
     this.showLoginPassword = false;
     this.showRegisterPassword = false;
@@ -838,6 +867,39 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.countrySearchTerm = input.value;
   }
 
+  onLogoFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      this.notificationService.warning('Please upload a PNG, JPG, WebP, or SVG image.');
+      input.value = '';
+      return;
+    }
+
+    const maxSizeMB = 2;
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      this.notificationService.warning(`Logo must be under ${maxSizeMB} MB.`);
+      input.value = '';
+      return;
+    }
+
+    this.businessLogoFile = file;
+    this.businessLogoPreview = URL.createObjectURL(file);
+  }
+
+  removeLogoFile(): void {
+    if (this.businessLogoPreview) {
+      URL.revokeObjectURL(this.businessLogoPreview);
+    }
+    this.businessLogoFile = null;
+    this.businessLogoPreview = null;
+  }
+
   selectCountryOption(country: CountryCodeOption): void {
     this.registerForm.controls.countryCode.setValue(country.dialCode);
     this.registerForm.controls.countryCode.markAsTouched();
@@ -903,6 +965,19 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       if (this.selectedPlanName) {
         payload['planName'] = this.selectedPlanName;
+      }
+
+      if (this.businessLogoFile) {
+        const base64Content = await this.fileToBase64(this.businessLogoFile);
+        const attachments: UploadDocumentRequest = {
+          files: [{
+            fileName: this.businessLogoFile.name,
+            contentType: this.businessLogoFile.type,
+            base64Content
+          }],
+          fileCategory: FileCategory.BusinessLogo
+        };
+        payload['attachments'] = attachments;
       }
 
       const response = await firstValueFrom(
@@ -1190,6 +1265,18 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return 'For high-volume operators that need enterprise-grade controls.';
     }
     return 'A scalable plan designed for booking operations growth.';
+  }
+
+  private fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(',')[1]);
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
   }
 
   private getFirstError(errors?: string[]): string {
