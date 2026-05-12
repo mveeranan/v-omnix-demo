@@ -137,6 +137,14 @@ interface SelectContextData {
   roleName: string;
 }
 
+interface RegisterData {
+  tenantId: string;
+}
+
+interface CheckoutSessionResponse {
+  checkoutUrl: string;
+}
+
 interface Testimonial {
   name: string;
   role: string;
@@ -898,7 +906,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       const response = await firstValueFrom(
-        this.http.post<ApiResponse<unknown>>(API_ENDPOINTS.auth.registerAdmin, payload)
+        this.http.post<ApiResponse<RegisterData>>(API_ENDPOINTS.auth.registerAdmin, payload)
       );
 
       if (!response.success) {
@@ -908,12 +916,56 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
 
-      this.authSubmitting = false;
+      const tenantId = response.data?.tenantId;
+      if (!tenantId) {
+        this.authSubmitting = false;
+        this.authError = 'Account created but no tenant was returned. Please contact support.';
+        this.notificationService.error(this.authError);
+        return;
+      }
+
       this.notificationService.success(response.message || 'Account created successfully.');
-      this.navigateToDashboard(false);
+
+      if (this.selectedPlanPriceId) {
+        await this.initiateStripeCheckout(tenantId, this.selectedPlanPriceId);
+      } else {
+        this.authSubmitting = false;
+        this.navigateToDashboard(false);
+      }
     } catch (error) {
       this.authSubmitting = false;
       this.authError = this.extractErrorMessage(error) || 'Registration failed. Please try again.';
+      this.notificationService.error(this.authError);
+    }
+  }
+
+  private async initiateStripeCheckout(tenantId: string, planPriceId: string): Promise<void> {
+    try {
+      this.notificationService.info('Redirecting to payment...');
+
+      const checkoutResponse = await firstValueFrom(
+        this.http.post<ApiResponse<CheckoutSessionResponse>>(API_ENDPOINTS.stripe.checkout, {
+          planPriceId,
+          tenantId
+        })
+      );
+
+      if (!checkoutResponse.success || !checkoutResponse.data?.checkoutUrl) {
+        this.authSubmitting = false;
+        this.authError =
+          checkoutResponse.message ||
+          this.getFirstError(checkoutResponse.errors) ||
+          'Unable to create checkout session. Please try again.';
+        this.notificationService.error(this.authError);
+        return;
+      }
+
+      this.authSubmitting = false;
+      window.location.href = checkoutResponse.data.checkoutUrl;
+    } catch (error) {
+      this.authSubmitting = false;
+      this.authError =
+        this.extractErrorMessage(error) || 'Payment setup failed. Please try again.';
       this.notificationService.error(this.authError);
     }
   }
