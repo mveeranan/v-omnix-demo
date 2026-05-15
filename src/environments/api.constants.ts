@@ -15,6 +15,9 @@ export const API_ENDPOINTS = {
   plans: {
     list: `${base}/plans`
   },
+  stripe: {
+    checkout: `${base}/Stripe/ChcekOut`
+  },
   signalR: {
     hub: `${base}/hubs/connect`
   }
