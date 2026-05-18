@@ -11,6 +11,7 @@ import { LucideAngularModule, Inbox } from 'lucide-angular';
 })
 export class DashboardWidgetShellComponent {
   @Input({ required: true }) title = '';
+  @Input() subtitle = '';
   @Input() loading = false;
   @Input() empty = false;
   @Input() emptyMessage = 'No data available yet.';

@@ -8,7 +8,8 @@ import { AdminDashboardDataService } from '../../services/admin-dashboard-data.s
   selector: 'app-customers-widget',
   standalone: true,
   imports: [CommonModule, LucideAngularModule, DashboardWidgetShellComponent],
-  templateUrl: './customers-widget.component.html'
+  templateUrl: './customers-widget.component.html',
+  styleUrl: './customers-widget.component.scss'
 })
 export class CustomersWidgetComponent {
   private readonly dataService = inject(AdminDashboardDataService);

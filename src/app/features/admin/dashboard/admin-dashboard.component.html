@@ -1,4 +1,4 @@
-<div @pageFadeIn class="admin-page mx-auto max-w-[1600px]">
+<div @pageFadeIn class="admin-page mx-auto w-full max-w-[1600px]">
   <header class="admin-page__header">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div>
@@ -20,20 +20,14 @@
     <div class="admin-widget-grid__cell admin-widget-grid__branding" @widgetEnter>
       <app-branding-widget />
     </div>
-    <div class="admin-widget-grid__cell admin-widget-grid__completion" @widgetEnter>
-      <app-completion-widget />
+    <div class="admin-widget-grid__cell admin-widget-grid__customers" @widgetEnter>
+      <app-customers-widget />
     </div>
     <div class="admin-widget-grid__cell admin-widget-grid__schedule" @widgetEnter>
       <app-schedule-widget />
     </div>
     <div class="admin-widget-grid__cell admin-widget-grid__upcoming" @widgetEnter>
       <app-upcoming-bookings-widget />
-    </div>
-    <div class="admin-widget-grid__cell admin-widget-grid__customers" @widgetEnter>
-      <app-customers-widget />
-    </div>
-    <div class="admin-widget-grid__cell admin-widget-grid__notifications" @widgetEnter>
-      <app-notifications-widget />
     </div>
   </div>
 </div>

@@ -1,13 +1,15 @@
 <app-dashboard-widget-shell
   title="Recent customers"
+  subtitle="Latest activity"
   [loading]="loading()"
   [empty]="isEmpty()"
-  emptyMessage="No customers yet.">
-  <ul class="admin-widget-scroll divide-y divide-zinc-100 dark:divide-zinc-800">
+  emptyMessage="No customers yet. New bookings will appear here.">
+  <span widgetActions class="admin-widget-count-badge">{{ customers().length }}</span>
+
+  <ul class="admin-widget-scroll admin-widget-list">
     @for (customer of customers(); track customer.id) {
-      <li class="flex items-center gap-2 py-2 first:pt-0 last:pb-0">
-        <div
-          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white ring-2 ring-white dark:ring-zinc-900 {{ customer.avatarColor }}">
+      <li class="admin-widget-list__item">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white ring-2 ring-white dark:ring-zinc-900 {{ customer.avatarColor }}">
           {{ customer.initials }}
         </div>
         <div class="min-w-0 flex-1">
@@ -16,10 +18,10 @@
         </div>
         <button
           type="button"
-          class="inline-flex shrink-0 items-center gap-0.5 rounded-md border border-zinc-200 bg-white px-1.5 py-1 text-[10px] font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+          class="admin-widget-list__action"
           [attr.aria-label]="'Quick view ' + customer.name">
           <lucide-icon [img]="eyeIcon" class="h-3 w-3" />
-          <span class="hidden sm:inline">View</span>
+          <span class="hidden lg:inline">View</span>
         </button>
       </li>
     }

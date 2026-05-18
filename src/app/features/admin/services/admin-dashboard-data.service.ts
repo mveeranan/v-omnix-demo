@@ -33,6 +33,9 @@ export interface RevenueSummary {
   currency: string;
   monthlyGrowth: number;
   sparkline: number[];
+  bookingsThisMonth: number;
+  averageTicket: number;
+  pendingPayouts: number;
 }
 
 export interface ProfileStep {
@@ -103,7 +106,10 @@ export class AdminDashboardDataService {
         total: 48250,
         currency: 'USD',
         monthlyGrowth: 12.4,
-        sparkline: [32, 38, 35, 42, 48, 45, 52, 58, 55, 62, 68, 72]
+        sparkline: [32, 38, 35, 42, 48, 45, 52, 58, 55, 62, 68, 72],
+        bookingsThisMonth: 128,
+        averageTicket: 377,
+        pendingPayouts: 6240
       },
       todaySchedule: [
         {

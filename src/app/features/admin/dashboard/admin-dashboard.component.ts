@@ -7,8 +7,6 @@ import { RevenueWidgetComponent } from '../widgets/revenue-widget/revenue-widget
 import { ScheduleWidgetComponent } from '../widgets/schedule-widget/schedule-widget.component';
 import { UpcomingBookingsWidgetComponent } from '../widgets/upcoming-bookings-widget/upcoming-bookings-widget.component';
 import { CustomersWidgetComponent } from '../widgets/customers-widget/customers-widget.component';
-import { NotificationsWidgetComponent } from '../widgets/notifications-widget/notifications-widget.component';
-import { CompletionWidgetComponent } from '../widgets/completion-widget/completion-widget.component';
 import { BrandingWidgetComponent } from '../widgets/branding-widget/branding-widget.component';
 import { pageFadeIn, widgetEnter, widgetsStagger } from '../animations/admin.animations';
 
@@ -23,8 +21,6 @@ import { pageFadeIn, widgetEnter, widgetsStagger } from '../animations/admin.ani
     ScheduleWidgetComponent,
     UpcomingBookingsWidgetComponent,
     CustomersWidgetComponent,
-    NotificationsWidgetComponent,
-    CompletionWidgetComponent,
     BrandingWidgetComponent
   ],
   templateUrl: './admin-dashboard.component.html',

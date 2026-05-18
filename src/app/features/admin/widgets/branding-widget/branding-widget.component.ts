@@ -8,7 +8,8 @@ import { AdminDashboardDataService } from '../../services/admin-dashboard-data.s
   selector: 'app-branding-widget',
   standalone: true,
   imports: [CommonModule, LucideAngularModule, DashboardWidgetShellComponent],
-  templateUrl: './branding-widget.component.html'
+  templateUrl: './branding-widget.component.html',
+  styleUrl: './branding-widget.component.scss'
 })
 export class BrandingWidgetComponent {
   private readonly dataService = inject(AdminDashboardDataService);

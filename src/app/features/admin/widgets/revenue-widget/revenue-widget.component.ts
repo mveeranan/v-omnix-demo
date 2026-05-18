@@ -11,7 +11,8 @@ import {
   selector: 'app-revenue-widget',
   standalone: true,
   imports: [CommonModule, LucideAngularModule, DashboardWidgetShellComponent],
-  templateUrl: './revenue-widget.component.html'
+  templateUrl: './revenue-widget.component.html',
+  styleUrl: './revenue-widget.component.scss'
 })
 export class RevenueWidgetComponent {
   private readonly dataService = inject(AdminDashboardDataService);
@@ -30,8 +31,8 @@ export class RevenueWidgetComponent {
   }
 
   sparklinePath(data: RevenueSummary['sparkline']): string {
-    const width = 200;
-    const height = 48;
+    const width = 400;
+    const height = 56;
     const max = Math.max(...data);
     const min = Math.min(...data);
     const range = max - min || 1;

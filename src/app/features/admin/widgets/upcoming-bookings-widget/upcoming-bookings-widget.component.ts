@@ -7,12 +7,14 @@ import { AdminDashboardDataService } from '../../services/admin-dashboard-data.s
   selector: 'app-upcoming-bookings-widget',
   standalone: true,
   imports: [CommonModule, DashboardWidgetShellComponent],
-  templateUrl: './upcoming-bookings-widget.component.html'
+  templateUrl: './upcoming-bookings-widget.component.html',
+  styleUrl: './upcoming-bookings-widget.component.scss'
 })
 export class UpcomingBookingsWidgetComponent {
   private readonly dataService = inject(AdminDashboardDataService);
 
   readonly loading = this.dataService.isLoading;
   readonly bookings = computed(() => this.dataService.dashboardData().upcomingBookings);
+  readonly visibleBookings = computed(() => this.bookings().slice(0, 5));
   readonly isEmpty = computed(() => !this.loading() && this.bookings().length === 0);
 }

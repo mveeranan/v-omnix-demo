@@ -10,7 +10,8 @@ import {
   selector: 'app-schedule-widget',
   standalone: true,
   imports: [CommonModule, DashboardWidgetShellComponent],
-  templateUrl: './schedule-widget.component.html'
+  templateUrl: './schedule-widget.component.html',
+  styleUrl: './schedule-widget.component.scss'
 })
 export class ScheduleWidgetComponent {
   private readonly dataService = inject(AdminDashboardDataService);
@@ -18,6 +19,11 @@ export class ScheduleWidgetComponent {
   readonly loading = this.dataService.isLoading;
   readonly schedule = computed(() => this.dataService.dashboardData().todaySchedule);
   readonly isEmpty = computed(() => !this.loading() && this.schedule().length === 0);
+  readonly scheduleDateLabel = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  }).format(new Date());
 
   statusClass(status: BookingStatus): string {
     const map: Record<BookingStatus, string> = {
