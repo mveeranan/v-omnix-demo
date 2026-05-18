@@ -49,7 +49,7 @@
           type="button">
           <lucide-icon [img]="mobileMenuOpen ? xIcon : menuIcon" class="h-5 w-5"></lucide-icon>
         </button>
-        <button (click)="openAuthPanel('login')" class="btn-radius header-login hidden border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 no-underline transition-all duration-300 hover:scale-[1.02] hover:border-blue-500 hover:text-blue-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-cyan-400 dark:hover:text-cyan-300 sm:px-5 sm:py-2.5 sm:text-base md:inline-flex" type="button">
+        <button (click)="openLoginPanel()" class="btn-radius header-login hidden border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 no-underline transition-all duration-300 hover:scale-[1.02] hover:border-blue-500 hover:text-blue-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-cyan-400 dark:hover:text-cyan-300 sm:px-5 sm:py-2.5 sm:text-base md:inline-flex" type="button">
           Login
         </button>
         <a class="btn-radius header-cta hidden bg-zinc-900 px-3 py-2 text-sm font-semibold text-white no-underline transition-all duration-300 hover:scale-[1.02] hover:bg-blue-600 dark:bg-white dark:text-zinc-900 dark:hover:bg-blue-500 dark:hover:text-white sm:px-5 sm:py-2.5 sm:text-base md:inline-flex" href="#pricing">
@@ -65,7 +65,7 @@
             <a (click)="closeMobileMenu()" class="mobile-menu-link no-underline rounded-lg px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800" href="#faq">FAQ</a>
           </div>
           <div class="mt-3 grid grid-cols-2 gap-2">
-            <button (click)="closeMobileMenu(); openAuthPanel('login')" class="btn-radius mobile-menu-login header-login inline-flex items-center justify-center border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 no-underline transition-all duration-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" type="button">
+            <button (click)="closeMobileMenu(); openLoginPanel()" class="btn-radius mobile-menu-login header-login inline-flex items-center justify-center border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 no-underline transition-all duration-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" type="button">
               Login
             </button>
             <a (click)="closeMobileMenu()" class="btn-radius mobile-menu-cta header-cta inline-flex items-center justify-center bg-zinc-900 px-3 py-2 text-sm font-semibold text-white no-underline transition-all duration-300 dark:bg-white dark:text-zinc-900" href="#pricing">
@@ -395,267 +395,358 @@
   </footer>
 
   @if (showAuthChoiceModal) {
-    <section class="auth-overlay fixed inset-0 z-[70] grid place-items-center p-4">
-      <button class="auth-backdrop fixed inset-0 z-0" type="button" (click)="closeAuthOverlays()" aria-label="Close auth choice"></button>
-      <article class="auth-choice-modal relative z-10 w-full max-w-lg rounded-3xl border border-white/40 bg-white/80 p-6 shadow-2xl backdrop-blur-2xl dark:border-zinc-700 dark:bg-zinc-900/80">
-        <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-300">
-          <lucide-icon [img]="sparklesIcon" class="h-4 w-4"></lucide-icon>
-          Account Authentication
-        </div>
-        <h3 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Continue with {{ selectedPlanName }} plan</h3>
-        <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Already have account?</p>
-        <div class="mt-6 grid gap-3 sm:grid-cols-2">
-          <button type="button" (click)="openAuthPanel('login')" class="btn-radius auth-choice-login-btn border border-zinc-300 bg-white px-4 py-3 text-sm font-semibold text-zinc-800 transition-all hover:-translate-y-0.5 hover:border-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
-            Login
-          </button>
-          <button type="button" (click)="openAuthPanel('register')" class="btn-radius auth-choice-register-btn bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:-translate-y-0.5">
-            Create New
-          </button>
+    <section class="auth-overlay premium-auth-overlay fixed inset-0 z-[80] flex items-center justify-center overflow-hidden overscroll-none p-3 sm:p-5">
+      <div class="auth-backdrop fixed inset-0 z-0" aria-hidden="true"></div>
+      <article class="premium-auth-card premium-auth-card--choice auth-shell">
+        <aside class="premium-auth-aside hidden md:block">
+          <div class="premium-auth-aside-content">
+            <div>
+              <span class="premium-auth-aside-badge">
+                <lucide-icon [img]="sparklesIcon" class="h-3.5 w-3.5"></lucide-icon>
+                V-Omnix Workspace
+              </span>
+              <h3>Get started with your plan</h3>
+              <p>Sign in to an existing account or create a new workspace in minutes.</p>
+            </div>
+            <p class="text-xs text-white/75">Enterprise-ready · Light &amp; dark themes</p>
+          </div>
+        </aside>
+        <div class="premium-auth-main premium-auth-main--static">
+          <button type="button" (click)="closeAuthOverlays()" class="premium-auth-close">Close</button>
+          <div class="pa-header">
+            <h4>How would you like to continue?</h4>
+            <p>Choose an option to proceed with your selected plan.</p>
+            @if (selectedPlanName) {
+              <span class="pa-plan-badge">
+                <lucide-icon [img]="sparklesIcon" class="h-3.5 w-3.5"></lucide-icon>
+                {{ selectedPlanName }} Plan
+              </span>
+            }
+          </div>
+          <div class="pa-choice-actions">
+            <button type="button" class="pa-submit" (click)="openLoginPanel()">Login to existing account</button>
+            <button type="button" class="pa-submit pa-submit--alt" (click)="openRegisterPanel()">Create new account</button>
+          </div>
         </div>
       </article>
     </section>
   }
 
-  @if (showAuthPanel) {
-    <section class="auth-overlay fixed inset-0 z-[80] overflow-y-auto p-3 sm:p-6">
-      <button class="auth-backdrop fixed inset-0 z-0" type="button" (click)="closeAuthOverlays()" aria-label="Close auth form"></button>
-      <article class="auth-shell auth-form-panel-surface relative z-10 mx-auto w-full max-w-2xl overflow-hidden rounded-[2rem] border border-white/45 p-6 shadow-2xl backdrop-blur-2xl dark:border-zinc-700 sm:p-8">
-          <div class="mb-5 flex items-center justify-between">
-            <span class="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 dark:border-indigo-400/40 dark:bg-indigo-500/10 dark:text-indigo-300">V-Omnix Workspace</span>
-            <button type="button" (click)="closeAuthOverlays()" class="btn-radius border border-zinc-300 px-3 py-1 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">Close</button>
+  @if (showLoginPanel) {
+    <section class="auth-overlay premium-auth-overlay fixed inset-0 z-[80] flex items-center justify-center overflow-hidden overscroll-none p-3 sm:p-5">
+      <div class="auth-backdrop fixed inset-0 z-0" aria-hidden="true"></div>
+      <article class="premium-auth-card auth-shell">
+        <aside class="premium-auth-aside hidden md:block">
+          <div class="premium-auth-aside-content">
+            <div>
+              <span class="premium-auth-aside-badge">
+                <lucide-icon [img]="sparklesIcon" class="h-3.5 w-3.5"></lucide-icon>
+                V-Omnix Workspace
+              </span>
+              <h3>Welcome back</h3>
+              <p>Sign in to manage your business from one premium dashboard.</p>
+            </div>
+            <p class="text-xs text-white/75">Enterprise-ready · Light &amp; dark themes</p>
           </div>
-
-        <h4 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ authMode === 'login' ? 'Welcome back' : 'Create workspace account' }}</h4>
-          <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">Selected Plan: {{ selectedPlanName }}</p>
-
+        </aside>
+        <div class="premium-auth-main premium-auth-main--static">
+          <button type="button" (click)="closeAuthOverlays()" class="premium-auth-close">Close</button>
+          <div class="pa-header">
+            <h4>Sign in to your account</h4>
+            <p>Use your credentials to continue.</p>
+          </div>
           @if (authError) {
-            <p class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-400/40 dark:bg-rose-400/10 dark:text-rose-300">{{ authError }}</p>
+            <p class="pa-alert" role="alert">{{ authError }}</p>
           }
-
-          @if (authMode === 'login') {
-            <form [formGroup]="loginForm" (ngSubmit)="submitAuth()" class="mt-6 space-y-4">
-              <label class="floating-field">
-                <input formControlName="email" type="email" placeholder=" " class="floating-input" />
-                <span>Email Address</span>
-              </label>
+          <form [formGroup]="loginForm" (ngSubmit)="submitLoginForm()" class="pa-form">
+            <div class="pa-field" [class.pa-field-invalid]="hasLoginError('email')">
+              <label class="pa-label" for="login-email">Email Address</label>
+              <div class="pa-control">
+                <lucide-icon [img]="mailIcon" class="pa-icon"></lucide-icon>
+                <input id="login-email" formControlName="email" type="email" class="pa-input" placeholder="you@company.com" />
+              </div>
               @if (hasLoginError('email')) {
-                <p class="field-error">Enter a valid email address.</p>
+                <p class="pa-error" role="alert">Enter a valid email address.</p>
               }
-              <label class="floating-field">
-                <input formControlName="password" [type]="showLoginPassword ? 'text' : 'password'" placeholder=" " class="floating-input pr-12" />
-                <span>Password</span>
-                <button type="button" class="field-icon-btn" (click)="togglePasswordVisibility('login')" [attr.aria-label]="showLoginPassword ? 'Hide password' : 'Show password'">
+            </div>
+            <div class="pa-field" [class.pa-field-invalid]="hasLoginError('password')">
+              <label class="pa-label" for="login-password">Password</label>
+              <div class="pa-control">
+                <lucide-icon [img]="lockIcon" class="pa-icon"></lucide-icon>
+                <input id="login-password" formControlName="password" [type]="showLoginPassword ? 'text' : 'password'" class="pa-input" placeholder="Enter your password" />
+                <button type="button" class="pa-toggle-btn" (click)="togglePasswordVisibility('login')" [attr.aria-label]="showLoginPassword ? 'Hide password' : 'Show password'">
                   <lucide-icon [img]="showLoginPassword ? eyeOffIcon : eyeIcon" class="h-4 w-4"></lucide-icon>
                 </button>
-              </label>
-              @if (hasLoginError('password')) {
-                <p class="field-error">Password must be at least 8 characters.</p>
-              }
-              <button type="submit" [disabled]="authSubmitting" class="premium-submit-btn">
-                {{ authSubmitting ? 'Signing in...' : 'Login to Dashboard' }}
-              </button>
-              <p class="text-center text-sm text-zinc-600 dark:text-zinc-300">
-                Need a new account?
-                <button type="button" (click)="switchAuthMode('register')" class="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200">Create account</button>
-              </p>
-            </form>
-          } @else {
-            <form [formGroup]="registerForm" (ngSubmit)="submitAuth()" class="mt-6 grid gap-4 sm:grid-cols-2">
-              <div class="sm:col-span-2 mb-1 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">
-                <span>Step {{ registerStep }} of 2</span>
-                <span>{{ registerStep === 1 ? 'User Details' : 'Business Details' }}</span>
               </div>
+              @if (hasLoginError('password')) {
+                <p class="pa-error" role="alert">Password must be at least 8 characters.</p>
+              }
+            </div>
+            <button type="submit" [disabled]="authSubmitting" class="pa-submit">
+              {{ authSubmitting ? 'Signing in...' : 'Login to Dashboard' }}
+            </button>
+            <p class="pa-footer-text">
+              Need a new account?
+              <button type="button" (click)="openRegisterPanel()">Create account</button>
+            </p>
+          </form>
+        </div>
+      </article>
+    </section>
+  }
 
+  @if (showRegisterPanel) {
+    <section class="auth-overlay premium-auth-overlay fixed inset-0 z-[80] flex items-center justify-center overflow-hidden overscroll-none p-3 sm:p-5">
+      <div class="auth-backdrop fixed inset-0 z-0" aria-hidden="true"></div>
+      <article class="premium-auth-card premium-auth-card--register auth-shell">
+        <aside class="premium-auth-aside hidden md:block">
+          <div class="premium-auth-aside-content">
+            <div>
+              <span class="premium-auth-aside-badge">
+                <lucide-icon [img]="sparklesIcon" class="h-3.5 w-3.5"></lucide-icon>
+                V-Omnix Workspace
+              </span>
+              <h3>Build your workspace</h3>
+              <p>Create your account and launch operations with a rich, secure workspace.</p>
+            </div>
+            <p class="text-xs text-white/75">Enterprise-ready · Light &amp; dark themes</p>
+          </div>
+        </aside>
+        <div class="premium-auth-main premium-auth-main--register">
+          <button type="button" (click)="closeAuthOverlays()" class="premium-auth-close">Close</button>
+          <div class="pa-header pa-header--register">
+            <h4>{{ getRegisterStepLabel(registerStep) }}</h4>
+            <p>{{ getRegisterStepSubtitle() }}</p>
+            @if (selectedPlanName) {
+              <span class="pa-plan-badge">
+                <lucide-icon [img]="sparklesIcon" class="h-3.5 w-3.5"></lucide-icon>
+                {{ selectedPlanName }} Plan
+              </span>
+            }
+          </div>
+          @if (authError) {
+            <p class="pa-alert" role="alert">{{ authError }}</p>
+          }
+          <form [formGroup]="registerForm" (ngSubmit)="onRegisterFormSubmit($event)" class="pa-form pa-form-register pa-form-register--steps">
+            <div class="pa-step-track pa-step-track--four" role="navigation" aria-label="Registration progress">
+              <div class="pa-step-track-progress">
+                @for (step of registerSteps; track step) {
+                  <div
+                    class="pa-step-column"
+                    [class.active]="isRegisterStepActive(step)"
+                    [class.done]="isRegisterStepComplete(step)"
+                  >
+                    <div class="pa-step-node">
+                      <span class="pa-step-dot">{{ step }}</span>
+                    </div>
+                    <span class="pa-step-name">{{ getRegisterStepLabel(step) }}</span>
+                  </div>
+                  @if (step < registerTotalSteps) {
+                    <div class="pa-step-connector" [class.done]="registerStep > step" aria-hidden="true"></div>
+                  }
+                }
+              </div>
+            </div>
+            <div class="pa-form-step-body">
               @if (registerStep === 1) {
-                <div class="register-field-block">
-                  <label class="floating-field">
-                    <input formControlName="firstName" type="text" placeholder=" " class="floating-input" />
-                    <span>First Name</span>
-                  </label>
-                  @if (getRegisterFieldError('firstName')) {
-                    <p class="register-field-error">{{ getRegisterFieldError('firstName') }}</p>
-                  }
-                </div>
-                <div class="register-field-block">
-                  <label class="floating-field">
-                    <input formControlName="lastName" type="text" placeholder=" " class="floating-input" />
-                    <span>Last Name</span>
-                  </label>
-                  @if (getRegisterFieldError('lastName')) {
-                    <p class="register-field-error">{{ getRegisterFieldError('lastName') }}</p>
-                  }
-                </div>
-                <div class="register-field-block sm:col-span-2">
-                  <div class="country-picker-shell relative">
-                    <span class="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-200">Country Code</span>
-                    <button
-                      type="button"
-                      (click)="toggleCountryDropdown()"
-                      class="country-picker-btn country-picker-trigger btn-radius w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-left text-sm text-zinc-900 transition-all hover:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
-                      {{ getSelectedCountryLabel() }}
-                    </button>
-
-                    @if (isCountryDropdownOpen) {
-                      <div class="country-picker-panel btn-radius absolute z-30 mt-2 w-full rounded-xl border border-zinc-300 bg-white p-2 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
-                        <input
-                          type="text"
-                          [value]="countrySearchTerm"
-                          (input)="onCountrySearchInput($event)"
-                          placeholder="Search country..."
-                          class="country-picker-search btn-radius w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-indigo-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500" />
-                        <div class="country-picker-list btn-radius mt-2 max-h-52 overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
-                          @if (getFilteredCountryOptions().length === 0) {
-                            <p class="px-3 py-2 text-xs text-zinc-500 dark:text-zinc-400">No countries found.</p>
-                          } @else {
-                            @for (country of getFilteredCountryOptions(); track country.id ?? country.dialCode) {
-                              <button
-                                type="button"
-                                (click)="selectCountryOption(country)"
-                                class="country-picker-option block w-full border-0 px-3 py-2 text-left text-sm text-zinc-800 transition-colors hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">
-                                {{ country.name }} ({{ country.dialCode }})
-                              </button>
+                <div class="pa-form-grid two-col">
+                  <div class="pa-field" [class.pa-field-invalid]="!!getRegisterFieldError('firstName')">
+                    <label class="pa-label" for="reg-first-name">First Name</label>
+                    <div class="pa-control">
+                      <lucide-icon [img]="userIcon" class="pa-icon"></lucide-icon>
+                      <input id="reg-first-name" formControlName="firstName" type="text" class="pa-input" placeholder="First name" />
+                    </div>
+                    @if (getRegisterFieldError('firstName')) {
+                      <p class="pa-error" role="alert">{{ getRegisterFieldError('firstName') }}</p>
+                    }
+                  </div>
+                  <div class="pa-field" [class.pa-field-invalid]="!!getRegisterFieldError('lastName')">
+                    <label class="pa-label" for="reg-last-name">Last Name</label>
+                    <div class="pa-control">
+                      <lucide-icon [img]="userIcon" class="pa-icon"></lucide-icon>
+                      <input id="reg-last-name" formControlName="lastName" type="text" class="pa-input" placeholder="Last name" />
+                    </div>
+                    @if (getRegisterFieldError('lastName')) {
+                      <p class="pa-error" role="alert">{{ getRegisterFieldError('lastName') }}</p>
+                    }
+                  </div>
+                  <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getRegisterFieldError('countryCode') || !!countriesError">
+                    <label class="pa-label">Mobile Code</label>
+                    <div class="country-picker-shell relative">
+                      <div class="pa-control">
+                        <lucide-icon [img]="globeIcon" class="pa-icon"></lucide-icon>
+                        <button type="button" (click)="toggleCountryDropdown()" class="country-picker-btn country-picker-trigger btn-radius pa-input pa-input--picker w-full text-left">
+                          {{ getSelectedCountryLabel() }}
+                        </button>
+                      </div>
+                      @if (isCountryDropdownOpen) {
+                        <div class="country-picker-panel btn-radius absolute z-30 mt-2 w-full rounded-xl border p-2 shadow-xl">
+                          <input type="text" [value]="countrySearchTerm" (input)="onCountrySearchInput($event)" placeholder="Search country..." class="country-picker-search btn-radius w-full rounded-xl border px-3 py-2 text-sm outline-none" />
+                          <div class="country-picker-list btn-radius mt-2 max-h-52 overflow-auto rounded-xl border">
+                            @if (getFilteredCountryOptions().length === 0) {
+                              <p class="px-3 py-2 text-xs">No countries found.</p>
+                            } @else {
+                              @for (country of getFilteredCountryOptions(); track country.id ?? country.dialCode) {
+                                <button type="button" (click)="selectCountryOption(country)" class="country-picker-option block w-full border-0 px-3 py-2 text-left text-sm">
+                                  {{ country.name }} ({{ country.dialCode }})
+                                </button>
+                              }
                             }
-                          }
+                          </div>
                         </div>
+                      }
+                    </div>
+                    @if (getRegisterFieldError('countryCode')) {
+                      <p class="pa-error" role="alert">{{ getRegisterFieldError('countryCode') }}</p>
+                    }
+                    @if (countriesLoading) {
+                      <p class="text-xs" style="color: var(--pa-muted)">Loading countries...</p>
+                    }
+                    @if (countriesError) {
+                      <p class="pa-error" role="alert">{{ countriesError }}</p>
+                    }
+                  </div>
+                  <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getMobileNumberError()">
+                    <label class="pa-label" for="reg-mobile">Mobile Number</label>
+                    <div class="pa-control">
+                      <lucide-icon [img]="phoneIcon" class="pa-icon"></lucide-icon>
+                      <input id="reg-mobile" formControlName="mobileNumber" type="text" class="pa-input" placeholder="Mobile number" />
+                    </div>
+                    @if (getMobileNumberError()) {
+                      <p class="pa-error" role="alert">{{ getMobileNumberError() }}</p>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (registerStep === 2) {
+                <div class="pa-form-grid pa-form-grid--single">
+                  <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getRegisterFieldError('email')">
+                    <label class="pa-label" for="reg-email">Email Address</label>
+                    <div class="pa-control">
+                      <lucide-icon [img]="mailIcon" class="pa-icon"></lucide-icon>
+                      <input id="reg-email" formControlName="email" type="email" class="pa-input" placeholder="you@company.com" />
+                    </div>
+                    @if (getRegisterFieldError('email')) {
+                      <p class="pa-error" role="alert">{{ getRegisterFieldError('email') }}</p>
+                    }
+                  </div>
+                  <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getRegisterFieldError('password')">
+                    <label class="pa-label" for="reg-password">Password</label>
+                    <div class="pa-control">
+                      <lucide-icon [img]="lockIcon" class="pa-icon"></lucide-icon>
+                      <input id="reg-password" formControlName="password" [type]="showRegisterPassword ? 'text' : 'password'" class="pa-input" placeholder="Minimum 8 characters" />
+                      <button type="button" class="pa-toggle-btn" (click)="togglePasswordVisibility('register')" [attr.aria-label]="showRegisterPassword ? 'Hide password' : 'Show password'">
+                        <lucide-icon [img]="showRegisterPassword ? eyeOffIcon : eyeIcon" class="h-4 w-4"></lucide-icon>
+                      </button>
+                    </div>
+                    @if (getRegisterFieldError('password')) {
+                      <p class="pa-error" role="alert">{{ getRegisterFieldError('password') }}</p>
+                    }
+                  </div>
+                  <div class="pa-field pa-span-2 pa-field-terms" [class.pa-field-invalid]="!!getRegisterFieldError('acceptTerms')">
+                    <label class="pa-terms pa-terms--plain">
+                      <input formControlName="acceptTerms" type="checkbox" class="pa-terms-checkbox" />
+                      <span>I agree to the <strong>terms</strong> and <strong>privacy policy</strong>.</span>
+                    </label>
+                    @if (getRegisterFieldError('acceptTerms')) {
+                      <p class="pa-error" role="alert">{{ getRegisterFieldError('acceptTerms') }}</p>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (registerStep === 3) {
+                <div class="pa-form-grid pa-form-grid--single">
+                  <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getRegisterFieldError('businessName')">
+                    <label class="pa-label" for="reg-business-name">Business Name</label>
+                    <div class="pa-control">
+                      <lucide-icon [img]="usersIcon" class="pa-icon"></lucide-icon>
+                      <input id="reg-business-name" formControlName="businessName" type="text" class="pa-input" placeholder="Business name" />
+                    </div>
+                    @if (getRegisterFieldError('businessName')) {
+                      <p class="pa-error" role="alert">{{ getRegisterFieldError('businessName') }}</p>
+                    }
+                  </div>
+                  <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getRegisterFieldError('businessType')">
+                    <label class="pa-label" for="reg-business-type">Business Type</label>
+                    <div class="pa-control pa-control--select">
+                      <lucide-icon [img]="buildingIcon" class="pa-icon"></lucide-icon>
+                      <select id="reg-business-type" formControlName="businessType" class="pa-input">
+                        <option [ngValue]="0">Select business type</option>
+                        @for (item of businessTypeOptions; track item.value) {
+                          <option [ngValue]="item.value">{{ item.label }}</option>
+                        }
+                      </select>
+                    </div>
+                    @if (getRegisterFieldError('businessType')) {
+                      <p class="pa-error" role="alert">{{ getRegisterFieldError('businessType') }}</p>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (registerStep === 4) {
+                <div class="pa-form-grid pa-form-grid--single">
+                  <div class="pa-field pa-span-2">
+                    <label class="pa-label" for="reg-description">Description (optional)</label>
+                    <textarea id="reg-description" formControlName="description" rows="3" class="pa-input no-icon" placeholder="Tell us about your business"></textarea>
+                  </div>
+                  <div class="pa-field pa-span-2">
+                    <label class="pa-label">Business Logo (optional)</label>
+                    @if (!businessLogoPreview) {
+                      <label class="logo-upload-zone logo-upload-zone--compact flex cursor-pointer flex-col items-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-3 transition-colors">
+                        <lucide-icon [img]="uploadIcon" class="h-5 w-5"></lucide-icon>
+                        <span class="text-xs">Click to upload logo</span>
+                        <span class="text-[10px]">PNG, JPG, WebP or SVG · Max 2 MB</span>
+                        <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" (change)="onLogoFileSelected($event)" />
+                      </label>
+                    } @else {
+                      <div class="logo-preview-wrapper relative flex w-full items-center gap-3 rounded-xl border p-3">
+                        <img [src]="businessLogoPreview" alt="Logo preview" class="h-12 w-12 rounded-lg object-cover" />
+                        <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <span class="truncate text-xs font-medium">{{ businessLogoFile?.name }}</span>
+                          <span class="text-[10px]">{{ ((businessLogoFile?.size ?? 0) / 1024) | number:'1.0-0' }} KB</span>
+                        </div>
+                        <button type="button" (click)="removeLogoFile()" class="shrink-0 rounded-full p-1" title="Remove logo">
+                          <lucide-icon [img]="xIcon" class="h-4 w-4"></lucide-icon>
+                        </button>
                       </div>
                     }
                   </div>
-                  @if (getRegisterFieldError('countryCode')) {
-                    <p class="register-field-error">{{ getRegisterFieldError('countryCode') }}</p>
-                  }
-                  @if (countriesLoading) {
-                    <p class="text-xs text-zinc-500 dark:text-zinc-400">Loading countries...</p>
-                  }
-                  @if (countriesError) {
-                    <p class="register-field-error">{{ countriesError }}</p>
-                  }
                 </div>
-                <div class="register-field-block sm:col-span-2">
-                  <label class="floating-field">
-                    <input formControlName="mobileNumber" type="text" placeholder=" " class="floating-input" />
-                    <span>Mobile Number</span>
-                  </label>
-                  @if (getMobileNumberError()) {
-                    <p class="register-field-error">{{ getMobileNumberError() }}</p>
-                  }
-                </div>
-                <div class="register-field-block sm:col-span-2">
-                  <label class="floating-field">
-                    <input formControlName="email" type="email" placeholder=" " class="floating-input" />
-                    <span>Email Address</span>
-                  </label>
-                  @if (getRegisterFieldError('email')) {
-                    <p class="register-field-error">{{ getRegisterFieldError('email') }}</p>
-                  }
-                </div>
-                <div class="register-field-block sm:col-span-2">
-                  <label class="floating-field">
-                    <input formControlName="password" [type]="showRegisterPassword ? 'text' : 'password'" placeholder=" " class="floating-input pr-12" />
-                    <span>Password</span>
-                    <button type="button" class="field-icon-btn" (click)="togglePasswordVisibility('register')" [attr.aria-label]="showRegisterPassword ? 'Hide password' : 'Show password'">
-                      <lucide-icon [img]="showRegisterPassword ? eyeOffIcon : eyeIcon" class="h-4 w-4"></lucide-icon>
-                    </button>
-                  </label>
-                  @if (getRegisterFieldError('password')) {
-                    <p class="register-field-error">{{ getRegisterFieldError('password') }}</p>
-                  }
-                </div>
-
-                <div class="register-field-block sm:col-span-2">
-                  <label class="register-terms inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
-                    <input formControlName="acceptTerms" type="checkbox" class="terms-checkbox h-4 w-4 rounded border-zinc-400 text-indigo-600 focus:ring-indigo-500" />
-                    I agree to terms and privacy policy.
-                  </label>
-                  @if (getRegisterFieldError('acceptTerms')) {
-                    <p class="register-field-error">{{ getRegisterFieldError('acceptTerms') }}</p>
-                  }
-                </div>
-              } @else {
-                <div class="register-field-block sm:col-span-2">
-                  <label class="floating-field">
-                    <input formControlName="businessName" type="text" placeholder=" " class="floating-input" />
-                    <span>Business Name</span>
-                  </label>
-                  @if (getRegisterFieldError('businessName')) {
-                    <p class="register-field-error">{{ getRegisterFieldError('businessName') }}</p>
-                  }
-                </div>
-
-                <div class="register-field-block sm:col-span-2">
-                  <label class="floating-field">
-                    <select formControlName="businessType" class="floating-input">
-                      <option [ngValue]="0">Select business type</option>
-                      @for (item of businessTypeOptions; track item.value) {
-                        <option [ngValue]="item.value">{{ item.label }}</option>
-                      }
-                    </select>
-                    <span>Business Type</span>
-                  </label>
-                  @if (getRegisterFieldError('businessType')) {
-                    <p class="register-field-error">{{ getRegisterFieldError('businessType') }}</p>
-                  }
-                </div>
-
-                <div class="register-field-block sm:col-span-2">
-                  <label class="floating-field">
-                    <textarea formControlName="description" rows="3" placeholder=" " class="floating-input"></textarea>
-                    <span>Description (optional)</span>
-                  </label>
-                </div>
-
-                <div class="register-field-block sm:col-span-2">
-                  <span class="mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-300">Business Logo (optional)</span>
-                  @if (!businessLogoPreview) {
-                    <label class="logo-upload-zone flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50/60 px-4 py-5 transition-colors hover:border-indigo-400 hover:bg-indigo-50/40 dark:border-zinc-700 dark:bg-zinc-800/50 dark:hover:border-indigo-500 dark:hover:bg-indigo-950/20">
-                      <lucide-icon [img]="uploadIcon" class="h-6 w-6 text-zinc-400 dark:text-zinc-500"></lucide-icon>
-                      <span class="text-xs text-zinc-500 dark:text-zinc-400">Click to upload logo</span>
-                      <span class="text-[10px] text-zinc-400 dark:text-zinc-500">PNG, JPG, WebP or SVG &middot; Max 2 MB</span>
-                      <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" (change)="onLogoFileSelected($event)" />
-                    </label>
-                  } @else {
-                    <div class="logo-preview-wrapper relative flex w-full items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50/60 p-3 dark:border-zinc-700 dark:bg-zinc-800/50">
-                      <img [src]="businessLogoPreview" alt="Logo preview" class="h-14 w-14 rounded-lg object-cover" />
-                      <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-                        <span class="truncate text-xs font-medium text-zinc-700 dark:text-zinc-200">{{ businessLogoFile?.name }}</span>
-                        <span class="text-[10px] text-zinc-400">{{ ((businessLogoFile?.size ?? 0) / 1024) | number:'1.0-0' }} KB</span>
-                      </div>
-                      <button type="button" (click)="removeLogoFile()" class="shrink-0 rounded-full p-1 text-zinc-400 transition-colors hover:bg-red-100 hover:text-red-500 dark:hover:bg-red-900/30 dark:hover:text-red-400" title="Remove logo">
-                        <lucide-icon [img]="xIcon" class="h-4 w-4"></lucide-icon>
-                      </button>
-                    </div>
-                  }
-                </div>
-
               }
+            </div>
 
-              <div class="sm:col-span-2 flex items-center justify-between gap-2">
-                @if (registerStep === 2) {
-                  <button type="button" (click)="goToRegisterStepOne()" class="context-back-btn btn-radius rounded-xl border px-4 py-2 text-sm font-semibold transition-all duration-200">
-                    Back
-                  </button>
+            <div class="pa-form-footer pa-form-footer--register">
+              <div class="pa-actions">
+                @if (registerStep > 1) {
+                  <button type="button" (click)="goToRegisterPrevStep()" class="pa-secondary-btn">Back</button>
                 } @else {
-                  <span></span>
+                  <span class="pa-actions-spacer" aria-hidden="true"></span>
                 }
-                <button
-                  type="submit"
-                  [disabled]="authSubmitting"
-                  class="premium-submit-btn !w-auto min-w-[170px] px-6">
-                  {{ authSubmitting ? 'Creating account...' : registerStep === 1 ? 'Continue' : 'Create Account' }}
-                </button>
+                @if (registerStep < registerTotalSteps) {
+                  <button type="button" (click)="goToRegisterNextStep()" class="pa-submit inline">Next</button>
+                } @else {
+                  <button type="submit" [disabled]="authSubmitting" class="pa-submit inline">
+                    {{ authSubmitting ? 'Creating account...' : 'Create Account' }}
+                  </button>
+                }
               </div>
-              <p class="sm:col-span-2 text-center text-sm text-zinc-600 dark:text-zinc-300">
+              <p class="pa-footer-text">
                 Already have an account?
-                <button type="button" (click)="switchAuthMode('login')" class="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200">Login</button>
+                <button type="button" (click)="openLoginPanel()">Login</button>
               </p>
-            </form>
-          }
+            </div>
+          </form>
+
+        </div>
       </article>
     </section>
   }
-
   @if (showContextSelectionModal) {
     <section class="auth-overlay fixed inset-0 z-[85] grid place-items-center p-4">
-      <button class="auth-backdrop fixed inset-0 z-0" type="button" (click)="cancelContextSelection()" aria-label="Close context selection"></button>
+      <div class="auth-backdrop fixed inset-0 z-0" aria-hidden="true"></div>
       <article class="auth-choice-modal relative z-10 w-full max-w-2xl rounded-3xl border border-white/40 bg-white/85 p-6 shadow-2xl backdrop-blur-2xl dark:border-zinc-700 dark:bg-zinc-900/85">
         <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-300">
           <lucide-icon [img]="sparklesIcon" class="h-4 w-4"></lucide-icon>

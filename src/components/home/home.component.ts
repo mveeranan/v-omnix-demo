@@ -36,8 +36,12 @@ import {
   LucideIconData,
   Eye,
   EyeOff,
+  Lock,
+  Mail,
+  Phone,
   Sparkles,
-  Upload
+  Upload,
+  User
 } from 'lucide-angular';
 import { HttpClient } from '@angular/common/http';
 import {
@@ -243,8 +247,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   openFaqIndex: number | null = 0;
   countersStarted = false;
   showAuthChoiceModal = false;
-  showAuthPanel = false;
-  authMode: 'login' | 'register' = 'login';
+  showLoginPanel = false;
+  showRegisterPanel = false;
+  readonly registerTotalSteps = 4;
+  readonly registerSteps = [1, 2, 3, 4];
   selectedPlanId = '';
   selectedPlanName = '';
   selectedPlanPriceId = '';
@@ -438,6 +444,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly eyeOffIcon = EyeOff;
   readonly sparklesIcon = Sparkles;
   readonly uploadIcon = Upload;
+  readonly mailIcon = Mail;
+  readonly lockIcon = Lock;
+  readonly userIcon = User;
+  readonly phoneIcon = Phone;
+  readonly globeIcon = Globe;
+  readonly buildingIcon = Building2;
 
   readonly loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -497,35 +509,58 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.annual = isAnnual;
   }
 
-  openAuthChoice(plan?: PricingPlan): void {
-    if (plan) {
-      this.selectedPlanId = plan.id;
-      this.selectedPlanName = plan.name;
-      const selectedPrice = this.getPlanPrice(plan);
-      this.selectedPlanPriceId = selectedPrice?.planPriceId ?? '';
-      this.selectedStripePriceId = selectedPrice?.stripePriceId ?? '';
-    }
+  openAuthChoice(plan: PricingPlan): void {
+    this.selectedPlanId = plan.id;
+    this.selectedPlanName = plan.name;
+    const selectedPrice = this.getPlanPrice(plan);
+    this.selectedPlanPriceId = selectedPrice?.planPriceId ?? '';
+    this.selectedStripePriceId = selectedPrice?.stripePriceId ?? '';
     this.showAuthChoiceModal = true;
-    this.showAuthPanel = false;
+    this.showLoginPanel = false;
+    this.showRegisterPanel = false;
     this.authError = '';
+    this.syncBodyScrollLock();
   }
 
-  openAuthPanel(mode: 'login' | 'register'): void {
-    this.authMode = mode;
+  openLoginPanel(): void {
     this.showAuthChoiceModal = false;
-    this.showAuthPanel = true;
+    this.showRegisterPanel = false;
+    this.showLoginPanel = true;
+    this.authError = '';
+    this.syncBodyScrollLock();
+  }
+
+  openRegisterPanel(): void {
+    this.showAuthChoiceModal = false;
+    this.showLoginPanel = false;
+    this.showRegisterPanel = true;
     this.registerStep = 1;
     this.authError = '';
+    this.syncBodyScrollLock();
   }
 
   closeAuthOverlays(): void {
     this.showAuthChoiceModal = false;
-    this.showAuthPanel = false;
+    this.showLoginPanel = false;
+    this.showRegisterPanel = false;
     this.showContextSelectionModal = false;
     this.authError = '';
     this.contextError = '';
     this.resetAuthForms();
     this.refreshRevealAnimations();
+    this.syncBodyScrollLock();
+  }
+
+  private syncBodyScrollLock(): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const shouldLock =
+      this.showAuthChoiceModal ||
+      this.showLoginPanel ||
+      this.showRegisterPanel ||
+      this.showContextSelectionModal;
+    document.body.style.overflow = shouldLock ? 'hidden' : '';
   }
 
   private resetAuthForms(): void {
@@ -569,12 +604,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedContextTenantId = '';
   }
 
-  switchAuthMode(mode: 'login' | 'register'): void {
-    this.authMode = mode;
-    this.registerStep = 1;
-    this.authError = '';
-  }
-
   togglePasswordVisibility(type: 'login' | 'register'): void {
     if (type === 'login') {
       this.showLoginPassword = !this.showLoginPassword;
@@ -583,20 +612,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showRegisterPassword = !this.showRegisterPassword;
   }
 
-  async submitAuth(): Promise<void> {
-    const targetForm = this.authMode === 'login' ? this.loginForm : this.registerForm;
+  async submitLoginForm(): Promise<void> {
     if (this.authSubmitting) {
       return;
     }
-    if (this.authMode === 'login' && targetForm.invalid) {
-      targetForm.markAllAsTouched();
-      return;
-    }
-
-    if (this.authMode !== 'login') {
-      this.authSubmitting = true;
-      this.authError = '';
-      await this.submitRegister();
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
       return;
     }
 
@@ -635,9 +656,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (this.availableContexts.length > 1) {
-        this.showAuthPanel = false;
-        this.showAuthChoiceModal = false;
+        this.showLoginPanel = false;
         this.showContextSelectionModal = true;
+        this.syncBodyScrollLock();
         this.selectedContextTenantId = this.availableContexts[0]?.tenantId ?? '';
         this.notificationService.info('Multiple contexts found. Select one to continue.');
         this.authSubmitting = false;
@@ -697,8 +718,32 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   cancelContextSelection(): void {
     this.showContextSelectionModal = false;
-    this.showAuthPanel = true;
+    this.showLoginPanel = true;
     this.contextError = '';
+    this.syncBodyScrollLock();
+  }
+
+  onRegisterFormSubmit(event: Event): void {
+    event.preventDefault();
+    if (this.registerStep < this.registerTotalSteps) {
+      this.tryAdvanceRegisterStep();
+      return;
+    }
+    void this.submitRegisterForm();
+  }
+
+  goToRegisterNextStep(): void {
+    this.tryAdvanceRegisterStep();
+  }
+
+  async submitRegisterForm(): Promise<void> {
+    if (this.authSubmitting) {
+      return;
+    }
+
+    this.authSubmitting = true;
+    this.authError = '';
+    await this.submitRegister();
   }
 
   getContextContinueText(context: AuthContext): string {
@@ -804,37 +849,92 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return 'This field is required.';
   }
 
-  canProceedToRegisterStepTwo(): boolean {
-    return (
-      this.registerForm.controls.firstName.valid &&
-      this.registerForm.controls.lastName.valid &&
-      this.registerForm.controls.countryCode.valid &&
-      this.registerForm.controls.mobileNumber.valid &&
-      this.registerForm.controls.email.valid &&
-      this.registerForm.controls.password.valid &&
-      this.registerForm.controls.acceptTerms.valid
-    );
+  getRegisterStepLabel(step: number): string {
+    const labels = ['Personal info', 'Account', 'Business', 'Bio'];
+    return labels[step - 1] ?? '';
   }
 
-  goToRegisterStepTwo(): void {
-    if (!this.canProceedToRegisterStepTwo()) {
-      this.registerForm.controls.firstName.markAsTouched();
-      this.registerForm.controls.lastName.markAsTouched();
-      this.registerForm.controls.countryCode.markAsTouched();
-      this.registerForm.controls.mobileNumber.markAsTouched();
-      this.registerForm.controls.email.markAsTouched();
-      this.registerForm.controls.password.markAsTouched();
-      this.registerForm.controls.acceptTerms.markAsTouched();
-      this.notificationService.warning('Complete all required user details first.');
+  getRegisterStepSubtitle(): string {
+    const subtitles = [
+      'Enter your name and mobile number.',
+      'Set your email, password, and accept the terms.',
+      'Enter your business name and type.',
+      'Add an optional description and logo.'
+    ];
+    return subtitles[this.registerStep - 1] ?? '';
+  }
+
+  isRegisterStepComplete(step: number): boolean {
+    return step < this.registerStep;
+  }
+
+  isRegisterStepActive(step: number): boolean {
+    return step === this.registerStep;
+  }
+
+  canProceedRegisterStep(step: number): boolean {
+    switch (step) {
+      case 1:
+        return (
+          this.registerForm.controls.firstName.valid &&
+          this.registerForm.controls.lastName.valid &&
+          this.registerForm.controls.countryCode.valid &&
+          this.registerForm.controls.mobileNumber.valid
+        );
+      case 2:
+        return (
+          this.registerForm.controls.email.valid &&
+          this.registerForm.controls.password.valid &&
+          this.registerForm.controls.acceptTerms.valid
+        );
+      case 3:
+        return (
+          this.registerForm.controls.businessName.valid &&
+          this.registerForm.controls.businessType.valid
+        );
+      case 4:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  tryAdvanceRegisterStep(): void {
+    if (!this.canProceedRegisterStep(this.registerStep)) {
+      this.markRegisterStepTouched(this.registerStep);
+      this.notificationService.warning('Please complete the required fields on this step.');
       return;
     }
-    this.registerStep = 2;
+    if (this.registerStep < this.registerTotalSteps) {
+      this.registerStep += 1;
+    }
   }
 
-  goToRegisterStepOne(): void {
-    this.registerStep = 1;
+  goToRegisterPrevStep(): void {
+    if (this.registerStep > 1) {
+      this.registerStep -= 1;
+    }
   }
 
+  private markRegisterStepTouched(step: number): void {
+    switch (step) {
+      case 1:
+        this.registerForm.controls.firstName.markAsTouched();
+        this.registerForm.controls.lastName.markAsTouched();
+        this.registerForm.controls.countryCode.markAsTouched();
+        this.registerForm.controls.mobileNumber.markAsTouched();
+        break;
+      case 2:
+        this.registerForm.controls.email.markAsTouched();
+        this.registerForm.controls.password.markAsTouched();
+        this.registerForm.controls.acceptTerms.markAsTouched();
+        break;
+      case 3:
+        this.registerForm.controls.businessName.markAsTouched();
+        this.registerForm.controls.businessType.markAsTouched();
+        break;
+    }
+  }
 
   getSelectedCountryLabel(): string {
     const selectedCountry = this.getSelectedCountry();
@@ -925,20 +1025,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async submitRegister(): Promise<void> {
     try {
-      if (this.registerStep === 1) {
-        this.authSubmitting = false;
-        this.goToRegisterStepTwo();
-        return;
-      }
-
-      this.registerForm.controls.businessName.markAsTouched();
-      this.registerForm.controls.businessType.markAsTouched();
-      if (this.registerForm.controls.businessName.invalid || this.registerForm.controls.businessType.invalid) {
-        this.authSubmitting = false;
-        this.notificationService.warning('Complete business details to continue.');
-        return;
-      }
-
       const selectedCountry = this.getSelectedCountry();
       if (!selectedCountry) {
         this.authSubmitting = false;
@@ -1126,9 +1212,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @HostListener('document:keydown.escape')
   onEscapePress(): void {
-    if (this.showAuthChoiceModal || this.showAuthPanel) {
-      this.closeAuthOverlays();
-    }
     this.isCountryDropdownOpen = false;
   }
 
