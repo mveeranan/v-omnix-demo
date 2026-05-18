@@ -1,0 +1,34 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.admin-sidebar {
+  width: 16rem;
+}
+
+.admin-sidebar--collapsed:not(.admin-sidebar--mobile) {
+  width: 4.5rem;
+}
+
+.admin-sidebar--mobile {
+  width: 16rem;
+}
+
+.admin-nav-item--active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
+  color: rgb(79 70 229);
+}
+
+.dark .admin-nav-item--active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.12));
+  color: rgb(165 180 252);
+}
+
+.admin-nav-tooltip {
+  transform: translateY(-50%);
+  top: 50%;
+}
+p{
+  margin-bottom: 0;
+}

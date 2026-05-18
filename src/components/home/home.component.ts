@@ -55,6 +55,7 @@ import {
 import { Router } from '@angular/router';
 import { API_ENDPOINTS } from '../../environments/api.constants';
 import { AuthService } from '../../app/core/auth/auth.service';
+import { ThemeService } from '../../app/core/theme/theme.service';
 import { NotificationService } from '../../app/core/notifications/notification.service';
 import { firstValueFrom, Subscription } from 'rxjs';
 
@@ -239,10 +240,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
+  private readonly themeService = inject(ThemeService);
   @ViewChildren('revealEl') revealElements!: QueryList<ElementRef<HTMLElement>>;
 
   annual = false;
-  isDarkMode = false;
+  readonly isDark = this.themeService.isDark;
   mobileMenuOpen = false;
   openFaqIndex: number | null = 0;
   countersStarted = false;
@@ -277,11 +279,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   countryOptions: CountryCodeOption[] = [];
   countriesLoading = false;
   countriesError = '';
-  private userThemePreference = false;
   private revealObserver?: IntersectionObserver;
   private statsObserver?: IntersectionObserver;
   private revealFallbackTimer?: ReturnType<typeof setTimeout>;
-  private readonly themeStorageKey = 'v-omnix-theme';
   private countryCodeSubscription?: Subscription;
   readonly businessTypeOptions: BusinessTypeOption[] = [
     { value: BusinessType.Salon, label: 'Salon' },
@@ -470,7 +470,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    this.initializeTheme();
     this.loadPricingPlans();
     this.setupCountryValidationWatcher();
     this.loadCountries();
@@ -491,10 +490,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   toggleTheme(): void {
-    this.userThemePreference = true;
-    this.isDarkMode = !this.isDarkMode;
-    this.applyTheme(this.isDarkMode);
-    localStorage.setItem(this.themeStorageKey, this.isDarkMode ? 'dark' : 'light');
+    this.themeService.toggle();
   }
 
   toggleMobileMenu(): void {
@@ -1380,32 +1376,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       httpError.message ||
       ''
     );
-  }
-
-  private initializeTheme(): void {
-    const savedTheme = localStorage.getItem(this.themeStorageKey);
-    if (savedTheme === 'dark' || savedTheme === 'light') {
-      this.userThemePreference = true;
-      this.isDarkMode = savedTheme === 'dark';
-      this.applyTheme(this.isDarkMode);
-      return;
-    }
-
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    this.isDarkMode = prefersDark;
-    this.applyTheme(prefersDark);
-
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
-      if (this.userThemePreference) {
-        return;
-      }
-      this.isDarkMode = event.matches;
-      this.applyTheme(event.matches);
-    });
-  }
-
-  private applyTheme(isDark: boolean): void {
-    document.documentElement.classList.toggle('dark', isDark);
   }
 
   private setupRevealObserver(): void {

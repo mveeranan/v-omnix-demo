@@ -1,0 +1,46 @@
+<app-dashboard-widget-shell title="Revenue summary" [loading]="loading()">
+  <div class="flex h-full flex-col justify-between gap-2 sm:flex-row sm:items-end">
+    <div class="min-w-0">
+      <p class="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl dark:text-zinc-50">
+        {{ formatCurrency(revenue().total, revenue().currency) }}
+      </p>
+      <div class="mt-1 flex flex-wrap items-center gap-1.5">
+        @if (revenue().monthlyGrowth >= 0) {
+          <span
+            class="inline-flex items-center gap-0.5 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300">
+            <lucide-icon [img]="trendUpIcon" class="h-3 w-3" />
+            +{{ revenue().monthlyGrowth }}%
+          </span>
+        } @else {
+          <span
+            class="inline-flex items-center gap-0.5 rounded-full border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[10px] font-semibold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300">
+            <lucide-icon [img]="trendDownIcon" class="h-3 w-3" />
+            {{ revenue().monthlyGrowth }}%
+          </span>
+        }
+        <span class="text-[10px] text-zinc-500 dark:text-zinc-400">vs last month</span>
+      </div>
+    </div>
+    <svg viewBox="0 0 200 48" class="h-9 w-full shrink-0 sm:h-10 sm:max-w-[8.75rem]" aria-hidden="true">
+      <defs>
+        <linearGradient id="sparkGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="rgb(99 102 241)" stop-opacity="0.28" />
+          <stop offset="100%" stop-color="rgb(99 102 241)" stop-opacity="0" />
+        </linearGradient>
+        <linearGradient id="sparkGradDark" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="rgb(129 140 248)" stop-opacity="0.35" />
+          <stop offset="100%" stop-color="rgb(129 140 248)" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <path class="spark-area-light dark:hidden" [attr.d]="sparklinePath(revenue().sparkline) + ' L 200,48 L 0,48 Z'" fill="url(#sparkGrad)" />
+      <path class="spark-area-dark hidden dark:block" [attr.d]="sparklinePath(revenue().sparkline) + ' L 200,48 L 0,48 Z'" fill="url(#sparkGradDark)" />
+      <path
+        class="admin-sparkline-path admin-sparkline-stroke"
+        [attr.d]="sparklinePath(revenue().sparkline)"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round" />
+    </svg>
+  </div>
+</app-dashboard-widget-shell>

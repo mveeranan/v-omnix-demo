@@ -1,0 +1,44 @@
+<app-dashboard-widget-shell title="Profile completion" [loading]="loading()">
+  <div class="flex h-full items-center gap-4">
+    <div class="relative h-16 w-16 shrink-0">
+      <svg class="h-full w-full -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="42" fill="none" stroke-width="8" class="stroke-zinc-200 dark:stroke-zinc-800" />
+        <circle
+          cx="50"
+          cy="50"
+          r="42"
+          fill="none"
+          stroke="url(#progressGrad)"
+          stroke-width="8"
+          stroke-linecap="round"
+          class="admin-progress-ring"
+          [attr.stroke-dasharray]="circumference"
+          [attr.stroke-dashoffset]="strokeDashoffset()" />
+        <defs>
+          <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#6366f1" />
+            <stop offset="100%" stop-color="#8b5cf6" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="absolute inset-0 flex items-center justify-center text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ percent() }}%</span>
+    </div>
+    <ul class="min-w-0 flex-1 space-y-1.5">
+      @for (step of steps(); track step.id) {
+        <li class="flex items-center gap-2 text-xs">
+          @if (step.completed) {
+            <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+              <lucide-icon [img]="checkIcon" class="h-2.5 w-2.5" />
+            </span>
+            <span class="truncate text-zinc-500 line-through dark:text-zinc-500">{{ step.label }}</span>
+          } @else {
+            <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-600">
+              <lucide-icon [img]="circleIcon" class="h-2.5 w-2.5 text-zinc-400 dark:text-zinc-500" />
+            </span>
+            <span class="truncate font-medium text-zinc-800 dark:text-zinc-200">{{ step.label }}</span>
+          }
+        </li>
+      }
+    </ul>
+  </div>
+</app-dashboard-widget-shell>

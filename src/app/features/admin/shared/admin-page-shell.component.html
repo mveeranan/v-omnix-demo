@@ -1,0 +1,8 @@
+<div @pageFadeIn class="admin-page mx-auto max-w-[1600px]">
+  <header class="admin-page__header">
+    <p class="admin-page__eyebrow">{{ eyebrow() }}</p>
+    <h1 class="admin-page__title">{{ title() }}</h1>
+    <p class="admin-page__description">{{ description() }}</p>
+  </header>
+  <ng-content />
+</div>

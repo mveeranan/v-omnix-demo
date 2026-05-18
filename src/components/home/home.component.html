@@ -36,10 +36,10 @@
       <div class="ml-auto flex items-center gap-2 sm:gap-3">
         <button
           (click)="toggleTheme()"
-          [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+          [attr.aria-label]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
           class="theme-switch inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-zinc-800 transition-all duration-300 hover:scale-105 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
           type="button" style="border-radius: 50%;">
-          <lucide-icon [img]="isDarkMode ? sunIcon : moonIcon" class="h-5 w-5"></lucide-icon>
+          <lucide-icon [img]="isDark() ? sunIcon : moonIcon" class="h-5 w-5"></lucide-icon>
         </button>
         <button
           (click)="toggleMobileMenu()"

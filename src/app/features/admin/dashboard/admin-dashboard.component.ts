@@ -3,13 +3,33 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideAngularModule, Trash2 } from 'lucide-angular';
+import { RevenueWidgetComponent } from '../widgets/revenue-widget/revenue-widget.component';
+import { ScheduleWidgetComponent } from '../widgets/schedule-widget/schedule-widget.component';
+import { UpcomingBookingsWidgetComponent } from '../widgets/upcoming-bookings-widget/upcoming-bookings-widget.component';
+import { CustomersWidgetComponent } from '../widgets/customers-widget/customers-widget.component';
+import { NotificationsWidgetComponent } from '../widgets/notifications-widget/notifications-widget.component';
+import { CompletionWidgetComponent } from '../widgets/completion-widget/completion-widget.component';
+import { BrandingWidgetComponent } from '../widgets/branding-widget/branding-widget.component';
+import { pageFadeIn, widgetEnter, widgetsStagger } from '../animations/admin.animations';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    LucideAngularModule,
+    RevenueWidgetComponent,
+    ScheduleWidgetComponent,
+    UpcomingBookingsWidgetComponent,
+    CustomersWidgetComponent,
+    NotificationsWidgetComponent,
+    CompletionWidgetComponent,
+    BrandingWidgetComponent
+  ],
   templateUrl: './admin-dashboard.component.html',
-  styleUrl: './admin-dashboard.component.scss'
+  styleUrl: './admin-dashboard.component.scss',
+  animations: [pageFadeIn, widgetEnter, widgetsStagger]
 })
 export class AdminDashboardComponent {
   private readonly route = inject(ActivatedRoute);
@@ -103,7 +123,6 @@ export class AdminDashboardComponent {
     }
   }
 
-  /** Display-only (not sent to the API). */
   formatFileSize(bytes: number): string {
     if (!Number.isFinite(bytes) || bytes < 0) {
       return '';

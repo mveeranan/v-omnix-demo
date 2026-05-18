@@ -1,0 +1,52 @@
+<aside
+  class="admin-sidebar flex h-full flex-col border-r border-zinc-200/80 bg-white/80 backdrop-blur-xl transition-[width] duration-300 dark:border-zinc-800 dark:bg-zinc-950/90"
+  [class.admin-sidebar--collapsed]="collapsed()"
+  [class.admin-sidebar--mobile]="mobile()">
+  <div class="flex h-16 shrink-0 items-center gap-3 border-b border-zinc-200/80 px-4 dark:border-zinc-800">
+    <app-brand-logo gradientId="vOmnixMarkAdminSidebar" />
+    @if (!collapsed() || mobile()) {
+      <div class="min-w-0">
+        <p class="truncate text-sm font-semibold tracking-[0.04em] text-zinc-900 dark:text-zinc-100">V-Omnix</p>
+        <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">Admin</p>
+      </div>
+    }
+  </div>
+
+  <nav class="flex-1 space-y-0.5 overflow-y-auto p-2.5" aria-label="Admin navigation">
+    @for (item of navItems; track item.id) {
+      <a
+        [routerLink]="['/admin', item.path]"
+        routerLinkActive="admin-nav-item--active"
+        [routerLinkActiveOptions]="{ exact: item.path === 'dashboard' }"
+        (click)="onNavClick()"
+        class="admin-nav-item group relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+        [attr.title]="collapsed() && !mobile() ? item.label : null">
+        <lucide-icon [img]="item.icon" class="h-[18px] w-[18px] shrink-0" />
+        @if (!collapsed() || mobile()) {
+          <span class="truncate">{{ item.label }}</span>
+        }
+        @if (collapsed() && !mobile()) {
+          <span
+            class="admin-nav-tooltip pointer-events-none absolute left-full z-50 ml-2 whitespace-nowrap rounded-lg bg-zinc-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-zinc-100 dark:text-zinc-900">
+            {{ item.label }}
+          </span>
+        }
+      </a>
+    }
+  </nav>
+
+  @if (!mobile()) {
+    <div class="border-t border-zinc-200/80 p-2.5 dark:border-zinc-800">
+      <button
+        type="button"
+        (click)="toggleCollapse()"
+        class="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
+        <lucide-icon [img]="collapsed() ? chevronRight : chevronLeft" class="h-4 w-4" />
+        @if (!collapsed()) {
+          <span>Collapse</span>
+        }
+      </button>
+    </div>
+  }
+</aside>

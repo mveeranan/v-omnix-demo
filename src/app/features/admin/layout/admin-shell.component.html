@@ -1,0 +1,26 @@
+<div class="admin-shell-bg flex min-h-screen">
+  @if (!isMobile) {
+    <div class="admin-shell-sidebar hidden shrink-0 md:block">
+      <app-admin-sidebar [collapsed]="sidebarCollapsedForView" />
+    </div>
+  }
+
+  @if (isMobile && mobileDrawerOpen()) {
+    <button
+      type="button"
+      class="fixed inset-0 z-40 bg-zinc-950/50 backdrop-blur-sm"
+      @backdropFade
+      (click)="closeMobileDrawer()"
+      aria-label="Close navigation"></button>
+    <div class="admin-shell-drawer fixed inset-y-0 left-0 z-50 shadow-2xl" @drawerSlide>
+      <app-admin-sidebar [mobile]="true" (closeMobile)="closeMobileDrawer()" />
+    </div>
+  }
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <app-admin-header (menuToggle)="openMobileDrawer()" />
+    <main class="flex-1 overflow-auto p-4 sm:p-6">
+      <router-outlet />
+    </main>
+  </div>
+</div>
