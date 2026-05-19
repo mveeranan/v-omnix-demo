@@ -1,0 +1,46 @@
+:host {
+  display: block;
+}
+
+:host(.pf-preview-host) {
+  display: block;
+  height: auto;
+  min-height: 0;
+}
+
+.pf-preview-banner {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(124, 58, 237, 0.95);
+  color: white;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.pf-loading,
+.pf-not-found {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--pf-primary, #0f172a);
+  color: var(--pf-text, #f8fafc);
+}
+
+.pf-loading-shimmer {
+  width: 200px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: pf-shimmer 1.2s infinite;
+}
+
+@keyframes pf-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

@@ -57,6 +57,7 @@ import { API_ENDPOINTS } from '../../environments/api.constants';
 import { AuthService } from '../../app/core/auth/auth.service';
 import { ThemeService } from '../../app/core/theme/theme.service';
 import { NotificationService } from '../../app/core/notifications/notification.service';
+import { FileCategory } from '../../app/shared/files/file-category.enum';
 import { firstValueFrom, Subscription } from 'rxjs';
 
 interface StatItem {
@@ -197,18 +198,6 @@ enum BusinessType {
   Other
 }
 
-enum FileCategory {
-  Unknown = 0,
-  ProfileImage = 1,
-  BusinessLogo = 2,
-  PortfolioImage = 3,
-  PortfolioVideo = 4,
-  BookingAttachment = 5,
-  InvoiceDocument = 6,
-  IdentityVerification = 7,
-  ChatAttachment = 8,
-  BannerImage = 9
-}
 
 interface UploadDocumentFile {
   fileName: string;

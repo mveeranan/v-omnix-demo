@@ -6,7 +6,6 @@ import { AdminPageShellComponent } from '../shared/admin-page-shell.component';
 import { AdminSectionPlaceholderComponent } from '../shared/admin-section-placeholder.component';
 
 const ACTION_LABELS: Record<string, string> = {
-  portfolio: 'Add portfolio item',
   services: 'Add service',
   bookings: 'New booking',
   calendar: 'Set availability',

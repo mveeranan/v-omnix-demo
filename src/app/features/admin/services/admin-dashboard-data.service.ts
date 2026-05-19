@@ -100,6 +100,15 @@ export class AdminDashboardDataService {
     }));
   }
 
+  markPortfolioUploaded(): void {
+    this.data.update((current) => ({
+      ...current,
+      profileSteps: current.profileSteps.map((step) =>
+        step.id === 's4' ? { ...step, completed: true } : step
+      )
+    }));
+  }
+
   private buildMockData(): DashboardData {
     return {
       revenue: {

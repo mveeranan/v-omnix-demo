@@ -1,0 +1,34 @@
+@if (enabledServices().length) {
+  <section class="pf-section pf-section-alt" id="services">
+    <div class="container mx-auto px-6">
+      <div appScrollReveal="slide-left" class="text-center">
+        <p class="pf-eyebrow">Services</p>
+        <h2 class="pf-display pf-heading mt-2 text-3xl font-semibold md:text-4xl">What we offer</h2>
+      </div>
+      <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        @for (service of enabledServices(); track service.id; let i = $index) {
+          <article
+            appScrollReveal="scale-in"
+            [appScrollRevealDelay]="i * 80"
+            class="pf-glass-card pf-service-card group p-6"
+          >
+            @if (service.featured) {
+              <span class="pf-badge mb-3 inline-block">Featured</span>
+            }
+            <p class="pf-text-muted text-xs uppercase tracking-wider">{{ service.category }}</p>
+            <h3 class="pf-display pf-heading mt-2 text-xl font-semibold">{{ service.name }}</h3>
+            <p class="pf-text-muted mt-2 text-sm">{{ service.duration }}</p>
+            <p class="mt-4 text-2xl font-semibold" style="color: var(--pf-accent)">{{ service.price }}</p>
+            <a
+              [href]="ctaUrl(portfolio().cta, portfolio().social)"
+              [attr.target]="ctaExternal(portfolio().cta) ? '_blank' : null"
+              class="pf-btn-primary mt-6 inline-block w-full text-center text-sm"
+            >
+              Book
+            </a>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+}
