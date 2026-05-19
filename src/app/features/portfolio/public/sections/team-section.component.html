@@ -1,0 +1,27 @@
+@if (portfolio().team.enabled && portfolio().team.members.length) {
+  <section class="pf-section pf-section-alt" id="team">
+    <div class="container mx-auto px-6">
+      <div appScrollReveal class="text-center">
+        <p class="pf-eyebrow">Team</p>
+        <h2 class="pf-display pf-heading mt-2 text-3xl font-semibold md:text-4xl">Meet the experts</h2>
+      </div>
+      <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        @for (member of portfolio().team.members; track member.id; let i = $index) {
+          <article appScrollReveal="scale-in" [appScrollRevealDelay]="i * 80" class="pf-glass-card overflow-hidden text-center">
+            @if (member.imageUrl) {
+              <img [src]="member.imageUrl" [alt]="member.name" class="h-56 w-full object-cover" />
+            }
+            <div class="p-6">
+              <h3 class="pf-display pf-heading text-xl font-semibold">{{ member.name }}</h3>
+              <p class="pf-text-muted mt-1 text-sm">{{ member.role }}</p>
+              <p class="mt-2 text-sm" style="color: var(--pf-accent)">{{ member.specialization }}</p>
+              @if (member.instagram) {
+                <a [href]="member.instagram" target="_blank" rel="noopener noreferrer" class="mt-4 inline-block text-sm underline opacity-70">Instagram</a>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+}

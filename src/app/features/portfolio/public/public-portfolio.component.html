@@ -1,0 +1,36 @@
+@if (previewMode()) {
+  <div class="pf-preview-banner">Preview — changes are not yet live until you publish</div>
+}
+
+@if (loading()) {
+  <div class="pf-loading">
+    <div class="pf-loading-shimmer"></div>
+    <p class="pf-text-muted mt-4 text-sm">Loading portfolio…</p>
+  </div>
+} @else if (notFound()) {
+  <div class="pf-not-found">
+    <h1 class="pf-display pf-heading text-3xl font-semibold">Portfolio not found</h1>
+    <p class="pf-text-muted mt-2">This page may be unpublished or the link is incorrect.</p>
+  </div>
+} @else {
+  @if (portfolio(); as p) {
+    <div
+      class="pf-root"
+      [class.pf-dark]="p.theme.mode === 'dark'"
+      [class.pf-light]="p.theme.mode === 'light'"
+      [class.pf-root--preview]="previewMode()"
+      [ngStyle]="themeStyles(p)"
+    >
+      <app-pf-portfolio-nav [portfolio]="p" [previewMode]="previewMode()" />
+      <app-pf-hero-section [portfolio]="p" (viewWork)="scrollToGallery()" />
+      <app-pf-about-section [portfolio]="p" />
+      <app-pf-highlights-section [portfolio]="p" />
+      <app-pf-services-section [portfolio]="p" />
+      <app-pf-gallery-section [portfolio]="p" />
+      <app-pf-reviews-section [portfolio]="p" />
+      <app-pf-stats-section [portfolio]="p" />
+      <app-pf-team-section [portfolio]="p" />
+      <app-pf-footer-section [portfolio]="p" />
+    </div>
+  }
+}

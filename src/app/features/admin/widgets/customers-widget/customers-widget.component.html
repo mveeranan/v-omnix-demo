@@ -1,0 +1,29 @@
+<app-dashboard-widget-shell
+  title="Recent customers"
+  subtitle="Latest activity"
+  [loading]="loading()"
+  [empty]="isEmpty()"
+  emptyMessage="No customers yet. New bookings will appear here.">
+  <span widgetActions class="admin-widget-count-badge">{{ customers().length }}</span>
+
+  <ul class="admin-widget-scroll admin-widget-list">
+    @for (customer of customers(); track customer.id) {
+      <li class="admin-widget-list__item">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white ring-2 ring-white dark:ring-zinc-900 {{ customer.avatarColor }}">
+          {{ customer.initials }}
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">{{ customer.name }}</p>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">{{ customer.lastBooking }}</p>
+        </div>
+        <button
+          type="button"
+          class="admin-widget-list__action"
+          [attr.aria-label]="'Quick view ' + customer.name">
+          <lucide-icon [img]="eyeIcon" class="h-3 w-3" />
+          <span class="hidden lg:inline">View</span>
+        </button>
+      </li>
+    }
+  </ul>
+</app-dashboard-widget-shell>

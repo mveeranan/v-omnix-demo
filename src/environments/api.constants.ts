@@ -20,5 +20,11 @@ export const API_ENDPOINTS = {
   },
   signalR: {
     hub: `${base}/hubs/connect`
+  },
+  portfolio: {
+    getBySlug: (slug: string) => `${base}/portfolio/${slug}`,
+    save: `${base}/portfolio`,
+    publish: `${base}/portfolio/publish`,
+    upload: `${base}/portfolio/upload`
   }
 } as const;

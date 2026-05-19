@@ -1,0 +1,152 @@
+:host.pf-editor-host {
+  display: block;
+  width: 100%;
+}
+
+:host ::ng-deep .admin-page {
+  max-width: none;
+  width: 100%;
+}
+
+.pf-editor-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  min-height: calc(100vh - 10rem);
+  padding-bottom: 5.5rem;
+}
+
+.pf-editor-workspace {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+.pf-editor-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pf-preview-fab {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  box-shadow:
+    0 8px 24px rgba(79, 70, 229, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pf-preview-fab:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+@media (max-width: 480px) {
+  .pf-preview-fab {
+    right: 1rem;
+    bottom: 1rem;
+    padding: 1rem;
+  }
+
+  .pf-preview-fab__label {
+    display: none;
+  }
+}
+
+.pf-preview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.pf-preview-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  cursor: pointer;
+  background: rgba(2, 6, 23, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+.pf-preview-modal__panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  max-height: 100dvh;
+  background: rgb(15 23 42);
+}
+
+.pf-preview-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid rgb(51 65 85);
+  background: rgb(15 23 42);
+}
+
+.pf-preview-modal__eyebrow {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgb(165 180 252);
+}
+
+.pf-preview-modal__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(248 250 252);
+}
+
+.pf-preview-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid rgb(71 85 105);
+  background: rgb(30 41 59);
+  color: rgb(248 250 252);
+  cursor: pointer;
+}
+
+.pf-preview-modal__close:hover {
+  background: rgb(51 65 85);
+}
+
+.pf-preview-modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}

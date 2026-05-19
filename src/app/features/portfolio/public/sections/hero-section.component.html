@@ -1,0 +1,39 @@
+<section class="pf-hero relative flex min-h-[85vh] items-end overflow-hidden" id="hero" @heroEnter>
+  <div class="absolute inset-0">
+    @if (portfolio().brand.coverImageUrl) {
+      <img
+        [src]="portfolio().brand.coverImageUrl"
+        alt=""
+        class="h-full w-full scale-105 object-cover"
+      />
+    }
+    <div class="pf-hero-overlay absolute inset-0"></div>
+  </div>
+  <div class="container relative z-10 mx-auto px-6 pb-20 pt-32">
+    <div class="max-w-3xl">
+      @if (portfolio().brand.logoUrl) {
+        <img
+          [src]="portfolio().brand.logoUrl"
+          alt=""
+          class="hero-item mb-6 h-16 w-16 rounded-full border-2 object-cover shadow-xl"
+          style="border-color: color-mix(in srgb, var(--pf-accent) 50%, transparent)"
+        />
+      }
+      <h1 class="hero-item pf-display pf-hero-title text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl">
+        {{ portfolio().brand.businessName }}
+      </h1>
+      <p class="hero-item pf-hero-tagline mt-4 text-lg md:text-xl">{{ portfolio().brand.tagline }}</p>
+      <div class="hero-item mt-8 flex flex-wrap gap-4">
+        <a
+          [href]="ctaUrl(portfolio().cta, portfolio().social)"
+          [attr.target]="ctaExternal(portfolio().cta) ? '_blank' : null"
+          [attr.rel]="ctaExternal(portfolio().cta) ? 'noopener noreferrer' : null"
+          class="pf-btn-primary"
+        >
+          {{ portfolio().cta.label || 'Book now' }}
+        </a>
+        <button type="button" class="pf-btn-secondary pf-hero-secondary" (click)="viewWork.emit()">View work</button>
+      </div>
+    </div>
+  </div>
+</section>
