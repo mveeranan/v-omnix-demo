@@ -1,17 +1,12 @@
-<div @pageFadeIn class="admin-page mx-auto w-full max-w-[1600px]">
-  <header class="admin-page__header">
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <div>
-        <p class="admin-page__eyebrow">Dashboard</p>
-        <h1 class="admin-page__title">Overview</h1>
-      </div>
-      <span
-        class="rounded-full border border-indigo-300 bg-indigo-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700 dark:border-indigo-400/30 dark:text-indigo-300">
-        Plan: {{ selectedPlanId }}
-      </span>
-    </div>
-    <p class="admin-page__description">Your business at a glance — bookings, revenue, and activity.</p>
-  </header>
+<app-admin-page-shell
+  eyebrow="Dashboard"
+  title="Overview"
+  description="Your business at a glance — bookings, revenue, and activity.">
+  <span
+    admin-page-actions
+    class="rounded-full border border-indigo-300 bg-indigo-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700 dark:border-indigo-400/30 dark:text-indigo-300">
+    Plan: {{ selectedPlanId }}
+  </span>
 
   <div class="admin-widget-grid" @widgetsStagger>
     <div class="admin-widget-grid__cell admin-widget-grid__revenue" @widgetEnter>
@@ -30,7 +25,7 @@
       <app-upcoming-bookings-widget />
     </div>
   </div>
-</div>
+</app-admin-page-shell>
 
 @if (showOnboarding()) {
   <section class="fixed inset-0 z-[60] grid place-items-center p-4">

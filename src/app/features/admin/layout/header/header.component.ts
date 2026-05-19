@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, output, signal } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   LucideAngularModule,
@@ -16,12 +16,10 @@ import {
 import { ThemeService } from '../../../../core/theme/theme.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { AdminDashboardDataService } from '../../services/admin-dashboard-data.service';
-import { BrandLogoComponent } from '../../../../shared/brand-logo/brand-logo.component';
-
 @Component({
   selector: 'app-admin-header',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, BrandLogoComponent],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
@@ -47,7 +45,6 @@ export class HeaderComponent {
   readonly searchExpanded = signal(false);
 
   readonly isDark = this.themeService.isDark;
-  readonly tenant = computed(() => this.dataService.dashboardData().tenant);
   readonly notificationCount = this.dataService.unreadNotificationCount;
 
   toggleTheme(): void {

@@ -1,27 +1,14 @@
 <header
   class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 border-b border-zinc-200/70 bg-white/75 px-4 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/75 sm:gap-4 sm:px-6">
-  <button
-    type="button"
-    class="admin-header-action lg:hidden"
-    (click)="onMenuClick()"
-    aria-label="Open navigation menu">
-    <lucide-icon [img]="menuIcon" class="h-5 w-5" />
-  </button>
 
-  <div class="flex min-w-0 items-center gap-3">
-    <app-brand-logo size="sm" gradientId="vOmnixMarkAdminHeader" />
-    <div class="hidden min-w-0 sm:block">
-      <p class="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ tenant().businessName }}</p>
-    </div>
-  </div>
 
-  <div class="ml-auto flex items-center gap-2 sm:gap-3">
+  <div class="ml-auto flex flex-1 items-center justify-end gap-2 sm:gap-3">
     <div class="relative hidden md:block">
-      <lucide-icon [img]="searchIcon" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+      <lucide-icon [img]="searchIcon" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
       <input
         type="search"
         placeholder="Search bookings, customers..."
-        class="w-56 rounded-xl border border-zinc-200 bg-zinc-50 py-2 pl-9 pr-3 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 lg:w-72 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+        class="w-56 rounded-xl border border-zinc-200 bg-zinc-50 py-2 pl-11 pr-3 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 lg:w-72 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
         aria-label="Global search" />
     </div>
 
@@ -107,11 +94,11 @@
 @if (searchExpanded()) {
   <div class="border-b border-zinc-200/70 bg-white/90 px-4 py-3 backdrop-blur-xl md:hidden dark:border-zinc-800 dark:bg-zinc-950/90">
     <div class="relative">
-      <lucide-icon [img]="searchIcon" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+      <lucide-icon [img]="searchIcon" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
       <input
         type="search"
         placeholder="Search bookings, customers..."
-        class="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2 pl-9 pr-3 text-sm outline-none focus:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-900"
+        class="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2 pl-11 pr-3 text-sm outline-none focus:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-900"
         aria-label="Global search mobile" />
     </div>
   </div>

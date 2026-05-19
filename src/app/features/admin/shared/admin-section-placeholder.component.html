@@ -5,10 +5,8 @@
       <lucide-icon [img]="icon()" class="h-5 w-5" />
     </div>
     <p class="max-w-md text-sm text-zinc-600 dark:text-zinc-400">{{ hint() }}</p>
-    <button
-      type="button"
-      class="btn-radius mt-4 inline-flex items-center gap-2 bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-all hover:scale-[1.02] dark:bg-white dark:text-zinc-900">
-      <lucide-icon [img]="plusIcon" class="h-4 w-4" />
+    <button type="button" class="admin-section-action-btn mt-4">
+      <lucide-icon [img]="plusIcon" class="h-4 w-4 shrink-0" />
       {{ actionLabel() }}
     </button>
   </div>

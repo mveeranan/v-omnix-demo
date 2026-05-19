@@ -8,7 +8,8 @@ import { ScheduleWidgetComponent } from '../widgets/schedule-widget/schedule-wid
 import { UpcomingBookingsWidgetComponent } from '../widgets/upcoming-bookings-widget/upcoming-bookings-widget.component';
 import { CustomersWidgetComponent } from '../widgets/customers-widget/customers-widget.component';
 import { BrandingWidgetComponent } from '../widgets/branding-widget/branding-widget.component';
-import { pageFadeIn, widgetEnter, widgetsStagger } from '../animations/admin.animations';
+import { AdminPageShellComponent } from '../shared/admin-page-shell.component';
+import { widgetEnter, widgetsStagger } from '../animations/admin.animations';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -21,11 +22,12 @@ import { pageFadeIn, widgetEnter, widgetsStagger } from '../animations/admin.ani
     ScheduleWidgetComponent,
     UpcomingBookingsWidgetComponent,
     CustomersWidgetComponent,
-    BrandingWidgetComponent
+    BrandingWidgetComponent,
+    AdminPageShellComponent
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss',
-  animations: [pageFadeIn, widgetEnter, widgetsStagger]
+  animations: [widgetEnter, widgetsStagger]
 })
 export class AdminDashboardComponent {
   private readonly route = inject(ActivatedRoute);

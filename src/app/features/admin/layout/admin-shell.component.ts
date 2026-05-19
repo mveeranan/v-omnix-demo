@@ -23,7 +23,6 @@ export class AdminShellComponent implements OnInit {
   readonly sidebarCollapsed = this.layoutState.sidebarCollapsed;
 
   isMobile = false;
-  isTablet = false;
 
   ngOnInit(): void {
     this.updateBreakpoints();
@@ -46,20 +45,12 @@ export class AdminShellComponent implements OnInit {
   }
 
   get sidebarCollapsedForView(): boolean {
-    if (this.isMobile) {
-      return false;
-    }
-    return this.isTablet || this.sidebarCollapsed();
+    return !this.isMobile && this.sidebarCollapsed();
   }
 
   private updateBreakpoints(): void {
     const width = window.innerWidth;
     this.isMobile = width < 768;
-    this.isTablet = width >= 768 && width < 1024;
-
-    if (this.isTablet && !this.layoutState.sidebarCollapsed()) {
-      this.layoutState.setSidebarCollapsed(true);
-    }
 
     if (!this.isMobile && this.mobileDrawerOpen()) {
       this.layoutState.closeMobileDrawer();

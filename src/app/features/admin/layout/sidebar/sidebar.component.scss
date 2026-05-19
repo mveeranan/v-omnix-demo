@@ -1,18 +1,47 @@
 :host {
   display: block;
   height: 100%;
+  overflow: hidden;
 }
 
 .admin-sidebar {
   width: 16rem;
+  overflow: hidden;
 }
 
 .admin-sidebar--collapsed:not(.admin-sidebar--mobile) {
   width: 4.5rem;
+
+  .admin-sidebar-header {
+    justify-content: center;
+    gap: 0;
+    padding-inline: 0.5rem;
+  }
+
+  .admin-sidebar-nav {
+    padding-inline: 0.5rem;
+  }
+
+  .admin-nav-item {
+    justify-content: center;
+    padding-inline: 0.5rem;
+  }
+
+  .admin-sidebar-footer {
+    padding-inline: 0.5rem;
+  }
+
+  .admin-sidebar-toggle {
+    padding-inline: 0.5rem;
+  }
 }
 
 .admin-sidebar--mobile {
   width: 16rem;
+}
+
+.admin-nav-item {
+  text-decoration: none;
 }
 
 .admin-nav-item--active {
@@ -25,10 +54,6 @@
   color: rgb(165 180 252);
 }
 
-.admin-nav-tooltip {
-  transform: translateY(-50%);
-  top: 50%;
-}
-p{
+p {
   margin-bottom: 0;
 }
