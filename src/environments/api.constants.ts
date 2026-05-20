@@ -12,6 +12,9 @@ export const API_ENDPOINTS = {
   countries: {
     list: `${base}/countries`
   },
+  businessTypes: {
+    list: `${base}/business-types`
+  },
   plans: {
     list: `${base}/plans`
   },

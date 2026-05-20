@@ -668,19 +668,44 @@
                       <p class="pa-error" role="alert">{{ getRegisterFieldError('businessName') }}</p>
                     }
                   </div>
-                  <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getRegisterFieldError('businessType')">
-                    <label class="pa-label" for="reg-business-type">Business Type</label>
+                  <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getRegisterFieldError('businessGroupId')">
+                    <label class="pa-label" for="reg-business-group">Business Group</label>
                     <div class="pa-control pa-control--select">
                       <lucide-icon [img]="buildingIcon" class="pa-icon"></lucide-icon>
-                      <select id="reg-business-type" formControlName="businessType" class="pa-input">
-                        <option [ngValue]="0">Select business type</option>
-                        @for (item of businessTypeOptions; track item.value) {
-                          <option [ngValue]="item.value">{{ item.label }}</option>
+                      <select id="reg-business-group" formControlName="businessGroupId" class="pa-input">
+                        <option value="">Select business group</option>
+                        @for (group of businessGroups; track group.groupId) {
+                          <option [value]="group.groupId">{{ group.groupName }}</option>
                         }
                       </select>
                     </div>
-                    @if (getRegisterFieldError('businessType')) {
-                      <p class="pa-error" role="alert">{{ getRegisterFieldError('businessType') }}</p>
+                    @if (getRegisterFieldError('businessGroupId')) {
+                      <p class="pa-error" role="alert">{{ getRegisterFieldError('businessGroupId') }}</p>
+                    }
+                  </div>
+                  <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getRegisterFieldError('businessTypeId')">
+                    <label class="pa-label" for="reg-business-type">Business Type</label>
+                    <div class="pa-control pa-control--select">
+                      <lucide-icon [img]="buildingIcon" class="pa-icon"></lucide-icon>
+                      <select
+                        id="reg-business-type"
+                        formControlName="businessTypeId"
+                        class="pa-input"
+                        [disabled]="!registerForm.controls.businessGroupId.value || businessTypesLoading">
+                        <option value="">Select business type</option>
+                        @for (item of getBusinessTypesForSelectedGroup(); track item.id) {
+                          <option [value]="item.id">{{ item.name }}</option>
+                        }
+                      </select>
+                    </div>
+                    @if (getRegisterFieldError('businessTypeId')) {
+                      <p class="pa-error" role="alert">{{ getRegisterFieldError('businessTypeId') }}</p>
+                    }
+                    @if (businessTypesLoading) {
+                      <p class="text-xs" style="color: var(--pa-muted)">Loading business types...</p>
+                    }
+                    @if (businessTypesError) {
+                      <p class="pa-error" role="alert">{{ businessTypesError }}</p>
                     }
                   </div>
                 </div>

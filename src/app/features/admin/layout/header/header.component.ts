@@ -10,8 +10,7 @@ import {
   Menu,
   ChevronDown,
   Settings,
-  LogOut,
-  User
+  LogOut
 } from 'lucide-angular';
 import { ThemeService } from '../../../../core/theme/theme.service';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -39,7 +38,6 @@ export class HeaderComponent {
   readonly chevronDown = ChevronDown;
   readonly settingsIcon = Settings;
   readonly logoutIcon = LogOut;
-  readonly userIcon = User;
 
   readonly profileOpen = signal(false);
   readonly searchExpanded = signal(false);
@@ -57,6 +55,11 @@ export class HeaderComponent {
 
   closeProfile(): void {
     this.profileOpen.set(false);
+  }
+
+  goToSettings(): void {
+    this.closeProfile();
+    this.router.navigate(['/admin/settings']);
   }
 
   logout(): void {

@@ -18,7 +18,7 @@
             <p class="pf-text-muted text-xs uppercase tracking-wider">{{ service.category }}</p>
             <h3 class="pf-display pf-heading mt-2 text-xl font-semibold">{{ service.name }}</h3>
             <p class="pf-text-muted mt-2 text-sm">{{ service.duration }}</p>
-            <p class="mt-4 text-2xl font-semibold" style="color: var(--pf-accent)">{{ service.price }}</p>
+            <p class="mt-4 text-2xl font-semibold pf-accent-text">{{ service.price }}</p>
             <a
               [href]="ctaUrl(portfolio().cta, portfolio().social)"
               [attr.target]="ctaExternal(portfolio().cta) ? '_blank' : null"

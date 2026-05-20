@@ -14,13 +14,13 @@
                   <lucide-icon
                     [img]="starIcon"
                     class="h-5 w-5"
-                    [style.color]="s < review.rating ? 'var(--pf-accent)' : 'currentColor'"
+                    [style.color]="s < review.rating ? 'var(--pf-accent-text, var(--pf-accent))' : 'currentColor'"
                     [style.opacity]="s < review.rating ? '1' : '0.3'"
                   />
                 }
               </div>
               <p class="pf-text text-lg italic leading-relaxed">"{{ review.text }}"</p>
-              <p class="mt-6 font-medium" style="color: var(--pf-accent)">— {{ review.author }}</p>
+              <p class="mt-6 font-medium pf-accent-text">— {{ review.author }}</p>
             </article>
           }
         }
@@ -34,7 +34,7 @@
                 <button
                   type="button"
                   class="h-2 w-2 rounded-full transition-all"
-                  [style.background]="activeIndex() === i ? 'var(--pf-accent)' : 'currentColor'"
+                  [style.background]="activeIndex() === i ? 'var(--pf-btn-bg, var(--pf-accent))' : 'currentColor'"
                   [style.opacity]="activeIndex() === i ? '1' : '0.3'"
                   (click)="activeIndex.set(i)"
                   [attr.aria-label]="'Go to review ' + (i + 1)"

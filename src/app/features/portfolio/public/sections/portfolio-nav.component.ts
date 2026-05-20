@@ -25,8 +25,8 @@ import { Portfolio } from '../../models/portfolio.model';
       top: 0;
       z-index: 40;
       backdrop-filter: blur(14px);
-      background: color-mix(in srgb, var(--pf-primary) 82%, transparent);
-      border-bottom: 1px solid color-mix(in srgb, var(--pf-accent) 22%, transparent);
+      background: var(--pf-nav-bg, color-mix(in srgb, var(--pf-bg) 88%, transparent));
+      border-bottom: 1px solid var(--pf-nav-border, color-mix(in srgb, var(--pf-accent) 22%, transparent));
     }
     .pf-nav--preview {
       top: 2rem;
@@ -36,7 +36,7 @@ import { Portfolio } from '../../models/portfolio.model';
       transition: color 0.2s ease;
     }
     .pf-nav-link:hover, .pf-nav-brand:hover {
-      color: var(--pf-accent);
+      color: var(--pf-accent-text, var(--pf-accent));
     }
   `
 })

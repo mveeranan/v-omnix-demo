@@ -13,27 +13,20 @@ import { CommonModule } from '@angular/common';
 import {
   ArrowLeft,
   ArrowRight,
-  BarChart3,
   Building2,
-  Calendar,
   Check,
   ChevronDown,
-  CreditCard,
-  Github,
   Globe,
   Layers3,
-  Linkedin,
   LucideAngularModule,
   Menu,
   Moon,
   PlayCircle,
   ShieldCheck,
   Sun,
-  Twitter,
   Users,
   X,
   Zap,
-  LucideIconData,
   Eye,
   EyeOff,
   Lock,
@@ -43,6 +36,15 @@ import {
   Upload,
   User
 } from 'lucide-angular';
+import {
+  createHomeStatItems,
+  HOME_FAQ_ITEMS,
+  HOME_FEATURE_ITEMS,
+  HOME_SHOWCASE_SLIDES,
+  HOME_SOCIAL_LINKS,
+  HOME_STEPS,
+  HOME_TESTIMONIALS
+} from './home-marketing.content';
 import { HttpClient } from '@angular/common/http';
 import {
   AbstractControl,
@@ -60,26 +62,7 @@ import { NotificationService } from '../../app/core/notifications/notification.s
 import { FileCategory } from '../../app/shared/files/file-category.enum';
 import { firstValueFrom, Subscription } from 'rxjs';
 
-interface StatItem {
-  label: string;
-  value: number;
-  suffix?: string;
-  displayValue: number;
-}
-
-interface FeatureItem {
-  icon: LucideIconData;
-  title: string;
-  description: string;
-}
-
-interface StepItem {
-  title: string;
-  description: string;
-}
-
 interface PricingFeature {
-  id?: string;
   name: string;
   included: boolean;
 }
@@ -152,50 +135,25 @@ interface CheckoutSessionResponse {
   checkoutUrl: string;
 }
 
-interface Testimonial {
-  name: string;
-  role: string;
-  quote: string;
-}
-
-interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-interface SocialLink {
-  icon: LucideIconData;
-  label: string;
-  href: string;
-}
-
-interface ShowcaseSlide {
-  title: string;
-  description: string;
-  kpi: string;
-  kpiLabel: string;
-  backgroundClass: string;
-}
-
 interface CountryCodeOption {
   id?: string;
   name: string;
-  isoCode?: string;
   dialCode: string;
-  flagEmoji: string;
   phoneNumberRegex?: string;
   phoneNumberExample?: string;
   nationalNumberMinLength?: number;
   nationalNumberMaxLength?: number;
 }
 
-enum BusinessType {
-  Salon = 1,
-  Spa,
-  Studio,
-  Clinic,
-  Freelancer,
-  Other
+interface BusinessTypeDto {
+  id: string;
+  name: string;
+}
+
+interface BusinessGroupDto {
+  groupId: string;
+  groupName: string;
+  types: BusinessTypeDto[];
 }
 
 
@@ -209,11 +167,6 @@ interface UploadDocumentRequest {
   files: UploadDocumentFile[];
   fileCategory: FileCategory;
   tenantId?: string;
-}
-
-interface BusinessTypeOption {
-  value: BusinessType;
-  label: string;
 }
 
 @Component({
@@ -268,152 +221,23 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   countryOptions: CountryCodeOption[] = [];
   countriesLoading = false;
   countriesError = '';
+  businessGroups: BusinessGroupDto[] = [];
+  businessTypesLoading = false;
+  businessTypesError = '';
   private revealObserver?: IntersectionObserver;
   private statsObserver?: IntersectionObserver;
   private revealFallbackTimer?: ReturnType<typeof setTimeout>;
   private countryCodeSubscription?: Subscription;
-  readonly businessTypeOptions: BusinessTypeOption[] = [
-    { value: BusinessType.Salon, label: 'Salon' },
-    { value: BusinessType.Spa, label: 'Spa' },
-    { value: BusinessType.Studio, label: 'Studio' },
-    { value: BusinessType.Clinic, label: 'Clinic' },
-    { value: BusinessType.Freelancer, label: 'Freelancer' },
-    { value: BusinessType.Other, label: 'Other' }
-  ];
 
-  readonly statItems: StatItem[] = [
-    { label: 'Businesses', value: 100, suffix: '+', displayValue: 0 },
-    { label: 'Bookings', value: 1000, suffix: '+', displayValue: 0 },
-    { label: 'Uptime', value: 99.9, suffix: '%', displayValue: 99.9 }
-  ];
-
-  readonly featureItems: FeatureItem[] = [
-    {
-      icon: Building2,
-      title: 'Multi-tenant architecture',
-      description: 'Manage unlimited brands and locations from one secure workspace.'
-    },
-    {
-      icon: Calendar,
-      title: 'Smart booking management',
-      description: 'Automate availability, confirmations, and no-show handling in minutes.'
-    },
-    {
-      icon: CreditCard,
-      title: 'Payments tracking',
-      description: 'Track revenue, refunds, and payouts with finance-grade transparency.'
-    },
-    {
-      icon: Globe,
-      title: 'Calendar integrations',
-      description: 'Sync with external calendars to avoid conflicts and double-bookings.'
-    },
-    {
-      icon: ShieldCheck,
-      title: 'Role-based access',
-      description: 'Control permissions across admins, staff, and support teams.'
-    },
-    {
-      icon: BarChart3,
-      title: 'Analytics dashboard',
-      description: 'Turn booking data into growth insights and conversion improvements.'
-    }
-  ];
-
-  readonly steps: StepItem[] = [
-    {
-      title: 'Create account',
-      description: 'Launch your workspace and invite your first team members.'
-    },
-    {
-      title: 'Setup tenant/business',
-      description: 'Configure locations, services, staff schedules, and branding.'
-    },
-    {
-      title: 'Manage bookings',
-      description: 'Handle customer reservations, reminders, and updates effortlessly.'
-    },
-    {
-      title: 'Track growth',
-      description: 'Use real-time analytics to improve occupancy and retention.'
-    }
-  ];
+  readonly statItems = createHomeStatItems();
+  readonly featureItems = HOME_FEATURE_ITEMS;
+  readonly steps = HOME_STEPS;
+  readonly testimonials = HOME_TESTIMONIALS;
+  readonly faqItems = HOME_FAQ_ITEMS;
+  readonly socialLinks = HOME_SOCIAL_LINKS;
+  readonly showcaseSlides = HOME_SHOWCASE_SLIDES;
 
   pricingPlans: PricingPlan[] = [];
-
-  readonly testimonials: Testimonial[] = [
-    {
-      name: 'Ayesha Khan',
-      role: 'Operations Lead, Lumina Clinics',
-      quote:
-        'V-omnix cut our booking admin time by 42% in the first month and gave our team full visibility.'
-    },
-    {
-      name: 'Marcus Reed',
-      role: 'Founder, FlexFit Studios',
-      quote:
-        'The multi-tenant model made expansion simple. We launched two new branches in one sprint.'
-    },
-    {
-      name: 'Noah Ibrahim',
-      role: 'Head of Growth, NailHaus',
-      quote:
-        'The analytics dashboard helped us improve conversion from demo to paid by 28%.'
-    }
-  ];
-
-  readonly faqItems: FaqItem[] = [
-    {
-      question: 'Can I manage multiple locations under one account?',
-      answer:
-        'Yes. Orbit is multi-tenant by design, so each location can run independently while sharing central reporting.'
-    },
-    {
-      question: 'Does Orbit support online payments?',
-      answer:
-        'Yes. You can collect deposits and full payments, then track payout status directly from the dashboard.'
-    },
-    {
-      question: 'Is there onboarding support for my team?',
-      answer:
-        'All plans include onboarding resources. Silver and Gold include guided setup and migration support.'
-    },
-    {
-      question: 'Can I switch plans later?',
-      answer:
-        'Absolutely. You can upgrade or downgrade at any time, and your tenant data remains intact.'
-    }
-  ];
-
-  readonly socialLinks: SocialLink[] = [
-    { icon: Twitter, label: 'Twitter', href: '#' },
-    { icon: Linkedin, label: 'LinkedIn', href: '#' },
-    { icon: Github, label: 'GitHub', href: '#' }
-  ];
-
-  readonly showcaseSlides: ShowcaseSlide[] = [
-    {
-      title: 'Centralized multi-tenant command center',
-      description: 'Manage locations, teams, and schedules from one clean real-time workspace.',
-      kpi: '12',
-      kpiLabel: 'Active branches',
-      backgroundClass: 'slide-bg-one'
-    },
-    {
-      title: 'Booking pipeline that converts faster',
-      description: 'Track drop-offs and optimize your booking journey with instant funnel visibility.',
-      kpi: '31%',
-      kpiLabel: 'Conversion uplift',
-      backgroundClass: 'slide-bg-two'
-    },
-    {
-      title: 'Operations intelligence at a glance',
-      description: 'Surface occupancy, no-show patterns, and revenue health in one executive view.',
-      kpi: '99.9%',
-      kpiLabel: 'Platform uptime',
-      backgroundClass: 'slide-bg-three'
-    }
-  ];
   activeShowcaseSlide = 0;
 
   readonly sunIcon = Sun;
@@ -453,7 +277,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     businessName: ['', [Validators.required, Validators.maxLength(80)]],
-    businessType: [0 as number, [Validators.required, Validators.min(1)]],
+    businessGroupId: ['', [Validators.required]],
+    businessTypeId: ['', [Validators.required]],
     description: [''],
     acceptTerms: [false, [Validators.requiredTrue]]
   });
@@ -461,7 +286,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.loadPricingPlans();
     this.setupCountryValidationWatcher();
+    this.setupBusinessTypeWatcher();
     this.loadCountries();
+    this.loadBusinessTypes();
   }
 
   ngAfterViewInit(): void {
@@ -570,7 +397,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       email: '',
       password: '',
       businessName: '',
-      businessType: 0,
+      businessGroupId: '',
+      businessTypeId: '',
       description: '',
       acceptTerms: false
     });
@@ -773,7 +601,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       | 'lastName'
       | 'countryCode'
       | 'businessName'
-      | 'businessType'
+      | 'businessGroupId'
+      | 'businessTypeId'
       | 'email'
       | 'password'
       | 'acceptTerms'
@@ -802,7 +631,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       if (controlName === 'businessName') {
         return 'Business name is required.';
       }
-      if (controlName === 'businessType') {
+      if (controlName === 'businessGroupId') {
+        return 'Business group is required.';
+      }
+      if (controlName === 'businessTypeId') {
         return 'Business type is required.';
       }
     }
@@ -823,10 +655,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return 'Maximum 80 characters allowed.';
     }
 
-    if (controlName === 'businessType' && control.hasError('min')) {
-      return 'Business type is required.';
-    }
-
     if (controlName === 'acceptTerms' && control.hasError('requiredTrue')) {
       return 'Please accept terms to continue.';
     }
@@ -843,7 +671,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const subtitles = [
       'Enter your name and mobile number.',
       'Set your email, password, and accept the terms.',
-      'Enter your business name and type.',
+      'Enter your business name, group, and type.',
       'Add an optional description and logo.'
     ];
     return subtitles[this.registerStep - 1] ?? '';
@@ -875,7 +703,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       case 3:
         return (
           this.registerForm.controls.businessName.valid &&
-          this.registerForm.controls.businessType.valid
+          this.registerForm.controls.businessGroupId.valid &&
+          this.registerForm.controls.businessTypeId.valid
         );
       case 4:
         return true;
@@ -916,9 +745,18 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         break;
       case 3:
         this.registerForm.controls.businessName.markAsTouched();
-        this.registerForm.controls.businessType.markAsTouched();
+        this.registerForm.controls.businessGroupId.markAsTouched();
+        this.registerForm.controls.businessTypeId.markAsTouched();
         break;
     }
+  }
+
+  getBusinessTypesForSelectedGroup(): BusinessTypeDto[] {
+    const selectedGroupId = this.registerForm.controls.businessGroupId.value;
+    if (!selectedGroupId) {
+      return [];
+    }
+    return this.businessGroups.find((group) => group.groupId === selectedGroupId)?.types ?? [];
   }
 
   getSelectedCountryLabel(): string {
@@ -1027,7 +865,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         email: this.registerForm.controls.email.value.trim(),
         password: this.registerForm.controls.password.value,
         businessName: this.registerForm.controls.businessName.value.trim(),
-        businessType: this.registerForm.controls.businessType.value,
+        businessTypeId: this.registerForm.controls.businessTypeId.value,
         mobileNumber: `${selectedCountry.dialCode} ${nationalNumber}`
       };
 
@@ -1122,6 +960,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private setupBusinessTypeWatcher(): void {
+    this.registerForm.controls.businessGroupId.valueChanges.subscribe(() => {
+      this.registerForm.controls.businessTypeId.setValue('');
+      this.registerForm.controls.businessTypeId.markAsUntouched();
+    });
+  }
+
   private async loadCountries(): Promise<void> {
     this.countriesLoading = true;
     this.countriesError = '';
@@ -1144,6 +989,28 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     } catch {
       this.countriesLoading = false;
       this.countriesError = 'Unable to load countries.';
+    }
+  }
+
+  private async loadBusinessTypes(): Promise<void> {
+    this.businessTypesLoading = true;
+    this.businessTypesError = '';
+    try {
+      const response = await firstValueFrom(
+        this.http.get<ApiResponse<BusinessGroupDto[]>>(API_ENDPOINTS.businessTypes.list)
+      );
+      if (!response.success || !Array.isArray(response.data) || response.data.length === 0) {
+        this.businessTypesLoading = false;
+        this.businessTypesError = response.message || 'Unable to load business types.';
+        this.businessGroups = [];
+        return;
+      }
+      this.businessGroups = response.data;
+      this.businessTypesLoading = false;
+    } catch {
+      this.businessTypesLoading = false;
+      this.businessTypesError = 'Unable to load business types.';
+      this.businessGroups = [];
     }
   }
 
@@ -1213,20 +1080,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 
-  hasRegisterError(
-    controlName:
-      | 'firstName'
-      | 'lastName'
-      | 'countryCode'
-      | 'mobileNumber'
-      | 'email'
-      | 'password'
-      | 'acceptTerms'
-  ): boolean {
-    const control = this.registerForm.controls[controlName];
-    return !!(control && control.invalid && (control.dirty || control.touched));
-  }
-
   toggleFaq(index: number): void {
     this.openFaqIndex = this.openFaqIndex === index ? null : index;
   }
@@ -1246,10 +1099,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   isFaqOpen(index: number): boolean {
     return this.openFaqIndex === index;
-  }
-
-  trackByIndex(index: number): number {
-    return index;
   }
 
   getPlanPrice(plan: PricingPlan): PlanPrice | undefined {
@@ -1314,7 +1163,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       monthlyPrice,
       annualPrice,
       features: plan.features.map((feature) => ({
-        id: feature.id,
         name: feature.name,
         included: true
       }))

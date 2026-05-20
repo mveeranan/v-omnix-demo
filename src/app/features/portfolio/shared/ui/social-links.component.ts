@@ -54,15 +54,15 @@ export interface SocialLinkItem {
       width: 2.5rem;
       height: 2.5rem;
       border-radius: 999px;
-      border: 1px solid color-mix(in srgb, var(--pf-accent) 45%, transparent);
-      color: var(--pf-accent);
-      background: color-mix(in srgb, var(--pf-accent) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--pf-accent-text, var(--pf-accent)) 45%, transparent);
+      color: var(--pf-accent-text, var(--pf-accent));
+      background: color-mix(in srgb, var(--pf-accent-text, var(--pf-accent)) 12%, transparent);
       transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
     }
     .pf-social-link:hover {
       transform: translateY(-2px);
-      background: var(--pf-accent);
-      color: var(--pf-on-accent);
+      background: var(--pf-btn-bg, var(--pf-accent));
+      color: var(--pf-btn-fg, var(--pf-on-accent, #fff));
     }
     .pf-social-links--footer .pf-social-link {
       color: var(--pf-text-muted);
@@ -70,9 +70,9 @@ export interface SocialLinkItem {
       background: transparent;
     }
     .pf-social-links--footer .pf-social-link:hover {
-      color: var(--pf-accent);
-      background: color-mix(in srgb, var(--pf-accent) 15%, transparent);
-      border-color: var(--pf-accent);
+      color: var(--pf-accent-text, var(--pf-accent));
+      background: color-mix(in srgb, var(--pf-accent-text, var(--pf-accent)) 15%, transparent);
+      border-color: color-mix(in srgb, var(--pf-accent-text, var(--pf-accent)) 55%, transparent);
     }
   `
 })
