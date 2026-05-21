@@ -14,7 +14,7 @@
             <div class="p-6">
               <h3 class="pf-display pf-heading text-xl font-semibold">{{ member.name }}</h3>
               <p class="pf-text-muted mt-1 text-sm">{{ member.role }}</p>
-              <p class="mt-2 text-sm" style="color: var(--pf-accent)">{{ member.specialization }}</p>
+              <p class="mt-2 text-sm pf-accent-text">{{ member.specialization }}</p>
               @if (member.instagram) {
                 <a [href]="member.instagram" target="_blank" rel="noopener noreferrer" class="mt-4 inline-block text-sm underline opacity-70">Instagram</a>
               }

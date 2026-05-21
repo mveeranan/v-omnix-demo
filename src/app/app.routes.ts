@@ -15,6 +15,7 @@ import { AdminShellComponent } from './features/admin/layout/admin-shell.compone
 import { AdminDashboardComponent } from './features/admin/dashboard/admin-dashboard.component';
 
 import { AdminSectionPageComponent } from './features/admin/pages/admin-section-page.component';
+import { AdminProfileComponent } from './features/admin/pages/admin-profile.component';
 import { PortfolioEditorComponent } from './features/portfolio/editor/portfolio-editor.component';
 import { PublicPortfolioComponent } from './features/portfolio/public/public-portfolio.component';
 
@@ -52,6 +53,10 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         component: AdminDashboardComponent
+      },
+      {
+        path: 'profile',
+        component: AdminProfileComponent
       },
       {
         path: 'portfolio',

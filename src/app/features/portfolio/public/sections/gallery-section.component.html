@@ -15,17 +15,32 @@
             (click)="openLightbox(item)"
           >
             <div class="relative overflow-hidden">
-              <img
-                [src]="item.thumbnailUrl || item.url"
-                [alt]="item.category"
-                class="w-full transition-transform duration-500 group-hover:scale-105"
-                loading="lazy"
-              />
-              <div class="pf-masonry-overlay absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+              @if (item.type === 'video' && !hasImageThumbnail(item)) {
+                <video
+                  [src]="item.url"
+                  muted
+                  playsinline
+                  preload="metadata"
+                  class="pf-gallery-video-thumb w-full transition-transform duration-500 group-hover:scale-105"
+                ></video>
+              } @else {
+                <img
+                  [src]="item.thumbnailUrl || item.url"
+                  [alt]="item.category"
+                  class="w-full transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+              }
+              <div
+                class="pf-masonry-overlay absolute inset-0 flex items-center justify-center"
+                [class.opacity-0]="item.type !== 'video'"
+                [class.group-hover:opacity-100]="item.type !== 'video'"
+                [class.opacity-100]="item.type === 'video'"
+              >
                 @if (item.type === 'video') {
-                  <lucide-icon [img]="playIcon" class="h-12 w-12 text-white" />
+                  <lucide-icon [img]="playIcon" class="h-12 w-12 text-white drop-shadow-lg" />
                 } @else {
-                  <span class="text-sm font-medium text-white">{{ item.category }}</span>
+                  <span class="text-sm font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">{{ item.category }}</span>
                 }
               </div>
               @if (item.featured) {

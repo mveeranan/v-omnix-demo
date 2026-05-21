@@ -6,7 +6,8 @@ import {
   Calendar,
   Users,
   CreditCard,
-  Settings
+  Settings,
+  User
 } from 'lucide-angular';
 
 export interface AdminNavItemConfig {
@@ -24,6 +25,13 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     path: 'dashboard',
     icon: LayoutDashboard,
     description: 'Your business at a glance — bookings, revenue, and activity.'
+  },
+  {
+    id: 'profile',
+    label: 'Profile',
+    path: 'profile',
+    icon: User,
+    description: 'Complete your workspace setup and manage profile details.'
   },
   {
     id: 'portfolio',

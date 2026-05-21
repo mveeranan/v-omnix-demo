@@ -3,6 +3,7 @@ import { ScrollRevealDirective } from '../../shared/directives/scroll-reveal.dir
 import { Portfolio, PortfolioGalleryItem } from '../../models/portfolio.model';
 import { GalleryLightboxComponent } from './gallery-lightbox.component';
 import { LucideAngularModule, Play } from 'lucide-angular';
+import { isGalleryImageThumbnail } from '../../shared/utils/video-thumbnail.util';
 
 @Component({
   selector: 'app-pf-gallery-section',
@@ -25,5 +26,9 @@ export class GallerySectionComponent {
 
   closeLightbox(): void {
     this.lightboxItem.set(null);
+  }
+
+  hasImageThumbnail(item: PortfolioGalleryItem): boolean {
+    return isGalleryImageThumbnail(item.thumbnailUrl, item.url);
   }
 }

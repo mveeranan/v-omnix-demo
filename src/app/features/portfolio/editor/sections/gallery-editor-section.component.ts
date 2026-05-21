@@ -6,6 +6,7 @@ import { CollapsibleSectionCardComponent } from '../../shared/ui/collapsible-sec
 import { MediaUploadZoneComponent } from '../../shared/ui/media-upload-zone.component';
 import { PortfolioStateService } from '../../data-access/portfolio-state.service';
 import { PortfolioGalleryItem } from '../../models/portfolio.model';
+import { captureVideoThumbnail, isGalleryImageThumbnail } from '../../shared/utils/video-thumbnail.util';
 
 @Component({
   selector: 'app-gallery-editor-section',
@@ -30,11 +31,21 @@ import { PortfolioGalleryItem } from '../../models/portfolio.model';
               (dragover)="onDragOver($event)"
               (drop)="onDrop($event, item.id)"
             >
-              <img
-                [src]="item.thumbnailUrl || item.url"
-                class="pf-editor-gallery-item__thumb"
-                alt=""
-              />
+              @if (item.type === 'video' && !hasImageThumbnail(item)) {
+                <video
+                  [src]="item.url"
+                  muted
+                  playsinline
+                  preload="metadata"
+                  class="pf-editor-gallery-item__thumb"
+                ></video>
+              } @else {
+                <img
+                  [src]="item.thumbnailUrl || item.url"
+                  class="pf-editor-gallery-item__thumb"
+                  alt=""
+                />
+              }
               <div class="pf-editor-gallery-item__fields pf-editor-fields">
                 <div class="pf-editor-field">
                   <span class="pf-editor-label">Category</span>
@@ -76,18 +87,32 @@ export class GalleryEditorSectionComponent {
   readonly starIcon = Star;
   dragId: string | null = null;
 
-  onUpload(event: { file: File; dataUrl: string }): void {
+  async onUpload(event: { file: File; dataUrl: string }): Promise<void> {
     const isVideo = event.file.type.startsWith('video/');
+    let thumbnailUrl = event.dataUrl;
+
+    if (isVideo) {
+      try {
+        thumbnailUrl = await captureVideoThumbnail(event.file);
+      } catch {
+        thumbnailUrl = '';
+      }
+    }
+
     const item: PortfolioGalleryItem = {
       id: crypto.randomUUID(),
       type: isVideo ? 'video' : 'image',
       url: event.dataUrl,
-      thumbnailUrl: event.dataUrl,
+      thumbnailUrl,
       category: 'Work',
       featured: false,
       sortOrder: this.draft()?.gallery.length ?? 0
     };
     this.state.patchDraft((p) => ({ ...p, gallery: [...p.gallery, item] }));
+  }
+
+  hasImageThumbnail(item: PortfolioGalleryItem): boolean {
+    return isGalleryImageThumbnail(item.thumbnailUrl, item.url);
   }
 
   remove(id: string): void {

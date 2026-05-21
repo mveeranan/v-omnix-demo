@@ -4,7 +4,7 @@
       <div class="pf-stats-grid grid gap-6 sm:grid-cols-3">
         @for (stat of stats(); track stat.label; let i = $index) {
           <div appScrollReveal="scale-in" [appScrollRevealDelay]="i * 80" class="pf-glass-card pf-stat-card p-8 text-center">
-            <p class="pf-display text-4xl font-bold md:text-5xl" style="color: var(--pf-accent)">
+            <p class="pf-display pf-accent-text text-4xl font-bold md:text-5xl">
               {{ stat.display | number }}{{ stat.label === 'Years experience' ? '+' : '' }}
             </p>
             <p class="pf-text-muted mt-2 text-sm uppercase tracking-wider">{{ stat.label }}</p>

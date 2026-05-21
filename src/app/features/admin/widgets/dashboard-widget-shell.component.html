@@ -3,9 +3,9 @@
   [attr.aria-busy]="loading">
   <header class="mb-3 flex shrink-0 items-center justify-between gap-2 border-b border-zinc-100/90 pb-3 dark:border-zinc-800">
     <div class="min-w-0">
-      <h3 class="truncate text-[13px] font-semibold tracking-tight text-zinc-800 dark:text-zinc-100">{{ title }}</h3>
+      <h3 class="admin-widget__title truncate">{{ title }}</h3>
       @if (subtitle) {
-        <p class="mt-0.5 truncate text-[11px] text-zinc-500 dark:text-zinc-400">{{ subtitle }}</p>
+        <p class="admin-widget__subtitle truncate">{{ subtitle }}</p>
       }
     </div>
     <ng-content select="[widgetActions]" />

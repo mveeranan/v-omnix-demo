@@ -67,7 +67,7 @@ export const PORTFOLIO_THEME_PRESETS: PortfolioThemePreset[] = [
     theme: {
       presetId: 'photography-modern',
       primaryColor: '#18181b',
-      accentColor: '#fafafa',
+      accentColor: '#38bdf8',
       fontFamily: 'Helvetica, Arial, sans-serif',
       borderRadius: '0.375rem',
       mode: 'dark'

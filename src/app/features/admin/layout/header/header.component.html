@@ -65,15 +65,7 @@
             type="button"
             class="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800"
             role="menuitem"
-            (click)="closeProfile()">
-            <lucide-icon [img]="userIcon" class="h-4 w-4" />
-            Profile
-          </button>
-          <button
-            type="button"
-            class="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800"
-            role="menuitem"
-            (click)="closeProfile()">
+            (click)="goToSettings()">
             <lucide-icon [img]="settingsIcon" class="h-4 w-4" />
             Settings
           </button>
