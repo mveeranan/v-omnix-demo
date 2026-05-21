@@ -109,6 +109,13 @@ export class AdminDashboardDataService {
     }));
   }
 
+  updateTenantBranding(tenant: Partial<TenantBranding>): void {
+    this.data.update((current) => ({
+      ...current,
+      tenant: { ...current.tenant, ...tenant }
+    }));
+  }
+
   private buildMockData(): DashboardData {
     return {
       revenue: {
@@ -288,7 +295,7 @@ export class AdminDashboardDataService {
         }
       ],
       profileSteps: [
-        { id: 's1', label: 'Business profile', completed: true },
+        { id: 's1', label: 'Business profile', completed: false },
         { id: 's2', label: 'Services added', completed: true },
         { id: 's3', label: 'Availability set', completed: false },
         { id: 's4', label: 'Portfolio uploaded', completed: false }

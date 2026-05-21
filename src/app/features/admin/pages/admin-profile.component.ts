@@ -1,44 +1,28 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { LucideAngularModule, Check, Circle, ArrowRight } from 'lucide-angular';
+import { Component, computed, inject, OnInit } from '@angular/core';
 import { AdminPageShellComponent } from '../shared/admin-page-shell.component';
-import { AdminDashboardDataService } from '../services/admin-dashboard-data.service';
+import { AdminProfileStateService } from '../data-access/admin-profile-state.service';
+import { BusinessProfileFormSectionComponent } from '../sections/business-profile-form-section.component';
+import { BranchFormSectionComponent } from '../sections/branch-form-section.component';
 import { pageFadeIn } from '../animations/admin.animations';
 
 @Component({
   selector: 'app-admin-profile',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule, AdminPageShellComponent],
+  imports: [
+    AdminPageShellComponent,
+    BusinessProfileFormSectionComponent,
+    BranchFormSectionComponent
+  ],
   templateUrl: './admin-profile.component.html',
   styleUrl: './admin-profile.component.scss',
   animations: [pageFadeIn]
 })
-export class AdminProfileComponent {
-  private readonly dataService = inject(AdminDashboardDataService);
+export class AdminProfileComponent implements OnInit {
+  readonly profileState = inject(AdminProfileStateService);
+  readonly loading = computed(() => !this.profileState.formsReady());
+  readonly showBranchSection = this.profileState.showBranchSection;
 
-  readonly loading = this.dataService.isLoading;
-  readonly tenant = computed(() => this.dataService.dashboardData().tenant);
-  readonly steps = computed(() => this.dataService.dashboardData().profileSteps);
-  readonly percent = this.dataService.profileCompletionPercent;
-  readonly completedCount = computed(() => this.steps().filter((s) => s.completed).length);
-  readonly checkIcon = Check;
-  readonly circleIcon = Circle;
-  readonly arrowIcon = ArrowRight;
-
-  readonly circumference = 2 * Math.PI * 54;
-
-  readonly strokeDashoffset = computed(
-    () => this.circumference - (this.percent() / 100) * this.circumference
-  );
-
-  stepRoute(stepId: string): string {
-    const routes: Record<string, string> = {
-      s1: '/admin/settings',
-      s2: '/admin/services',
-      s3: '/admin/calendar',
-      s4: '/admin/portfolio'
-    };
-    return routes[stepId] ?? '/admin/dashboard';
+  ngOnInit(): void {
+    this.profileState.load();
   }
 }

@@ -29,5 +29,19 @@ export const API_ENDPOINTS = {
     save: `${base}/portfolio`,
     publish: `${base}/portfolio/publish`,
     upload: `${base}/portfolio/upload`
+  },
+  businessProfile: {
+    getByTenant: (tenantId: string) => `${base}/business-profiles/${tenantId}`,
+    upsert: `${base}/business-profiles`
+  },
+  branches: {
+    listByTenant: (tenantId: string) => `${base}/branches?tenantId=${encodeURIComponent(tenantId)}`,
+    upsert: `${base}/branches`
+  },
+  documents: {
+    upload: `${base}/documents/upload`
+  },
+  tenant: {
+    current: `${base}/tenant`
   }
 } as const;

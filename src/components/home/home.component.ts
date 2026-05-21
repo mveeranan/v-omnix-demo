@@ -57,9 +57,9 @@ import {
 import { Router } from '@angular/router';
 import { API_ENDPOINTS } from '../../environments/api.constants';
 import { AuthService } from '../../app/core/auth/auth.service';
+import type { AuthContext, LoginData, SelectContextData } from '../../app/core/auth/models/auth.model';
 import { ThemeService } from '../../app/core/theme/theme.service';
 import { NotificationService } from '../../app/core/notifications/notification.service';
-import { FileCategory } from '../../app/shared/files/file-category.enum';
 import { firstValueFrom, Subscription } from 'rxjs';
 
 interface PricingFeature {
@@ -102,31 +102,6 @@ interface ApiResponse<T> {
   errors?: string[];
 }
 
-interface AuthContext {
-  tenantId: string;
-  tenantName: string;
-  roleId: string;
-  roleName: string;
-}
-
-interface LoginData {
-  token: string;
-  refreshToken: string;
-  expiresAt: string;
-  userId: string;
-  email: string;
-  contexts: AuthContext[];
-}
-
-interface SelectContextData {
-  userId: string;
-  email: string;
-  tenantId: string;
-  tenantName: string;
-  roleId: string;
-  roleName: string;
-}
-
 interface RegisterData {
   tenantId: string;
 }
@@ -156,18 +131,6 @@ interface BusinessGroupDto {
   types: BusinessTypeDto[];
 }
 
-
-interface UploadDocumentFile {
-  fileName: string;
-  contentType: string;
-  base64Content: string;
-}
-
-interface UploadDocumentRequest {
-  files: UploadDocumentFile[];
-  fileCategory: FileCategory;
-  tenantId?: string;
-}
 
 @Component({
   selector: 'app-home',
@@ -452,10 +415,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
 
-      this.authService.setTokens({
-        accessToken: response.data.token,
-        refreshToken: response.data.refreshToken ?? ''
-      });
+      this.authService.persistLogin(response.data);
 
       this.loginUserId = response.data.userId;
       this.loginUserEmail = response.data.email;
@@ -476,6 +436,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.notificationService.info('Multiple contexts found. Select one to continue.');
         this.authSubmitting = false;
         return;
+      }
+
+      const context = this.availableContexts[0];
+      if (context) {
+        this.authService.persistActiveContext(context);
       }
 
       this.authSubmitting = false;
@@ -516,6 +481,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.notificationService.error(this.contextError);
         return;
       }
+
+      this.authService.persistContextSelection(response.data);
 
       this.contextSubmitting = false;
       this.notificationService.success('Context selected successfully.');
@@ -833,6 +800,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private navigateToDashboard(includeSetupState: boolean): void {
     this.closeAuthOverlays();
+    if (this.selectedPlanName) {
+      sessionStorage.setItem('work-orbit.tenant.planName', this.selectedPlanName);
+    }
+    if (this.selectedPlanId) {
+      sessionStorage.setItem('work-orbit.tenant.planId', this.selectedPlanId);
+    }
     const queryParams: Record<string, string> = {
       planId: this.selectedPlanId,
       planPriceId: this.selectedPlanPriceId,
@@ -876,19 +849,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         payload['planName'] = this.selectedPlanName;
       }
 
-      if (this.businessLogoFile) {
-        const base64Content = await this.fileToBase64(this.businessLogoFile);
-        const attachments: UploadDocumentRequest = {
-          files: [{
-            fileName: this.businessLogoFile.name,
-            contentType: this.businessLogoFile.type,
-            base64Content
-          }],
-          fileCategory: FileCategory.BusinessLogo
-        };
-        payload['attachments'] = attachments;
-      }
-
       const response = await firstValueFrom(
         this.http.post<ApiResponse<RegisterData>>(API_ENDPOINTS.auth.registerAdmin, payload)
       );
@@ -907,6 +867,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.notificationService.error(this.authError);
         return;
       }
+
+      this.authService.setTenantId(tenantId);
 
       this.notificationService.success(response.message || 'Account created successfully.');
 
@@ -1181,18 +1143,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return 'For high-volume operators that need enterprise-grade controls.';
     }
     return 'A scalable plan designed for booking operations growth.';
-  }
-
-  private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        resolve(result.split(',')[1]);
-      };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
   }
 
   private getFirstError(errors?: string[]): string {
