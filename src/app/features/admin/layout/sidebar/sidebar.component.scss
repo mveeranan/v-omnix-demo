@@ -42,6 +42,11 @@
 
 .admin-nav-item {
   text-decoration: none;
+  outline: none;
+}
+
+.admin-nav-item:focus-visible {
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.45);
 }
 
 .admin-nav-item--active {
@@ -49,9 +54,13 @@
   color: rgb(79 70 229);
 }
 
-.dark .admin-nav-item--active {
+.dark .admin-nav-item.admin-nav-item--active {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.12));
-  color: rgb(165 180 252);
+  color: rgb(224 231 255) !important;
+}
+
+.dark .admin-nav-item.admin-nav-item--active span {
+  color: inherit;
 }
 
 p {

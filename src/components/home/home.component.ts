@@ -419,7 +419,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this.loginUserId = response.data.userId;
       this.loginUserEmail = response.data.email;
-      this.availableContexts = response.data.contexts ?? [];
+      this.availableContexts = (response.data.contexts ?? []).map((context) =>
+        this.authService.normalizeAuthContext(context)
+      );
 
       if (this.availableContexts.length === 0) {
         this.authSubmitting = false;

@@ -1210,6 +1210,18 @@ textarea.pa-input.no-icon {
   color: rgb(212 212 216);
 }
 
+/* Services page headings (also in component SCSS; global fallback when encapsulation blocks :host-context) */
+.dark .admin-services__card-title,
+.dark .admin-services__form-title,
+.dark .admin-services__empty-title,
+.dark .admin-services__stat-value {
+  color: rgb(250 250 250);
+}
+
+.dark .admin-services__form-subtitle {
+  color: rgb(161 161 170);
+}
+
 @media (min-width: 640px) {
   .admin-page__header {
     margin-bottom: 1.25rem;

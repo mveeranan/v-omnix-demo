@@ -163,6 +163,10 @@ export class AuthService {
     }
   }
 
+  normalizeAuthContext(context: AuthContext | SelectContextData): AuthContext {
+    return this.normalizeContext(context);
+  }
+
   persistActiveContext(context: AuthContext): void {
     const normalized = this.normalizeContext(context);
     this.setOrRemove(STORAGE_KEYS.tenantId, normalized.tenantId);

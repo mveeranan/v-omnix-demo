@@ -43,5 +43,11 @@ export const API_ENDPOINTS = {
   },
   tenant: {
     current: `${base}/tenant`
+  },
+  services: {
+    listByTenant: (tenantId: string) =>
+      `${base}/services?tenantId=${encodeURIComponent(tenantId)}`,
+    create: `${base}/services`,
+    update: `${base}/services`
   }
 } as const;
