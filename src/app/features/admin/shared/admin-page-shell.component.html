@@ -2,12 +2,12 @@
   <header class="admin-page__header">
     <div class="admin-page__title-row">
       <div>
-        <p class="admin-page__eyebrow text-indigo-600 dark:text-indigo-300">{{ eyebrow() }}</p>
-        <h1 class="admin-page__title text-zinc-900 dark:text-zinc-50">{{ title() }}</h1>
+        <p class="admin-page__eyebrow">{{ eyebrow() }}</p>
+        <h1 class="admin-page__title">{{ title() }}</h1>
       </div>
       <ng-content select="[admin-page-actions]" />
     </div>
-    <p class="admin-page__description text-zinc-600 dark:text-zinc-400">{{ description() }}</p>
+    <p class="admin-page__description">{{ description() }}</p>
   </header>
   <ng-content />
 </div>

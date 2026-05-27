@@ -789,15 +789,29 @@
             <button
               type="button"
               (click)="selectContext(context.tenantId)"
-              class="btn-radius rounded-xl border px-4 py-3 text-left transition-all duration-200"
+              class="btn-radius flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all duration-200"
               [ngClass]="
                 selectedContextTenantId === context.tenantId
                   ? 'border-indigo-500 bg-indigo-50 text-zinc-900 dark:border-indigo-400 dark:bg-indigo-500/20 dark:text-zinc-100'
                   : 'border-zinc-300 bg-zinc-50 text-zinc-900 hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100 dark:hover:border-zinc-500'
               ">
-              <p class="text-sm font-semibold">{{ context.tenantName }}</p>
-              <p class="mt-1 text-xs text-zinc-600 dark:text-zinc-300">{{ context.roleName }}</p>
-              <p class="mt-2 text-xs text-indigo-700 dark:text-indigo-300">{{ getContextContinueText(context) }}</p>
+              @if (context.businessLogoUrl) {
+                <img
+                  [src]="context.businessLogoUrl"
+                  [alt]="context.tenantName + ' logo'"
+                  class="h-11 w-11 shrink-0 rounded-lg border border-zinc-200/80 object-cover dark:border-zinc-600" />
+              } @else {
+                <div
+                  class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-zinc-200/80 bg-indigo-500/10 text-sm font-semibold uppercase text-indigo-700 dark:border-zinc-600 dark:bg-indigo-400/15 dark:text-indigo-200"
+                  aria-hidden="true">
+                  {{ context.tenantName.charAt(0) }}
+                </div>
+              }
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold">{{ context.tenantName }}</p>
+                <p class="mt-1 text-xs text-zinc-600 dark:text-zinc-300">{{ context.roleName }}</p>
+                <p class="mt-2 text-xs text-indigo-700 dark:text-indigo-300">{{ getContextContinueText(context) }}</p>
+              </div>
             </button>
           }
         </div>

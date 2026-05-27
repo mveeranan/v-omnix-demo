@@ -1,0 +1,218 @@
+<app-admin-page-shell
+  eyebrow="Catalog"
+  title="Services"
+  description="Manage service offerings, pricing, and durations for your workspace.">
+  <div admin-page-actions class="admin-services__actions">
+    @if (!state.isFormOpen()) {
+      <button type="button" class="admin-services__primary-btn" (click)="state.startCreate()">
+        <lucide-icon [img]="plusIcon" class="h-4 w-4" />
+        Add service
+      </button>
+    }
+  </div>
+
+  @if (state.loading()) {
+    <div class="admin-services__list">
+      <div class="admin-glass-card h-28 animate-pulse rounded-xl"></div>
+      <div class="admin-glass-card h-28 animate-pulse rounded-xl"></div>
+    </div>
+  } @else {
+    <div @pageFadeIn class="admin-services">
+      @if (state.loadError()) {
+        <p
+          class="admin-services__banner rounded-xl border border-amber-300/80 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+          {{ state.loadError() }}
+        </p>
+      }
+
+      <div class="admin-services__summary admin-glass-card rounded-xl">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            Total services
+          </p>
+          <p class="admin-services__stat-value">
+            {{ state.services().length }}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            Active
+          </p>
+          <p class="mt-1 text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
+            {{ state.activeCount() }}
+          </p>
+        </div>
+      </div>
+
+      @if (state.isFormOpen()) {
+        <section class="admin-glass-card admin-services__form rounded-xl">
+          <div class="admin-services__form-header">
+            <div>
+              <h2 class="admin-services__form-title">
+                {{ state.formMode() === 'edit' ? 'Edit service' : 'New service' }}
+              </h2>
+              <p class="admin-services__form-subtitle">
+                {{
+                  state.formMode() === 'edit'
+                    ? 'Update details and save changes.'
+                    : 'Add a service to your catalog.'
+                }}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="admin-services__icon-btn"
+              (click)="state.cancelForm()"
+              [disabled]="state.saving()"
+              aria-label="Close form">
+              <lucide-icon [img]="closeIcon" class="h-4 w-4" />
+            </button>
+          </div>
+
+          <form class="pf-editor-fields" (ngSubmit)="state.saveForm()">
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Name <span class="text-rose-500">*</span></span>
+              <input
+                class="pf-editor-input"
+                [ngModel]="state.formValue().name"
+                (ngModelChange)="state.patchFormValue({ name: $event })"
+                name="serviceName"
+                required
+                maxlength="200" />
+            </div>
+
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Description</span>
+              <textarea
+                class="pf-editor-input min-h-[88px] resize-y"
+                [ngModel]="state.formValue().description"
+                (ngModelChange)="state.patchFormValue({ description: $event })"
+                name="serviceDescription"
+                rows="3"
+                maxlength="1000"></textarea>
+            </div>
+
+            <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
+              <div class="pf-editor-field">
+                <span class="pf-editor-label">Duration (minutes) <span class="text-rose-500">*</span></span>
+                <input
+                  class="pf-editor-input"
+                  type="number"
+                  min="1"
+                  step="1"
+                  [ngModel]="state.formValue().durationMinutes"
+                  (ngModelChange)="state.patchFormValue({ durationMinutes: $event === '' ? null : +$event })"
+                  name="serviceDuration"
+                  required />
+              </div>
+              <div class="pf-editor-field">
+                <span class="pf-editor-label">Price</span>
+                <input
+                  class="pf-editor-input"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  [ngModel]="state.formValue().price"
+                  (ngModelChange)="state.patchFormValue({ price: $event === '' ? null : +$event })"
+                  name="servicePrice" />
+              </div>
+            </div>
+
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Category</span>
+              <input
+                class="pf-editor-input"
+                [ngModel]="state.formValue().category"
+                (ngModelChange)="state.patchFormValue({ category: $event })"
+                name="serviceCategory"
+                maxlength="100" />
+            </div>
+
+            <label class="pf-editor-checkbox">
+              <input
+                type="checkbox"
+                [ngModel]="state.formValue().isActive"
+                (ngModelChange)="state.patchFormValue({ isActive: $event })"
+                name="serviceActive" />
+              <span>Active (visible for booking)</span>
+            </label>
+
+            <div class="admin-services__form-actions">
+              <button
+                type="button"
+                class="admin-services__secondary-btn"
+                (click)="state.cancelForm()"
+                [disabled]="state.saving()">
+                Cancel
+              </button>
+              <button type="submit" class="admin-services__primary-btn" [disabled]="state.saving()">
+                {{ state.saving() ? 'Saving…' : state.formMode() === 'edit' ? 'Save changes' : 'Create service' }}
+              </button>
+            </div>
+          </form>
+        </section>
+      }
+
+      @if (state.services().length === 0 && !state.isFormOpen()) {
+        <section class="admin-glass-card admin-services__empty rounded-xl">
+          <lucide-icon [img]="wrenchIcon" class="h-10 w-10 text-indigo-500/80" />
+          <h2 class="admin-services__empty-title">No services yet</h2>
+          <p class="mt-1 max-w-sm text-center text-sm text-zinc-500 dark:text-zinc-400">
+            Add your first service to start building your booking catalog.
+          </p>
+          <button type="button" class="admin-services__primary-btn mt-4" (click)="state.startCreate()">
+            <lucide-icon [img]="plusIcon" class="h-4 w-4" />
+            Add service
+          </button>
+        </section>
+      } @else if (state.listServices().length > 0) {
+        <div class="admin-services__list">
+          @for (service of state.listServices(); track trackByServiceId($index, service)) {
+            <article class="admin-glass-card admin-services__card rounded-xl">
+              <div class="admin-services__card-main">
+                <div class="admin-services__card-title-row">
+                  <h3 class="admin-services__card-title">{{ service.name }}</h3>
+                  <span
+                    class="admin-services__status"
+                    [class.admin-services__status--inactive]="!service.isActive">
+                    {{ service.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
+
+                @if (service.description) {
+                  <p class="admin-services__description">{{ service.description }}</p>
+                }
+
+                <div class="admin-services__meta">
+                  <span class="admin-services__meta-item">
+                    <lucide-icon [img]="clockIcon" class="h-3.5 w-3.5" />
+                    {{ formatDuration(service.durationMinutes) }}
+                  </span>
+                  <span class="admin-services__meta-item">
+                    <lucide-icon [img]="priceIcon" class="h-3.5 w-3.5" />
+                    {{ formatPrice(service.price) }}
+                  </span>
+                  @if (service.category) {
+                    <span class="admin-services__meta-item">
+                      <lucide-icon [img]="tagIcon" class="h-3.5 w-3.5" />
+                      {{ service.category }}
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="admin-services__icon-btn"
+                (click)="state.startEdit(service)"
+                [disabled]="state.saving() || state.isFormOpen()"
+                [attr.aria-label]="'Edit ' + service.name">
+                <lucide-icon [img]="editIcon" class="h-4 w-4" />
+              </button>
+            </article>
+          }
+        </div>
+      }
+    </div>
+  }
+</app-admin-page-shell>

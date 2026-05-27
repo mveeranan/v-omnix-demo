@@ -57,7 +57,9 @@ import {
 import { Router } from '@angular/router';
 import { API_ENDPOINTS } from '../../environments/api.constants';
 import { AuthService } from '../../app/core/auth/auth.service';
-import type { AuthContext, LoginData, SelectContextData } from '../../app/core/auth/models/auth.model';
+import { TenantContextService } from '../../app/features/admin/data-access/tenant-context.service';
+import type { AuthContext, LoginData } from '../../app/core/auth/models/auth.model';
+import { extractLoginContexts } from '../../app/core/auth/models/auth.model';
 import { ThemeService } from '../../app/core/theme/theme.service';
 import { NotificationService } from '../../app/core/notifications/notification.service';
 import { firstValueFrom, Subscription } from 'rxjs';
@@ -144,6 +146,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly tenantContext = inject(TenantContextService);
   private readonly notificationService = inject(NotificationService);
   private readonly themeService = inject(ThemeService);
   @ViewChildren('revealEl') revealElements!: QueryList<ElementRef<HTMLElement>>;
@@ -417,9 +420,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this.authService.persistLogin(response.data);
 
-      this.loginUserId = response.data.userId;
-      this.loginUserEmail = response.data.email;
-      this.availableContexts = response.data.contexts ?? [];
+      this.loginUserEmail = response.data.email ?? this.loginForm.controls.email.value.trim();
+      this.availableContexts = extractLoginContexts(response.data);
 
       if (this.availableContexts.length === 0) {
         this.authSubmitting = false;
@@ -441,6 +443,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       const context = this.availableContexts[0];
       if (context) {
         this.authService.persistActiveContext(context);
+        this.tenantContext.syncFromAuthStorage();
       }
 
       this.authSubmitting = false;
@@ -458,42 +461,29 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.contextError = '';
   }
 
-  async continueWithSelectedContext(): Promise<void> {
-    if (!this.selectedContextTenantId || !this.loginUserId || this.contextSubmitting) {
+  continueWithSelectedContext(): void {
+    if (!this.selectedContextTenantId || this.contextSubmitting) {
+      return;
+    }
+
+    const selected = this.availableContexts.find(
+      (context) => context.tenantId === this.selectedContextTenantId
+    );
+    if (!selected) {
+      this.contextError = 'Selected workspace could not be found. Please try again.';
+      this.notificationService.error(this.contextError);
       return;
     }
 
     this.contextSubmitting = true;
     this.contextError = '';
 
-    try {
-      const response = await firstValueFrom(
-        this.http.post<ApiResponse<SelectContextData>>(API_ENDPOINTS.auth.selectContext, {
-          userId: this.loginUserId,
-          tenantId: this.selectedContextTenantId
-        })
-      );
-
-      if (!response.success) {
-        this.contextSubmitting = false;
-        this.contextError =
-          response.message || this.getFirstError(response.errors) || 'Context selection failed.';
-        this.notificationService.error(this.contextError);
-        return;
-      }
-
-      this.authService.persistContextSelection(response.data);
-
-      this.contextSubmitting = false;
-      this.notificationService.success('Context selected successfully.');
-      this.closeAuthOverlays();
-      this.navigateToDashboard(false);
-    } catch (error) {
-      this.contextSubmitting = false;
-      this.contextError =
-        this.extractErrorMessage(error) || 'Unable to select context. Please try again.';
-      this.notificationService.error(this.contextError);
-    }
+    this.authService.persistActiveContext(selected);
+    this.tenantContext.syncFromAuthStorage();
+    this.contextSubmitting = false;
+    this.notificationService.success('Context selected successfully.');
+    this.closeAuthOverlays();
+    this.navigateToDashboard(false);
   }
 
   cancelContextSelection(): void {

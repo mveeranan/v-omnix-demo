@@ -15,7 +15,10 @@ import { AdminShellComponent } from './features/admin/layout/admin-shell.compone
 import { AdminDashboardComponent } from './features/admin/dashboard/admin-dashboard.component';
 
 import { AdminSectionPageComponent } from './features/admin/pages/admin-section-page.component';
+import { AdminServicesComponent } from './features/admin/pages/admin-services.component';
+import { AdminBranchesComponent } from './features/admin/pages/admin-branches.component';
 import { AdminProfileComponent } from './features/admin/pages/admin-profile.component';
+import { manageBranchesGuard } from './core/auth/manage-branches.guard';
 import { PortfolioEditorComponent } from './features/portfolio/editor/portfolio-editor.component';
 import { PublicPortfolioComponent } from './features/portfolio/public/public-portfolio.component';
 
@@ -64,7 +67,12 @@ export const routes: Routes = [
       },
       {
         path: 'services',
-        component: AdminSectionPageComponent
+        component: AdminServicesComponent
+      },
+      {
+        path: 'branches',
+        canActivate: [manageBranchesGuard],
+        component: AdminBranchesComponent
       },
       {
         path: 'bookings',

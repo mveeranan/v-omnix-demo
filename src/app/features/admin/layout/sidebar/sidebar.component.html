@@ -14,13 +14,13 @@
   </div>
 
   <nav class="admin-sidebar-nav flex-1 space-y-0.5 overflow-x-hidden overflow-y-auto p-2.5" aria-label="Admin navigation">
-    @for (item of navItems; track item.id) {
+    @for (item of navItems(); track item.id) {
       <a
         [routerLink]="['/admin', item.path]"
         routerLinkActive="admin-nav-item--active"
         [routerLinkActiveOptions]="{ exact: item.path === 'dashboard' }"
         (click)="onNavClick()"
-        class="admin-nav-item group relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-zinc-600 no-underline transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+        class="admin-nav-item group relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-zinc-600 no-underline transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
         [attr.title]="collapsed() && !mobile() ? item.label : null">
         <lucide-icon [img]="item.icon" class="h-[18px] w-[18px] shrink-0" />
         @if (!collapsed() || mobile()) {

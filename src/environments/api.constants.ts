@@ -6,7 +6,6 @@ export const API_ENDPOINTS = {
   auth: {
     login: `${base}/Auth/login`,
     refresh: `${base}/Auth/refresh`,
-    selectContext: `${base}/Auth/select-context`,
     registerAdmin: `${base}/Auth/register-admin`
   },
   countries: {
@@ -43,5 +42,14 @@ export const API_ENDPOINTS = {
   },
   tenant: {
     current: `${base}/tenant`
+  },
+  services: {
+    listByTenant: (tenantId: string) =>
+      `${base}/services?tenantId=${encodeURIComponent(tenantId)}`,
+    create: `${base}/services`,
+    update: `${base}/services`
+  },
+  serviceAssignments: {
+    assign: `${base}/service-assignments`
   }
 } as const;
