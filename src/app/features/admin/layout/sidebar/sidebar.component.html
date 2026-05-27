@@ -14,7 +14,7 @@
   </div>
 
   <nav class="admin-sidebar-nav flex-1 space-y-0.5 overflow-x-hidden overflow-y-auto p-2.5" aria-label="Admin navigation">
-    @for (item of navItems; track item.id) {
+    @for (item of navItems(); track item.id) {
       <a
         [routerLink]="['/admin', item.path]"
         routerLinkActive="admin-nav-item--active"

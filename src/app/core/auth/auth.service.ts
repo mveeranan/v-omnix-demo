@@ -3,32 +3,41 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map, tap } from 'rxjs';
 import { LoggerService } from '../logging/logger.service';
 import {
+  ActiveWorkspace,
   AuthContext,
-  AuthTokens,
   LoginData,
   LoginRequest,
-  SelectContextData,
-  UserSession
+  RefreshTokenResponseData,
+  extractLoginContexts,
+  normalizeAuthContext
 } from './models/auth.model';
-import { AuthTokenDto, AuthTokenMapper } from './mappers/auth-token.mapper';
 import { API_ENDPOINTS } from '../../../environments/api.constants';
 import { ApiResponse } from '../../shared/models/api-response.model';
 
 const STORAGE_KEYS = {
   accessToken: 'access_token',
-  refreshToken: 'refresh_token',
-  expiresAt: 'expires_at',
-  userId: 'user_id',
-  userEmail: 'user_email',
-  profileImageDocumentId: 'profile_image_document_id',
-  profileImageUrl: 'profile_image_url',
   tenantId: 'tenant_id',
   tenantName: 'tenant_name',
-  roleId: 'role_id',
+  businessLogoUrl: 'business_logo_url',
   roleName: 'role_name',
-  businessLogoDocumentId: 'business_logo_document_id',
-  businessLogoUrl: 'business_logo_url'
+  planName: 'plan_name',
+  multiBranch: 'multi_branch'
 } as const;
+
+const LEGACY_STORAGE_KEYS = [
+  'refresh_token',
+  'expires_at',
+  'user_id',
+  'user_email',
+  'profile_image_document_id',
+  'profile_image_url',
+  'role_id',
+  'business_logo_document_id',
+  'tenantId',
+  'TenantId'
+] as const;
+
+const SESSION_PLAN_KEYS = ['work-orbit.tenant.planName', 'work-orbit.tenant.planId'] as const;
 
 @Injectable({
   providedIn: 'root'
@@ -36,45 +45,48 @@ const STORAGE_KEYS = {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly logger = inject(LoggerService);
-  private readonly authTokenMapper = inject(AuthTokenMapper);
 
   login(payload: LoginRequest): Observable<LoginData> {
-    return this.http.post<ApiResponse<LoginData>>(API_ENDPOINTS.auth.login, payload).pipe(
-      map((response) => {
-        if (!response.success || !response.data?.token) {
-          throw new Error(response.message || 'Login failed');
-        }
-        return response.data;
-      }),
-      tap((data) => this.persistLogin(data))
-    );
-  }
-
-  selectContext(userId: string, tenantId: string): Observable<SelectContextData> {
     return this.http
-      .post<ApiResponse<SelectContextData>>(API_ENDPOINTS.auth.selectContext, { userId, tenantId })
+      // No withCredentials on login: works with AllowAnyOrigin CORS. Refresh uses credentials + updated API CORS.
+      .post<ApiResponse<LoginData>>(API_ENDPOINTS.auth.login, payload)
       .pipe(
         map((response) => {
-          if (!response.success) {
-            throw new Error(response.message || 'Context selection failed');
+          if (!response.success || !response.data?.token) {
+            throw new Error(response.message || 'Login failed');
           }
           return response.data;
         }),
-        tap((data) => this.persistContextSelection(data))
+        tap((data) => this.persistLogin(data))
       );
   }
 
-  refreshToken(): Observable<AuthTokens> {
+  refreshToken(): Observable<string> {
+    const currentToken = this.getAccessToken();
     return this.http
-      .post<AuthTokenDto>(API_ENDPOINTS.auth.refresh, {
-        refreshToken: this.getRefreshToken()
-      })
-      .pipe(map((dto) => this.authTokenMapper.map(dto)))
-      .pipe(tap((tokens) => this.setTokens(tokens)));
+      .post<ApiResponse<RefreshTokenResponseData>>(
+        API_ENDPOINTS.auth.refresh,
+        {},
+        {
+          withCredentials: true,
+          headers: currentToken ? { Authorization: `Bearer ${currentToken}` } : undefined
+        }
+      )
+      .pipe(
+        map((response) => {
+          if (!response.success || !response.data?.token) {
+            throw new Error(response.message || 'Token refresh failed');
+          }
+          return response.data.token;
+        }),
+        tap((token) => {
+          localStorage.setItem(STORAGE_KEYS.accessToken, token);
+        })
+      );
   }
 
   logout(): void {
-    Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
+    this.clearAllStorage();
     this.logger.info('User session has been cleared.');
   }
 
@@ -86,15 +98,10 @@ export class AuthService {
     return localStorage.getItem(STORAGE_KEYS.accessToken);
   }
 
-  getRefreshToken(): string | null {
-    return localStorage.getItem(STORAGE_KEYS.refreshToken);
-  }
-
   getTenantId(): string | null {
     return this.readTenantIdFromStorage() ?? this.getTenantIdFromToken();
   }
 
-  /** Prefer explicit value, then localStorage, then JWT claim. */
   resolveTenantId(explicit?: string | null): string | null {
     const trimmed = explicit?.trim();
     if (trimmed) {
@@ -107,121 +114,93 @@ export class AuthService {
     this.setOrRemove(STORAGE_KEYS.tenantId, tenantId);
   }
 
-  getRoleId(): string | null {
-    return localStorage.getItem(STORAGE_KEYS.roleId);
+  getTenantName(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.tenantName);
   }
 
-  getUserId(): string | null {
-    return localStorage.getItem(STORAGE_KEYS.userId);
+  getRoleName(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.roleName);
   }
 
-  getUserEmail(): string | null {
-    return localStorage.getItem(STORAGE_KEYS.userEmail);
+  getBusinessLogoUrl(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.businessLogoUrl);
   }
 
-  getSession(): UserSession | null {
-    const accessToken = this.getAccessToken();
-    if (!accessToken) {
+  getPlanName(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.planName);
+  }
+
+  getMultiBranch(): boolean | null {
+    const raw = localStorage.getItem(STORAGE_KEYS.multiBranch);
+    if (raw === 'true') {
+      return true;
+    }
+    if (raw === 'false') {
+      return false;
+    }
+    return null;
+  }
+
+  getActiveWorkspace(): ActiveWorkspace | null {
+    const tenantId = this.getTenantId();
+    if (!tenantId || !this.getAccessToken()) {
       return null;
     }
+    const multiBranch = this.getMultiBranch();
     return {
-      accessToken,
-      refreshToken: this.getRefreshToken() ?? '',
-      expiresAt: localStorage.getItem(STORAGE_KEYS.expiresAt) ?? '',
-      userId: localStorage.getItem(STORAGE_KEYS.userId) ?? '',
-      email: localStorage.getItem(STORAGE_KEYS.userEmail) ?? '',
-      profileImageDocumentId: localStorage.getItem(STORAGE_KEYS.profileImageDocumentId),
-      profileImageUrl: localStorage.getItem(STORAGE_KEYS.profileImageUrl),
-      tenantId: localStorage.getItem(STORAGE_KEYS.tenantId),
-      tenantName: localStorage.getItem(STORAGE_KEYS.tenantName),
-      roleId: localStorage.getItem(STORAGE_KEYS.roleId),
-      roleName: localStorage.getItem(STORAGE_KEYS.roleName),
-      businessLogoDocumentId: localStorage.getItem(STORAGE_KEYS.businessLogoDocumentId),
-      businessLogoUrl: localStorage.getItem(STORAGE_KEYS.businessLogoUrl)
+      tenantId,
+      tenantName: this.getTenantName() ?? '',
+      businessLogoUrl: this.getBusinessLogoUrl(),
+      roleName: this.getRoleName() ?? '',
+      planName: this.getPlanName() ?? '',
+      multiBranch: multiBranch ?? false
     };
   }
 
-  setTokens(tokens: AuthTokens): void {
-    localStorage.setItem(STORAGE_KEYS.accessToken, tokens.accessToken);
-    localStorage.setItem(STORAGE_KEYS.refreshToken, tokens.refreshToken);
-  }
-
   persistLogin(data: LoginData): void {
-    this.setTokens({
-      accessToken: data.token,
-      refreshToken: data.refreshToken ?? ''
-    });
-    this.setOrRemove(STORAGE_KEYS.expiresAt, data.expiresAt);
-    this.setOrRemove(STORAGE_KEYS.userId, data.userId);
-    this.setOrRemove(STORAGE_KEYS.userEmail, data.email);
-    this.setOrRemove(STORAGE_KEYS.profileImageDocumentId, data.profileImageDocumentId ?? null);
-    this.setOrRemove(STORAGE_KEYS.profileImageUrl, data.profileImageUrl ?? null);
+    this.clearLegacyStorage();
+    localStorage.setItem(STORAGE_KEYS.accessToken, data.token);
 
-    const contexts = (data.contexts ?? []).map((c) => this.normalizeContext(c));
+    const contexts = extractLoginContexts(data);
     if (contexts.length === 1 && contexts[0].tenantId) {
       this.persistActiveContext(contexts[0]);
     }
   }
 
-  normalizeAuthContext(context: AuthContext | SelectContextData): AuthContext {
-    return this.normalizeContext(context);
+  normalizeAuthContext(context: unknown): AuthContext {
+    return normalizeAuthContext(context);
   }
 
   persistActiveContext(context: AuthContext): void {
-    const normalized = this.normalizeContext(context);
+    const normalized = normalizeAuthContext(context);
+    this.clearLegacyStorage();
     this.setOrRemove(STORAGE_KEYS.tenantId, normalized.tenantId);
     this.setOrRemove(STORAGE_KEYS.tenantName, normalized.tenantName);
-    this.setOrRemove(STORAGE_KEYS.roleId, normalized.roleId);
-    this.setOrRemove(STORAGE_KEYS.roleName, normalized.roleName);
-    this.setOrRemove(
-      STORAGE_KEYS.businessLogoDocumentId,
-      normalized.businessLogoDocumentId ?? null
-    );
     this.setOrRemove(STORAGE_KEYS.businessLogoUrl, normalized.businessLogoUrl ?? null);
-  }
-
-  persistContextSelection(data: SelectContextData): void {
-    this.setOrRemove(STORAGE_KEYS.userId, data.userId);
-    this.setOrRemove(STORAGE_KEYS.userEmail, data.email);
-    this.persistActiveContext(this.normalizeContext(data));
+    this.setOrRemove(STORAGE_KEYS.roleName, normalized.roleName);
+    this.setOrRemove(STORAGE_KEYS.planName, normalized.planName);
+    localStorage.setItem(STORAGE_KEYS.multiBranch, normalized.multiBranch ? 'true' : 'false');
   }
 
   clearActiveContext(): void {
     [
       STORAGE_KEYS.tenantId,
       STORAGE_KEYS.tenantName,
-      STORAGE_KEYS.roleId,
+      STORAGE_KEYS.businessLogoUrl,
       STORAGE_KEYS.roleName,
-      STORAGE_KEYS.businessLogoDocumentId,
-      STORAGE_KEYS.businessLogoUrl
+      STORAGE_KEYS.planName,
+      STORAGE_KEYS.multiBranch
     ].forEach((key) => localStorage.removeItem(key));
   }
 
-  private normalizeContext(context: AuthContext | SelectContextData): AuthContext {
-    const raw = context as AuthContext & Record<string, unknown>;
-    return {
-      tenantId: this.pickString(raw.tenantId, raw['TenantId']),
-      tenantName: this.pickString(raw.tenantName, raw['TenantName']),
-      roleId: this.pickString(raw.roleId, raw['RoleId']),
-      roleName: this.pickString(raw.roleName, raw['RoleName']),
-      businessLogoDocumentId:
-        this.pickOptionalString(raw.businessLogoDocumentId, raw['BusinessLogoDocumentId']) ?? null,
-      businessLogoUrl: this.pickOptionalString(raw.businessLogoUrl, raw['BusinessLogoUrl']) ?? null
-    };
+  private clearAllStorage(): void {
+    Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
+    this.clearLegacyStorage();
+    SESSION_PLAN_KEYS.forEach((key) => sessionStorage.removeItem(key));
   }
 
-  private pickString(...values: unknown[]): string {
-    for (const value of values) {
-      if (typeof value === 'string' && value.trim()) {
-        return value.trim();
-      }
-    }
-    return '';
-  }
-
-  private pickOptionalString(...values: unknown[]): string | undefined {
-    const picked = this.pickString(...values);
-    return picked || undefined;
+  private clearLegacyStorage(): void {
+    LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
   }
 
   private readTenantIdFromStorage(): string | null {
@@ -246,7 +225,7 @@ export class AuthService {
         return null;
       }
       const payload = JSON.parse(atob(payloadPart)) as Record<string, unknown>;
-      const candidate = this.pickString(
+      const candidate = pickString(
         payload['tenant_id'],
         payload['tenantId'],
         payload['TenantId'],
@@ -265,4 +244,13 @@ export class AuthService {
     }
     localStorage.setItem(key, value);
   }
+}
+
+function pickString(...values: unknown[]): string {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return '';
 }

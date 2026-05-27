@@ -7,7 +7,8 @@ import {
   Users,
   CreditCard,
   Settings,
-  User
+  User,
+  MapPin
 } from 'lucide-angular';
 
 export interface AdminNavItemConfig {
@@ -16,6 +17,8 @@ export interface AdminNavItemConfig {
   path: string;
   icon: typeof LayoutDashboard;
   description: string;
+  /** When set, item is shown only if the matching capability is enabled. */
+  requiresCapability?: 'manageBranches';
 }
 
 export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
@@ -46,6 +49,14 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     path: 'services',
     icon: Wrench,
     description: 'Manage service offerings, pricing, and durations.'
+  },
+  {
+    id: 'branches',
+    label: 'Branches',
+    path: 'branches',
+    icon: MapPin,
+    description: 'Manage locations, hours, and primary branch settings.',
+    requiresCapability: 'manageBranches'
   },
   {
     id: 'bookings',

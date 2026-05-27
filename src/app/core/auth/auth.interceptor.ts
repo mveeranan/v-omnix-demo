@@ -8,7 +8,6 @@ import {
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, catchError, filter, switchMap, take, throwError } from 'rxjs';
-import { AuthTokens } from './models/auth.model';
 import { AuthService } from './auth.service';
 import { LoggerService } from '../logging/logger.service';
 import { API_ENDPOINTS } from '../../../environments/api.constants';
@@ -52,10 +51,10 @@ function handleUnauthorized(
     refreshTokenSubject.next(null);
 
     return authService.refreshToken().pipe(
-      switchMap((tokens: AuthTokens) => {
+      switchMap((accessToken) => {
         isRefreshing = false;
-        refreshTokenSubject.next(tokens.accessToken);
-        return next(addAuthorizationHeader(req, tokens.accessToken));
+        refreshTokenSubject.next(accessToken);
+        return next(addAuthorizationHeader(req, accessToken));
       }),
       catchError((refreshError) => {
         isRefreshing = false;
