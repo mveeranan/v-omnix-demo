@@ -7,9 +7,15 @@ import { AdminDetailFieldComponent } from '../shared/admin-detail-field.componen
 import { AdminProfileStateService } from '../data-access/admin-profile-state.service';
 import {
   BranchUpdateRequest,
-  inputValueToTimeSpan,
+  BranchWorkingDayFormValue,
+  createDefaultWorkingDaysFormValues,
+  formatBranchWorkingHoursSummary,
+  formWorkingDaysToApi,
   readBranchCountryCode,
-  timeSpanToInputValue
+  timeSpanToInputValue,
+  validateWorkingDaysForm,
+  workingDaysToFormValues,
+  WORKING_DAY_LABELS
 } from '../models/branch.model';
 import { CountriesService } from '../../../shared/data-access/countries.service';
 import { CountryDialCodePickerComponent } from '../../../shared/ui/country-dial-code-picker.component';
@@ -25,9 +31,7 @@ interface BranchFormSnapshot {
   longitude: number | null;
   phoneNumber: string;
   email: string;
-  openingTime: string;
-  closingTime: string;
-  timeZone: string;
+  workingDays: BranchWorkingDayFormValue[];
   isActive: boolean;
 }
 
@@ -86,15 +90,9 @@ interface BranchFormSnapshot {
             </div>
           </div>
 
-          <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
-            <div class="pf-editor-field">
-              <span class="pf-editor-label">Postal code</span>
-              <input class="pf-editor-input" formControlName="postalCode" />
-            </div>
-            <div class="pf-editor-field">
-              <span class="pf-editor-label">Time zone</span>
-              <input class="pf-editor-input" formControlName="timeZone" />
-            </div>
+          <div class="pf-editor-field">
+            <span class="pf-editor-label">Postal code</span>
+            <input class="pf-editor-input" formControlName="postalCode" />
           </div>
 
           <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
@@ -122,14 +120,33 @@ interface BranchFormSnapshot {
             </div>
           </div>
 
-          <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
-            <div class="pf-editor-field">
-              <span class="pf-editor-label">Opening time</span>
-              <input class="pf-editor-input" type="time" formControlName="openingTime" />
-            </div>
-            <div class="pf-editor-field">
-              <span class="pf-editor-label">Closing time</span>
-              <input class="pf-editor-input" type="time" formControlName="closingTime" />
+          <div class="pf-editor-field">
+            <span class="pf-editor-label">Working hours</span>
+            <div class="branch-working-days-table">
+              @for (day of workingDays(); track day.dayNumber) {
+                <div class="branch-working-days-row">
+                  <span class="branch-working-days-day">{{ workingDayLabel(day.dayNumber) }}</span>
+                  <label class="branch-working-days-off">
+                    <input
+                      type="checkbox"
+                      [checked]="day.isDayOff"
+                      (change)="onWorkingDayOffChange(day.dayNumber, $any($event.target).checked)" />
+                    <span class="sr-only">Day off</span>
+                  </label>
+                  <input
+                    class="pf-editor-input"
+                    type="time"
+                    [value]="day.startTime"
+                    (input)="patchWorkingDay(day.dayNumber, { startTime: $any($event.target).value })"
+                    [disabled]="day.isDayOff" />
+                  <input
+                    class="pf-editor-input"
+                    type="time"
+                    [value]="day.endTime"
+                    (input)="patchWorkingDay(day.dayNumber, { endTime: $any($event.target).value })"
+                    [disabled]="day.isDayOff" />
+                </div>
+              }
             </div>
           </div>
 
@@ -152,10 +169,7 @@ interface BranchFormSnapshot {
             <app-admin-detail-field label="City" [value]="displayValue('city')" />
             <app-admin-detail-field label="Country" [value]="selectedCountryName()" />
           </div>
-          <div class="admin-detail-view__grid admin-detail-view__grid--2">
-            <app-admin-detail-field label="Postal code" [value]="displayValue('postalCode')" />
-            <app-admin-detail-field label="Time zone" [value]="displayValue('timeZone')" />
-          </div>
+          <app-admin-detail-field label="Postal code" [value]="displayValue('postalCode')" />
           <div class="admin-detail-view__grid admin-detail-view__grid--2">
             <app-admin-detail-field label="Latitude" [value]="displayNumber('latitude')" />
             <app-admin-detail-field label="Longitude" [value]="displayNumber('longitude')" />
@@ -164,10 +178,7 @@ interface BranchFormSnapshot {
             <app-admin-detail-field label="Phone" [value]="displayValue('phoneNumber')" />
             <app-admin-detail-field label="Email" [value]="displayValue('email')" />
           </div>
-          <div class="admin-detail-view__grid admin-detail-view__grid--2">
-            <app-admin-detail-field label="Opening time" [value]="displayTime('openingTime')" />
-            <app-admin-detail-field label="Closing time" [value]="displayTime('closingTime')" />
-          </div>
+          <app-admin-detail-field label="Working hours" [value]="displayWorkingHours()" />
           <div class="admin-detail-field">
             <span class="pf-editor-label">Status</span>
             <span
@@ -181,6 +192,31 @@ interface BranchFormSnapshot {
         </div>
       }
     </app-admin-form-section-card>
+  `,
+  styles: `
+    .branch-working-days-table {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .branch-working-days-row {
+      display: grid;
+      grid-template-columns: minmax(5rem, 1.2fr) 3rem 1fr 1fr;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .branch-working-days-day {
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .branch-working-days-off {
+      display: flex;
+      justify-content: center;
+    }
   `
 })
 export class BranchFormSectionComponent implements OnInit {
@@ -205,9 +241,7 @@ export class BranchFormSectionComponent implements OnInit {
     longitude: [null as number | null],
     phoneNumber: ['', Validators.maxLength(20)],
     email: ['', [Validators.maxLength(320), Validators.email]],
-    openingTime: [''],
-    closingTime: [''],
-    timeZone: ['', Validators.maxLength(100)],
+    workingDays: [createDefaultWorkingDaysFormValues()],
     isActive: [true],
     isPrimaryBranch: [{ value: true, disabled: true }]
   });
@@ -234,7 +268,29 @@ export class BranchFormSectionComponent implements OnInit {
       });
   }
 
-  displayValue(field: keyof BranchFormSnapshot): string {
+  workingDays(): BranchWorkingDayFormValue[] {
+    return this.form.controls.workingDays.value ?? createDefaultWorkingDaysFormValues();
+  }
+
+  workingDayLabel(dayNumber: number): string {
+    return WORKING_DAY_LABELS[dayNumber] ?? `Day ${dayNumber}`;
+  }
+
+  patchWorkingDay(dayNumber: number, patch: Partial<BranchWorkingDayFormValue>): void {
+    const workingDays = this.workingDays().map((day) =>
+      day.dayNumber === dayNumber ? { ...day, ...patch } : day
+    );
+    this.form.controls.workingDays.setValue(workingDays);
+  }
+
+  onWorkingDayOffChange(dayNumber: number, isDayOff: boolean): void {
+    this.patchWorkingDay(dayNumber, {
+      isDayOff,
+      ...(isDayOff ? { startTime: '', endTime: '' } : { startTime: '09:00', endTime: '18:00' })
+    });
+  }
+
+  displayValue(field: keyof Omit<BranchFormSnapshot, 'workingDays' | 'latitude' | 'longitude'>): string {
     const raw = this.form.getRawValue();
     const value = raw[field];
     return typeof value === 'string' ? value : '';
@@ -245,19 +301,12 @@ export class BranchFormSectionComponent implements OnInit {
     return value === null || value === undefined ? '' : String(value);
   }
 
-  displayTime(field: 'openingTime' | 'closingTime'): string {
-    const value = this.form.getRawValue()[field];
-    if (!value) {
-      return '';
+  displayWorkingHours(): string {
+    const branch = this.state.branch();
+    if (branch?.workingDays?.length) {
+      return formatBranchWorkingHoursSummary(branch.workingDays);
     }
-    const [h, m] = value.split(':');
-    if (!h || m === undefined) {
-      return value;
-    }
-    const hour = Number.parseInt(h, 10);
-    const suffix = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${m} ${suffix}`;
+    return formatBranchWorkingHoursSummary(formWorkingDaysToApi(this.workingDays()));
   }
 
   selectedCountryName(): string {
@@ -292,6 +341,12 @@ export class BranchFormSectionComponent implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
+
+    const workingDaysError = validateWorkingDaysForm(this.workingDays());
+    if (workingDaysError) {
+      return;
+    }
+
     const countryCode = this.form.controls.countryCode.value?.trim() || null;
     const raw = this.form.getRawValue();
     const payload: BranchUpdateRequest = {
@@ -305,9 +360,7 @@ export class BranchFormSectionComponent implements OnInit {
       longitude: raw.longitude ?? null,
       phoneNumber: raw.phoneNumber?.trim() || null,
       email: raw.email?.trim() || null,
-      openingTime: inputValueToTimeSpan(raw.openingTime),
-      closingTime: inputValueToTimeSpan(raw.closingTime),
-      timeZone: raw.timeZone?.trim() || null,
+      workingDays: formWorkingDaysToApi(this.workingDays()),
       isActive: raw.isActive ?? true,
       isPrimaryBranch: true
     };
@@ -338,9 +391,7 @@ export class BranchFormSectionComponent implements OnInit {
       longitude: branch.longitude ?? null,
       phoneNumber: branch.phoneNumber ?? '',
       email: branch.email ?? '',
-      openingTime: timeSpanToInputValue(branch.openingTime),
-      closingTime: timeSpanToInputValue(branch.closingTime),
-      timeZone: branch.timeZone ?? '',
+      workingDays: workingDaysToFormValues(branch.workingDays),
       isActive: branch.isActive ?? true,
       isPrimaryBranch: branch.isPrimaryBranch ?? true
     });

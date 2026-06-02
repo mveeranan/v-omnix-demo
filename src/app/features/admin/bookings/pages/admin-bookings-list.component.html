@@ -1,0 +1,40 @@
+<app-admin-page-shell
+  @pageFadeIn
+  eyebrow="Operations"
+  title="Bookings"
+  description="View and manage all customer bookings.">
+  <div admin-page-actions class="admin-bookings__actions">
+    <button type="button" class="admin-bookings-primary-btn" (click)="onNewBooking()">
+      <lucide-icon [img]="plusIcon" class="h-4 w-4" />
+      New booking
+    </button>
+  </div>
+
+  @if (state.loading()) {
+    <div class="admin-bookings flex flex-col gap-4">
+      <app-booking-skeleton variant="stats" />
+      <app-booking-skeleton variant="table" />
+    </div>
+  } @else {
+    <div @pageFadeIn class="admin-bookings flex flex-col gap-4">
+      <app-booking-stat-cards [stats]="state.stats()" />
+      <app-booking-filters-bar />
+
+      @if (!hasBookings()) {
+        <app-booking-empty-state
+          variant="no-bookings"
+          actionLabel="Create booking"
+          (actionClick)="onNewBooking()" />
+      } @else if (isFilteredEmpty()) {
+        <app-booking-empty-state
+          variant="no-results"
+          actionLabel="Clear filters"
+          (actionClick)="onClearFilters()" />
+      } @else {
+        <app-booking-data-table
+          [bookings]="state.filteredBookings()"
+          (rowClick)="onRowClick($event)" />
+      }
+    </div>
+  }
+</app-admin-page-shell>

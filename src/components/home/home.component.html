@@ -570,52 +570,12 @@
                       <p class="pa-error" role="alert">{{ getRegisterFieldError('lastName') }}</p>
                     }
                   </div>
-                  <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getRegisterFieldError('countryCode') || !!countriesError">
-                    <label class="pa-label">Mobile Code</label>
-                    <div class="country-picker-shell relative">
-                      <div class="pa-control">
-                        <lucide-icon [img]="globeIcon" class="pa-icon"></lucide-icon>
-                        <button type="button" (click)="toggleCountryDropdown()" class="country-picker-btn country-picker-trigger btn-radius pa-input pa-input--picker w-full text-left">
-                          {{ getSelectedCountryLabel() }}
-                        </button>
-                      </div>
-                      @if (isCountryDropdownOpen) {
-                        <div class="country-picker-panel btn-radius absolute z-30 mt-2 w-full rounded-xl border p-2 shadow-xl">
-                          <input type="text" [value]="countrySearchTerm" (input)="onCountrySearchInput($event)" placeholder="Search country..." class="country-picker-search btn-radius w-full rounded-xl border px-3 py-2 text-sm outline-none" />
-                          <div class="country-picker-list btn-radius mt-2 max-h-52 overflow-auto rounded-xl border">
-                            @if (getFilteredCountryOptions().length === 0) {
-                              <p class="px-3 py-2 text-xs">No countries found.</p>
-                            } @else {
-                              @for (country of getFilteredCountryOptions(); track country.id ?? country.dialCode) {
-                                <button type="button" (click)="selectCountryOption(country)" class="country-picker-option block w-full border-0 px-3 py-2 text-left text-sm">
-                                  {{ country.name }} ({{ country.dialCode }})
-                                </button>
-                              }
-                            }
-                          </div>
-                        </div>
-                      }
-                    </div>
-                    @if (getRegisterFieldError('countryCode')) {
-                      <p class="pa-error" role="alert">{{ getRegisterFieldError('countryCode') }}</p>
-                    }
-                    @if (countriesLoading) {
-                      <p class="text-xs" style="color: var(--pa-muted)">Loading countries...</p>
-                    }
-                    @if (countriesError) {
-                      <p class="pa-error" role="alert">{{ countriesError }}</p>
-                    }
-                  </div>
-                  <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getMobileNumberError()">
-                    <label class="pa-label" for="reg-mobile">Mobile Number</label>
-                    <div class="pa-control">
-                      <lucide-icon [img]="phoneIcon" class="pa-icon"></lucide-icon>
-                      <input id="reg-mobile" formControlName="mobileNumber" type="text" class="pa-input" placeholder="Mobile number" />
-                    </div>
-                    @if (getMobileNumberError()) {
-                      <p class="pa-error" role="alert">{{ getMobileNumberError() }}</p>
-                    }
-                  </div>
+                  <app-phone-number-field
+                    variant="pa"
+                    formControlName="phone"
+                    [required]="true"
+                    countryCodeLabel="Mobile Code"
+                    phoneLabel="Mobile Number" />
                 </div>
               }
 

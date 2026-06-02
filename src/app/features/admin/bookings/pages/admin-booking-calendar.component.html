@@ -1,0 +1,209 @@
+<app-admin-page-shell
+  @pageFadeIn
+  eyebrow="Operations"
+  title="Calendar"
+  description="Schedule availability and team calendars.">
+  @if (loading()) {
+    <app-booking-skeleton variant="calendar" />
+  } @else {
+    <div class="admin-bookings-calendar">
+      <div class="admin-bookings-calendar__toolbar admin-glass-card rounded-xl p-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="admin-bookings-calendar__view-toggle">
+            <button
+              type="button"
+              [class.admin-bookings-calendar__view-btn--active]="view() === 'month'"
+              (click)="setView('month')">
+              Month
+            </button>
+            <button
+              type="button"
+              [class.admin-bookings-calendar__view-btn--active]="view() === 'week'"
+              (click)="setView('week')">
+              Week
+            </button>
+            <button
+              type="button"
+              [class.admin-bookings-calendar__view-btn--active]="view() === 'day'"
+              (click)="setView('day')">
+              Day
+            </button>
+          </div>
+          <div class="flex items-center gap-1">
+            <button type="button" class="admin-bookings-icon-btn" (click)="prev()" aria-label="Previous">
+              <lucide-icon [img]="prevIcon" class="h-4 w-4" />
+            </button>
+            <button type="button" class="admin-bookings-secondary-btn px-3 py-1.5 text-xs" (click)="today()">
+              Today
+            </button>
+            <button type="button" class="admin-bookings-icon-btn" (click)="next()" aria-label="Next">
+              <lucide-icon [img]="nextIcon" class="h-4 w-4" />
+            </button>
+          </div>
+          <h2 class="text-sm font-semibold text-zinc-900 dark:text-zinc-50">{{ periodLabel() }}</h2>
+          <button
+            type="button"
+            class="admin-bookings-icon-btn ml-auto lg:hidden"
+            (click)="toggleFilters()"
+            aria-label="Toggle filters">
+            <lucide-icon [img]="filterIcon" class="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-bookings-calendar__layout">
+        <aside
+          class="admin-bookings-calendar__sidebar admin-glass-card rounded-xl p-4"
+          [class.admin-bookings-calendar__sidebar--hidden]="!state.calendarFiltersOpen()">
+          <div class="mb-3 flex items-center justify-between">
+            <h3 class="admin-widget__title">Filters</h3>
+            <button type="button" class="admin-bookings-icon-btn lg:hidden" (click)="toggleFilters()">
+              <lucide-icon [img]="panelCloseIcon" class="h-4 w-4" />
+            </button>
+          </div>
+          <div class="space-y-3">
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Status</span>
+              <select
+                class="pf-editor-input"
+                [ngModel]="state.filters().status"
+                (ngModelChange)="state.setFilters({ status: $event })"
+                name="calStatus">
+                <option value="all">All</option>
+                @for (s of statusOptions; track s) {
+                  <option [value]="s">{{ s }}</option>
+                }
+              </select>
+            </div>
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Service</span>
+              <select
+                class="pf-editor-input"
+                [ngModel]="state.filters().serviceId"
+                (ngModelChange)="state.setFilters({ serviceId: $event })"
+                name="calService">
+                <option value="all">All</option>
+                @for (svc of state.services(); track svc.id) {
+                  <option [value]="svc.id">{{ svc.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Staff</span>
+              <select
+                class="pf-editor-input"
+                [ngModel]="state.filters().staffId"
+                (ngModelChange)="state.setFilters({ staffId: $event })"
+                name="calStaff">
+                <option value="all">All</option>
+                @for (member of state.staff; track member.id) {
+                  <option [value]="member.id">{{ member.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </aside>
+
+        <div class="admin-bookings-calendar__main min-w-0 flex-1">
+          @if (!hasVisibleEvents() && view() === 'day') {
+            <app-booking-empty-state variant="no-events" />
+          } @else {
+            @switch (view()) {
+              @case ('month') {
+                <div class="admin-glass-card admin-bookings-calendar__month overflow-hidden rounded-xl p-4">
+                  <div class="admin-bookings-calendar__weekdays">
+                    @for (d of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; track d) {
+                      <span>{{ d }}</span>
+                    }
+                  </div>
+                  <div class="admin-bookings-calendar__month-grid">
+                    @for (cell of monthCells(); track cell.date.toISOString()) {
+                      <div
+                        class="admin-bookings-calendar__cell"
+                        [class.admin-bookings-calendar__cell--muted]="!cell.inMonth"
+                        [class.admin-bookings-calendar__cell--today]="cell.isToday">
+                        <span class="admin-bookings-calendar__cell-date">{{ cell.date.getDate() }}</span>
+                        @for (ev of cell.bookings; track ev.id) {
+                          <button
+                            type="button"
+                            class="admin-bookings-calendar__event admin-widget-hover"
+                            (click)="onEventClick(ev.id)">
+                            <span class="h-1.5 w-1.5 shrink-0 rounded-full {{ statusDot(ev.status) }}"></span>
+                            <span class="truncate">{{ ev.customerName }}</span>
+                          </button>
+                        }
+                        @if (cell.overflow > 0) {
+                          <span class="text-[10px] text-zinc-500">+{{ cell.overflow }} more</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              @case ('week') {
+                <div class="admin-glass-card overflow-hidden rounded-xl p-4">
+                  <div class="admin-bookings-calendar__week-header">
+                    @for (day of weekDays(); track day.date.toISOString()) {
+                      <div
+                        class="text-center"
+                        [class.admin-bookings-calendar__cell--today]="day.isToday">
+                        <p class="text-xs text-zinc-500">{{ day.date | date: 'EEE' }}</p>
+                        <p class="text-sm font-semibold">{{ day.date | date: 'd' }}</p>
+                      </div>
+                    }
+                  </div>
+                  <div class="admin-bookings-calendar__week-grid mt-2">
+                    @for (hour of weekHours(); track hour; let hi = $index) {
+                      <div class="admin-bookings-calendar__week-row">
+                        <span class="text-[10px] text-zinc-400">{{ hour }}</span>
+                        @for (day of weekDays(); track day.date.toISOString()) {
+                          <div class="admin-bookings-calendar__week-slot">
+                            @for (ev of bookingsInHour(day.date, hi); track ev.id) {
+                              <button
+                                type="button"
+                                class="admin-bookings-calendar__event admin-widget-hover w-full"
+                                (click)="onEventClick(ev.id)">
+                                <app-booking-status-badge [status]="ev.status" [showDot]="true" />
+                                <span class="mt-0.5 block truncate text-[10px]">{{ ev.customerName }}</span>
+                              </button>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              @case ('day') {
+                <div class="admin-glass-card rounded-xl p-5">
+                  <h3 class="admin-widget__title mb-4">{{ refDate() | date: 'fullDate' }}</h3>
+                  @if (dayBookings().length === 0) {
+                    <app-booking-empty-state variant="no-events" />
+                  } @else {
+                    <div class="space-y-3">
+                      @for (ev of dayBookings(); track ev.id) {
+                        <button
+                          type="button"
+                          class="admin-bookings-calendar__day-card admin-widget-hover admin-glass-card w-full rounded-lg p-4 text-left"
+                          (click)="onEventClick(ev.id)">
+                          <div class="flex items-start justify-between gap-2">
+                            <div>
+                              <p class="font-medium text-zinc-900 dark:text-zinc-50">{{ ev.customerName }}</p>
+                              <p class="text-sm text-zinc-500">{{ ev.serviceName }}</p>
+                              <p class="mt-1 text-xs text-zinc-400">{{ ev.scheduledAt | date: 'h:mm a' }}</p>
+                            </div>
+                            <app-booking-status-badge [status]="ev.status" />
+                          </div>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            }
+          }
+        </div>
+      </div>
+    </div>
+  }
+</app-admin-page-shell>

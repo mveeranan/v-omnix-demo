@@ -77,7 +77,7 @@
             </button>
           </div>
 
-          <form class="pf-editor-fields" (ngSubmit)="state.saveForm()">
+          <form class="pf-editor-fields" (ngSubmit)="trySaveBranchForm()">
             <div class="pf-editor-field">
               <span class="pf-editor-label">Branch name <span class="text-rose-500">*</span></span>
               <input
@@ -129,25 +129,14 @@
               </div>
             </div>
 
-            <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Postal code</span>
-                <input
-                  class="pf-editor-input"
-                  [ngModel]="state.formValue().postalCode"
-                  (ngModelChange)="state.patchFormValue({ postalCode: $event })"
-                  name="branchPostal"
-                  maxlength="20" />
-              </div>
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Time zone</span>
-                <input
-                  class="pf-editor-input"
-                  [ngModel]="state.formValue().timeZone"
-                  (ngModelChange)="state.patchFormValue({ timeZone: $event })"
-                  name="branchTimeZone"
-                  maxlength="100" />
-              </div>
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Postal code</span>
+              <input
+                class="pf-editor-input"
+                [ngModel]="state.formValue().postalCode"
+                (ngModelChange)="state.patchFormValue({ postalCode: $event })"
+                name="branchPostal"
+                maxlength="20" />
             </div>
 
             <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
@@ -173,16 +162,12 @@
               </div>
             </div>
 
+            <app-phone-number-field
+              [ngModel]="branchPhoneValue()"
+              (ngModelChange)="onBranchPhoneChange($event)"
+              name="branchPhone" />
+
             <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Phone</span>
-                <input
-                  class="pf-editor-input"
-                  [ngModel]="state.formValue().phoneNumber"
-                  (ngModelChange)="state.patchFormValue({ phoneNumber: $event })"
-                  name="branchPhone"
-                  maxlength="20" />
-              </div>
               <div class="pf-editor-field">
                 <span class="pf-editor-label">Email</span>
                 <input
@@ -195,24 +180,48 @@
               </div>
             </div>
 
-            <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Opening time</span>
-                <input
-                  class="pf-editor-input"
-                  type="time"
-                  [ngModel]="state.formValue().openingTime"
-                  (ngModelChange)="state.patchFormValue({ openingTime: $event })"
-                  name="branchOpening" />
-              </div>
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Closing time</span>
-                <input
-                  class="pf-editor-input"
-                  type="time"
-                  [ngModel]="state.formValue().closingTime"
-                  (ngModelChange)="state.patchFormValue({ closingTime: $event })"
-                  name="branchClosing" />
+            <div class="admin-branches__working-days">
+              <span class="pf-editor-label">Working hours</span>
+              <p class="admin-branches__working-days-hint">
+                Set hours per day or mark days as closed.
+              </p>
+              <div class="admin-branches__working-days-table" role="table">
+                <div class="admin-branches__working-days-head" role="row">
+                  <span role="columnheader">Day</span>
+                  <span role="columnheader">Day off</span>
+                  <span role="columnheader">Opens</span>
+                  <span role="columnheader">Closes</span>
+                </div>
+                @for (day of workingDays(); track day.dayNumber) {
+                  <div class="admin-branches__working-days-row" role="row">
+                    <span class="admin-branches__working-days-day" role="cell">
+                      {{ workingDayLabel(day.dayNumber) }}
+                    </span>
+                    <label class="admin-branches__working-days-off" role="cell">
+                      <input
+                        type="checkbox"
+                        [ngModel]="day.isDayOff"
+                        (ngModelChange)="onWorkingDayOffChange(day.dayNumber, $event)"
+                        [name]="'branchDayOff' + day.dayNumber" />
+                    </label>
+                    <input
+                      class="pf-editor-input admin-branches__working-days-time"
+                      type="time"
+                      role="cell"
+                      [ngModel]="day.startTime"
+                      (ngModelChange)="patchWorkingDay(day.dayNumber, { startTime: $event })"
+                      [name]="'branchStart' + day.dayNumber"
+                      [disabled]="day.isDayOff" />
+                    <input
+                      class="pf-editor-input admin-branches__working-days-time"
+                      type="time"
+                      role="cell"
+                      [ngModel]="day.endTime"
+                      (ngModelChange)="patchWorkingDay(day.dayNumber, { endTime: $event })"
+                      [name]="'branchEnd' + day.dayNumber"
+                      [disabled]="day.isDayOff" />
+                  </div>
+                }
               </div>
             </div>
 

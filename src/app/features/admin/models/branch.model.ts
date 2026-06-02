@@ -1,5 +1,31 @@
 import { ServiceDto, normalizeServiceList } from './service.model';
 
+export interface BranchWorkingDayDto {
+  id?: string;
+  branchId?: string;
+  dayNumber: number;
+  isDayOff: boolean;
+  startTime?: string | null;
+  endTime?: string | null;
+}
+
+export interface BranchWorkingDayFormValue {
+  dayNumber: number;
+  isDayOff: boolean;
+  startTime: string;
+  endTime: string;
+}
+
+export const WORKING_DAY_LABELS: Record<number, string> = {
+  1: 'Monday',
+  2: 'Tuesday',
+  3: 'Wednesday',
+  4: 'Thursday',
+  5: 'Friday',
+  6: 'Saturday',
+  7: 'Sunday'
+};
+
 export interface BranchDto {
   id?: string;
   tenantId?: string;
@@ -17,9 +43,7 @@ export interface BranchDto {
   longitude?: number | null;
   phoneNumber?: string | null;
   email?: string | null;
-  openingTime?: string | null;
-  closingTime?: string | null;
-  timeZone?: string | null;
+  workingDays?: BranchWorkingDayDto[];
   isActive: boolean;
   isPrimaryBranch: boolean;
 }
@@ -37,9 +61,7 @@ export interface BranchUpsertRequest {
   longitude?: number | null;
   phoneNumber?: string | null;
   email?: string | null;
-  openingTime?: string | null;
-  closingTime?: string | null;
-  timeZone?: string | null;
+  workingDays: BranchWorkingDayDto[];
   isActive: boolean;
   isPrimaryBranch: boolean;
 }
@@ -60,11 +82,18 @@ export interface BranchFormValue {
   longitude: number | null;
   phoneNumber: string;
   email: string;
-  openingTime: string;
-  closingTime: string;
-  timeZone: string;
+  workingDays: BranchWorkingDayFormValue[];
   isActive: boolean;
   isPrimaryBranch: boolean;
+}
+
+export function createDefaultWorkingDaysFormValues(): BranchWorkingDayFormValue[] {
+  return [1, 2, 3, 4, 5, 6, 7].map((dayNumber) => ({
+    dayNumber,
+    isDayOff: dayNumber >= 6,
+    startTime: dayNumber < 6 ? '09:00' : '',
+    endTime: dayNumber < 6 ? '18:00' : ''
+  }));
 }
 
 export function createEmptyBranchFormValue(): BranchFormValue {
@@ -79,12 +108,43 @@ export function createEmptyBranchFormValue(): BranchFormValue {
     longitude: null,
     phoneNumber: '',
     email: '',
-    openingTime: '',
-    closingTime: '',
-    timeZone: '',
+    workingDays: createDefaultWorkingDaysFormValues(),
     isActive: true,
     isPrimaryBranch: false
   };
+}
+
+export function workingDaysToFormValues(
+  days: BranchWorkingDayDto[] | null | undefined
+): BranchWorkingDayFormValue[] {
+  const defaults = createDefaultWorkingDaysFormValues();
+  if (!days?.length) {
+    return defaults;
+  }
+
+  return defaults.map((defaultDay) => {
+    const match = days.find((d) => d.dayNumber === defaultDay.dayNumber);
+    if (!match) {
+      return defaultDay;
+    }
+    return {
+      dayNumber: match.dayNumber,
+      isDayOff: match.isDayOff,
+      startTime: match.isDayOff ? '' : timeSpanToInputValue(match.startTime),
+      endTime: match.isDayOff ? '' : timeSpanToInputValue(match.endTime)
+    };
+  });
+}
+
+export function formWorkingDaysToApi(
+  days: BranchWorkingDayFormValue[]
+): BranchWorkingDayDto[] {
+  return days.map((day) => ({
+    dayNumber: day.dayNumber,
+    isDayOff: day.isDayOff,
+    startTime: day.isDayOff ? null : inputValueToTimeSpan(day.startTime),
+    endTime: day.isDayOff ? null : inputValueToTimeSpan(day.endTime)
+  }));
 }
 
 export function branchToFormValue(branch: BranchDto): BranchFormValue {
@@ -99,12 +159,36 @@ export function branchToFormValue(branch: BranchDto): BranchFormValue {
     longitude: branch.longitude ?? null,
     phoneNumber: branch.phoneNumber ?? '',
     email: branch.email ?? '',
-    openingTime: timeSpanToInputValue(branch.openingTime),
-    closingTime: timeSpanToInputValue(branch.closingTime),
-    timeZone: branch.timeZone ?? '',
+    workingDays: workingDaysToFormValues(branch.workingDays),
     isActive: branch.isActive ?? true,
     isPrimaryBranch: branch.isPrimaryBranch ?? false
   };
+}
+
+export function formatBranchWorkingHoursSummary(
+  workingDays: BranchWorkingDayDto[] | null | undefined
+): string {
+  if (!workingDays?.length) {
+    return '—';
+  }
+
+  const openDays = workingDays.filter((d) => !d.isDayOff && d.startTime && d.endTime);
+  if (openDays.length === 0) {
+    return 'Closed';
+  }
+
+  const start = timeSpanToInputValue(openDays[0].startTime);
+  const end = timeSpanToInputValue(openDays[0].endTime);
+  const sameHours = openDays.every(
+    (d) =>
+      timeSpanToInputValue(d.startTime) === start && timeSpanToInputValue(d.endTime) === end
+  );
+
+  if (sameHours && openDays.length >= 5) {
+    return `${formatTime12h(start)} – ${formatTime12h(end)}`;
+  }
+
+  return `${openDays.length} day(s) open`;
 }
 
 export function createEmptyBranch(tenantId?: string): BranchDto {
@@ -112,7 +196,8 @@ export function createEmptyBranch(tenantId?: string): BranchDto {
     tenantId: tenantId ?? '',
     name: '',
     isActive: true,
-    isPrimaryBranch: true
+    isPrimaryBranch: true,
+    workingDays: formWorkingDaysToApi(createDefaultWorkingDaysFormValues())
   };
 }
 
@@ -160,6 +245,53 @@ export function pickPrimaryBranch(branches: BranchDto[]): BranchDto | null {
   return branches.find((b) => b.isPrimaryBranch) ?? branches[0];
 }
 
+export function validateWorkingDaysForm(
+  days: BranchWorkingDayFormValue[]
+): string | null {
+  for (const day of days) {
+    if (day.isDayOff) {
+      continue;
+    }
+    if (!day.startTime?.trim() || !day.endTime?.trim()) {
+      const label = WORKING_DAY_LABELS[day.dayNumber] ?? `Day ${day.dayNumber}`;
+      return `Set opening and closing times for ${label}, or mark it as a day off.`;
+    }
+    if (day.startTime >= day.endTime) {
+      const label = WORKING_DAY_LABELS[day.dayNumber] ?? `Day ${day.dayNumber}`;
+      return `Closing time must be after opening time for ${label}.`;
+    }
+  }
+  return null;
+}
+
+function normalizeWorkingDay(raw: unknown): BranchWorkingDayDto | null {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+  const item = raw as Record<string, unknown>;
+  const dayNumber = pickNumber(item['dayNumber'], item['DayNumber']);
+  if (dayNumber === undefined || dayNumber < 1 || dayNumber > 7) {
+    return null;
+  }
+  return {
+    id: pickString(item['id'], item['Id']),
+    branchId: pickString(item['branchId'], item['BranchId']),
+    dayNumber,
+    isDayOff: pickBoolean(item['isDayOff'], item['IsDayOff']) ?? false,
+    startTime: pickOptionalString(item['startTime'], item['StartTime']) ?? null,
+    endTime: pickOptionalString(item['endTime'], item['EndTime']) ?? null
+  };
+}
+
+function normalizeWorkingDaysList(raw: unknown): BranchWorkingDayDto[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw
+    .map((item) => normalizeWorkingDay(item))
+    .filter((item): item is BranchWorkingDayDto => item !== null);
+}
+
 export function normalizeBranchDto(raw: unknown): BranchDto | null {
   if (!raw || typeof raw !== 'object') {
     return null;
@@ -182,6 +314,8 @@ export function normalizeBranchDto(raw: unknown): BranchDto | null {
         .filter((id) => id.length > 0)
     : services.map((s) => s.id);
 
+  const workingDays = normalizeWorkingDaysList(item['workingDays'] ?? item['WorkingDays']);
+
   return {
     id,
     tenantId: pickString(item['tenantId'], item['TenantId']),
@@ -197,9 +331,7 @@ export function normalizeBranchDto(raw: unknown): BranchDto | null {
     longitude: pickNumber(item['longitude'], item['Longitude']) ?? null,
     phoneNumber: pickOptionalString(item['phoneNumber'], item['PhoneNumber']) ?? null,
     email: pickOptionalString(item['email'], item['Email']) ?? null,
-    openingTime: pickOptionalString(item['openingTime'], item['OpeningTime']) ?? null,
-    closingTime: pickOptionalString(item['closingTime'], item['ClosingTime']) ?? null,
-    timeZone: pickOptionalString(item['timeZone'], item['TimeZone']) ?? null,
+    workingDays,
     isActive: pickBoolean(item['isActive'], item['IsActive']) ?? true,
     isPrimaryBranch: pickBoolean(item['isPrimaryBranch'], item['IsPrimaryBranch']) ?? false
   };
@@ -262,4 +394,18 @@ export function inputValueToTimeSpan(value?: string | null): string | null {
   const [h, m] = value.split(':');
   if (!h || m === undefined) return null;
   return `${h.padStart(2, '0')}:${m.padStart(2, '0')}:00`;
+}
+
+function formatTime12h(value: string): string {
+  if (!value) {
+    return '';
+  }
+  const [h, m] = value.split(':');
+  const hour = Number.parseInt(h, 10);
+  if (!Number.isFinite(hour)) {
+    return value;
+  }
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${m} ${suffix}`;
 }

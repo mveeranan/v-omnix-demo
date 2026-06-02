@@ -13,8 +13,9 @@ import {
 } from '@angular/forms';
 import { CountriesService } from '../data-access/countries.service';
 import { CountryCodeOption } from '../models/country-code.model';
+import { countryPickerKey, findCountryByPickerKey } from '../utils/phone-country.util';
 
-export type CountryPickerMode = 'dial' | 'iso';
+export type CountryPickerMode = 'dial' | 'iso' | 'phone';
 
 @Component({
   selector: 'app-country-dial-code-picker',
@@ -188,14 +189,24 @@ export class CountryDialCodePickerComponent implements ControlValueAccessor {
   }
 
   private resolveValue(country: CountryCodeOption): string {
-    return this.mode() === 'iso'
-      ? this.countriesService.isoCode(country)
-      : country.dialCode;
+    if (this.mode() === 'iso') {
+      return this.countriesService.isoCode(country);
+    }
+    if (this.mode() === 'phone') {
+      return countryPickerKey(country, this.countriesService.isoCode(country));
+    }
+    return country.dialCode;
   }
 
   private findSelected(value: string): CountryCodeOption | undefined {
-    return this.mode() === 'iso'
-      ? this.countriesService.findByIsoCode(value)
-      : this.countriesService.findByDialCode(value);
+    if (this.mode() === 'iso') {
+      return this.countriesService.findByIsoCode(value);
+    }
+    if (this.mode() === 'phone') {
+      return findCountryByPickerKey(value, this.countriesService.countries(), (c) =>
+        this.countriesService.isoCode(c)
+      );
+    }
+    return this.countriesService.findByDialCode(value);
   }
 }

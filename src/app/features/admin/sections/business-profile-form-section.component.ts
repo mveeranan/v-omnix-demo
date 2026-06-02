@@ -2,13 +2,13 @@ import { Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CountriesService } from '../../../shared/data-access/countries.service';
-import { CountryDialCodePickerComponent } from '../../../shared/ui/country-dial-code-picker.component';
+import { PhoneNumberFieldComponent } from '../../../shared/ui/phone-number-field.component';
+import { EMPTY_PHONE_NUMBER, PhoneNumberValue } from '../../../shared/models/phone-number.model';
 import {
   displayPhoneValue,
   formatPhoneWithDialCode,
-  parseStoredPhone
+  parsePhoneNumberValue
 } from '../../../shared/utils/phone.util';
-import { nationalPhoneValidators } from '../../../shared/utils/phone-validators';
 import { Building2 } from 'lucide-angular';
 import { AdminFormSectionCardComponent } from '../shared/admin-form-section-card.component';
 import { AdminDetailFieldComponent } from '../shared/admin-detail-field.component';
@@ -32,8 +32,7 @@ interface BusinessProfileFormSnapshot {
   form: {
     businessName: string;
     email: string;
-    phoneCountryCode: string;
-    phoneNational: string;
+    phone: PhoneNumberValue;
     businessGroupId: string;
     businessTypeId: string;
     description: string;
@@ -54,7 +53,7 @@ interface BusinessProfileFormSnapshot {
     AdminDetailFieldComponent,
     AdminDetailMediaComponent,
     MediaUploadZoneComponent,
-    CountryDialCodePickerComponent
+    PhoneNumberFieldComponent
   ],
   template: `
     <app-admin-form-section-card
@@ -106,19 +105,7 @@ interface BusinessProfileFormSnapshot {
             }
           </div>
 
-          <div class="pf-editor-phone-row">
-            <div class="pf-editor-field">
-              <span class="pf-editor-label">Country code</span>
-              <app-country-dial-code-picker formControlName="phoneCountryCode" />
-            </div>
-            <div class="pf-editor-field">
-              <span class="pf-editor-label">Phone</span>
-              <input class="pf-editor-input" formControlName="phoneNational" placeholder="Mobile number" />
-              @if (form.controls.phoneNational.touched && form.controls.phoneNational.invalid) {
-                <p class="pf-editor-error">Enter a valid mobile number.</p>
-              }
-            </div>
-          </div>
+          <app-phone-number-field formControlName="phone" />
 
           <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
             <div class="pf-editor-field">
@@ -219,8 +206,7 @@ export class BusinessProfileFormSectionComponent implements OnInit {
   readonly form = this.fb.nonNullable.group({
     businessName: ['', [Validators.required, Validators.maxLength(200)]],
     email: ['', [Validators.maxLength(320), Validators.email]],
-    phoneCountryCode: ['', Validators.maxLength(10)],
-    phoneNational: ['', Validators.maxLength(20)],
+    phone: [{ ...EMPTY_PHONE_NUMBER }],
     businessGroupId: ['', Validators.required],
     businessTypeId: ['', Validators.required],
     description: ['', Validators.maxLength(2000)],
@@ -239,7 +225,6 @@ export class BusinessProfileFormSectionComponent implements OnInit {
 
   ngOnInit(): void {
     this.syncSelectEnableState();
-    this.setupPhoneValidation();
     this.countriesService.load();
 
     this.form.controls.businessGroupId.valueChanges
@@ -251,7 +236,6 @@ export class BusinessProfileFormSectionComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.ensureDefaultDialCode();
           if (this.state.profile()) {
             this.patchPhoneFieldsFromProfile();
           }
@@ -276,13 +260,14 @@ export class BusinessProfileFormSectionComponent implements OnInit {
     return this.businessGroups().find((g) => g.groupId === groupId)?.types ?? [];
   }
 
-  displayValue(field: keyof BusinessProfileFormSnapshot['form']): string {
+  displayValue(
+    field: Exclude<keyof BusinessProfileFormSnapshot['form'], 'phone'>
+  ): string {
     return this.form.getRawValue()[field] ?? '';
   }
 
   displayPhone(): string {
-    const raw = this.form.getRawValue();
-    const formatted = formatPhoneWithDialCode(raw.phoneCountryCode, raw.phoneNational);
+    const formatted = formatPhoneWithDialCode(this.form.getRawValue().phone);
     return displayPhoneValue(formatted ?? this.state.profile()?.phone);
   }
 
@@ -337,7 +322,7 @@ export class BusinessProfileFormSectionComponent implements OnInit {
       const payload: BusinessProfileUpdateRequest = {
         businessName: raw.businessName.trim(),
         email: raw.email.trim() || null,
-        phone: formatPhoneWithDialCode(raw.phoneCountryCode, raw.phoneNational),
+        phone: formatPhoneWithDialCode(raw.phone),
         businessTypeId: raw.businessTypeId?.trim() ?? '',
         description: raw.description.trim() || null,
         logoDocumentId: this.logoDocumentId,
@@ -377,46 +362,15 @@ export class BusinessProfileFormSectionComponent implements OnInit {
     if (!this.editing()) {
       this.form.controls.businessGroupId.disable({ emitEvent: false });
       this.form.controls.businessTypeId.disable({ emitEvent: false });
-      this.form.controls.phoneCountryCode.disable({ emitEvent: false });
-      this.form.controls.phoneNational.disable({ emitEvent: false });
+      this.form.controls.phone.disable({ emitEvent: false });
       return;
     }
     this.form.controls.businessGroupId.enable({ emitEvent: false });
-    this.form.controls.phoneCountryCode.enable({ emitEvent: false });
-    this.form.controls.phoneNational.enable({ emitEvent: false });
+    this.form.controls.phone.enable({ emitEvent: false });
     if (this.form.controls.businessGroupId.value) {
       this.form.controls.businessTypeId.enable({ emitEvent: false });
     } else {
       this.form.controls.businessTypeId.disable({ emitEvent: false });
-    }
-  }
-
-  private setupPhoneValidation(): void {
-    this.applyPhoneValidators();
-    this.form.controls.phoneCountryCode.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.applyPhoneValidators());
-  }
-
-  private applyPhoneValidators(): void {
-    const country = this.countriesService.findByDialCode(
-      this.form.controls.phoneCountryCode.value
-    );
-    this.form.controls.phoneNational.setValidators([
-      Validators.maxLength(20),
-      ...nationalPhoneValidators(country)
-    ]);
-    this.form.controls.phoneNational.updateValueAndValidity({ emitEvent: false });
-  }
-
-  private ensureDefaultDialCode(): void {
-    if (this.form.controls.phoneCountryCode.value.trim()) {
-      return;
-    }
-    const preferred = this.countriesService.preferredDialCode(this.countriesService.countries());
-    if (preferred) {
-      this.form.controls.phoneCountryCode.setValue(preferred, { emitEvent: false });
-      this.applyPhoneValidators();
     }
   }
 
@@ -425,15 +379,13 @@ export class BusinessProfileFormSectionComponent implements OnInit {
     if (!profile) {
       return;
     }
-    const parsed = parseStoredPhone(profile.phone, this.countriesService.countries());
     this.form.patchValue(
       {
-        phoneCountryCode: parsed.dialCode || this.countriesService.preferredDialCode(this.countriesService.countries()),
-        phoneNational: parsed.nationalNumber
+        phone: parsePhoneNumberValue(profile.phone, this.countriesService.countries())
       },
       { emitEvent: false }
     );
-    this.applyPhoneValidators();
+    this.form.controls.phone.updateValueAndValidity({ emitEvent: false });
   }
 
   onLogoSelected(file: File, dataUrl: string): void {
