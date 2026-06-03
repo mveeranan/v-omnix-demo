@@ -1,22 +1,35 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LucideAngularModule, ArrowLeft, ArrowRight, Check, Upload, Clock } from 'lucide-angular';
+import { firstValueFrom } from 'rxjs';
+import { LucideAngularModule, ArrowLeft, ArrowRight, Check, Clock, FileText, X } from 'lucide-angular';
 import { AdminPageShellComponent } from '../../shared/admin-page-shell.component';
 import { pageFadeIn } from '../../animations/admin.animations';
 import { BookingsUiStateService } from '../data-access/bookings-ui-state.service';
+import { DocumentUploadService } from '../../data-access/document-upload.service';
 import { BranchDto, WORKING_DAY_LABELS } from '../../models/branch.model';
 import { dayOfWeekNumberFromIsoDate } from '../models/day-of-week.model';
-import { PaymentMethod, PaymentTiming } from '../models/booking.model';
+import { PaymentTiming } from '../models/booking.model';
+import { DEFAULT_TENANT_PAYMENT_INSTRUCTIONS } from '../data/booking-payment.data';
+import {
+  formatPaymentMethodLabel,
+  paymentMethodRequiresReceipt,
+  type PaymentMethod
+} from '../models/payment-method.model';
 import { branchServicesToBookingOptions } from '../utils/booking-branch.util';
 import { PhoneNumberFieldComponent } from '../../../../shared/ui/phone-number-field.component';
+import { MediaUploadZoneComponent } from '../../../../shared/ui/media-upload-zone.component';
 import { NotificationService } from '../../../../core/notifications/notification.service';
+import { FileCategory } from '../../../../shared/files/file-category.enum';
 import {
   getWorkingDayForDate,
   isDateBookable,
   isIsoDateInPast
 } from '../utils/booking-schedule.util';
+
+const RECEIPT_ACCEPT = 'image/png,image/jpeg,image/webp,application/pdf,.pdf';
+const RECEIPT_MAX_MB = 5;
 
 @Component({
   selector: 'app-admin-booking-create',
@@ -26,7 +39,8 @@ import {
     FormsModule,
     AdminPageShellComponent,
     LucideAngularModule,
-    PhoneNumberFieldComponent
+    PhoneNumberFieldComponent,
+    MediaUploadZoneComponent
   ],
   animations: [pageFadeIn],
   templateUrl: './admin-booking-create.component.html',
@@ -36,17 +50,29 @@ export class AdminBookingCreateComponent implements OnInit {
   readonly state = inject(BookingsUiStateService);
   private readonly router = inject(Router);
   private readonly notificationService = inject(NotificationService);
+  private readonly documentUpload = inject(DocumentUploadService);
 
   readonly backIcon = ArrowLeft;
   readonly nextIcon = ArrowRight;
   readonly checkIcon = Check;
-  readonly uploadIcon = Upload;
   readonly clockIcon = Clock;
+  readonly fileIcon = FileText;
+  readonly removeIcon = X;
 
   readonly step = () => this.state.wizardStep();
   readonly draft = () => this.state.wizardDraft();
-  readonly service = () => this.state.selectedService();
+  readonly selectedServices = () => this.state.selectedServices();
+  readonly totalDurationMinutes = () => this.state.wizardTotalDurationMinutes();
   readonly invoice = () => this.state.wizardInvoice();
+
+  readonly submitting = signal(false);
+  readonly receiptFile = signal<File | null>(null);
+  readonly receiptPreviewUrl = signal('');
+
+  readonly receiptIsImage = computed(() => {
+    const file = this.receiptFile();
+    return !!file?.type.startsWith('image/');
+  });
 
   readonly calendarDays = computed(() => this.buildCalendarDays());
   readonly monthLabel = computed(() => {
@@ -59,23 +85,33 @@ export class AdminBookingCreateComponent implements OnInit {
     return dateStr ? new Date(dateStr) : new Date();
   });
 
-  readonly wizardStepLabels = ['Service', 'Customer', 'Schedule', 'Invoice', 'Review'];
-  readonly invoiceTab = signal<'summary' | 'payment'>('summary');
-
+  readonly wizardStepLabels = ['Service', 'Customer', 'Schedule', 'Summary'];
   readonly formattedPhone = computed(
     () => this.state.formatWizardPhone() ?? '—'
   );
 
   readonly bookingCapture = () => this.state.wizardBookingCapture();
+  readonly receiptAccept = RECEIPT_ACCEPT;
 
   readonly paymentMethods: { value: PaymentMethod; label: string }[] = [
     { value: 'cash', label: 'Cash' },
-    { value: 'card', label: 'Card' },
-    { value: 'bank-transfer', label: 'Bank Transfer' },
-    { value: 'mobile-wallet', label: 'Mobile Wallet' }
+    { value: 'upi', label: 'UPI' },
+    { value: 'bank-transfer', label: 'Bank Transfer' }
   ];
 
+  readonly paymentInstructions = DEFAULT_TENANT_PAYMENT_INSTRUCTIONS;
+  readonly formatPaymentMethodLabel = formatPaymentMethodLabel;
+  readonly paymentMethodRequiresReceipt = paymentMethodRequiresReceipt;
+
   readonly requiresBranchSelection = () => this.state.wizardRequiresBranchSelection();
+
+  constructor() {
+    effect(() => {
+      if (this.state.wizardStep() < 4) {
+        this.clearReceipt();
+      }
+    });
+  }
 
   ngOnInit(): void {
     if (this.state.wizardBranches().length === 0 && !this.state.wizardBranchesLoading()) {
@@ -86,59 +122,101 @@ export class AdminBookingCreateComponent implements OnInit {
   goBack(): void {
     if (this.step() === 1) {
       this.state.navigateToList();
-    } else if (this.step() === 4 && this.invoiceTab() === 'payment') {
-      this.backToInvoiceSummary();
     } else {
-      if (this.step() === 5) {
-        this.invoiceTab.set('summary');
-      }
       this.state.prevWizardStep();
     }
   }
 
   continue(): void {
     if (this.step() < this.state.totalWizardSteps) {
-      if (this.step() === 4) {
-        this.payLaterAndContinue();
-        return;
-      }
-      if (this.step() === 3) {
-        this.invoiceTab.set('summary');
-      }
       this.state.nextWizardStep();
     }
   }
 
-  payLaterAndContinue(): void {
-    this.setPaymentTiming('pay-later');
-    this.invoiceTab.set('summary');
-    this.state.nextWizardStep();
-  }
-
-  openPayNowTab(): void {
-    this.setPaymentTiming('pay-now');
-    this.invoiceTab.set('payment');
-  }
-
-  backToInvoiceSummary(): void {
-    this.invoiceTab.set('summary');
+  choosePayNow(): void {
+    const nextTiming: PaymentTiming =
+      this.draft().paymentTiming === 'pay-now' ? 'pay-later' : 'pay-now';
+    this.setPaymentTiming(nextTiming);
+    if (nextTiming === 'pay-later') {
+      this.clearReceipt();
+    }
   }
 
   continueLabel(): string {
-    if (this.step() === 4) {
-      return 'Pay later and continue';
-    }
     return 'Continue';
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
+    if (this.submitting()) {
+      return;
+    }
+
+    const draft = this.draft();
+    if (this.step() === 4 && draft.paymentTiming !== 'pay-now') {
+      this.setPaymentTiming('pay-later');
+    }
+
+    if (
+      this.step() === 4 &&
+      draft.paymentTiming === 'pay-now' &&
+      paymentMethodRequiresReceipt(draft.paymentMethod)
+    ) {
+      const file = this.receiptFile();
+      if (!file) {
+        this.notificationService.warning('Upload a payment receipt to continue.');
+        return;
+      }
+
+      this.submitting.set(true);
+      try {
+        const uploaded = await firstValueFrom(
+          this.documentUpload.upload(file, FileCategory.InvoiceDocument)
+        );
+        this.state.patchWizardDraft({
+          receiptDocumentId: uploaded.documentId,
+          receiptFileName: file.name
+        });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Could not upload payment receipt.';
+        this.notificationService.error(message);
+        this.submitting.set(false);
+        return;
+      }
+      this.submitting.set(false);
+    }
+
     const id = this.state.submitWizard();
     if (id) {
+      this.clearReceipt();
       void this.router.navigate(['/admin/bookings', id]);
     }
   }
 
+  submitLabel(): string {
+    if (this.step() === 4 && this.draft().paymentTiming !== 'pay-now') {
+      return 'Pay later and submit';
+    }
+    return 'Submit booking';
+  }
+
   canContinue(): boolean {
+    if (this.submitting()) {
+      return false;
+    }
+    if (this.step() === 4) {
+      const draft = this.draft();
+      if (draft.paymentTiming !== 'pay-now') {
+        return this.state.canProceedWizardStep(4);
+      }
+      if (!draft.paymentMethod) {
+        return false;
+      }
+      if (paymentMethodRequiresReceipt(draft.paymentMethod) && !this.receiptFile()) {
+        return false;
+      }
+      return this.state.canProceedWizardStep(4);
+    }
     return this.state.canProceedWizardStep(this.step());
   }
 
@@ -146,8 +224,16 @@ export class AdminBookingCreateComponent implements OnInit {
     this.state.selectWizardBranch(id);
   }
 
-  selectService(id: string): void {
-    this.state.patchWizardDraft({ serviceId: id });
+  toggleService(id: string): void {
+    this.state.toggleWizardService(id);
+  }
+
+  isServiceSelected(id: string): boolean {
+    return this.state.isWizardServiceSelected(id);
+  }
+
+  selectedServicesCount(): number {
+    return this.draft().serviceIds.length;
   }
 
   selectedBranchName(): string {
@@ -217,15 +303,57 @@ export class AdminBookingCreateComponent implements OnInit {
   }
 
   setPaymentMethod(method: PaymentMethod): void {
+    const current = this.draft().paymentMethod;
     this.state.patchWizardDraft({ paymentMethod: method });
+    if (current !== method) {
+      this.clearReceipt();
+    }
   }
 
-  onReceiptSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (file) {
-      this.state.patchWizardDraft({ receiptFileName: file.name });
+  onReceiptSelected(event: { file: File; dataUrl: string }): void {
+    const { file, dataUrl } = event;
+    if (!this.isAllowedReceiptFile(file)) {
+      return;
     }
+    this.receiptFile.set(file);
+    this.receiptPreviewUrl.set(file.type.startsWith('image/') ? dataUrl : '');
+    this.state.patchWizardDraft({
+      receiptFileName: file.name,
+      receiptDocumentId: ''
+    });
+  }
+
+  onReceiptCleared(): void {
+    this.clearReceipt();
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  private clearReceipt(): void {
+    this.receiptFile.set(null);
+    this.receiptPreviewUrl.set('');
+    this.state.patchWizardDraft({ receiptFileName: '', receiptDocumentId: '' });
+  }
+
+  private isAllowedReceiptFile(file: File): boolean {
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      this.notificationService.warning('Please upload a PNG, JPG, WebP, or PDF file.');
+      return false;
+    }
+    if (file.size > RECEIPT_MAX_MB * 1024 * 1024) {
+      this.notificationService.warning(`Receipt must be under ${RECEIPT_MAX_MB} MB.`);
+      return false;
+    }
+    return true;
   }
 
   prevMonth(): void {

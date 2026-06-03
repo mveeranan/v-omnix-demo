@@ -2848,10 +2848,8 @@ select.onboarding-control {
 .admin-bookings-wizard__track {
   display: flex;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
-  min-width: min(100%, 36rem);
-  margin-inline: auto;
 }
 
 .admin-bookings-wizard__track-item {
@@ -2865,8 +2863,7 @@ select.onboarding-control {
 .admin-bookings-wizard__connector {
   flex: 1 1 2rem;
   height: 2px;
-  min-width: 1.25rem;
-  max-width: 5rem;
+  min-width: 0;
   margin-top: 1rem;
   border-radius: 9999px;
   background: rgb(228 228 231);
@@ -2910,6 +2907,16 @@ select.onboarding-control {
 
 .dark .admin-bookings-wizard__step-label--active {
   color: rgb(165 180 252);
+}
+
+.admin-bookings-wizard__selection-block {
+  background: rgb(255 255 255 / 0.55);
+  border: 1px solid rgb(228 228 231 / 0.8);
+}
+
+.dark .admin-bookings-wizard__selection-block {
+  background: rgb(24 24 27 / 0.55);
+  border-color: transparent;
 }
 
 .admin-bookings-wizard__step {
@@ -3151,6 +3158,16 @@ select.onboarding-control {
   border-color: rgb(79 70 229);
 }
 
+.admin-bookings-paynow-btn--active {
+  background: rgb(79 70 229);
+  color: rgb(255 255 255);
+}
+
+.admin-bookings-paynow-btn--active:hover {
+  background: rgb(67 56 202);
+  border-color: rgb(67 56 202);
+}
+
 .dark .admin-bookings-paynow-btn {
   color: rgb(165 180 252);
   border-color: rgb(129 140 248);
@@ -3158,6 +3175,143 @@ select.onboarding-control {
 
 .dark .admin-bookings-paynow-btn:hover {
   background: rgb(49 46 129 / 0.35);
+}
+
+.dark .admin-bookings-paynow-btn--active {
+  background: rgb(79 70 229);
+  color: rgb(238 242 255);
+}
+
+.dark .admin-bookings-paynow-btn--active:hover {
+  background: rgb(67 56 202);
+}
+
+.admin-bookings-primary-btn--ghost {
+  background: rgb(244 244 245);
+  color: rgb(24 24 27);
+  box-shadow: none;
+}
+
+.admin-bookings-primary-btn--ghost:hover:not(:disabled) {
+  background: rgb(228 228 231);
+  box-shadow: none;
+}
+
+.dark .admin-bookings-primary-btn--ghost {
+  background: rgb(39 39 42);
+  color: rgb(228 228 231);
+}
+
+.dark .admin-bookings-primary-btn--ghost:hover:not(:disabled) {
+  background: rgb(63 63 70);
+}
+
+.admin-bookings-invoice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.admin-bookings-payment-method-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+}
+
+.admin-bookings-payment-method-card {
+  border: 1px solid rgb(228 228 231);
+  border-radius: 0.75rem;
+  background: rgb(255 255 255);
+  padding: 0.75rem 0.875rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(39 39 42);
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.admin-bookings-payment-method-card:hover {
+  border-color: rgb(129 140 248);
+  background: rgb(245 247 255);
+}
+
+.admin-bookings-payment-method-card--selected {
+  border-color: rgb(99 102 241);
+  background: rgb(238 242 255);
+  box-shadow: 0 0 0 1px rgb(99 102 241 / 0.2);
+}
+
+.dark .admin-bookings-payment-method-card {
+  border-color: rgb(63 63 70);
+  background: rgb(24 24 27);
+  color: rgb(228 228 231);
+}
+
+.dark .admin-bookings-payment-method-card:hover {
+  border-color: rgb(129 140 248);
+  background: rgb(39 39 42);
+}
+
+.dark .admin-bookings-payment-method-card--selected {
+  border-color: rgb(129 140 248);
+  background: rgb(49 46 129 / 0.35);
+  box-shadow: 0 0 0 1px rgb(129 140 248 / 0.25);
+}
+
+.dark .admin-bookings-invoice__summary,
+.dark .admin-bookings-invoice__payment {
+  border-color: transparent;
+}
+
+.admin-bookings-payment-upi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.admin-bookings-payment-upi__qr {
+  border-radius: 0.75rem;
+  border: 1px solid rgb(228 228 231);
+  background: rgb(255 255 255);
+}
+
+.dark .admin-bookings-payment-upi__qr {
+  border-color: rgb(63 63 70);
+  background: rgb(24 24 27);
+}
+
+.admin-bookings-payment-bank {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.admin-bookings-payment-bank div {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.admin-bookings-payment-bank dt {
+  color: rgb(113 113 122);
+  font-size: 0.75rem;
+}
+
+.dark .admin-bookings-payment-bank dt {
+  color: rgb(161 161 170);
+}
+
+.admin-bookings-payment-bank dd {
+  margin: 0;
+  font-weight: 500;
+  color: rgb(24 24 27);
+}
+
+.dark .admin-bookings-payment-bank dd {
+  color: rgb(244 244 245);
 }
 
 /* Wizard form fields inside admin shell */

@@ -11,9 +11,9 @@
   </div>
 
   <div class="admin-bookings-wizard">
-    <div class="admin-bookings-wizard__progress admin-glass-card rounded-xl px-4 py-5 sm:px-6">
+    <div class="admin-bookings-wizard__progress px-3 py-3 sm:px-5 lg:px-6">
       <div class="admin-bookings-wizard__track" role="list" aria-label="Booking steps">
-        @for (s of [1, 2, 3, 4, 5]; track s; let i = $index) {
+        @for (s of [1, 2, 3, 4]; track s; let i = $index) {
           @if (i > 0) {
             <span
               class="admin-bookings-wizard__connector"
@@ -43,11 +43,11 @@
           @if (requiresBranchSelection()) {
             <h2 class="admin-bookings-wizard__title">Select a branch</h2>
             <p class="admin-bookings-wizard__subtitle">
-              Choose the branch, then pick a service offered at that location.
+              Choose the branch, then pick one or more services offered at that location.
             </p>
           } @else {
-            <h2 class="admin-bookings-wizard__title">Select a service</h2>
-            <p class="admin-bookings-wizard__subtitle">Choose the service for this booking.</p>
+            <h2 class="admin-bookings-wizard__title">Select services</h2>
+            <p class="admin-bookings-wizard__subtitle">Choose one or more services for this booking.</p>
           }
 
           @if (state.wizardBranchesLoading()) {
@@ -62,66 +62,80 @@
             </p>
           } @else {
             @if (requiresBranchSelection()) {
-              <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                @for (branch of state.wizardBranches(); track branch.id) {
-                  <button
-                    type="button"
-                    class="admin-bookings-service-tile admin-widget-hover text-left"
-                    [class.admin-bookings-service-tile--selected]="draft().branchId === branch.id"
-                    (click)="selectBranch(branch.id!)">
-                    <p class="font-semibold text-zinc-900 dark:text-zinc-50">{{ branch.name }}</p>
-                    @if (branch.city) {
-                      <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ branch.city }}</p>
-                    }
-                    <p class="mt-2 text-xs text-zinc-600 dark:text-zinc-300">
-                      {{ branchServiceCount(branch) }} service(s)
-                    </p>
-                  </button>
-                }
-              </div>
-            }
-
-            @if (!requiresBranchSelection() || draft().branchId) {
-              <h3
-                class="admin-bookings-wizard__section-heading"
-                [class.mt-8]="requiresBranchSelection()"
-                [class.mt-4]="!requiresBranchSelection()">
-                @if (requiresBranchSelection()) {
-                  Services at {{ selectedBranchName() }}
-                } @else {
-                  Available services
-                }
-              </h3>
-
-              @if (state.wizardServiceOptions().length === 0) {
-                <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
-                  No active services assigned to this branch yet.
-                </p>
-              } @else {
-                <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                  @for (svc of state.wizardServiceOptions(); track svc.id) {
+              <section class="admin-bookings-wizard__selection-block mt-4 rounded-xl p-4">
+                <div class="mb-3 flex items-center justify-between gap-3">
+                  <h3 class="admin-bookings-wizard__section-heading mt-0">Branch</h3>
+                  @if (draft().branchId) {
+                    <span class="text-xs font-medium text-indigo-600 dark:text-indigo-400">Selected: {{ selectedBranchName() }}</span>
+                  }
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  @for (branch of state.wizardBranches(); track branch.id) {
                     <button
                       type="button"
                       class="admin-bookings-service-tile admin-widget-hover text-left"
-                      [class.admin-bookings-service-tile--selected]="draft().serviceId === svc.id"
-                      (click)="selectService(svc.id)">
-                      <p class="font-semibold text-zinc-900 dark:text-zinc-50">{{ svc.name }}</p>
-                      @if (svc.category) {
-                        <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ svc.category }}</p>
+                      [class.admin-bookings-service-tile--selected]="draft().branchId === branch.id"
+                      (click)="selectBranch(branch.id!)">
+                      <p class="font-semibold text-zinc-900 dark:text-zinc-50">{{ branch.name }}</p>
+                      @if (branch.city) {
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ branch.city }}</p>
                       }
-                      <div class="mt-3 flex gap-4 text-xs text-zinc-600 dark:text-zinc-300">
-                        <span class="inline-flex items-center gap-1">
-                          <lucide-icon [img]="clockIcon" class="h-3.5 w-3.5" />
-                          {{ formatDuration(svc.durationMinutes) }}
-                        </span>
-                        <span class="font-medium text-indigo-600 dark:text-indigo-400">{{
-                          svc.price | currency
-                        }}</span>
-                      </div>
+                      <p class="mt-2 text-xs text-zinc-600 dark:text-zinc-300">
+                        {{ branchServiceCount(branch) }} service(s)
+                      </p>
                     </button>
                   }
                 </div>
-              }
+              </section>
+            }
+
+            @if (!requiresBranchSelection() || draft().branchId) {
+              <section class="admin-bookings-wizard__selection-block mt-4 rounded-xl p-4">
+                <h3 class="admin-bookings-wizard__section-heading mt-0">
+                  @if (requiresBranchSelection()) {
+                    Services at {{ selectedBranchName() }}
+                  } @else {
+                    Available services
+                  }
+                </h3>
+
+                @if (state.wizardServiceOptions().length === 0) {
+                  <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+                    No active services assigned to this branch yet.
+                  </p>
+                } @else {
+                  @if (selectedServicesCount() > 0) {
+                    <p class="mt-3 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                      {{ selectedServicesCount() }} service(s) selected ·
+                      {{ formatDuration(totalDurationMinutes()) }} ·
+                      {{ state.wizardInvoice().subtotal | currency }}
+                    </p>
+                  }
+                  <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                    @for (svc of state.wizardServiceOptions(); track svc.id) {
+                      <button
+                        type="button"
+                        class="admin-bookings-service-tile admin-widget-hover text-left"
+                        [class.admin-bookings-service-tile--selected]="isServiceSelected(svc.id)"
+                        (click)="toggleService(svc.id)">
+                        <p class="font-semibold text-zinc-900 dark:text-zinc-50">{{ svc.name }}</p>
+                        @if (svc.category) {
+                          <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ svc.category }}</p>
+                        }
+                        <div class="mt-3 flex gap-4 text-xs text-zinc-600 dark:text-zinc-300">
+                          <span class="inline-flex items-center gap-1">
+                            <lucide-icon [img]="clockIcon" class="h-3.5 w-3.5" />
+                            {{ formatDuration(svc.durationMinutes) }}
+                          </span>
+                          <span class="font-medium text-indigo-600 dark:text-indigo-400">{{
+                            svc.price | currency
+                          }}</span>
+                        </div>
+                      </button>
+                    }
+                  </div>
+                }
+              </section>
             } @else if (requiresBranchSelection()) {
               <p class="mt-6 text-sm text-zinc-500 dark:text-zinc-400">Select a branch to see its services.</p>
             }
@@ -167,7 +181,9 @@
         }
         @case (3) {
           <h2 class="admin-bookings-wizard__title">Date &amp; time</h2>
-          <p class="admin-bookings-wizard__subtitle">Pick an available slot.</p>
+          <p class="admin-bookings-wizard__subtitle">
+            Pick an available slot. End time is based on total service duration ({{ formatDuration(totalDurationMinutes()) }}).
+          </p>
           <div class="mt-4 grid gap-6 lg:grid-cols-2">
             <div>
               <div class="mb-3 flex items-center justify-between">
@@ -241,9 +257,10 @@
                   {{ state.scheduleHoursHint() }}
                 </p>
               }
-              @if (service(); as svc) {
+              @if (selectedServices().length > 0) {
                 <div class="admin-glass-card mt-4 rounded-lg p-3 text-sm">
                   <p class="text-zinc-500 dark:text-zinc-400">Summary</p>
+                  <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ bookingCapture().serviceNames }}</p>
                   @if (bookingCapture().isScheduleComplete) {
                     <p class="mt-1 font-medium text-zinc-900 dark:text-zinc-50">
                       {{ bookingCapture().startDateTimeLocal }}
@@ -251,7 +268,7 @@
                       {{ bookingCapture().endDateTimeLocal }}
                     </p>
                     <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                      Duration: {{ formatDuration(svc.durationMinutes) }}
+                      Total duration: {{ formatDuration(bookingCapture().totalDurationMinutes) }}
                     </p>
                   } @else {
                     <p class="mt-1 text-zinc-400 dark:text-zinc-500">Select a valid start date and time</p>
@@ -262,83 +279,76 @@
           </div>
         }
         @case (4) {
-          <div class="admin-bookings-invoice__header">
-            <div>
-              <h2 class="admin-bookings-wizard__title">Invoice summary</h2>
-              <p class="admin-bookings-wizard__subtitle">
-                @if (invoiceTab() === 'summary') {
-                  Review pricing before payment.
-                } @else {
-                  Complete payment details or pay later to continue.
-                }
-              </p>
-            </div>
-            <div class="admin-bookings-invoice__tabs" role="tablist">
-              <button
-                type="button"
-                role="tab"
-                class="admin-bookings-invoice__tab"
-                [class.admin-bookings-invoice__tab--active]="invoiceTab() === 'summary'"
-                [attr.aria-selected]="invoiceTab() === 'summary'"
-                (click)="backToInvoiceSummary()">
-                Summary
-              </button>
-              <button
-                type="button"
-                role="tab"
-                class="admin-bookings-invoice__tab"
-                [class.admin-bookings-invoice__tab--active]="invoiceTab() === 'payment'"
-                [attr.aria-selected]="invoiceTab() === 'payment'"
-                (click)="openPayNowTab()">
-                Payment
-              </button>
-            </div>
-          </div>
+          <h2 class="admin-bookings-wizard__title">Booking &amp; invoice summary</h2>
+          <p class="admin-bookings-wizard__subtitle">
+            Review booking details, then either pay now or submit as pay later.
+          </p>
 
-          @if (invoiceTab() === 'payment') {
-            <div class="admin-bookings-invoice__payment mt-4 space-y-4">
-              <p class="admin-widget__section-label">Payment method</p>
-              <div class="flex flex-wrap gap-2">
-                @for (m of paymentMethods; track m.value) {
-                  <button
-                    type="button"
-                    class="admin-bookings-slot"
-                    [class.admin-bookings-slot--selected]="draft().paymentMethod === m.value"
-                    (click)="setPaymentMethod(m.value)">
-                    {{ m.label }}
-                  </button>
-                }
+          @if (selectedServices().length > 0) {
+            <div class="mt-4 grid gap-4 lg:grid-cols-3">
+              <div class="admin-glass-card admin-bookings-review-card rounded-lg p-4 text-sm lg:col-span-3">
+                <p class="admin-widget__section-label">Booking overview</p>
+                <dl class="mt-3 grid gap-3 sm:grid-cols-2">
+                  @if (requiresBranchSelection()) {
+                    <div>
+                      <dt class="admin-bookings-review-card__muted">Branch</dt>
+                      <dd class="admin-bookings-review-card__primary mt-1">{{ selectedBranchName() }}</dd>
+                    </div>
+                  }
+                  <div class="sm:col-span-2">
+                    <dt class="admin-bookings-review-card__muted">Services</dt>
+                    <dd class="admin-bookings-review-card__primary mt-1">{{ bookingCapture().serviceNames }}</dd>
+                    <ul class="admin-bookings-selected-services mt-2 space-y-1">
+                      @for (svc of selectedServices(); track svc.id) {
+                        <li class="admin-bookings-review-card__muted text-xs">
+                          {{ svc.name }} · {{ formatDuration(svc.durationMinutes) }} · {{ svc.price | currency }}
+                        </li>
+                      }
+                    </ul>
+                    <p class="admin-bookings-review-card__muted mt-2 text-xs">
+                      Total: {{ formatDuration(bookingCapture().totalDurationMinutes) }} ·
+                      {{ bookingCapture().totalPrice | currency }}
+                    </p>
+                  </div>
+                  <div>
+                    <dt class="admin-bookings-review-card__muted">Customer</dt>
+                    <dd class="admin-bookings-review-card__primary mt-1">{{ bookingCapture().customerName }}</dd>
+                    <p class="admin-bookings-review-card__muted mt-1">{{ bookingCapture().phoneNumber }}</p>
+                    @if (bookingCapture().email) {
+                      <p class="admin-bookings-review-card__muted mt-1">{{ bookingCapture().email }}</p>
+                    }
+                  </div>
+                  <div>
+                    <dt class="admin-bookings-review-card__muted">Schedule</dt>
+                    <dd class="admin-bookings-review-card__primary mt-1">
+                      {{ bookingCapture().startDateTimeLocal }} – {{ bookingCapture().endDateTimeLocal }}
+                    </dd>
+                    <p class="admin-bookings-review-card__muted mt-1">
+                      UTC: {{ bookingCapture().startDateTimeUtc }} → {{ bookingCapture().endDateTimeUtc }}
+                    </p>
+                  </div>
+                </dl>
               </div>
-              <label
-                class="admin-bookings-upload flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-zinc-200 p-8 transition-colors hover:border-indigo-400 dark:border-zinc-700 dark:hover:border-indigo-500">
-                <lucide-icon [img]="uploadIcon" class="h-8 w-8 text-zinc-400" />
-                <span class="mt-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">Upload payment receipt</span>
-                <span class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">PNG, JPG or PDF</span>
-                @if (draft().receiptFileName) {
-                  <span class="mt-2 text-xs text-indigo-600 dark:text-indigo-400">{{
-                    draft().receiptFileName
-                  }}</span>
-                }
-                <input type="file" class="sr-only" accept="image/*,.pdf" (change)="onReceiptSelected($event)" />
-              </label>
             </div>
-          }
 
-          @if (invoiceTab() === 'summary' && service(); as svc) {
             <div class="admin-glass-card admin-bookings-invoice__summary mt-4 rounded-xl p-5 sm:p-6">
               <div class="space-y-3 text-sm">
+                @for (svc of selectedServices(); track svc.id) {
+                  <div class="flex justify-between gap-4 border-b border-zinc-100 pb-3 last:border-0 last:pb-0 dark:border-zinc-800">
+                    <span class="admin-bookings-invoice__label">{{ svc.name }}</span>
+                    <span class="admin-bookings-invoice__value text-right">
+                      {{ formatDuration(svc.durationMinutes) }} · {{ svc.price | currency }}
+                    </span>
+                  </div>
+                }
                 <div class="flex justify-between gap-4">
-                  <span class="admin-bookings-invoice__label">Service</span>
-                  <span class="admin-bookings-invoice__value admin-bookings-invoice__value--strong text-right">{{
-                    svc.name
+                  <span class="admin-bookings-invoice__label">Total duration</span>
+                  <span class="admin-bookings-invoice__value">{{
+                    formatDuration(bookingCapture().totalDurationMinutes)
                   }}</span>
                 </div>
                 <div class="flex justify-between gap-4">
-                  <span class="admin-bookings-invoice__label">Duration</span>
-                  <span class="admin-bookings-invoice__value">{{ formatDuration(svc.durationMinutes) }}</span>
-                </div>
-                <div class="flex justify-between gap-4">
-                  <span class="admin-bookings-invoice__label">Price</span>
+                  <span class="admin-bookings-invoice__label">Subtotal</span>
                   <span class="admin-bookings-invoice__value">{{ invoice().subtotal | currency }}</span>
                 </div>
                 <div class="flex justify-between gap-4">
@@ -351,58 +361,130 @@
                   <span class="admin-bookings-invoice__total-label">Total</span>
                   <span class="admin-bookings-invoice__total-amount">{{ invoice().total | currency }}</span>
                 </div>
-                <div class="admin-bookings-invoice__paynow-row">
-                  <button type="button" class="admin-bookings-paynow-btn" (click)="openPayNowTab()">
-                    Pay now
-                  </button>
-                </div>
               </div>
             </div>
-          }
-        }
-        @case (5) {
-          <h2 class="admin-bookings-wizard__title">Review &amp; submit</h2>
-          <p class="admin-bookings-wizard__subtitle">Confirm all details before submitting.</p>
-          @if (service(); as svc) {
-            <div class="mt-4 grid gap-4 sm:grid-cols-2">
-              @if (requiresBranchSelection()) {
-                <div class="admin-glass-card admin-bookings-review-card rounded-lg p-4 text-sm">
-                  <p class="admin-widget__section-label">Branch</p>
-                  <p class="admin-bookings-review-card__primary mt-1">{{ selectedBranchName() }}</p>
+            <div class="admin-bookings-invoice__actions mt-4">
+              <button
+                type="button"
+                class="admin-bookings-paynow-btn"
+                [class.admin-bookings-paynow-btn--active]="draft().paymentTiming === 'pay-now'"
+                (click)="choosePayNow()">
+                {{ draft().paymentTiming === 'pay-now' ? 'Use pay later' : 'Pay now' }}
+              </button>
+            </div>
+
+            @if (draft().paymentTiming === 'pay-now') {
+              <div class="admin-bookings-invoice__payment mt-4 space-y-4 rounded-xl border border-zinc-200/80 p-4 dark:border-zinc-800">
+                <p class="admin-widget__section-label">Select payment method</p>
+                <div class="admin-bookings-payment-method-grid">
+                  @for (m of paymentMethods; track m.value) {
+                    <button
+                      type="button"
+                      class="admin-bookings-payment-method-card"
+                      [class.admin-bookings-payment-method-card--selected]="draft().paymentMethod === m.value"
+                      (click)="setPaymentMethod(m.value)">
+                      {{ m.label }}
+                    </button>
+                  }
                 </div>
-              }
-              <div class="admin-glass-card admin-bookings-review-card rounded-lg p-4 text-sm">
-                <p class="admin-widget__section-label">Service</p>
-                <p class="admin-bookings-review-card__primary mt-1">{{ svc.name }}</p>
-                <p class="admin-bookings-review-card__muted">
-                  {{ formatDuration(svc.durationMinutes) }} · {{ svc.price | currency }}
-                </p>
-              </div>
-              <div class="admin-glass-card admin-bookings-review-card rounded-lg p-4 text-sm">
-                <p class="admin-widget__section-label">Customer</p>
-                <p class="admin-bookings-review-card__primary mt-1">{{ bookingCapture().customerName }}</p>
-                <p class="admin-bookings-review-card__muted">{{ bookingCapture().phoneNumber }}</p>
-                @if (bookingCapture().email) {
-                  <p class="admin-bookings-review-card__muted">{{ bookingCapture().email }}</p>
+
+                @if (draft().paymentMethod) {
+                  @switch (draft().paymentMethod) {
+                    @case ('cash') {
+                      <div class="admin-bookings-payment-details rounded-lg border border-zinc-200/70 bg-zinc-50/70 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-900/40">
+                        <p class="font-medium text-zinc-800 dark:text-zinc-200">Cash payment</p>
+                        <p class="mt-1 text-zinc-600 dark:text-zinc-400">
+                          Collect {{ invoice().total | currency }} in cash. No receipt upload required.
+                        </p>
+                      </div>
+                    }
+                    @case ('upi') {
+                      <div class="admin-bookings-payment-details rounded-lg border border-zinc-200/70 bg-zinc-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+                        <p class="admin-widget__section-label">Scan to pay (UPI)</p>
+                        <div class="admin-bookings-payment-upi mt-3">
+                          <img
+                            [src]="paymentInstructions.upiQrImageUrl"
+                            width="200"
+                            height="200"
+                            alt="UPI QR code"
+                            class="admin-bookings-payment-upi__qr" />
+                          <div class="text-sm">
+                            <p class="text-zinc-500 dark:text-zinc-400">UPI ID</p>
+                            <p class="mt-1 font-medium text-zinc-900 dark:text-zinc-50">{{ paymentInstructions.upiId }}</p>
+                            <p class="mt-2 text-zinc-600 dark:text-zinc-400">
+                              Amount: {{ invoice().total | currency }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                    @case ('bank-transfer') {
+                      <div class="admin-bookings-payment-details rounded-lg border border-zinc-200/70 bg-zinc-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+                        <p class="admin-widget__section-label">Bank transfer details</p>
+                        <dl class="admin-bookings-payment-bank mt-3 text-sm">
+                          <div><dt>Bank</dt><dd>{{ paymentInstructions.bankName }}</dd></div>
+                          <div><dt>Account name</dt><dd>{{ paymentInstructions.accountName }}</dd></div>
+                          <div><dt>Account number</dt><dd>{{ paymentInstructions.accountNumber }}</dd></div>
+                          <div><dt>IFSC</dt><dd>{{ paymentInstructions.ifsc }}</dd></div>
+                          <div><dt>Amount</dt><dd>{{ invoice().total | currency }}</dd></div>
+                        </dl>
+                      </div>
+                    }
+                  }
+
+                  @if (paymentMethodRequiresReceipt(draft().paymentMethod)) {
+                    <div class="admin-bookings-receipt-upload">
+                      @if (!receiptFile()) {
+                        <app-media-upload-zone
+                          label="Upload payment receipt"
+                          [accept]="receiptAccept"
+                          [disabled]="submitting()"
+                          (fileSelected)="onReceiptSelected($event)"
+                          (cleared)="onReceiptCleared()" />
+                        <p class="pf-editor-hint mt-2">PNG, JPG, WebP, or PDF up to 5 MB (required).</p>
+                      } @else if (receiptIsImage()) {
+                        <div class="pf-editor-upload-preview">
+                          <img [src]="receiptPreviewUrl()" alt="Payment receipt preview" />
+                          <button
+                            type="button"
+                            class="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
+                            [disabled]="submitting()"
+                            aria-label="Remove receipt"
+                            (click)="onReceiptCleared()">
+                            <lucide-icon [img]="removeIcon" class="h-4 w-4" />
+                          </button>
+                        </div>
+                        <p class="pf-editor-hint mt-2">Remove the receipt above to upload a different file.</p>
+                      } @else {
+                        <div class="admin-bookings-receipt-file-preview relative">
+                          <div
+                            class="flex items-center gap-3 rounded-xl border border-zinc-200/80 bg-white/80 px-3 py-2 pr-12 dark:border-zinc-700 dark:bg-zinc-900/80">
+                            <lucide-icon [img]="fileIcon" class="h-8 w-8 shrink-0 text-indigo-500" />
+                            <div class="min-w-0 flex-1">
+                              <p class="truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                                {{ receiptFile()!.name }}
+                              </p>
+                              <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                {{ formatFileSize(receiptFile()!.size) }}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            class="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
+                            [disabled]="submitting()"
+                            aria-label="Remove receipt"
+                            (click)="onReceiptCleared()">
+                            <lucide-icon [img]="removeIcon" class="h-4 w-4" />
+                          </button>
+                        </div>
+                        <p class="pf-editor-hint mt-2">Remove the file above to upload a different one.</p>
+                      }
+                    </div>
+                  }
                 }
               </div>
-              <div class="admin-glass-card admin-bookings-review-card rounded-lg p-4 text-sm sm:col-span-2">
-                <p class="admin-widget__section-label">Schedule (UTC for API)</p>
-                <p class="admin-bookings-review-card__primary mt-1">
-                  {{ bookingCapture().startDateTimeLocal }} – {{ bookingCapture().endDateTimeLocal }}
-                </p>
-                <p class="admin-bookings-review-card__muted mt-1">
-                  UTC: {{ bookingCapture().startDateTimeUtc }} → {{ bookingCapture().endDateTimeUtc }}
-                </p>
-              </div>
-              <div class="admin-glass-card admin-bookings-review-card rounded-lg p-4 text-sm">
-                <p class="admin-widget__section-label">Payment</p>
-                <p class="admin-bookings-review-card__primary mt-1 capitalize">
-                  {{ draft().paymentTiming.replace('-', ' ') }}
-                </p>
-                <p class="admin-bookings-review-card__muted">Total: {{ invoice().total | currency }}</p>
-              </div>
-            </div>
+            }
           }
         }
       }
@@ -426,9 +508,13 @@
           <lucide-icon [img]="nextIcon" class="h-4 w-4" />
         </button>
       } @else {
-        <button type="button" class="admin-bookings-primary-btn" [disabled]="!canContinue()" (click)="submit()">
+        <button
+          type="button"
+          class="admin-bookings-primary-btn"
+          [disabled]="!canContinue()"
+          (click)="submit()">
           <lucide-icon [img]="checkIcon" class="h-4 w-4" />
-          Submit booking
+          {{ submitting() ? 'Uploading receipt…' : submitLabel() }}
         </button>
       }
     </footer>

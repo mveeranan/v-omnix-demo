@@ -1,4 +1,5 @@
 import { PhoneNumberValue } from '../../../../shared/models/phone-number.model';
+import type { PaymentMethod } from './payment-method.model';
 
 export type BookingStatus =
   | 'pending'
@@ -12,7 +13,8 @@ export type PaymentStatus = 'paid' | 'pending' | 'partial' | 'refunded';
 
 export type PaymentTiming = 'pay-later' | 'pay-now';
 
-export type PaymentMethod = 'cash' | 'card' | 'bank-transfer' | 'mobile-wallet';
+export type { PaymentMethod } from './payment-method.model';
+export { PaymentMethodType } from './payment-method.model';
 
 export type CalendarViewMode = 'month' | 'week' | 'day';
 
@@ -76,6 +78,7 @@ export interface BookingDetail extends BookingListItem {
   paymentTiming?: PaymentTiming;
   paymentMethod?: PaymentMethod;
   receiptFileName?: string;
+  receiptDocumentId?: string;
   timeline: TimelineEvent[];
 }
 
@@ -98,7 +101,7 @@ export interface BookingFilters {
 
 export interface BookingWizardDraft {
   branchId: string;
-  serviceId: string;
+  serviceIds: string[];
   customerName: string;
   phone: PhoneNumberValue;
   email: string;
@@ -108,6 +111,7 @@ export interface BookingWizardDraft {
   paymentTiming: PaymentTiming;
   paymentMethod: PaymentMethod;
   receiptFileName: string;
+  receiptDocumentId: string;
 }
 
 export const DEFAULT_BOOKING_FILTERS: BookingFilters = {
@@ -121,7 +125,7 @@ export const DEFAULT_BOOKING_FILTERS: BookingFilters = {
 /** Payload shape for create-booking API (datetimes in UTC). */
 export interface WizardBookingSubmitPayload {
   branchId: string;
-  serviceId: string;
+  serviceIds: string[];
   customerName: string;
   email: string | null;
   phoneNumber: string;
@@ -130,13 +134,17 @@ export interface WizardBookingSubmitPayload {
   notes?: string | null;
   paymentTiming: PaymentTiming;
   paymentMethod: PaymentMethod;
+  paymentMethodType: number;
+  receiptDocumentId?: string | null;
 }
 
 /** Aggregated wizard fields carried across steps 1–3+. */
 export interface WizardBookingCapture {
   branchId: string;
-  serviceId: string;
-  serviceName: string;
+  serviceIds: string[];
+  serviceNames: string;
+  totalDurationMinutes: number;
+  totalPrice: number;
   customerName: string;
   email: string;
   phoneNumber: string | null;
@@ -152,7 +160,7 @@ export interface WizardBookingCapture {
 
 export const DEFAULT_WIZARD_DRAFT: BookingWizardDraft = {
   branchId: '',
-  serviceId: '',
+  serviceIds: [],
   customerName: '',
   phone: { dialCode: '', nationalNumber: '' },
   email: '',
@@ -161,5 +169,6 @@ export const DEFAULT_WIZARD_DRAFT: BookingWizardDraft = {
   scheduledTime: '',
   paymentTiming: 'pay-later',
   paymentMethod: 'cash',
-  receiptFileName: ''
+  receiptFileName: '',
+  receiptDocumentId: ''
 };

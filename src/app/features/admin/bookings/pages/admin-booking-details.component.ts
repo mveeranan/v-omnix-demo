@@ -12,6 +12,7 @@ import { BookingSkeletonComponent } from '../shared/booking-skeleton.component';
 import { BookingEmptyStateComponent } from '../shared/booking-empty-state.component';
 import { AssignStaffModalComponent } from '../shared/assign-staff-modal.component';
 import { BookingStatus } from '../models/booking.model';
+import { formatPaymentMethodLabel } from '../models/payment-method.model';
 
 @Component({
   selector: 'app-admin-booking-details',
@@ -33,6 +34,7 @@ import { BookingStatus } from '../models/booking.model';
   styleUrl: './admin-booking-details.component.scss'
 })
 export class AdminBookingDetailsComponent implements OnInit {
+  readonly formatPaymentMethodLabel = formatPaymentMethodLabel;
   private readonly route = inject(ActivatedRoute);
   readonly state = inject(BookingsUiStateService);
 

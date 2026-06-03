@@ -73,7 +73,7 @@
             <div><dt>Tax</dt><dd>{{ b.taxAmount | currency }}</dd></div>
             <div><dt>Total</dt><dd class="font-semibold">{{ b.totalAmount | currency }}</dd></div>
             @if (b.paymentMethod) {
-              <div><dt>Method</dt><dd class="capitalize">{{ b.paymentMethod.replace('-', ' ') }}</dd></div>
+              <div><dt>Method</dt><dd>{{ formatPaymentMethodLabel(b.paymentMethod) }}</dd></div>
             }
           </dl>
         </section>

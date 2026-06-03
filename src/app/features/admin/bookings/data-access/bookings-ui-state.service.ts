@@ -5,6 +5,7 @@ import { AuthService } from '../../../../core/auth/auth.service';
 import { BranchService } from '../../data-access/branch.service';
 import { TenantContextService } from '../../data-access/tenant-context.service';
 import { BranchDto, pickPrimaryBranch } from '../../models/branch.model';
+import { paymentMethodToType } from '../models/payment-method.model';
 import {
   BookingDetail,
   BookingFilters,
@@ -35,6 +36,13 @@ import {
   aggregateBookingServiceOptions,
   branchServicesToBookingOptions
 } from '../utils/booking-branch.util';
+import {
+  formatServiceNamesList,
+  resolveSelectedServices,
+  servicesDurationChanged,
+  sumServiceDurationMinutes,
+  sumServicePrice
+} from '../utils/booking-wizard.util';
 import {
   buildLocalScheduledRange,
   formatLocalDateTime,
@@ -77,7 +85,7 @@ export class BookingsUiStateService {
   });
   readonly staff = MOCK_STAFF;
   readonly timeSlots = MOCK_TIME_SLOTS;
-  readonly totalWizardSteps = 5;
+  readonly totalWizardSteps = 4;
 
   readonly allBookings = computed(() => this.bookings().map(toListItem));
 
@@ -157,10 +165,16 @@ export class BookingsUiStateService {
     branchServicesToBookingOptions(this.selectedWizardBranch())
   );
 
-  readonly selectedService = computed(() => {
-    const id = this.wizardDraft().serviceId;
-    return this.wizardServiceOptions().find((s) => s.id === id) ?? null;
-  });
+  readonly selectedServices = computed(() =>
+    resolveSelectedServices(this.wizardServiceOptions(), this.wizardDraft().serviceIds)
+  );
+
+  readonly wizardTotalDurationMinutes = computed(() =>
+    sumServiceDurationMinutes(this.selectedServices())
+  );
+
+  /** @deprecated Use selectedServices / wizardTotalDurationMinutes */
+  readonly selectedService = computed(() => this.selectedServices()[0] ?? null);
 
   readonly scheduleWorkingDay = computed(() => {
     const branch = this.selectedWizardBranch();
@@ -172,16 +186,13 @@ export class BookingsUiStateService {
   });
 
   readonly scheduleTimeBounds = computed(() =>
-    getScheduleTimeBounds(
-      this.scheduleWorkingDay(),
-      this.selectedService()?.durationMinutes ?? 0
-    )
+    getScheduleTimeBounds(this.scheduleWorkingDay(), this.wizardTotalDurationMinutes())
   );
 
   readonly scheduleHoursHint = computed(() =>
     formatWorkingDayHoursHint(
       this.scheduleWorkingDay(),
-      this.selectedService()?.durationMinutes ?? 0
+      this.wizardTotalDurationMinutes()
     )
   );
 
@@ -189,7 +200,7 @@ export class BookingsUiStateService {
     validateBookingSchedule(
       this.scheduleWorkingDay(),
       this.wizardDraft().scheduledTime,
-      this.selectedService()?.durationMinutes ?? 0
+      this.wizardTotalDurationMinutes()
     )
   );
 
@@ -197,7 +208,7 @@ export class BookingsUiStateService {
 
   readonly wizardScheduledRange = computed(() => {
     const d = this.wizardDraft();
-    const duration = this.selectedService()?.durationMinutes ?? 0;
+    const duration = this.wizardTotalDurationMinutes();
     if (!d.scheduledDate || !d.scheduledTime.trim()) {
       return null;
     }
@@ -213,15 +224,17 @@ export class BookingsUiStateService {
 
   readonly wizardBookingCapture = computed((): WizardBookingCapture => {
     const d = this.wizardDraft();
-    const svc = this.selectedService();
+    const services = this.selectedServices();
     const phone = this.formatWizardPhone(d);
     const range = this.wizardScheduledRange();
     const isScheduleComplete = this.isWizardScheduleValid();
 
     return {
       branchId: d.branchId,
-      serviceId: d.serviceId,
-      serviceName: svc?.name ?? '',
+      serviceIds: [...d.serviceIds],
+      serviceNames: formatServiceNamesList(services),
+      totalDurationMinutes: sumServiceDurationMinutes(services),
+      totalPrice: sumServicePrice(services),
       customerName: d.customerName.trim(),
       email: d.email.trim(),
       phoneNumber: phone,
@@ -237,9 +250,11 @@ export class BookingsUiStateService {
   });
 
   readonly wizardInvoice = computed(() => {
-    const svc = this.selectedService();
-    if (!svc) return { subtotal: 0, tax: 0, total: 0, taxRate: 0.08 };
-    const subtotal = svc.price;
+    const services = this.selectedServices();
+    if (services.length === 0) {
+      return { subtotal: 0, tax: 0, total: 0, taxRate: 0.08 };
+    }
+    const subtotal = sumServicePrice(services);
     const taxRate = 0.08;
     const tax = Math.round(subtotal * taxRate * 100) / 100;
     const total = Math.round((subtotal + tax) * 100) / 100;
@@ -372,9 +387,39 @@ export class BookingsUiStateService {
     this.patchWizardDraft({
       branchId,
       ...(branchChanged
-        ? { serviceId: '', scheduledDate: '', scheduledTime: '' }
+        ? { serviceIds: [], scheduledDate: '', scheduledTime: '' }
         : {})
     });
+  }
+
+  toggleWizardService(serviceId: string): void {
+    const d = this.wizardDraft();
+    const options = this.wizardServiceOptions();
+    const has = d.serviceIds.includes(serviceId);
+    const nextIds = has
+      ? d.serviceIds.filter((id) => id !== serviceId)
+      : [...d.serviceIds, serviceId];
+
+    const durationChanged = servicesDurationChanged(d.serviceIds, nextIds, options);
+    this.patchWizardDraft({
+      serviceIds: nextIds,
+      ...(durationChanged ? { scheduledTime: '' } : {})
+    });
+
+    if (durationChanged && d.scheduledTime.trim()) {
+      const validation = validateBookingSchedule(
+        getWorkingDayForDate(this.selectedWizardBranch(), d.scheduledDate),
+        d.scheduledTime,
+        sumServiceDurationMinutes(resolveSelectedServices(options, nextIds))
+      );
+      if (!validation.valid && validation.message) {
+        this.notifications.warning(validation.message);
+      }
+    }
+  }
+
+  isWizardServiceSelected(serviceId: string): boolean {
+    return this.wizardDraft().serviceIds.includes(serviceId);
   }
 
   private applyWizardBranchDefaults(branches: BranchDto[]): void {
@@ -423,14 +468,18 @@ export class BookingsUiStateService {
   patchWizardDraft(patch: Partial<BookingWizardDraft>): void {
     this.wizardDraft.update((d) => {
       const next = { ...d, ...patch };
-      if (patch.serviceId !== undefined && patch.serviceId !== d.serviceId && next.scheduledTime) {
-        const validation = validateBookingSchedule(
-          getWorkingDayForDate(this.selectedWizardBranch(), next.scheduledDate),
-          next.scheduledTime,
-          this.wizardServiceOptions().find((s) => s.id === next.serviceId)?.durationMinutes ?? 0
-        );
-        if (!validation.valid) {
-          next.scheduledTime = '';
+      if (patch.serviceIds !== undefined && next.scheduledTime) {
+        const options = this.wizardServiceOptions();
+        const durationChanged = servicesDurationChanged(d.serviceIds, next.serviceIds, options);
+        if (durationChanged) {
+          const validation = validateBookingSchedule(
+            getWorkingDayForDate(this.selectedWizardBranch(), next.scheduledDate),
+            next.scheduledTime,
+            sumServiceDurationMinutes(resolveSelectedServices(options, next.serviceIds))
+          );
+          if (!validation.valid) {
+            next.scheduledTime = '';
+          }
         }
       }
       return next;
@@ -455,7 +504,7 @@ export class BookingsUiStateService {
         if (!d.branchId) {
           return false;
         }
-        return !!d.serviceId;
+        return d.serviceIds.length > 0;
       }
       case 2: {
         const country = resolvePhoneCountry(d.phone, this.countriesService.countries());
@@ -469,7 +518,6 @@ export class BookingsUiStateService {
           !!d.scheduledDate && !!d.scheduledTime.trim() && this.isWizardScheduleValid()
         );
       case 4:
-      case 5:
         return this.isWizardBookingCaptureComplete();
       default:
         return false;
@@ -480,7 +528,7 @@ export class BookingsUiStateService {
     const capture = this.wizardBookingCapture();
     return (
       !!capture.branchId &&
-      !!capture.serviceId &&
+      capture.serviceIds.length > 0 &&
       !!capture.customerName &&
       !!capture.phoneNumber &&
       capture.isScheduleComplete &&
@@ -497,7 +545,7 @@ export class BookingsUiStateService {
     const capture = this.wizardBookingCapture();
     return {
       branchId: capture.branchId,
-      serviceId: capture.serviceId,
+      serviceIds: capture.serviceIds,
       customerName: capture.customerName,
       email: capture.email || null,
       phoneNumber: capture.phoneNumber!,
@@ -505,17 +553,19 @@ export class BookingsUiStateService {
       endDateTimeUtc: capture.endDateTimeUtc,
       notes: d.notes.trim() || null,
       paymentTiming: d.paymentTiming,
-      paymentMethod: d.paymentMethod
+      paymentMethod: d.paymentMethod,
+      paymentMethodType: paymentMethodToType(d.paymentMethod),
+      receiptDocumentId: d.receiptDocumentId.trim() || null
     };
   }
 
   submitWizard(): string | null {
     const d = this.wizardDraft();
-    const svc = this.selectedService();
+    const services = this.selectedServices();
     const branch = this.selectedWizardBranch();
     const payload = this.buildWizardSubmitPayload();
     const range = this.wizardScheduledRange();
-    if (!svc || !branch?.id || !payload || !range) {
+    if (services.length === 0 || !branch?.id || !payload || !range) {
       return null;
     }
 
@@ -523,12 +573,14 @@ export class BookingsUiStateService {
     const scheduledAt = range.startLocal;
     const scheduledEndAt = range.endLocal;
 
-    const price = svc.price;
+    const price = sumServicePrice(services);
+    const durationMinutes = sumServiceDurationMinutes(services);
     const taxRate = 0.08;
     const taxAmount = Math.round(price * taxRate * 100) / 100;
     const totalAmount = Math.round((price + taxAmount) * 100) / 100;
     const status: BookingStatus = 'pending';
     const paymentStatus = d.paymentTiming === 'pay-now' ? 'paid' : 'pending';
+    const primaryService = services[0];
 
     const newBooking: BookingDetail = {
       id: `bk-${nextId}`,
@@ -536,15 +588,15 @@ export class BookingsUiStateService {
       customerName: payload.customerName,
       phone: payload.phoneNumber,
       email: payload.email || undefined,
-      serviceId: payload.serviceId,
-      serviceName: svc.name,
+      serviceId: primaryService.id,
+      serviceName: formatServiceNamesList(services),
       branchId: payload.branchId,
       branchName: branch.name,
       scheduledAt,
       scheduledEndAt,
       status,
       paymentStatus,
-      durationMinutes: svc.durationMinutes,
+      durationMinutes,
       price,
       notes: d.notes || undefined,
       taxRate,
@@ -553,6 +605,7 @@ export class BookingsUiStateService {
       paymentTiming: d.paymentTiming,
       paymentMethod: d.paymentMethod,
       receiptFileName: d.receiptFileName || undefined,
+      receiptDocumentId: d.receiptDocumentId.trim() || undefined,
       timeline: buildTimeline(status, new Date())
     };
 
