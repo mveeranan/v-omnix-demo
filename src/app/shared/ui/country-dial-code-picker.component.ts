@@ -21,48 +21,95 @@ export type CountryPickerMode = 'dial' | 'iso' | 'phone';
   selector: 'app-country-dial-code-picker',
   standalone: true,
   template: `
-    <div class="country-picker-shell relative">
-      <button
-        type="button"
-        class="country-picker-trigger w-full text-left"
-        [class]="triggerClass()"
-        [disabled]="isDisabled()"
-        (click)="toggleDropdown()"
-      >
-        {{ displayLabel() }}
-      </button>
-
-      @if (dropdownOpen()) {
-        <div class="country-picker-panel absolute z-30 mt-2 w-full rounded-xl border p-2 shadow-xl">
-          <input
-            type="text"
-            [value]="searchTerm()"
-            (input)="onSearchInput($event)"
-            [placeholder]="searchPlaceholder()"
-            class="country-picker-search w-full rounded-xl border px-3 py-2 text-sm outline-none"
-          />
-          <div class="country-picker-list mt-2 max-h-52 overflow-auto rounded-xl border">
-            @if (countriesService.loading()) {
-              <p class="country-picker-empty px-3 py-2 text-xs">Loading countries...</p>
-            } @else if (countriesService.error()) {
-              <p class="country-picker-empty px-3 py-2 text-xs">{{ countriesService.error() }}</p>
-            } @else if (filteredCountries().length === 0) {
-              <p class="country-picker-empty px-3 py-2 text-xs">No countries found.</p>
-            } @else {
-              @for (country of filteredCountries(); track trackCountry(country)) {
-                <button
-                  type="button"
-                  class="country-picker-option block w-full border-0 px-3 py-2 text-left text-sm"
-                  (click)="selectCountry(country)"
-                >
-                  {{ optionLabel(country) }}
-                </button>
-              }
-            }
-          </div>
+    @if (layout() === 'pa-icon-control') {
+      <div class="country-picker-shell relative">
+        <div class="pa-control">
+          <ng-content select="[pickerIcon]" />
+          <button
+            type="button"
+            class="country-picker-trigger w-full text-left"
+            [class]="triggerClass()"
+            [disabled]="isDisabled()"
+            (click)="toggleDropdown()"
+          >
+            {{ displayLabel() }}
+          </button>
         </div>
-      }
-    </div>
+        @if (dropdownOpen()) {
+          <div class="country-picker-panel absolute z-30 mt-2 w-full rounded-xl border p-2 shadow-xl">
+            <input
+              type="text"
+              [value]="searchTerm()"
+              (input)="onSearchInput($event)"
+              [placeholder]="searchPlaceholder()"
+              class="country-picker-search w-full rounded-xl border px-3 py-2 text-sm outline-none"
+            />
+            <div class="country-picker-list mt-2 max-h-52 overflow-auto rounded-xl border">
+              @if (countriesService.loading()) {
+                <p class="country-picker-empty px-3 py-2 text-xs">Loading countries...</p>
+              } @else if (countriesService.error()) {
+                <p class="country-picker-empty px-3 py-2 text-xs">{{ countriesService.error() }}</p>
+              } @else if (filteredCountries().length === 0) {
+                <p class="country-picker-empty px-3 py-2 text-xs">No countries found.</p>
+              } @else {
+                @for (country of filteredCountries(); track trackCountry(country)) {
+                  <button
+                    type="button"
+                    class="country-picker-option block w-full border-0 px-3 py-2 text-left text-sm"
+                    (click)="selectCountry(country)"
+                  >
+                    {{ optionLabel(country) }}
+                  </button>
+                }
+              }
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="country-picker-shell relative">
+        <button
+          type="button"
+          class="country-picker-trigger w-full text-left"
+          [class]="triggerClass()"
+          [disabled]="isDisabled()"
+          (click)="toggleDropdown()"
+        >
+          {{ displayLabel() }}
+        </button>
+
+        @if (dropdownOpen()) {
+          <div class="country-picker-panel absolute z-30 mt-2 w-full rounded-xl border p-2 shadow-xl">
+            <input
+              type="text"
+              [value]="searchTerm()"
+              (input)="onSearchInput($event)"
+              [placeholder]="searchPlaceholder()"
+              class="country-picker-search w-full rounded-xl border px-3 py-2 text-sm outline-none"
+            />
+            <div class="country-picker-list mt-2 max-h-52 overflow-auto rounded-xl border">
+              @if (countriesService.loading()) {
+                <p class="country-picker-empty px-3 py-2 text-xs">Loading countries...</p>
+              } @else if (countriesService.error()) {
+                <p class="country-picker-empty px-3 py-2 text-xs">{{ countriesService.error() }}</p>
+              } @else if (filteredCountries().length === 0) {
+                <p class="country-picker-empty px-3 py-2 text-xs">No countries found.</p>
+              } @else {
+                @for (country of filteredCountries(); track trackCountry(country)) {
+                  <button
+                    type="button"
+                    class="country-picker-option block w-full border-0 px-3 py-2 text-left text-sm"
+                    (click)="selectCountry(country)"
+                  >
+                    {{ optionLabel(country) }}
+                  </button>
+                }
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
   `,
   providers: [
     {
@@ -74,6 +121,7 @@ export type CountryPickerMode = 'dial' | 'iso' | 'phone';
 })
 export class CountryDialCodePickerComponent implements ControlValueAccessor {
   readonly variant = input<'pf-editor' | 'pa'>('pf-editor');
+  readonly layout = input<'standalone' | 'pa-icon-control'>('standalone');
   readonly mode = input<CountryPickerMode>('dial');
   readonly countriesService = inject(CountriesService);
 
@@ -113,7 +161,7 @@ export class CountryDialCodePickerComponent implements ControlValueAccessor {
 
   triggerClass(): string {
     return this.variant() === 'pa'
-      ? 'pa-input pa-input--picker country-picker-btn'
+      ? 'pa-input pa-input--picker country-picker-btn w-full text-left'
       : 'pf-editor-input pf-editor-input--picker country-picker-btn';
   }
 

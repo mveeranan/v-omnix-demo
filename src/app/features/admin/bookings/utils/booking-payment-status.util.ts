@@ -8,7 +8,7 @@ export function paymentStatusClass(status: PaymentStatus): string {
     partial:
       'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-500/35 dark:bg-sky-500/15 dark:text-sky-300',
     refunded:
-      'border-zinc-200 bg-zinc-100 text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
+      'border-zinc-200 bg-zinc-100 text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-[var(--text-muted)]'
   };
   return map[status];
 }

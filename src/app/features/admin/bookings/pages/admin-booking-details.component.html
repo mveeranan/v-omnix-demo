@@ -27,7 +27,7 @@
       <div class="flex flex-col gap-4 lg:col-span-2">
         <section class="admin-glass-card admin-bookings-detail__card rounded-xl p-5">
           <div class="mb-4 flex items-center gap-2">
-            <lucide-icon [img]="userIcon" class="h-4 w-4 text-indigo-500" />
+            <lucide-icon [img]="userIcon" class="h-4 w-4 text-[var(--accent)]" />
             <h2 class="admin-bookings-detail__heading">Customer Information</h2>
           </div>
           <dl class="admin-bookings-detail__dl">
@@ -39,7 +39,7 @@
 
         <section class="admin-glass-card admin-bookings-detail__card rounded-xl p-5">
           <div class="mb-4 flex items-center gap-2">
-            <lucide-icon [img]="serviceIcon" class="h-4 w-4 text-indigo-500" />
+            <lucide-icon [img]="serviceIcon" class="h-4 w-4 text-[var(--accent)]" />
             <h2 class="admin-bookings-detail__heading">Service Information</h2>
           </div>
           <dl class="admin-bookings-detail__dl">
@@ -52,7 +52,7 @@
 
         <section class="admin-glass-card admin-bookings-detail__card rounded-xl p-5">
           <div class="mb-4 flex items-center gap-2">
-            <lucide-icon [img]="calendarIcon" class="h-4 w-4 text-indigo-500" />
+            <lucide-icon [img]="calendarIcon" class="h-4 w-4 text-[var(--accent)]" />
             <h2 class="admin-bookings-detail__heading">Schedule Information</h2>
           </div>
           <dl class="admin-bookings-detail__dl">
@@ -64,7 +64,7 @@
 
         <section class="admin-glass-card admin-bookings-detail__card rounded-xl p-5">
           <div class="mb-4 flex items-center gap-2">
-            <lucide-icon [img]="paymentIcon" class="h-4 w-4 text-indigo-500" />
+            <lucide-icon [img]="paymentIcon" class="h-4 w-4 text-[var(--accent)]" />
             <h2 class="admin-bookings-detail__heading">Payment Information</h2>
           </div>
           <dl class="admin-bookings-detail__dl">
@@ -80,23 +80,23 @@
 
         <section class="admin-glass-card admin-bookings-detail__card rounded-xl p-5">
           <div class="mb-4 flex items-center gap-2">
-            <lucide-icon [img]="staffIcon" class="h-4 w-4 text-indigo-500" />
+            <lucide-icon [img]="staffIcon" class="h-4 w-4 text-[var(--accent)]" />
             <h2 class="admin-bookings-detail__heading">Assigned Staff</h2>
           </div>
           @if (b.staffName) {
-            <p class="text-sm font-medium text-zinc-900 dark:text-zinc-50">{{ b.staffName }}</p>
+            <p class="text-sm font-medium text-[var(--text-primary)]">{{ b.staffName }}</p>
           } @else {
-            <p class="text-sm text-zinc-500 dark:text-zinc-400">No staff assigned yet.</p>
+            <p class="text-sm text-[var(--text-muted)]">No staff assigned yet.</p>
           }
         </section>
 
         @if (b.notes) {
           <section class="admin-glass-card admin-bookings-detail__card rounded-xl p-5">
             <div class="mb-4 flex items-center gap-2">
-              <lucide-icon [img]="notesIcon" class="h-4 w-4 text-indigo-500" />
+              <lucide-icon [img]="notesIcon" class="h-4 w-4 text-[var(--accent)]" />
               <h2 class="admin-bookings-detail__heading">Booking Notes</h2>
             </div>
-            <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ b.notes }}</p>
+            <p class="text-sm text-[var(--text-secondary)]">{{ b.notes }}</p>
           </section>
         }
       </div>

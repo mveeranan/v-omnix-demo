@@ -2,42 +2,75 @@
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 1rem;
+  padding: var(--space-4);
+  background: var(--surface-1);
 }
 
 .login-card {
   width: min(100%, 420px);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  background-color: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1.5rem;
+  gap: var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-6);
 }
 
-input {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+.login-card h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.login-card label {
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+.login-card input {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
   padding: 0.65rem 0.75rem;
+  font-size: var(--font-size-body);
+  color: var(--text-primary);
+  background: var(--surface-0);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
 
-button {
-  margin-top: 0.75rem;
+.login-card input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.login-card button[type='submit'] {
+  margin-top: var(--space-3);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 0.7rem 1rem;
-  background-color: #2563eb;
-  color: #fff;
+  font-weight: var(--font-weight-semibold);
+  background: var(--accent);
+  color: var(--accent-foreground);
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-fast);
 }
 
-button[disabled] {
+.login-card button[type='submit']:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.login-card button[disabled] {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
 .error {
-  color: #dc2626;
+  color: var(--danger);
   margin: 0;
+  font-size: var(--font-size-body-sm);
 }

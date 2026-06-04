@@ -13,6 +13,7 @@ import {
 } from '../models/branch.model';
 import { ServiceDto } from '../models/service.model';
 import { AdminPageShellComponent } from '../shared/admin-page-shell.component';
+import { AdminModalShellComponent } from '../shared/admin-modal-shell.component';
 import { CountryDialCodePickerComponent } from '../../../shared/ui/country-dial-code-picker.component';
 import { PhoneNumberFieldComponent } from '../../../shared/ui/phone-number-field.component';
 import { CountriesService } from '../../../shared/data-access/countries.service';
@@ -34,6 +35,7 @@ import { getPhoneNumberFieldError } from '../../../shared/utils/phone-number.err
     FormsModule,
     LucideAngularModule,
     AdminPageShellComponent,
+    AdminModalShellComponent,
     CountryDialCodePickerComponent,
     PhoneNumberFieldComponent
   ],

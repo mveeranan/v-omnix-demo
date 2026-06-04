@@ -14,7 +14,7 @@ import { BookingFilters, BookingStatus } from '../models/booking.model';
         <div class="admin-bookings-filters__search relative">
           <lucide-icon
             [img]="searchIcon"
-            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
             type="search"
             class="pf-editor-input w-full pl-10"

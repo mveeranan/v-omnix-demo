@@ -1,7 +1,7 @@
 <article
   class="admin-glass-card admin-widget-hover flex h-full min-h-0 w-full flex-col p-4 sm:p-[1.125rem] {{ className }}"
   [attr.aria-busy]="loading">
-  <header class="mb-3 flex shrink-0 items-center justify-between gap-2 border-b border-zinc-100/90 pb-3 dark:border-zinc-800">
+  <header class="mb-3 flex shrink-0 items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3">
     <div class="min-w-0">
       <h3 class="admin-widget__title truncate">{{ title }}</h3>
       @if (subtitle) {
@@ -21,10 +21,10 @@
   } @else if (empty) {
     <div class="flex flex-1 flex-col items-center justify-center gap-2 py-6 text-center">
       <div
-        class="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500">
+        class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--text-muted)]">
         <lucide-icon [img]="emptyIcon" class="h-4 w-4" />
       </div>
-      <p class="max-w-[200px] text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{{ emptyMessage }}</p>
+      <p class="max-w-[200px] text-xs leading-relaxed text-[var(--text-muted)]">{{ emptyMessage }}</p>
     </div>
   } @else {
     <div class="flex min-h-0 flex-1 flex-col">

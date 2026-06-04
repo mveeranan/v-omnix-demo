@@ -7,11 +7,18 @@ import { pageFadeIn } from '../animations/admin.animations';
 import { AdminServicesStateService } from '../data-access/admin-services-state.service';
 import { ServiceDto } from '../models/service.model';
 import { AdminPageShellComponent } from '../shared/admin-page-shell.component';
+import { AdminModalShellComponent } from '../shared/admin-modal-shell.component';
 
 @Component({
   selector: 'app-admin-services',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, AdminPageShellComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideAngularModule,
+    AdminPageShellComponent,
+    AdminModalShellComponent
+  ],
   templateUrl: './admin-services.component.html',
   styleUrl: './admin-services.component.scss',
   animations: [pageFadeIn]

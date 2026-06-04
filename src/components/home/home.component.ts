@@ -595,6 +595,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   tryAdvanceRegisterStep(): void {
+    if (this.authSubmitting) {
+      return;
+    }
     if (!this.canProceedRegisterStep(this.registerStep)) {
       this.markRegisterStepTouched(this.registerStep);
       this.notificationService.warning('Please complete the required fields on this step.');
@@ -606,6 +609,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   goToRegisterPrevStep(): void {
+    if (this.authSubmitting) {
+      return;
+    }
     if (this.registerStep > 1) {
       this.registerStep -= 1;
     }

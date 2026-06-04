@@ -31,7 +31,7 @@ export const MOCK_STAFF: BookingStaffMember[] = [
     role: 'Senior Stylist',
     branch: 'Downtown Studio',
     initials: 'AM',
-    avatarColor: 'bg-indigo-500'
+    avatarColor: 'bg-[var(--accent)]'
   },
   {
     id: 'st-2',

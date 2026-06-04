@@ -2,6 +2,8 @@ import { DatePipe } from '@angular/common';
 import { Component, inject, input, output } from '@angular/core';
 import { LucideAngularModule, Eye, MoreHorizontal } from 'lucide-angular';
 import { BookingListItem } from '../models/booking.model';
+import { AppTableComponent } from '../../../../shared/ui/app-table.component';
+import { ICON_SIZE_INLINE } from '../../../../shared/ui/icon.constants';
 import { BookingStatusBadgeComponent } from './booking-status-badge.component';
 import { BookingPaymentBadgeComponent } from './booking-payment-badge.component';
 
@@ -11,12 +13,12 @@ import { BookingPaymentBadgeComponent } from './booking-payment-badge.component'
   imports: [
     DatePipe,
     LucideAngularModule,
+    AppTableComponent,
     BookingStatusBadgeComponent,
     BookingPaymentBadgeComponent
   ],
   template: `
-    <div class="admin-glass-card admin-bookings-table-wrap overflow-hidden rounded-xl">
-      <div class="overflow-x-auto">
+    <app-table>
         <table class="admin-bookings-table w-full min-w-[960px] text-left text-sm">
           <thead>
             <tr>
@@ -41,15 +43,15 @@ import { BookingPaymentBadgeComponent } from './booking-payment-badge.component'
                 tabindex="0"
                 role="button"
                 [attr.aria-label]="'View booking ' + row.displayId">
-                <td class="font-medium text-indigo-600 dark:text-indigo-400">{{ row.displayId }}</td>
+                <td class="font-medium text-[var(--accent)]">{{ row.displayId }}</td>
                 <td>{{ row.customerName }}</td>
-                <td class="text-zinc-500 dark:text-zinc-400">{{ row.phone }}</td>
+                <td class="text-[var(--text-muted)]">{{ row.phone }}</td>
                 <td>{{ row.serviceName }}</td>
                 <td>{{ row.branchName }}</td>
                 <td>{{ row.staffName ?? '—' }}</td>
                 <td>
                   <span class="block">{{ row.scheduledAt | date: 'MMM d, y' }}</span>
-                  <span class="text-xs text-zinc-500 dark:text-zinc-400">{{
+                  <span class="text-xs text-[var(--text-muted)]">{{
                     row.scheduledAt | date: 'h:mm a'
                   }}</span>
                 </td>
@@ -65,21 +67,21 @@ import { BookingPaymentBadgeComponent } from './booking-payment-badge.component'
                     class="admin-bookings-icon-btn inline-flex"
                     aria-label="View booking"
                     (click)="onView($event, row.id)">
-                    <lucide-icon [img]="viewIcon" class="h-4 w-4" />
+                    <lucide-icon [img]="viewIcon" [class]="iconSize" />
                   </button>
                 </td>
               </tr>
             }
           </tbody>
         </table>
-      </div>
-    </div>
+    </app-table>
   `
 })
 export class BookingDataTableComponent {
   readonly bookings = input.required<BookingListItem[]>();
   readonly rowClick = output<string>();
 
+  readonly iconSize = ICON_SIZE_INLINE;
   readonly viewIcon = Eye;
   readonly moreIcon = MoreHorizontal;
 

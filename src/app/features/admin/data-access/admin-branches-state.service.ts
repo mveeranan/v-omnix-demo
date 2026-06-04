@@ -219,6 +219,10 @@ export class AdminBranchesStateService {
   }
 
   saveServiceAssignments(): void {
+    if (this.assigningServices()) {
+      return;
+    }
+
     const tenantId = this.resolveTenantId();
     const branchId = this.managingServicesBranchId();
 
@@ -256,6 +260,10 @@ export class AdminBranchesStateService {
   }
 
   saveForm(): void {
+    if (this.saving()) {
+      return;
+    }
+
     const tenantId = this.resolveTenantId();
     if (!tenantId) {
       this.notifications.warning('No tenant selected.');

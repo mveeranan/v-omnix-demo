@@ -10,11 +10,11 @@ export type BookingEmptyVariant = 'no-bookings' | 'no-results' | 'no-events';
   template: `
     <section class="admin-glass-card admin-bookings-empty flex flex-col items-center rounded-xl px-6 py-12 text-center">
       <div
-        class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-500 dark:bg-indigo-500/15 dark:text-indigo-300">
+        class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-[var(--accent)] dark:bg-[var(--accent)]/15 dark:text-indigo-300">
         <lucide-icon [img]="icon()" class="h-6 w-6" />
       </div>
-      <h2 class="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">{{ title() }}</h2>
-      <p class="mt-2 max-w-md text-sm text-zinc-500 dark:text-zinc-400">{{ description() }}</p>
+      <h2 class="mt-4 text-lg font-semibold text-[var(--text-primary)]">{{ title() }}</h2>
+      <p class="mt-2 max-w-md text-sm text-[var(--text-muted)]">{{ description() }}</p>
       @if (actionLabel()) {
         <button
           type="button"

@@ -13,8 +13,7 @@ import { LucideAngularModule, UserCheck } from 'lucide-angular';
       [open]="state.assignStaffModalOpen()"
       title="Assign Staff"
       subtitle="Select a team member for this booking"
-      (close)="state.closeAssignStaffModal()"
-      (backdropClose)="state.closeAssignStaffModal()">
+      (close)="state.closeAssignStaffModal()">
       <div class="grid gap-2 sm:grid-cols-2">
         @for (member of state.staff; track member.id) {
           <button
@@ -28,9 +27,9 @@ import { LucideAngularModule, UserCheck } from 'lucide-angular';
                 {{ member.initials }}
               </span>
               <div class="min-w-0">
-                <p class="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">{{ member.name }}</p>
-                <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ member.role }}</p>
-                <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ member.branch }}</p>
+                <p class="truncate text-sm font-medium text-[var(--text-primary)]">{{ member.name }}</p>
+                <p class="text-xs text-[var(--text-muted)]">{{ member.role }}</p>
+                <p class="text-xs text-[var(--text-muted)]">{{ member.branch }}</p>
               </div>
             </div>
           </button>
@@ -47,24 +46,24 @@ import { LucideAngularModule, UserCheck } from 'lucide-angular';
               {{ member.initials }}
             </span>
             <div>
-              <p class="font-medium text-zinc-900 dark:text-zinc-50">{{ member.name }}</p>
-              <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ member.role }} · {{ member.branch }}</p>
+              <p class="font-medium text-[var(--text-primary)]">{{ member.name }}</p>
+              <p class="text-sm text-[var(--text-muted)]">{{ member.role }} · {{ member.branch }}</p>
             </div>
           </div>
         </article>
       }
 
       <ng-container modalFooter>
-        <button type="button" class="admin-bookings-secondary-btn" (click)="state.closeAssignStaffModal()">
+        <button type="button" class="admin-bookings-secondary-btn" (click)="state.closeAssignStaffModal()" [disabled]="assigning()">
           Cancel
         </button>
         <button
           type="button"
           class="admin-bookings-primary-btn"
-          [disabled]="!selectedId()"
+          [disabled]="!selectedId() || assigning()"
           (click)="confirm()">
           <lucide-icon [img]="checkIcon" class="h-4 w-4" />
-          Confirm Assignment
+          {{ assigning() ? 'Assigning…' : 'Confirm Assignment' }}
         </button>
       </ng-container>
     </app-admin-modal-shell>
@@ -73,6 +72,7 @@ import { LucideAngularModule, UserCheck } from 'lucide-angular';
 export class AssignStaffModalComponent {
   readonly state = inject(BookingsUiStateService);
   readonly selectedId = signal<string | null>(null);
+  readonly assigning = signal(false);
   readonly checkIcon = UserCheck;
 
   selectedMember = () => {
@@ -81,11 +81,22 @@ export class AssignStaffModalComponent {
   };
 
   confirm(): void {
+    if (this.assigning()) {
+      return;
+    }
+
     const bookingId = this.state.assignStaffBookingId();
     const staffId = this.selectedId();
-    if (bookingId && staffId) {
+    if (!bookingId || !staffId) {
+      return;
+    }
+
+    this.assigning.set(true);
+    try {
       this.state.assignStaff(bookingId, staffId);
       this.selectedId.set(null);
+    } finally {
+      this.assigning.set(false);
     }
   }
 }

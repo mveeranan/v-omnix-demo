@@ -113,6 +113,10 @@ export class AdminProfileStateService {
   }
 
   saveProfile(payload: BusinessProfileUpdateRequest): Observable<BusinessProfileDto> {
+    if (this.profileSaving()) {
+      return EMPTY;
+    }
+
     const tenantId = this.resolveTenantId();
     if (!tenantId) {
       this.notifications.error('No tenant selected. Please log in again.');
@@ -142,6 +146,10 @@ export class AdminProfileStateService {
   }
 
   saveBranch(payload: Omit<BranchUpsertRequest, 'id' | 'tenantId'>): Observable<BranchDto> {
+    if (this.branchSaving()) {
+      return EMPTY;
+    }
+
     const tenantId = this.resolveTenantId();
     if (!tenantId) {
       this.notifications.error('No tenant selected. Please log in again.');

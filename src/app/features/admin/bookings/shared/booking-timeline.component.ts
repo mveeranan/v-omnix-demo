@@ -27,13 +27,13 @@ import { TimelineEvent } from '../models/booking.model';
               }
             </div>
             <div class="admin-bookings-timeline__content admin-glass-card rounded-lg p-3">
-              <p class="text-sm font-medium text-zinc-900 dark:text-zinc-50">{{ event.label }}</p>
+              <p class="text-sm font-medium text-[var(--text-primary)]">{{ event.label }}</p>
               @if (event.timestamp) {
-                <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                <p class="mt-0.5 text-xs text-[var(--text-muted)]">
                   {{ event.timestamp | date: 'MMM d, y · h:mm a' }}
                 </p>
               } @else if (!event.completed) {
-                <p class="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">Pending</p>
+                <p class="mt-0.5 text-xs text-[var(--text-muted)]">Pending</p>
               }
             </div>
           </li>

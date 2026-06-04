@@ -1,0 +1,125 @@
+.auth-backdrop {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: none;
+}
+
+.app-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-10) var(--space-6);
+  text-align: center;
+}
+
+.app-empty-state__title {
+  margin: 0;
+  font-size: var(--font-size-title-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.app-empty-state__description {
+  margin: 0;
+  max-width: 24rem;
+  font-size: var(--font-size-body-sm);
+  color: var(--text-secondary);
+}
+
+/* Covers main content only (below header, right of sidebar) — not full viewport */
+.admin-modal-root {
+  position: fixed;
+  top: var(--header-height);
+  right: 0;
+  bottom: 0;
+  left: var(--admin-modal-inset-left, 0);
+  z-index: 60;
+  box-sizing: border-box;
+  padding: var(--space-6) var(--space-8);
+}
+
+.admin-modal-backdrop {
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: none;
+}
+
+.admin-modal-panel {
+  width: min(100%, var(--modal-width));
+  max-width: min(100%, var(--modal-width));
+  max-height: min(var(--modal-max-height), 100%);
+  height: auto;
+  margin-inline: auto;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.admin-modal-panel__header,
+.admin-modal-panel__footer {
+  border-color: var(--border-subtle);
+}
+
+.admin-modal-panel__header {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.admin-modal-panel__footer {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.admin-modal-panel__body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.admin-modal-panel__body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.admin-modal-fieldset,
+.pa-form-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.admin-modal-fieldset:disabled,
+.pa-form-fieldset:disabled {
+  opacity: 1;
+}
+
+.admin-modal-fieldset:disabled .pf-editor-input,
+.admin-modal-fieldset:disabled .pf-editor-checkbox,
+.pa-form-fieldset:disabled .pa-input,
+.pa-form-fieldset:disabled .pa-terms-checkbox {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.admin-modal-panel__footer button:disabled,
+.pa-submit:disabled,
+.pa-secondary-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.admin-modal-panel--standard {
+  --modal-width: 32rem;
+}
+
+.admin-modal-panel--wide {
+  --modal-width: 36rem;
+}
+
+.admin-modal-panel--xl {
+  --modal-width: 42rem;
+}
+
+@media (max-width: 767px) {
+  .admin-modal-root {
+    padding: var(--space-4);
+  }
+}

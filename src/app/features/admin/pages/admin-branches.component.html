@@ -4,7 +4,7 @@
   description="Manage branch locations, hours, and primary branch settings for your workspace.">
   <div admin-page-actions class="admin-branches__actions">
     @if (!state.isFormOpen() && !state.manageServicesOpen()) {
-      <button type="button" class="admin-branches__primary-btn" (click)="state.startCreate()">
+      <button type="button" class="admin-branches__primary-btn" (click)="state.startCreate()" [disabled]="state.saving() || state.assigningServices()">
         <lucide-icon [img]="plusIcon" class="h-4 w-4" />
         Add branch
       </button>
@@ -27,7 +27,7 @@
 
       <div class="admin-branches__summary admin-glass-card rounded-xl">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <p class="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
             Total branches
           </p>
           <p class="admin-branches__stat-value">
@@ -35,7 +35,7 @@
           </p>
         </div>
         <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <p class="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
             Active
           </p>
           <p class="mt-1 text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
@@ -43,41 +43,104 @@
           </p>
         </div>
         <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <p class="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
             Primary
           </p>
-          <p class="mt-1 text-2xl font-semibold text-indigo-600 dark:text-indigo-400">
+          <p class="mt-1 text-2xl font-semibold text-[var(--accent)]">
             {{ state.primaryCount() }}
           </p>
         </div>
       </div>
 
-      @if (state.isFormOpen()) {
-        <section class="admin-glass-card admin-branches__form rounded-xl">
-          <div class="admin-branches__form-header">
-            <div>
-              <h2 class="admin-branches__form-title">
-                {{ state.formMode() === 'edit' ? 'Edit branch' : 'New branch' }}
-              </h2>
-              <p class="admin-branches__form-subtitle">
-                {{
-                  state.formMode() === 'edit'
-                    ? 'Update location details and save changes.'
-                    : 'Add a new branch location to your workspace.'
-                }}
-              </p>
-            </div>
-            <button
-              type="button"
-              class="admin-branches__icon-btn"
-              (click)="state.cancelForm()"
-              [disabled]="state.saving()"
-              aria-label="Close form">
-              <lucide-icon [img]="closeIcon" class="h-4 w-4" />
-            </button>
-          </div>
+      @if (state.branches().length === 0 && !state.isFormOpen() && !state.manageServicesOpen()) {
+        <section class="admin-glass-card admin-branches__empty rounded-xl">
+          <lucide-icon [img]="mapPinIcon" class="h-10 w-10 text-[var(--accent)]" />
+          <h2 class="admin-branches__empty-title">No branches yet</h2>
+          <p class="mt-1 max-w-sm text-center text-sm text-[var(--text-muted)]">
+            Add your first branch to manage multiple locations across your workspace.
+          </p>
+          <button type="button" class="admin-branches__primary-btn mt-4" (click)="state.startCreate()" [disabled]="state.saving() || state.assigningServices()">
+            <lucide-icon [img]="plusIcon" class="h-4 w-4" />
+            Add branch
+          </button>
+        </section>
+      } @else if (state.listBranches().length > 0) {
+        <div class="admin-branches__list">
+          @for (branch of state.listBranches(); track trackByBranchId($index, branch)) {
+            <article class="admin-glass-card admin-branches__card rounded-xl">
+              <div class="admin-branches__card-main">
+                <div class="admin-branches__card-title-row">
+                  <h3 class="admin-branches__card-title">{{ branch.name }}</h3>
+                  @if (branch.isPrimaryBranch) {
+                    <span class="admin-branches__badge admin-branches__badge--primary">
+                      <lucide-icon [img]="starIcon" class="h-3 w-3" />
+                      Primary
+                    </span>
+                  }
+                  <span
+                    class="admin-branches__status"
+                    [class.admin-branches__status--inactive]="!branch.isActive">
+                    {{ branch.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
 
-          <form class="pf-editor-fields" (ngSubmit)="trySaveBranchForm()">
+                <p class="admin-branches__location">{{ formatLocation(branch) }}</p>
+
+                @if (branchServiceCount(branch) > 0) {
+                  <p class="admin-branches__service-count">
+                    {{ branchServiceCount(branch) }}
+                    {{ branchServiceCount(branch) === 1 ? 'service' : 'services' }}
+                  </p>
+                }
+
+                <div class="admin-branches__meta">
+                  <span class="admin-branches__meta-item">
+                    <lucide-icon [img]="mapPinIcon" class="h-3.5 w-3.5" />
+                    {{ formatHours(branch) }}
+                  </span>
+                  @if (branch.phoneNumber) {
+                    <span class="admin-branches__meta-item">{{ branch.phoneNumber }}</span>
+                  }
+                </div>
+              </div>
+
+              <div class="admin-branches__card-actions">
+                <button
+                  type="button"
+                  class="admin-branches__card-action-btn"
+                  (click)="state.openManageServices(branch)"
+                  [disabled]="state.saving() || state.isFormOpen() || state.assigningServices()"
+                  [attr.aria-label]="'Manage services for ' + branch.name">
+                  <lucide-icon [img]="listChecksIcon" class="h-4 w-4 shrink-0" />
+                  <span>Manage services</span>
+                </button>
+                <button
+                  type="button"
+                  class="admin-branches__card-action-btn"
+                  (click)="state.startEdit(branch)"
+                  [disabled]="state.saving() || state.isFormOpen() || state.manageServicesOpen()"
+                  [attr.aria-label]="'Edit ' + branch.name">
+                  <lucide-icon [img]="editIcon" class="h-4 w-4 shrink-0" />
+                  <span>Edit</span>
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (state.isFormOpen()) {
+    <app-admin-modal-shell
+      [open]="true"
+      [title]="state.formMode() === 'edit' ? 'Edit branch' : 'New branch'"
+      [subtitle]="state.formMode() === 'edit' ? 'Update location details and save changes.' : 'Add a new branch location to your workspace.'"
+      panelClass="admin-modal-panel--xl"
+      [disableClose]="state.saving()"
+      (close)="state.cancelForm()">
+<form id="admin-branch-form" class="pf-editor-fields" (ngSubmit)="trySaveBranchForm()">
+            <fieldset [disabled]="state.saving()" class="admin-modal-fieldset">
             <div class="pf-editor-field">
               <span class="pf-editor-label">Branch name <span class="text-rose-500">*</span></span>
               <input
@@ -242,40 +305,26 @@
                 name="branchPrimary" />
               <span>Primary branch (default location)</span>
             </label>
+            </fieldset>
+      </form>
+      <ng-container modalFooter>
+        <button type="button" class="admin-branches__secondary-btn" (click)="state.cancelForm()" [disabled]="state.saving()">Cancel</button>
+        <button type="submit" form="admin-branch-form" class="admin-branches__primary-btn" [disabled]="state.saving()">
+          {{ state.saving() ? 'Saving…' : state.formMode() === 'edit' ? 'Save changes' : 'Create branch' }}
+        </button>
+      </ng-container>
+    </app-admin-modal-shell>
+  }
 
-            <div class="admin-branches__form-actions">
-              <button
-                type="button"
-                class="admin-branches__secondary-btn"
-                (click)="state.cancelForm()"
-                [disabled]="state.saving()">
-                Cancel
-              </button>
-              <button type="submit" class="admin-branches__primary-btn" [disabled]="state.saving()">
-                {{ state.saving() ? 'Saving…' : state.formMode() === 'edit' ? 'Save changes' : 'Create branch' }}
-              </button>
-            </div>
-          </form>
-        </section>
-      }
-
-      @if (state.manageServicesOpen()) {
-        <section class="admin-glass-card admin-branches__services-card rounded-xl">
-          <div class="admin-branches__form-header">
-            @if (state.managingBranch(); as branch) {
-              <h2 class="admin-branches__form-title">{{ branch.name }}</h2>
-            }
-            <button
-              type="button"
-              class="admin-branches__icon-btn"
-              (click)="state.closeManageServices()"
-              [disabled]="state.assigningServices()"
-              aria-label="Close manage services">
-              <lucide-icon [img]="closeIcon" class="h-4 w-4" />
-            </button>
-          </div>
-
-          <div class="admin-branches__services-panel">
+  @if (state.manageServicesOpen()) {
+    <app-admin-modal-shell
+      [open]="true"
+      [title]="state.managingBranch()?.name ?? 'Manage services'"
+      subtitle="Choose which services are available at this branch."
+      panelClass="admin-modal-panel--wide"
+      [disableClose]="state.assigningServices()"
+      (close)="state.closeManageServices()">
+<div class="admin-branches__services-panel">
             <div class="admin-branches__services-toolbar">
               <button
                 type="button"
@@ -323,15 +372,15 @@
                         type="checkbox"
                         [checked]="state.isServiceSelected(service.id)"
                         (change)="state.toggleServiceSelection(service.id)"
-                        [disabled]="state.assigningServices()" />
+                        [disabled]="state.assigningServices() || state.servicesLoading()" />
                       <span class="admin-branches__service-item-body">
                         <span class="admin-branches__service-name">{{ service.name }}</span>
                         <span class="admin-branches__service-meta">
                           {{ formatDuration(service.durationMinutes) }}
-                          ·
+                          ┬╖
                           {{ formatPrice(service.price) }}
                           @if (!service.isActive) {
-                            · Inactive
+                            ┬╖ Inactive
                           }
                         </span>
                       </span>
@@ -340,103 +389,14 @@
                 }
               </ul>
             }
-
-            <div class="admin-branches__form-actions">
-              <button
-                type="button"
-                class="admin-branches__secondary-btn"
-                (click)="state.closeManageServices()"
-                [disabled]="state.assigningServices()">
-                Cancel
-              </button>
-              <button
-                type="button"
-                class="admin-branches__primary-btn"
-                (click)="state.saveServiceAssignments()"
-                [disabled]="state.assigningServices() || state.servicesLoading()">
-                {{ state.assigningServices() ? 'Saving…' : 'Save assignments' }}
-              </button>
-            </div>
           </div>
-        </section>
-      }
-
-      @if (state.branches().length === 0 && !state.isFormOpen() && !state.manageServicesOpen()) {
-        <section class="admin-glass-card admin-branches__empty rounded-xl">
-          <lucide-icon [img]="mapPinIcon" class="h-10 w-10 text-indigo-500/80" />
-          <h2 class="admin-branches__empty-title">No branches yet</h2>
-          <p class="mt-1 max-w-sm text-center text-sm text-zinc-500 dark:text-zinc-400">
-            Add your first branch to manage multiple locations across your workspace.
-          </p>
-          <button type="button" class="admin-branches__primary-btn mt-4" (click)="state.startCreate()">
-            <lucide-icon [img]="plusIcon" class="h-4 w-4" />
-            Add branch
-          </button>
-        </section>
-      } @else if (state.listBranches().length > 0) {
-        <div class="admin-branches__list">
-          @for (branch of state.listBranches(); track trackByBranchId($index, branch)) {
-            <article class="admin-glass-card admin-branches__card rounded-xl">
-              <div class="admin-branches__card-main">
-                <div class="admin-branches__card-title-row">
-                  <h3 class="admin-branches__card-title">{{ branch.name }}</h3>
-                  @if (branch.isPrimaryBranch) {
-                    <span class="admin-branches__badge admin-branches__badge--primary">
-                      <lucide-icon [img]="starIcon" class="h-3 w-3" />
-                      Primary
-                    </span>
-                  }
-                  <span
-                    class="admin-branches__status"
-                    [class.admin-branches__status--inactive]="!branch.isActive">
-                    {{ branch.isActive ? 'Active' : 'Inactive' }}
-                  </span>
-                </div>
-
-                <p class="admin-branches__location">{{ formatLocation(branch) }}</p>
-
-                @if (branchServiceCount(branch) > 0) {
-                  <p class="admin-branches__service-count">
-                    {{ branchServiceCount(branch) }}
-                    {{ branchServiceCount(branch) === 1 ? 'service' : 'services' }}
-                  </p>
-                }
-
-                <div class="admin-branches__meta">
-                  <span class="admin-branches__meta-item">
-                    <lucide-icon [img]="mapPinIcon" class="h-3.5 w-3.5" />
-                    {{ formatHours(branch) }}
-                  </span>
-                  @if (branch.phoneNumber) {
-                    <span class="admin-branches__meta-item">{{ branch.phoneNumber }}</span>
-                  }
-                </div>
-              </div>
-
-              <div class="admin-branches__card-actions">
-                <button
-                  type="button"
-                  class="admin-branches__card-action-btn"
-                  (click)="state.openManageServices(branch)"
-                  [disabled]="state.saving() || state.isFormOpen() || state.assigningServices()"
-                  [attr.aria-label]="'Manage services for ' + branch.name">
-                  <lucide-icon [img]="listChecksIcon" class="h-4 w-4 shrink-0" />
-                  <span>Manage services</span>
-                </button>
-                <button
-                  type="button"
-                  class="admin-branches__card-action-btn"
-                  (click)="state.startEdit(branch)"
-                  [disabled]="state.saving() || state.isFormOpen() || state.manageServicesOpen()"
-                  [attr.aria-label]="'Edit ' + branch.name">
-                  <lucide-icon [img]="editIcon" class="h-4 w-4 shrink-0" />
-                  <span>Edit</span>
-                </button>
-              </div>
-            </article>
-          }
-        </div>
-      }
-    </div>
+      <ng-container modalFooter>
+        <button type="button" class="admin-branches__secondary-btn" (click)="state.closeManageServices()" [disabled]="state.assigningServices()">Cancel</button>
+        <button type="button" class="admin-branches__primary-btn" (click)="state.saveServiceAssignments()" [disabled]="state.assigningServices() || state.servicesLoading()">
+          {{ state.assigningServices() ? 'Saving…' : 'Save assignments' }}
+        </button>
+      </ng-container>
+    </app-admin-modal-shell>
   }
+
 </app-admin-page-shell>

@@ -28,12 +28,7 @@
         </span>
         V-omnix
       </a>
-      <nav class="header-nav order-3 hidden w-full items-center justify-center gap-6 text-sm font-medium text-zinc-600 dark:text-zinc-200 md:order-none md:flex md:w-auto md:justify-start md:gap-8 md:text-base">
-        <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#features">Features</a>
-        <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#pricing">Pricing</a>
-        <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#faq">FAQ</a>
-      </nav>
-      <div class="ml-auto flex items-center gap-2 sm:gap-3">
+      <div class="ml-auto flex flex-wrap items-center justify-end gap-2 sm:gap-3">
         <button
           (click)="toggleTheme()"
           [attr.aria-label]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
@@ -55,16 +50,16 @@
         <a class="btn-radius header-cta hidden bg-zinc-900 px-3 py-2 text-sm font-semibold text-white no-underline transition-all duration-300 hover:scale-[1.02] hover:bg-blue-600 dark:bg-white dark:text-zinc-900 dark:hover:bg-blue-500 dark:hover:text-white sm:px-5 sm:py-2.5 sm:text-base md:inline-flex" href="#pricing">
           Start Free Trial
         </a>
+        <nav class="header-nav hidden items-center gap-6 text-sm font-medium text-zinc-600 dark:text-zinc-200 md:flex md:gap-8 md:text-base">
+          <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#features">Features</a>
+          <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#pricing">Pricing</a>
+          <a class="nav-link transition-colors hover:text-blue-600 dark:hover:text-cyan-300 no-underline" href="#faq">FAQ</a>
+        </nav>
       </div>
 
       @if (mobileMenuOpen) {
-        <div class="mobile-menu-panel order-4 w-full rounded-2xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur-xl dark:border-zinc-700 dark:bg-zinc-900/95 md:hidden">
-          <div class="flex flex-col gap-2 text-sm font-medium">
-            <a (click)="closeMobileMenu()" class="mobile-menu-link no-underline rounded-lg px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800" href="#features">Features</a>
-            <a (click)="closeMobileMenu()" class="mobile-menu-link no-underline rounded-lg px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800" href="#pricing">Pricing</a>
-            <a (click)="closeMobileMenu()" class="mobile-menu-link no-underline rounded-lg px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800" href="#faq">FAQ</a>
-          </div>
-          <div class="mt-3 grid grid-cols-2 gap-2">
+        <div class="mobile-menu-panel order-4 flex w-full flex-col gap-3 rounded-2xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur-xl dark:border-zinc-700 dark:bg-zinc-900/95 md:hidden">
+          <div class="grid grid-cols-2 gap-2">
             <button (click)="closeMobileMenu(); openLoginPanel()" class="btn-radius mobile-menu-login header-login inline-flex items-center justify-center border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 no-underline transition-all duration-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" type="button">
               Login
             </button>
@@ -72,18 +67,23 @@
               Start Free Trial
             </a>
           </div>
+          <div class="flex flex-col gap-2 border-t border-zinc-200 pt-3 text-sm font-medium dark:border-zinc-700">
+            <a (click)="closeMobileMenu()" class="mobile-menu-link no-underline rounded-lg px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800" href="#features">Features</a>
+            <a (click)="closeMobileMenu()" class="mobile-menu-link no-underline rounded-lg px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800" href="#pricing">Pricing</a>
+            <a (click)="closeMobileMenu()" class="mobile-menu-link no-underline rounded-lg px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800" href="#faq">FAQ</a>
+          </div>
         </div>
       }
     </div>
   </header>
 
-  <section #revealEl id="hero" class="fade-up relative mx-auto grid max-w-7xl gap-12 px-4 pb-14 pt-14 sm:px-6 lg:grid-cols-2 lg:px-8 lg:pb-16 lg:pt-20">
+  <section #revealEl id="hero" class="fade-up relative mx-auto grid max-w-7xl gap-12 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-2 lg:px-8 lg:pb-20 lg:pt-20">
     <div class="relative z-10 space-y-8">
       <span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-300">
         <lucide-icon [img]="layersIcon" class="h-4 w-4"></lucide-icon>
         Multi-tenant booking made effortless
       </span>
-      <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+      <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-[2.75rem] lg:leading-[1.12]">
         Run every location, booking, and team from one premium command center.
       </h1>
       <p class="max-w-xl text-base text-zinc-600 dark:text-zinc-300 sm:text-lg">
@@ -99,23 +99,9 @@
           View Demo
         </a>
       </div>
-      <div class="grid max-w-xl gap-3 sm:grid-cols-3">
-        <div class="glass-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:text-sm">
-          <lucide-icon [img]="usersIcon" class="h-4 w-4 text-blue-500"></lucide-icon>
-          Team-friendly
-        </div>
-        <div class="glass-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:text-sm">
-          <lucide-icon [img]="shieldCheckIcon" class="h-4 w-4 text-blue-500"></lucide-icon>
-          Secure by default
-        </div>
-        <div class="glass-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:text-sm">
-          <lucide-icon [img]="zapIcon" class="h-4 w-4 text-blue-500"></lucide-icon>
-          Fast setup
-        </div>
-      </div>
     </div>
 
-    <div #revealEl class="slide-right relative z-10">
+    <div #revealEl class="slide-right relative z-10 flex flex-col gap-4">
       <div class="glass-card relative overflow-hidden rounded-3xl p-5 sm:p-6">
         <div class="mb-5 flex items-center justify-between">
           <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Live dashboard preview</p>
@@ -138,10 +124,24 @@
           </div>
         </div>
       </div>
+      <div class="hero-trust-pills grid gap-3 sm:grid-cols-3">
+        <div class="glass-card inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs sm:text-sm">
+          <lucide-icon [img]="usersIcon" class="h-4 w-4 shrink-0 text-blue-500"></lucide-icon>
+          Team-friendly
+        </div>
+        <div class="glass-card inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs sm:text-sm">
+          <lucide-icon [img]="shieldCheckIcon" class="h-4 w-4 shrink-0 text-blue-500"></lucide-icon>
+          Secure by default
+        </div>
+        <div class="glass-card inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs sm:text-sm">
+          <lucide-icon [img]="zapIcon" class="h-4 w-4 shrink-0 text-blue-500"></lucide-icon>
+          Fast setup
+        </div>
+      </div>
     </div>
   </section>
 
-  <section #revealEl id="stats" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+  <section #revealEl id="stats" class="home-section fade-up mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="grid gap-4 md:grid-cols-3">
       @for (stat of statItems; track stat.label) {
         <article #revealEl class="glass-card scale-in rounded-2xl p-6 text-center">
@@ -158,8 +158,8 @@
     </div>
   </section>
 
-  <section #revealEl id="showcase" class="fade-up is-visible mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-    <div class="mb-8 max-w-2xl">
+  <section #revealEl id="showcase" class="home-section fade-up is-visible mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="home-section__intro max-w-2xl">
       <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Built to impress clients and win trust fast</h2>
       <p class="mt-3 text-zinc-600 dark:text-zinc-300">Premium product moments that make your brand feel polished, reliable, and enterprise-ready.</p>
     </div>
@@ -204,8 +204,8 @@
     </div>
   </section>
 
-  <section #revealEl id="features" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-    <div class="mb-10 max-w-2xl">
+  <section #revealEl id="features" class="home-section fade-up mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="home-section__intro max-w-2xl">
       <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Features clients notice, teams love, and operators trust</h2>
       <p class="mt-3 text-zinc-600 dark:text-zinc-300">Every mission-critical workflow is designed for speed, visibility, and business confidence.</p>
     </div>
@@ -222,8 +222,8 @@
     </div>
   </section>
 
-  <section #revealEl class="slide-left mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-    <div class="mb-10 max-w-2xl">
+  <section #revealEl class="home-section slide-left mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="home-section__intro max-w-2xl">
       <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">From setup to scale in a client-ready flow</h2>
       <p class="mt-3 text-zinc-600 dark:text-zinc-300">Launch quickly with a clear onboarding path your team can execute without friction.</p>
     </div>
@@ -241,7 +241,7 @@
     </div>
   </section>
 
-  <section #revealEl id="dashboard" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+  <section #revealEl id="dashboard" class="home-section fade-up mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="dashboard-wrap relative overflow-visible rounded-3xl border border-zinc-200/70 bg-gradient-to-b from-white/95 via-blue-50/60 to-zinc-100/70 p-6 backdrop-blur-xl dark:border-zinc-800 dark:from-zinc-900/80 dark:via-indigo-950/25 dark:to-zinc-950/80 lg:p-10">
       <div class="absolute -left-4 top-16 z-10 floating-card hidden rounded-xl border border-zinc-200/80 bg-white/95 p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900/95 md:block">
         <p class="text-xs text-zinc-500 dark:text-zinc-400">Pending confirmations</p>
@@ -272,8 +272,8 @@
     </div>
   </section>
 
-  <section #revealEl id="pricing" class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-    <div class="mb-10 text-center">
+  <section #revealEl id="pricing" class="home-section fade-up mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="home-section__intro text-center">
       <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Transparent pricing clients can approve in minutes</h2>
       <p class="mt-3 text-zinc-600 dark:text-zinc-300">Choose monthly or annual billing with clear value at every growth stage.</p>
 
@@ -328,8 +328,8 @@
     }
   </section>
 
-  <section #revealEl class="fade-up mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-    <div class="mb-10 max-w-2xl">
+  <section #revealEl class="home-section fade-up mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="home-section__intro max-w-2xl">
       <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Loved by clients, praised by growth teams</h2>
       <p class="mt-3 text-zinc-600 dark:text-zinc-300">Real-world outcomes from businesses that run mission-critical operations on Orbit.</p>
     </div>
@@ -349,8 +349,8 @@
     </div>
   </section>
 
-  <section #revealEl id="faq" class="fade-up mx-auto max-w-4xl px-4 pb-20 sm:px-6 lg:px-8">
-    <div class="mb-10 text-center">
+  <section #revealEl id="faq" class="home-section fade-up mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <div class="home-section__intro text-center">
       <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">Everything your team and clients ask before switching</h2>
     </div>
     <div class="space-y-3">
@@ -395,7 +395,7 @@
   </footer>
 
   @if (showAuthChoiceModal) {
-    <section class="auth-overlay premium-auth-overlay fixed inset-0 z-[80] flex items-center justify-center overflow-hidden overscroll-none p-3 sm:p-5">
+    <section class="auth-overlay premium-auth-overlay fixed inset-0 z-[80] flex items-center justify-center p-4 sm:p-6">
       <div class="auth-backdrop fixed inset-0 z-0" aria-hidden="true"></div>
       <article class="premium-auth-card premium-auth-card--choice auth-shell">
         <aside class="premium-auth-aside hidden md:block">
@@ -433,7 +433,7 @@
   }
 
   @if (showLoginPanel) {
-    <section class="auth-overlay premium-auth-overlay fixed inset-0 z-[80] flex items-center justify-center overflow-hidden overscroll-none p-3 sm:p-5">
+    <section class="auth-overlay premium-auth-overlay fixed inset-0 z-[80] flex items-center justify-center p-4 sm:p-6">
       <div class="auth-backdrop fixed inset-0 z-0" aria-hidden="true"></div>
       <article class="premium-auth-card auth-shell">
         <aside class="premium-auth-aside hidden md:block">
@@ -450,7 +450,7 @@
           </div>
         </aside>
         <div class="premium-auth-main premium-auth-main--static">
-          <button type="button" (click)="closeAuthOverlays()" class="premium-auth-close">Close</button>
+          <button type="button" (click)="closeAuthOverlays()" class="premium-auth-close" [disabled]="authSubmitting">Close</button>
           <div class="pa-header">
             <h4>Sign in to your account</h4>
             <p>Use your credentials to continue.</p>
@@ -459,6 +459,7 @@
             <p class="pa-alert" role="alert">{{ authError }}</p>
           }
           <form [formGroup]="loginForm" (ngSubmit)="submitLoginForm()" class="pa-form">
+            <fieldset [disabled]="authSubmitting" class="pa-form-fieldset">
             <div class="pa-field" [class.pa-field-invalid]="hasLoginError('email')">
               <label class="pa-label" for="login-email">Email Address</label>
               <div class="pa-control">
@@ -482,6 +483,7 @@
                 <p class="pa-error" role="alert">Password must be at least 8 characters.</p>
               }
             </div>
+            </fieldset>
             <button type="submit" [disabled]="authSubmitting" class="pa-submit">
               {{ authSubmitting ? 'Signing in...' : 'Login to Dashboard' }}
             </button>
@@ -496,7 +498,7 @@
   }
 
   @if (showRegisterPanel) {
-    <section class="auth-overlay premium-auth-overlay fixed inset-0 z-[80] flex items-center justify-center overflow-hidden overscroll-none p-3 sm:p-5">
+    <section class="auth-overlay premium-auth-overlay fixed inset-0 z-[80] flex items-center justify-center p-4 sm:p-6">
       <div class="auth-backdrop fixed inset-0 z-0" aria-hidden="true"></div>
       <article class="premium-auth-card premium-auth-card--register auth-shell">
         <aside class="premium-auth-aside hidden md:block">
@@ -513,7 +515,7 @@
           </div>
         </aside>
         <div class="premium-auth-main premium-auth-main--register">
-          <button type="button" (click)="closeAuthOverlays()" class="premium-auth-close">Close</button>
+          <button type="button" (click)="closeAuthOverlays()" class="premium-auth-close" [disabled]="authSubmitting">Close</button>
           <div class="pa-header pa-header--register">
             <h4>{{ getRegisterStepLabel(registerStep) }}</h4>
             <p>{{ getRegisterStepSubtitle() }}</p>
@@ -528,6 +530,7 @@
             <p class="pa-alert" role="alert">{{ authError }}</p>
           }
           <form [formGroup]="registerForm" (ngSubmit)="onRegisterFormSubmit($event)" class="pa-form pa-form-register pa-form-register--steps">
+            <fieldset [disabled]="authSubmitting" class="pa-form-fieldset">
             <div class="pa-step-track pa-step-track--four" role="navigation" aria-label="Registration progress">
               <div class="pa-step-track-progress">
                 @for (step of registerSteps; track step) {
@@ -706,12 +709,12 @@
             <div class="pa-form-footer pa-form-footer--register">
               <div class="pa-actions">
                 @if (registerStep > 1) {
-                  <button type="button" (click)="goToRegisterPrevStep()" class="pa-secondary-btn">Back</button>
+                  <button type="button" (click)="goToRegisterPrevStep()" class="pa-secondary-btn" [disabled]="authSubmitting">Back</button>
                 } @else {
                   <span class="pa-actions-spacer" aria-hidden="true"></span>
                 }
                 @if (registerStep < registerTotalSteps) {
-                  <button type="button" (click)="goToRegisterNextStep()" class="pa-submit inline">Next</button>
+                  <button type="button" (click)="goToRegisterNextStep()" class="pa-submit inline" [disabled]="authSubmitting">Next</button>
                 } @else {
                   <button type="submit" [disabled]="authSubmitting" class="pa-submit inline">
                     {{ authSubmitting ? 'Creating account...' : 'Create Account' }}
@@ -720,9 +723,10 @@
               </div>
               <p class="pa-footer-text">
                 Already have an account?
-                <button type="button" (click)="openLoginPanel()">Login</button>
+                <button type="button" (click)="openLoginPanel()" [disabled]="authSubmitting">Login</button>
               </p>
             </div>
+            </fieldset>
           </form>
 
         </div>

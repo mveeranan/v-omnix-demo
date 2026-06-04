@@ -4,24 +4,29 @@
       class="pa-field pa-span-2"
       [class.pa-field-invalid]="shouldShowErrors() && (validationErrors()?.['dialCodeRequired'] || countriesError())">
       <label class="pa-label">{{ countryCodeLabel() }}</label>
-      <div class="pa-control">
-        <lucide-icon [img]="globeIcon" class="pa-icon" />
-        <app-country-dial-code-picker
-          variant="pa"
-          mode="phone"
-          [ngModel]="countryPickerValue()"
-          (ngModelChange)="onCountryPickerChange($event)"
-          [disabled]="isFieldDisabled()" />
-      </div>
+      <app-country-dial-code-picker
+        layout="pa-icon-control"
+        variant="pa"
+        mode="phone"
+        [ngModel]="countryPickerValue()"
+        (ngModelChange)="onCountryPickerChange($event)"
+        [disabled]="isFieldDisabled()">
+        <lucide-icon pickerIcon [img]="globeIcon" class="pa-icon" aria-hidden="true" />
+      </app-country-dial-code-picker>
       @if (countriesError()) {
         <p class="pa-error" role="alert">{{ countriesError() }}</p>
       }
     </div>
 
     <div class="pa-field pa-span-2" [class.pa-field-invalid]="shouldShowErrors()">
-      <label class="pa-label">{{ phoneLabel() }}@if (required()) { <span class="text-rose-500">*</span> }</label>
+      <label class="pa-label">
+        {{ phoneLabel() }}
+        @if (required()) {
+          <span class="text-rose-500">*</span>
+        }
+      </label>
       <div class="pa-control">
-        <lucide-icon [img]="phoneIcon" class="pa-icon" />
+        <lucide-icon [img]="phoneIcon" class="pa-icon" aria-hidden="true" />
         <input
           type="tel"
           class="pa-input"

@@ -24,7 +24,7 @@ export class BookingStatusBadgeComponent {
       pending: 'bg-amber-500',
       confirmed: 'bg-blue-500',
       assigned: 'bg-violet-500',
-      'in-progress': 'bg-indigo-500',
+      'in-progress': 'bg-[var(--accent)]',
       completed: 'bg-emerald-500',
       cancelled: 'bg-zinc-400'
     };

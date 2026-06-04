@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MapPin } from 'lucide-angular';
 import { AdminFormSectionCardComponent } from '../shared/admin-form-section-card.component';
+import { AdminModalShellComponent } from '../shared/admin-modal-shell.component';
 import { AdminDetailFieldComponent } from '../shared/admin-detail-field.component';
 import { AdminProfileStateService } from '../data-access/admin-profile-state.service';
 import {
@@ -42,7 +43,8 @@ interface BranchFormSnapshot {
     ReactiveFormsModule,
     AdminFormSectionCardComponent,
     AdminDetailFieldComponent,
-    CountryDialCodePickerComponent
+    CountryDialCodePickerComponent,
+    AdminModalShellComponent
   ],
   template: `
     <app-admin-form-section-card
@@ -51,15 +53,49 @@ interface BranchFormSnapshot {
       [icon]="sectionIcon"
       [complete]="state.branchComplete()"
       [(expanded)]="expanded"
-      [editing]="editing()"
-      [saving]="state.branchSaving()"
-      [canSave]="form.valid"
+      [editing]="false"
       [lastSavedAt]="state.branchLastSavedAt()"
       (edit)="startEdit()"
-      (save)="save()"
-      (cancel)="cancelEdit()"
     >
-      @if (editing()) {
+      <div class="admin-detail-view">
+          <app-admin-detail-field label="Branch name" [value]="displayValue('name')" />
+          <app-admin-detail-field label="Address line 1" [value]="displayValue('addressLine1')" />
+          <app-admin-detail-field label="Address line 2" [value]="displayValue('addressLine2')" />
+          <div class="admin-detail-view__grid admin-detail-view__grid--2">
+            <app-admin-detail-field label="City" [value]="displayValue('city')" />
+            <app-admin-detail-field label="Country" [value]="selectedCountryName()" />
+          </div>
+          <app-admin-detail-field label="Postal code" [value]="displayValue('postalCode')" />
+          <div class="admin-detail-view__grid admin-detail-view__grid--2">
+            <app-admin-detail-field label="Latitude" [value]="displayNumber('latitude')" />
+            <app-admin-detail-field label="Longitude" [value]="displayNumber('longitude')" />
+          </div>
+          <div class="admin-detail-view__grid admin-detail-view__grid--2">
+            <app-admin-detail-field label="Phone" [value]="displayValue('phoneNumber')" />
+            <app-admin-detail-field label="Email" [value]="displayValue('email')" />
+          </div>
+          <app-admin-detail-field label="Working hours" [value]="displayWorkingHours()" />
+          <div class="admin-detail-field">
+            <span class="pf-editor-label">Status</span>
+            <span
+              class="admin-detail-status mt-1 w-fit"
+              [class.admin-detail-status--active]="form.getRawValue().isActive"
+              [class.admin-detail-status--inactive]="!form.getRawValue().isActive">
+              {{ form.getRawValue().isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+          <app-admin-detail-field label="Primary branch" value="Yes" />
+        </div>
+    </app-admin-form-section-card>
+
+    @if (editing()) {
+      <app-admin-modal-shell
+        [open]="true"
+        title="Edit primary branch"
+        subtitle="Update location, contact details, and working hours."
+        panelClass="admin-modal-panel--xl"
+        [disableClose]="state.branchSaving()"
+        (close)="cancelEdit()">
         <form class="pf-editor-fields" [formGroup]="form">
           <div class="pf-editor-field">
             <span class="pf-editor-label">Branch name <span class="text-rose-500">*</span></span>
@@ -160,38 +196,14 @@ interface BranchFormSnapshot {
             <span>Primary branch (default location)</span>
           </label>
         </form>
-      } @else {
-        <div class="admin-detail-view">
-          <app-admin-detail-field label="Branch name" [value]="displayValue('name')" />
-          <app-admin-detail-field label="Address line 1" [value]="displayValue('addressLine1')" />
-          <app-admin-detail-field label="Address line 2" [value]="displayValue('addressLine2')" />
-          <div class="admin-detail-view__grid admin-detail-view__grid--2">
-            <app-admin-detail-field label="City" [value]="displayValue('city')" />
-            <app-admin-detail-field label="Country" [value]="selectedCountryName()" />
-          </div>
-          <app-admin-detail-field label="Postal code" [value]="displayValue('postalCode')" />
-          <div class="admin-detail-view__grid admin-detail-view__grid--2">
-            <app-admin-detail-field label="Latitude" [value]="displayNumber('latitude')" />
-            <app-admin-detail-field label="Longitude" [value]="displayNumber('longitude')" />
-          </div>
-          <div class="admin-detail-view__grid admin-detail-view__grid--2">
-            <app-admin-detail-field label="Phone" [value]="displayValue('phoneNumber')" />
-            <app-admin-detail-field label="Email" [value]="displayValue('email')" />
-          </div>
-          <app-admin-detail-field label="Working hours" [value]="displayWorkingHours()" />
-          <div class="admin-detail-field">
-            <span class="pf-editor-label">Status</span>
-            <span
-              class="admin-detail-status mt-1 w-fit"
-              [class.admin-detail-status--active]="form.getRawValue().isActive"
-              [class.admin-detail-status--inactive]="!form.getRawValue().isActive">
-              {{ form.getRawValue().isActive ? 'Active' : 'Inactive' }}
-            </span>
-          </div>
-          <app-admin-detail-field label="Primary branch" value="Yes" />
-        </div>
-      }
-    </app-admin-form-section-card>
+        <ng-container modalFooter>
+          <button type="button" class="admin-section-action-btn admin-bookings-secondary-btn" (click)="cancelEdit()" [disabled]="state.branchSaving()">Cancel</button>
+          <button type="button" class="admin-section-action-btn" (click)="save()" [disabled]="state.branchSaving() || !form.valid">
+            {{ state.branchSaving() ? 'Saving…' : 'Save changes' }}
+          </button>
+        </ng-container>
+      </app-admin-modal-shell>
+    }
   `,
   styles: `
     .branch-working-days-table {
@@ -337,6 +349,10 @@ export class BranchFormSectionComponent implements OnInit {
   }
 
   save(): void {
+    if (this.state.branchSaving()) {
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

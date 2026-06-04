@@ -1,0 +1,36 @@
+.booking-status-badge,
+.booking-payment-badge,
+.app-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.125rem var(--space-2);
+  border-radius: 9999px;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+}
+
+.app-badge--success {
+  background: var(--success-muted);
+  color: var(--success);
+}
+
+.app-badge--warning {
+  background: var(--warning-muted);
+  color: var(--warning);
+}
+
+.app-badge--danger {
+  background: var(--danger-muted);
+  color: var(--danger);
+}
+
+.app-badge--info {
+  background: var(--info-muted);
+  color: var(--info);
+}
+
+.app-badge--neutral {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}

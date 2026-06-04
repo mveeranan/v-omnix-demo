@@ -1,0 +1,39 @@
+.premium-auth-card {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.pa-mode-tab.active {
+  background: var(--accent) !important;
+  background-image: none !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.login-wrapper {
+  background: var(--surface-1);
+}
+
+.login-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-md);
+}
+
+.auth-backdrop {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: none !important;
+}
+
+.auth-choice-modal,
+.auth-shell-surface {
+  backdrop-filter: none !important;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-elevated) !important;
+  box-shadow: var(--shadow-md);
+}
+
+.premium-auth-overlay {
+  align-items: center;
+  justify-content: center;
+}

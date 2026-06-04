@@ -1,5 +1,6 @@
 import { Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CountriesService } from '../../../shared/data-access/countries.service';
 import { PhoneNumberFieldComponent } from '../../../shared/ui/phone-number-field.component';
@@ -11,6 +12,7 @@ import {
 } from '../../../shared/utils/phone.util';
 import { Building2 } from 'lucide-angular';
 import { AdminFormSectionCardComponent } from '../shared/admin-form-section-card.component';
+import { AdminModalShellComponent } from '../shared/admin-modal-shell.component';
 import { AdminDetailFieldComponent } from '../shared/admin-detail-field.component';
 import { AdminDetailMediaComponent } from '../shared/admin-detail-media.component';
 import { MediaUploadZoneComponent } from '../../../shared/ui/media-upload-zone.component';
@@ -53,7 +55,8 @@ interface BusinessProfileFormSnapshot {
     AdminDetailFieldComponent,
     AdminDetailMediaComponent,
     MediaUploadZoneComponent,
-    PhoneNumberFieldComponent
+    PhoneNumberFieldComponent,
+    AdminModalShellComponent
   ],
   template: `
     <app-admin-form-section-card
@@ -62,15 +65,42 @@ interface BusinessProfileFormSnapshot {
       [icon]="sectionIcon"
       [complete]="state.profileComplete()"
       [(expanded)]="expanded"
-      [editing]="editing()"
-      [saving]="state.profileSaving()"
-      [canSave]="form.valid && !uploading()"
+      [editing]="false"
       [lastSavedAt]="state.profileLastSavedAt()"
       (edit)="startEdit()"
-      (save)="save()"
-      (cancel)="cancelEdit()"
     >
-      @if (editing()) {
+      <div class="admin-detail-view">
+          <div class="admin-detail-view__grid admin-detail-view__grid--2">
+            <app-admin-detail-media label="Logo" [url]="logoPreview()" />
+            <app-admin-detail-media label="Cover image" [url]="coverPreview()" />
+          </div>
+
+          <app-admin-detail-field label="Business name" [value]="displayValue('businessName')" />
+          <div class="admin-detail-view__grid admin-detail-view__grid--2">
+            <app-admin-detail-field label="Email" [value]="displayValue('email')" />
+            <app-admin-detail-field label="Phone" [value]="displayPhone()" />
+          </div>
+          <div class="admin-detail-view__grid admin-detail-view__grid--2">
+            <app-admin-detail-field label="Business group" [value]="selectedGroupName()" />
+            <app-admin-detail-field label="Business type" [value]="selectedTypeName()" />
+          </div>
+          <app-admin-detail-field label="Description" [value]="displayValue('description')" />
+          <div class="admin-detail-view__grid admin-detail-view__grid--2">
+            <app-admin-detail-field label="Website" [value]="displayValue('websiteUrl')" />
+            <app-admin-detail-field label="Currency" [value]="displayValue('currency')" />
+          </div>
+          <app-admin-detail-field label="Time zone" [value]="displayValue('timeZone')" />
+        </div>
+    </app-admin-form-section-card>
+
+    @if (editing()) {
+      <app-admin-modal-shell
+        [open]="true"
+        title="Edit business profile"
+        subtitle="Update your company identity and contact details."
+        panelClass="admin-modal-panel--xl"
+        [disableClose]="state.profileSaving() || uploading()"
+        (close)="cancelEdit()">
         <form class="pf-editor-fields" [formGroup]="form">
           <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
             <app-media-upload-zone
@@ -155,31 +185,14 @@ interface BusinessProfileFormSnapshot {
             <input class="pf-editor-input" formControlName="timeZone" />
           </div>
         </form>
-      } @else {
-        <div class="admin-detail-view">
-          <div class="admin-detail-view__grid admin-detail-view__grid--2">
-            <app-admin-detail-media label="Logo" [url]="logoPreview()" />
-            <app-admin-detail-media label="Cover image" [url]="coverPreview()" />
-          </div>
-
-          <app-admin-detail-field label="Business name" [value]="displayValue('businessName')" />
-          <div class="admin-detail-view__grid admin-detail-view__grid--2">
-            <app-admin-detail-field label="Email" [value]="displayValue('email')" />
-            <app-admin-detail-field label="Phone" [value]="displayPhone()" />
-          </div>
-          <div class="admin-detail-view__grid admin-detail-view__grid--2">
-            <app-admin-detail-field label="Business group" [value]="selectedGroupName()" />
-            <app-admin-detail-field label="Business type" [value]="selectedTypeName()" />
-          </div>
-          <app-admin-detail-field label="Description" [value]="displayValue('description')" />
-          <div class="admin-detail-view__grid admin-detail-view__grid--2">
-            <app-admin-detail-field label="Website" [value]="displayValue('websiteUrl')" />
-            <app-admin-detail-field label="Currency" [value]="displayValue('currency')" />
-          </div>
-          <app-admin-detail-field label="Time zone" [value]="displayValue('timeZone')" />
-        </div>
-      }
-    </app-admin-form-section-card>
+        <ng-container modalFooter>
+          <button type="button" class="admin-section-action-btn admin-bookings-secondary-btn" (click)="cancelEdit()" [disabled]="state.profileSaving() || uploading()">Cancel</button>
+          <button type="button" class="admin-section-action-btn" (click)="save()" [disabled]="state.profileSaving() || uploading() || !form.valid">
+            {{ state.profileSaving() ? 'Saving…' : 'Save changes' }}
+          </button>
+        </ng-container>
+      </app-admin-modal-shell>
+    }
   `
 })
 export class BusinessProfileFormSectionComponent implements OnInit {
@@ -309,16 +322,19 @@ export class BusinessProfileFormSectionComponent implements OnInit {
     this.syncSelectEnableState();
   }
 
-  async save(): Promise<void> {
+  save(): void {
+    if (this.state.profileSaving() || this.uploading()) {
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
     this.uploading.set(true);
-    try {
-      const raw = this.form.getRawValue();
-      const attachments = await this.buildAttachments();
+    const raw = this.form.getRawValue();
+    void this.buildAttachments().then((attachments) => {
       const payload: BusinessProfileUpdateRequest = {
         businessName: raw.businessName.trim(),
         email: raw.email.trim() || null,
@@ -333,20 +349,23 @@ export class BusinessProfileFormSectionComponent implements OnInit {
         ...(attachments.length > 0 ? { attachments } : {})
       };
 
-      this.state.saveProfile(payload).subscribe({
-        next: (updated) => {
-          this.pendingLogoFile = null;
-          this.pendingCoverFile = null;
-          this.logoDocumentId = updated.logoDocumentId ?? null;
-          this.coverDocumentId = updated.coverImageDocumentId ?? null;
-          this.restoreMediaFromProfile();
-          this.editing.set(false);
-          this.syncSelectEnableState();
-        }
-      });
-    } finally {
+      this.state
+        .saveProfile(payload)
+        .pipe(finalize(() => this.uploading.set(false)))
+        .subscribe({
+          next: (updated) => {
+            this.pendingLogoFile = null;
+            this.pendingCoverFile = null;
+            this.logoDocumentId = updated.logoDocumentId ?? null;
+            this.coverDocumentId = updated.coverImageDocumentId ?? null;
+            this.restoreMediaFromProfile();
+            this.editing.set(false);
+            this.syncSelectEnableState();
+          }
+        });
+    }).catch(() => {
       this.uploading.set(false);
-    }
+    });
   }
 
   onGroupChange(): void {
