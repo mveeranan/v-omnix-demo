@@ -2,7 +2,6 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  HostListener,
   inject,
   OnDestroy,
   OnInit,
@@ -16,7 +15,6 @@ import {
   Building2,
   Check,
   ChevronDown,
-  Globe,
   Layers3,
   LucideAngularModule,
   Menu,
@@ -31,7 +29,6 @@ import {
   EyeOff,
   Lock,
   Mail,
-  Phone,
   Sparkles,
   Upload,
   User
@@ -46,14 +43,7 @@ import {
   HOME_TESTIMONIALS
 } from './home-marketing.content';
 import { HttpClient } from '@angular/common/http';
-import {
-  AbstractControl,
-  FormBuilder,
-  ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
-  Validators
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { API_ENDPOINTS } from '../../environments/api.constants';
 import { AuthService } from '../../app/core/auth/auth.service';
@@ -62,7 +52,10 @@ import type { AuthContext, LoginData } from '../../app/core/auth/models/auth.mod
 import { extractLoginContexts } from '../../app/core/auth/models/auth.model';
 import { ThemeService } from '../../app/core/theme/theme.service';
 import { NotificationService } from '../../app/core/notifications/notification.service';
-import { firstValueFrom, Subscription } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
+import { PhoneNumberFieldComponent } from '../../app/shared/ui/phone-number-field.component';
+import { EMPTY_PHONE_NUMBER } from '../../app/shared/models/phone-number.model';
+import { formatPhoneWithDialCode } from '../../app/shared/utils/phone.util';
 
 interface PricingFeature {
   name: string;
@@ -112,16 +105,6 @@ interface CheckoutSessionResponse {
   checkoutUrl: string;
 }
 
-interface CountryCodeOption {
-  id?: string;
-  name: string;
-  dialCode: string;
-  phoneNumberRegex?: string;
-  phoneNumberExample?: string;
-  nationalNumberMinLength?: number;
-  nationalNumberMaxLength?: number;
-}
-
 interface BusinessTypeDto {
   id: string;
   name: string;
@@ -137,7 +120,7 @@ interface BusinessGroupDto {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, PhoneNumberFieldComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -182,19 +165,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedContextTenantId = '';
   businessLogoFile: File | null = null;
   businessLogoPreview: string | null = null;
-  isCountryDropdownOpen = false;
-  countrySearchTerm = '';
-  countryOptions: CountryCodeOption[] = [];
-  countriesLoading = false;
-  countriesError = '';
   businessGroups: BusinessGroupDto[] = [];
   businessTypesLoading = false;
   businessTypesError = '';
   private revealObserver?: IntersectionObserver;
   private statsObserver?: IntersectionObserver;
   private revealFallbackTimer?: ReturnType<typeof setTimeout>;
-  private countryCodeSubscription?: Subscription;
-
   readonly statItems = createHomeStatItems();
   readonly featureItems = HOME_FEATURE_ITEMS;
   readonly steps = HOME_STEPS;
@@ -226,8 +202,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly mailIcon = Mail;
   readonly lockIcon = Lock;
   readonly userIcon = User;
-  readonly phoneIcon = Phone;
-  readonly globeIcon = Globe;
   readonly buildingIcon = Building2;
 
   readonly loginForm = this.fb.nonNullable.group({
@@ -238,8 +212,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly registerForm = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(30)]],
     lastName: ['', [Validators.required, Validators.maxLength(30)]],
-    countryCode: ['', [Validators.required]],
-    mobileNumber: ['', [Validators.required]],
+    phone: [{ ...EMPTY_PHONE_NUMBER }],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     businessName: ['', [Validators.required, Validators.maxLength(80)]],
@@ -251,9 +224,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadPricingPlans();
-    this.setupCountryValidationWatcher();
     this.setupBusinessTypeWatcher();
-    this.loadCountries();
     this.loadBusinessTypes();
   }
 
@@ -268,7 +239,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.revealFallbackTimer) {
       clearTimeout(this.revealFallbackTimer);
     }
-    this.countryCodeSubscription?.unsubscribe();
   }
 
   toggleTheme(): void {
@@ -350,16 +320,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       password: ''
     });
 
-    const preferredDial =
-      this.countryOptions.find((item) => item.dialCode === '+971')?.dialCode ??
-      this.countryOptions[0]?.dialCode ??
-      '';
-
     this.registerForm.reset({
       firstName: '',
       lastName: '',
-      countryCode: preferredDial,
-      mobileNumber: '',
+      phone: { ...EMPTY_PHONE_NUMBER },
       email: '',
       password: '',
       businessName: '',
@@ -368,14 +332,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       description: '',
       acceptTerms: false
     });
-    this.applyCountryValidators();
 
     this.removeLogoFile();
     this.registerStep = 1;
     this.showLoginPassword = false;
     this.showRegisterPassword = false;
-    this.isCountryDropdownOpen = false;
-    this.countrySearchTerm = '';
 
     this.loginUserId = '';
     this.loginUserEmail = '';
@@ -520,43 +481,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return `Continue with ${context.tenantName} (${context.roleName}) - ${this.loginUserEmail}`;
   }
 
-  getMobileNumberError(): string {
-    const control = this.registerForm.controls.mobileNumber;
-    if (!(control.invalid && (control.dirty || control.touched))) {
-      return '';
-    }
-
-    if (control.hasError('required')) {
-      return 'Mobile number is required.';
-    }
-
-    const selectedCountry = this.getSelectedCountry();
-    const minLength = selectedCountry?.nationalNumberMinLength;
-    const maxLength = selectedCountry?.nationalNumberMaxLength;
-
-    if ((control.hasError('minlength') || control.hasError('mobileLength')) && minLength) {
-      return `Mobile number must be at least ${minLength} digits.`;
-    }
-
-    if ((control.hasError('maxlength') || control.hasError('mobileLength')) && maxLength) {
-      return `Mobile number must be at most ${maxLength} digits.`;
-    }
-
-    if (control.hasError('pattern') || control.hasError('mobilePattern')) {
-      if (selectedCountry?.phoneNumberExample) {
-        return `Invalid format. Example: ${selectedCountry.phoneNumberExample}`;
-      }
-      return 'Invalid mobile number format.';
-    }
-
-    return 'Invalid mobile number.';
-  }
-
   getRegisterFieldError(
     controlName:
       | 'firstName'
       | 'lastName'
-      | 'countryCode'
       | 'businessName'
       | 'businessGroupId'
       | 'businessTypeId'
@@ -575,9 +503,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       if (controlName === 'lastName') {
         return 'Last name is required.';
-      }
-      if (controlName === 'countryCode') {
-        return 'Country code is required.';
       }
       if (controlName === 'email') {
         return 'Email address is required.';
@@ -648,8 +573,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         return (
           this.registerForm.controls.firstName.valid &&
           this.registerForm.controls.lastName.valid &&
-          this.registerForm.controls.countryCode.valid &&
-          this.registerForm.controls.mobileNumber.valid
+          this.registerForm.controls.phone.valid
         );
       case 2:
         return (
@@ -671,6 +595,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   tryAdvanceRegisterStep(): void {
+    if (this.authSubmitting) {
+      return;
+    }
     if (!this.canProceedRegisterStep(this.registerStep)) {
       this.markRegisterStepTouched(this.registerStep);
       this.notificationService.warning('Please complete the required fields on this step.');
@@ -682,6 +609,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   goToRegisterPrevStep(): void {
+    if (this.authSubmitting) {
+      return;
+    }
     if (this.registerStep > 1) {
       this.registerStep -= 1;
     }
@@ -692,8 +622,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       case 1:
         this.registerForm.controls.firstName.markAsTouched();
         this.registerForm.controls.lastName.markAsTouched();
-        this.registerForm.controls.countryCode.markAsTouched();
-        this.registerForm.controls.mobileNumber.markAsTouched();
+        this.registerForm.controls.phone.markAsTouched();
         break;
       case 2:
         this.registerForm.controls.email.markAsTouched();
@@ -714,37 +643,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return [];
     }
     return this.businessGroups.find((group) => group.groupId === selectedGroupId)?.types ?? [];
-  }
-
-  getSelectedCountryLabel(): string {
-    const selectedCountry = this.getSelectedCountry();
-    if (!selectedCountry) {
-      return 'Select country code';
-    }
-    return `${selectedCountry.name} (${selectedCountry.dialCode})`;
-  }
-
-  getFilteredCountryOptions(): CountryCodeOption[] {
-    const search = this.countrySearchTerm.trim().toLowerCase();
-    if (!search) {
-      return this.countryOptions;
-    }
-    return this.countryOptions.filter(
-      (country) =>
-        country.name.toLowerCase().includes(search) || country.dialCode.toLowerCase().includes(search)
-    );
-  }
-
-  toggleCountryDropdown(): void {
-    this.isCountryDropdownOpen = !this.isCountryDropdownOpen;
-    if (this.isCountryDropdownOpen) {
-      this.countrySearchTerm = '';
-    }
-  }
-
-  onCountrySearchInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.countrySearchTerm = input.value;
   }
 
   onLogoFileSelected(event: Event): void {
@@ -780,14 +678,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.businessLogoPreview = null;
   }
 
-  selectCountryOption(country: CountryCodeOption): void {
-    this.registerForm.controls.countryCode.setValue(country.dialCode);
-    this.registerForm.controls.countryCode.markAsTouched();
-    this.isCountryDropdownOpen = false;
-    this.countrySearchTerm = '';
-    this.applyCountryValidators();
-  }
-
   private navigateToDashboard(includeSetupState: boolean): void {
     this.closeAuthOverlays();
     if (this.selectedPlanName) {
@@ -811,15 +701,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async submitRegister(): Promise<void> {
     try {
-      const selectedCountry = this.getSelectedCountry();
-      if (!selectedCountry) {
+      const mobileNumber = formatPhoneWithDialCode(this.registerForm.controls.phone.value);
+      if (!mobileNumber) {
         this.authSubmitting = false;
-        this.authError = 'Please select a country code.';
+        this.authError = 'Please enter a valid mobile number.';
         this.notificationService.warning(this.authError);
         return;
       }
 
-      const nationalNumber = this.registerForm.controls.mobileNumber.value.trim();
       const description = this.registerForm.controls.description.value.trim();
 
       const payload: Record<string, unknown> = {
@@ -829,7 +718,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         password: this.registerForm.controls.password.value,
         businessName: this.registerForm.controls.businessName.value.trim(),
         businessTypeId: this.registerForm.controls.businessTypeId.value,
-        mobileNumber: `${selectedCountry.dialCode} ${nationalNumber}`
+        mobileNumber
       };
 
       if (description) {
@@ -906,42 +795,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private setupCountryValidationWatcher(): void {
-    this.countryCodeSubscription = this.registerForm.controls.countryCode.valueChanges.subscribe(() => {
-      this.applyCountryValidators();
-    });
-  }
-
   private setupBusinessTypeWatcher(): void {
     this.registerForm.controls.businessGroupId.valueChanges.subscribe(() => {
       this.registerForm.controls.businessTypeId.setValue('');
       this.registerForm.controls.businessTypeId.markAsUntouched();
     });
-  }
-
-  private async loadCountries(): Promise<void> {
-    this.countriesLoading = true;
-    this.countriesError = '';
-
-    try {
-      const response = await firstValueFrom(
-        this.http.get<ApiResponse<CountryCodeOption[]>>(API_ENDPOINTS.countries.list)
-      );
-      if (!response.success || !Array.isArray(response.data) || response.data.length === 0) {
-        this.countriesLoading = false;
-        this.countriesError = response.message || 'Unable to load countries.';
-        return;
-      }
-
-      this.countryOptions = response.data;
-      const preferred = response.data.find((item) => item.dialCode === '+971') ?? response.data[0];
-      this.registerForm.controls.countryCode.setValue(preferred.dialCode);
-      this.applyCountryValidators();
-      this.countriesLoading = false;
-    } catch {
-      this.countriesLoading = false;
-      this.countriesError = 'Unable to load countries.';
-    }
   }
 
   private async loadBusinessTypes(): Promise<void> {
@@ -963,67 +821,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.businessTypesLoading = false;
       this.businessTypesError = 'Unable to load business types.';
       this.businessGroups = [];
-    }
-  }
-
-  private applyCountryValidators(): void {
-    const selectedCountry = this.getSelectedCountry();
-    const validators: ValidatorFn[] = [Validators.required];
-
-    if (selectedCountry?.nationalNumberMinLength) {
-      validators.push(Validators.minLength(selectedCountry.nationalNumberMinLength));
-    }
-    if (selectedCountry?.nationalNumberMaxLength) {
-      validators.push(Validators.maxLength(selectedCountry.nationalNumberMaxLength));
-    }
-    if (selectedCountry?.phoneNumberRegex) {
-      try {
-        validators.push(Validators.pattern(new RegExp(selectedCountry.phoneNumberRegex)));
-      } catch {
-        // Ignore malformed regex from backend and continue with length validation.
-      }
-    }
-
-    validators.push(this.mobileDigitsValidator(selectedCountry));
-    this.registerForm.controls.mobileNumber.setValidators(validators);
-    this.registerForm.controls.mobileNumber.updateValueAndValidity({ emitEvent: false });
-  }
-
-  private mobileDigitsValidator(country?: CountryCodeOption): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const value = typeof control.value === 'string' ? control.value.trim() : '';
-      if (!value) {
-        return null;
-      }
-      if (!/^\d+$/.test(value)) {
-        return { mobilePattern: true };
-      }
-      if (country?.nationalNumberMinLength && value.length < country.nationalNumberMinLength) {
-        return { mobileLength: true };
-      }
-      if (country?.nationalNumberMaxLength && value.length > country.nationalNumberMaxLength) {
-        return { mobileLength: true };
-      }
-      return null;
-    };
-  }
-
-  private getSelectedCountry(): CountryCodeOption | undefined {
-    const selectedDialCode = this.registerForm.controls.countryCode.value;
-    return this.countryOptions.find((option) => option.dialCode === selectedDialCode);
-  }
-
-
-  @HostListener('document:keydown.escape')
-  onEscapePress(): void {
-    this.isCountryDropdownOpen = false;
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement | null;
-    if (!target?.closest('.country-picker-shell')) {
-      this.isCountryDropdownOpen = false;
     }
   }
 

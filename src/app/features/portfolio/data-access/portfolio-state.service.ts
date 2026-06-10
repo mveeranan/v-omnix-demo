@@ -54,6 +54,10 @@ export class PortfolioStateService {
   }
 
   publish(): void {
+    if (this.isSaving()) {
+      return;
+    }
+
     const current = this.draft();
     if (!current?.slug?.trim()) {
       this.notifications.warning('Set a portfolio URL slug before publishing.');
@@ -79,6 +83,10 @@ export class PortfolioStateService {
   }
 
   saveNow(): void {
+    if (this.isSaving()) {
+      return;
+    }
+
     const current = this.draft();
     if (!current) return;
     this.isSaving.set(true);

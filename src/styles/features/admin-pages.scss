@@ -1,0 +1,37 @@
+.admin-services__card,
+.admin-branches__card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-services__card-title,
+.admin-branches__card-title {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.admin-profile__section {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-elevated);
+}
+
+.onboarding-control {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-0);
+  color: var(--text-primary);
+}
+
+.onboarding-control:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.onboarding-modal .h-full.rounded-full.bg-gradient-to-r {
+  background: var(--accent) !important;
+  background-image: none !important;
+}

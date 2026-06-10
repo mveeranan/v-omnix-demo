@@ -69,6 +69,14 @@ export class CountriesService {
     return items.find((item) => item.dialCode === '+971')?.dialCode ?? items[0]?.dialCode ?? '';
   }
 
+  findById(id: string): CountryCodeOption | undefined {
+    const normalized = id.trim();
+    if (!normalized) {
+      return undefined;
+    }
+    return this.countries().find((option) => option.id === normalized);
+  }
+
   findByDialCode(dialCode: string): CountryCodeOption | undefined {
     const normalized = dialCode.trim();
     return this.countries().find((option) => option.dialCode === normalized);

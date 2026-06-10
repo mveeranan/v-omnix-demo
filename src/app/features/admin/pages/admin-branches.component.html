@@ -4,7 +4,7 @@
   description="Manage branch locations, hours, and primary branch settings for your workspace.">
   <div admin-page-actions class="admin-branches__actions">
     @if (!state.isFormOpen() && !state.manageServicesOpen()) {
-      <button type="button" class="admin-branches__primary-btn" (click)="state.startCreate()">
+      <button type="button" class="admin-branches__primary-btn" (click)="state.startCreate()" [disabled]="state.saving() || state.assigningServices()">
         <lucide-icon [img]="plusIcon" class="h-4 w-4" />
         Add branch
       </button>
@@ -27,7 +27,7 @@
 
       <div class="admin-branches__summary admin-glass-card rounded-xl">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <p class="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
             Total branches
           </p>
           <p class="admin-branches__stat-value">
@@ -35,7 +35,7 @@
           </p>
         </div>
         <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <p class="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
             Active
           </p>
           <p class="mt-1 text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
@@ -43,323 +43,23 @@
           </p>
         </div>
         <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <p class="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
             Primary
           </p>
-          <p class="mt-1 text-2xl font-semibold text-indigo-600 dark:text-indigo-400">
+          <p class="mt-1 text-2xl font-semibold text-[var(--accent)]">
             {{ state.primaryCount() }}
           </p>
         </div>
       </div>
 
-      @if (state.isFormOpen()) {
-        <section class="admin-glass-card admin-branches__form rounded-xl">
-          <div class="admin-branches__form-header">
-            <div>
-              <h2 class="admin-branches__form-title">
-                {{ state.formMode() === 'edit' ? 'Edit branch' : 'New branch' }}
-              </h2>
-              <p class="admin-branches__form-subtitle">
-                {{
-                  state.formMode() === 'edit'
-                    ? 'Update location details and save changes.'
-                    : 'Add a new branch location to your workspace.'
-                }}
-              </p>
-            </div>
-            <button
-              type="button"
-              class="admin-branches__icon-btn"
-              (click)="state.cancelForm()"
-              [disabled]="state.saving()"
-              aria-label="Close form">
-              <lucide-icon [img]="closeIcon" class="h-4 w-4" />
-            </button>
-          </div>
-
-          <form class="pf-editor-fields" (ngSubmit)="state.saveForm()">
-            <div class="pf-editor-field">
-              <span class="pf-editor-label">Branch name <span class="text-rose-500">*</span></span>
-              <input
-                class="pf-editor-input"
-                [ngModel]="state.formValue().name"
-                (ngModelChange)="state.patchFormValue({ name: $event })"
-                name="branchName"
-                required
-                maxlength="200" />
-            </div>
-
-            <div class="pf-editor-field">
-              <span class="pf-editor-label">Address line 1</span>
-              <input
-                class="pf-editor-input"
-                [ngModel]="state.formValue().addressLine1"
-                (ngModelChange)="state.patchFormValue({ addressLine1: $event })"
-                name="branchAddress1"
-                maxlength="200" />
-            </div>
-
-            <div class="pf-editor-field">
-              <span class="pf-editor-label">Address line 2</span>
-              <input
-                class="pf-editor-input"
-                [ngModel]="state.formValue().addressLine2"
-                (ngModelChange)="state.patchFormValue({ addressLine2: $event })"
-                name="branchAddress2"
-                maxlength="200" />
-            </div>
-
-            <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">City</span>
-                <input
-                  class="pf-editor-input"
-                  [ngModel]="state.formValue().city"
-                  (ngModelChange)="state.patchFormValue({ city: $event })"
-                  name="branchCity"
-                  maxlength="100" />
-              </div>
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Country</span>
-                <app-country-dial-code-picker
-                  [ngModel]="state.formValue().countryCode"
-                  (ngModelChange)="state.patchFormValue({ countryCode: $event })"
-                  name="branchCountry"
-                  mode="iso" />
-              </div>
-            </div>
-
-            <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Postal code</span>
-                <input
-                  class="pf-editor-input"
-                  [ngModel]="state.formValue().postalCode"
-                  (ngModelChange)="state.patchFormValue({ postalCode: $event })"
-                  name="branchPostal"
-                  maxlength="20" />
-              </div>
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Time zone</span>
-                <input
-                  class="pf-editor-input"
-                  [ngModel]="state.formValue().timeZone"
-                  (ngModelChange)="state.patchFormValue({ timeZone: $event })"
-                  name="branchTimeZone"
-                  maxlength="100" />
-              </div>
-            </div>
-
-            <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Latitude</span>
-                <input
-                  class="pf-editor-input"
-                  type="number"
-                  step="any"
-                  [ngModel]="state.formValue().latitude"
-                  (ngModelChange)="state.patchFormValue({ latitude: $event === '' || $event == null ? null : +$event })"
-                  name="branchLatitude" />
-              </div>
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Longitude</span>
-                <input
-                  class="pf-editor-input"
-                  type="number"
-                  step="any"
-                  [ngModel]="state.formValue().longitude"
-                  (ngModelChange)="state.patchFormValue({ longitude: $event === '' || $event == null ? null : +$event })"
-                  name="branchLongitude" />
-              </div>
-            </div>
-
-            <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Phone</span>
-                <input
-                  class="pf-editor-input"
-                  [ngModel]="state.formValue().phoneNumber"
-                  (ngModelChange)="state.patchFormValue({ phoneNumber: $event })"
-                  name="branchPhone"
-                  maxlength="20" />
-              </div>
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Email</span>
-                <input
-                  class="pf-editor-input"
-                  type="email"
-                  [ngModel]="state.formValue().email"
-                  (ngModelChange)="state.patchFormValue({ email: $event })"
-                  name="branchEmail"
-                  maxlength="320" />
-              </div>
-            </div>
-
-            <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Opening time</span>
-                <input
-                  class="pf-editor-input"
-                  type="time"
-                  [ngModel]="state.formValue().openingTime"
-                  (ngModelChange)="state.patchFormValue({ openingTime: $event })"
-                  name="branchOpening" />
-              </div>
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Closing time</span>
-                <input
-                  class="pf-editor-input"
-                  type="time"
-                  [ngModel]="state.formValue().closingTime"
-                  (ngModelChange)="state.patchFormValue({ closingTime: $event })"
-                  name="branchClosing" />
-              </div>
-            </div>
-
-            <label class="pf-editor-checkbox">
-              <input
-                type="checkbox"
-                [ngModel]="state.formValue().isActive"
-                (ngModelChange)="state.patchFormValue({ isActive: $event })"
-                name="branchActive" />
-              <span>Branch is active</span>
-            </label>
-
-            <label class="pf-editor-checkbox">
-              <input
-                type="checkbox"
-                [ngModel]="state.formValue().isPrimaryBranch"
-                (ngModelChange)="state.patchFormValue({ isPrimaryBranch: $event })"
-                name="branchPrimary" />
-              <span>Primary branch (default location)</span>
-            </label>
-
-            <div class="admin-branches__form-actions">
-              <button
-                type="button"
-                class="admin-branches__secondary-btn"
-                (click)="state.cancelForm()"
-                [disabled]="state.saving()">
-                Cancel
-              </button>
-              <button type="submit" class="admin-branches__primary-btn" [disabled]="state.saving()">
-                {{ state.saving() ? 'Saving…' : state.formMode() === 'edit' ? 'Save changes' : 'Create branch' }}
-              </button>
-            </div>
-          </form>
-        </section>
-      }
-
-      @if (state.manageServicesOpen()) {
-        <section class="admin-glass-card admin-branches__services-card rounded-xl">
-          <div class="admin-branches__form-header">
-            @if (state.managingBranch(); as branch) {
-              <h2 class="admin-branches__form-title">{{ branch.name }}</h2>
-            }
-            <button
-              type="button"
-              class="admin-branches__icon-btn"
-              (click)="state.closeManageServices()"
-              [disabled]="state.assigningServices()"
-              aria-label="Close manage services">
-              <lucide-icon [img]="closeIcon" class="h-4 w-4" />
-            </button>
-          </div>
-
-          <div class="admin-branches__services-panel">
-            <div class="admin-branches__services-toolbar">
-              <button
-                type="button"
-                class="admin-branches__link-btn"
-                (click)="state.selectAllServices()"
-                [disabled]="state.servicesLoading() || !state.tenantServices().length">
-                Select all
-              </button>
-              <button
-                type="button"
-                class="admin-branches__link-btn"
-                (click)="state.clearAllServices()"
-                [disabled]="state.servicesLoading()">
-                Clear all
-              </button>
-            </div>
-
-            @if (state.servicesLoadError()) {
-              <p
-                class="admin-branches__banner rounded-lg border border-amber-300/80 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
-                {{ state.servicesLoadError() }}
-              </p>
-            }
-
-            @if (state.servicesLoading()) {
-              <div class="admin-branches__services-loading">
-                <div class="admin-glass-card h-12 animate-pulse rounded-lg"></div>
-                <div class="admin-glass-card h-12 animate-pulse rounded-lg"></div>
-              </div>
-            } @else if (state.tenantServices().length === 0) {
-              <div class="admin-branches__services-empty">
-                <lucide-icon [img]="wrenchIcon" class="h-8 w-8 text-indigo-500/70" />
-                <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-                  No services yet. Add services on the Services page first.
-                </p>
-              </div>
-            } @else {
-              <ul class="admin-branches__services-list">
-                @for (service of state.tenantServices(); track trackByServiceId($index, service)) {
-                  <li>
-                    <label
-                      class="admin-branches__service-item"
-                      [class.admin-branches__service-item--inactive]="!service.isActive">
-                      <input
-                        type="checkbox"
-                        [checked]="state.isServiceSelected(service.id)"
-                        (change)="state.toggleServiceSelection(service.id)"
-                        [disabled]="state.assigningServices()" />
-                      <span class="admin-branches__service-item-body">
-                        <span class="admin-branches__service-name">{{ service.name }}</span>
-                        <span class="admin-branches__service-meta">
-                          {{ formatDuration(service.durationMinutes) }}
-                          ·
-                          {{ formatPrice(service.price) }}
-                          @if (!service.isActive) {
-                            · Inactive
-                          }
-                        </span>
-                      </span>
-                    </label>
-                  </li>
-                }
-              </ul>
-            }
-
-            <div class="admin-branches__form-actions">
-              <button
-                type="button"
-                class="admin-branches__secondary-btn"
-                (click)="state.closeManageServices()"
-                [disabled]="state.assigningServices()">
-                Cancel
-              </button>
-              <button
-                type="button"
-                class="admin-branches__primary-btn"
-                (click)="state.saveServiceAssignments()"
-                [disabled]="state.assigningServices() || state.servicesLoading()">
-                {{ state.assigningServices() ? 'Saving…' : 'Save assignments' }}
-              </button>
-            </div>
-          </div>
-        </section>
-      }
-
       @if (state.branches().length === 0 && !state.isFormOpen() && !state.manageServicesOpen()) {
         <section class="admin-glass-card admin-branches__empty rounded-xl">
-          <lucide-icon [img]="mapPinIcon" class="h-10 w-10 text-indigo-500/80" />
+          <lucide-icon [img]="mapPinIcon" class="h-10 w-10 text-[var(--accent)]" />
           <h2 class="admin-branches__empty-title">No branches yet</h2>
-          <p class="mt-1 max-w-sm text-center text-sm text-zinc-500 dark:text-zinc-400">
+          <p class="mt-1 max-w-sm text-center text-sm text-[var(--text-muted)]">
             Add your first branch to manage multiple locations across your workspace.
           </p>
-          <button type="button" class="admin-branches__primary-btn mt-4" (click)="state.startCreate()">
+          <button type="button" class="admin-branches__primary-btn mt-4" (click)="state.startCreate()" [disabled]="state.saving() || state.assigningServices()">
             <lucide-icon [img]="plusIcon" class="h-4 w-4" />
             Add branch
           </button>
@@ -430,4 +130,273 @@
       }
     </div>
   }
+
+  @if (state.isFormOpen()) {
+    <app-admin-modal-shell
+      [open]="true"
+      [title]="state.formMode() === 'edit' ? 'Edit branch' : 'New branch'"
+      [subtitle]="state.formMode() === 'edit' ? 'Update location details and save changes.' : 'Add a new branch location to your workspace.'"
+      panelClass="admin-modal-panel--xl"
+      [disableClose]="state.saving()"
+      (close)="state.cancelForm()">
+<form id="admin-branch-form" class="pf-editor-fields" (ngSubmit)="trySaveBranchForm()">
+            <fieldset [disabled]="state.saving()" class="admin-modal-fieldset">
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Branch name <span class="text-rose-500">*</span></span>
+              <input
+                class="pf-editor-input"
+                [ngModel]="state.formValue().name"
+                (ngModelChange)="state.patchFormValue({ name: $event })"
+                name="branchName"
+                required
+                maxlength="200" />
+            </div>
+
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Address line 1</span>
+              <input
+                class="pf-editor-input"
+                [ngModel]="state.formValue().addressLine1"
+                (ngModelChange)="state.patchFormValue({ addressLine1: $event })"
+                name="branchAddress1"
+                maxlength="200" />
+            </div>
+
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Address line 2</span>
+              <input
+                class="pf-editor-input"
+                [ngModel]="state.formValue().addressLine2"
+                (ngModelChange)="state.patchFormValue({ addressLine2: $event })"
+                name="branchAddress2"
+                maxlength="200" />
+            </div>
+
+            <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
+              <div class="pf-editor-field">
+                <span class="pf-editor-label">City</span>
+                <input
+                  class="pf-editor-input"
+                  [ngModel]="state.formValue().city"
+                  (ngModelChange)="state.patchFormValue({ city: $event })"
+                  name="branchCity"
+                  maxlength="100" />
+              </div>
+              <div class="pf-editor-field">
+                <span class="pf-editor-label">Country</span>
+                <app-country-dial-code-picker
+                  [ngModel]="state.formValue().countryCode"
+                  (ngModelChange)="state.patchFormValue({ countryCode: $event })"
+                  name="branchCountry"
+                  mode="iso" />
+              </div>
+            </div>
+
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Postal code</span>
+              <input
+                class="pf-editor-input"
+                [ngModel]="state.formValue().postalCode"
+                (ngModelChange)="state.patchFormValue({ postalCode: $event })"
+                name="branchPostal"
+                maxlength="20" />
+            </div>
+
+            <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
+              <div class="pf-editor-field">
+                <span class="pf-editor-label">Latitude</span>
+                <input
+                  class="pf-editor-input"
+                  type="number"
+                  step="any"
+                  [ngModel]="state.formValue().latitude"
+                  (ngModelChange)="state.patchFormValue({ latitude: $event === '' || $event == null ? null : +$event })"
+                  name="branchLatitude" />
+              </div>
+              <div class="pf-editor-field">
+                <span class="pf-editor-label">Longitude</span>
+                <input
+                  class="pf-editor-input"
+                  type="number"
+                  step="any"
+                  [ngModel]="state.formValue().longitude"
+                  (ngModelChange)="state.patchFormValue({ longitude: $event === '' || $event == null ? null : +$event })"
+                  name="branchLongitude" />
+              </div>
+            </div>
+
+            <app-phone-number-field
+              [ngModel]="branchPhoneValue()"
+              (ngModelChange)="onBranchPhoneChange($event)"
+              name="branchPhone" />
+
+            <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
+              <div class="pf-editor-field">
+                <span class="pf-editor-label">Email</span>
+                <input
+                  class="pf-editor-input"
+                  type="email"
+                  [ngModel]="state.formValue().email"
+                  (ngModelChange)="state.patchFormValue({ email: $event })"
+                  name="branchEmail"
+                  maxlength="320" />
+              </div>
+            </div>
+
+            <div class="admin-branches__working-days">
+              <span class="pf-editor-label">Working hours</span>
+              <p class="admin-branches__working-days-hint">
+                Set hours per day or mark days as closed.
+              </p>
+              <div class="admin-branches__working-days-table" role="table">
+                <div class="admin-branches__working-days-head" role="row">
+                  <span role="columnheader">Day</span>
+                  <span role="columnheader">Day off</span>
+                  <span role="columnheader">Opens</span>
+                  <span role="columnheader">Closes</span>
+                </div>
+                @for (day of workingDays(); track day.dayNumber) {
+                  <div class="admin-branches__working-days-row" role="row">
+                    <span class="admin-branches__working-days-day" role="cell">
+                      {{ workingDayLabel(day.dayNumber) }}
+                    </span>
+                    <label class="admin-branches__working-days-off" role="cell">
+                      <input
+                        type="checkbox"
+                        [ngModel]="day.isDayOff"
+                        (ngModelChange)="onWorkingDayOffChange(day.dayNumber, $event)"
+                        [name]="'branchDayOff' + day.dayNumber" />
+                    </label>
+                    <input
+                      class="pf-editor-input admin-branches__working-days-time"
+                      type="time"
+                      role="cell"
+                      [ngModel]="day.startTime"
+                      (ngModelChange)="patchWorkingDay(day.dayNumber, { startTime: $event })"
+                      [name]="'branchStart' + day.dayNumber"
+                      [disabled]="day.isDayOff" />
+                    <input
+                      class="pf-editor-input admin-branches__working-days-time"
+                      type="time"
+                      role="cell"
+                      [ngModel]="day.endTime"
+                      (ngModelChange)="patchWorkingDay(day.dayNumber, { endTime: $event })"
+                      [name]="'branchEnd' + day.dayNumber"
+                      [disabled]="day.isDayOff" />
+                  </div>
+                }
+              </div>
+            </div>
+
+            <label class="pf-editor-checkbox">
+              <input
+                type="checkbox"
+                [ngModel]="state.formValue().isActive"
+                (ngModelChange)="state.patchFormValue({ isActive: $event })"
+                name="branchActive" />
+              <span>Branch is active</span>
+            </label>
+
+            <label class="pf-editor-checkbox">
+              <input
+                type="checkbox"
+                [ngModel]="state.formValue().isPrimaryBranch"
+                (ngModelChange)="state.patchFormValue({ isPrimaryBranch: $event })"
+                name="branchPrimary" />
+              <span>Primary branch (default location)</span>
+            </label>
+            </fieldset>
+      </form>
+      <ng-container modalFooter>
+        <button type="button" class="admin-branches__secondary-btn" (click)="state.cancelForm()" [disabled]="state.saving()">Cancel</button>
+        <button type="submit" form="admin-branch-form" class="admin-branches__primary-btn" [disabled]="state.saving()">
+          {{ state.saving() ? 'Saving…' : state.formMode() === 'edit' ? 'Save changes' : 'Create branch' }}
+        </button>
+      </ng-container>
+    </app-admin-modal-shell>
+  }
+
+  @if (state.manageServicesOpen()) {
+    <app-admin-modal-shell
+      [open]="true"
+      [title]="state.managingBranch()?.name ?? 'Manage services'"
+      subtitle="Choose which services are available at this branch."
+      panelClass="admin-modal-panel--wide"
+      [disableClose]="state.assigningServices()"
+      (close)="state.closeManageServices()">
+<div class="admin-branches__services-panel">
+            <div class="admin-branches__services-toolbar">
+              <button
+                type="button"
+                class="admin-branches__link-btn"
+                (click)="state.selectAllServices()"
+                [disabled]="state.servicesLoading() || !state.tenantServices().length">
+                Select all
+              </button>
+              <button
+                type="button"
+                class="admin-branches__link-btn"
+                (click)="state.clearAllServices()"
+                [disabled]="state.servicesLoading()">
+                Clear all
+              </button>
+            </div>
+
+            @if (state.servicesLoadError()) {
+              <p
+                class="admin-branches__banner rounded-lg border border-amber-300/80 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+                {{ state.servicesLoadError() }}
+              </p>
+            }
+
+            @if (state.servicesLoading()) {
+              <div class="admin-branches__services-loading">
+                <div class="admin-glass-card h-12 animate-pulse rounded-lg"></div>
+                <div class="admin-glass-card h-12 animate-pulse rounded-lg"></div>
+              </div>
+            } @else if (state.tenantServices().length === 0) {
+              <div class="admin-branches__services-empty">
+                <lucide-icon [img]="wrenchIcon" class="h-8 w-8 text-indigo-500/70" />
+                <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                  No services yet. Add services on the Services page first.
+                </p>
+              </div>
+            } @else {
+              <ul class="admin-branches__services-list">
+                @for (service of state.tenantServices(); track trackByServiceId($index, service)) {
+                  <li>
+                    <label
+                      class="admin-branches__service-item"
+                      [class.admin-branches__service-item--inactive]="!service.isActive">
+                      <input
+                        type="checkbox"
+                        [checked]="state.isServiceSelected(service.id)"
+                        (change)="state.toggleServiceSelection(service.id)"
+                        [disabled]="state.assigningServices() || state.servicesLoading()" />
+                      <span class="admin-branches__service-item-body">
+                        <span class="admin-branches__service-name">{{ service.name }}</span>
+                        <span class="admin-branches__service-meta">
+                          {{ formatDuration(service.durationMinutes) }}
+                          ┬╖
+                          {{ formatPrice(service.price) }}
+                          @if (!service.isActive) {
+                            ┬╖ Inactive
+                          }
+                        </span>
+                      </span>
+                    </label>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+      <ng-container modalFooter>
+        <button type="button" class="admin-branches__secondary-btn" (click)="state.closeManageServices()" [disabled]="state.assigningServices()">Cancel</button>
+        <button type="button" class="admin-branches__primary-btn" (click)="state.saveServiceAssignments()" [disabled]="state.assigningServices() || state.servicesLoading()">
+          {{ state.assigningServices() ? 'Saving…' : 'Save assignments' }}
+        </button>
+      </ng-container>
+    </app-admin-modal-shell>
+  }
+
 </app-admin-page-shell>

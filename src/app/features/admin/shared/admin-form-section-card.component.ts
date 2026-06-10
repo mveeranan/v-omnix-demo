@@ -46,6 +46,7 @@ import {
               type="button"
               class="admin-form-section-card__action"
               (click)="onEdit()"
+              [disabled]="saving()"
               [attr.aria-label]="'Edit ' + title()"
             >
               <lucide-icon [img]="editIcon" class="h-4 w-4" />

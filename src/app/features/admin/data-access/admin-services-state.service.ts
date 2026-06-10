@@ -102,6 +102,10 @@ export class AdminServicesStateService {
   }
 
   saveForm(): void {
+    if (this.saving()) {
+      return;
+    }
+
     const tenantId = this.resolveTenantId();
     if (!tenantId) {
       this.notifications.warning('No tenant selected.');

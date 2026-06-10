@@ -2,10 +2,21 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  width: var(--sidebar-width);
+  max-width: var(--sidebar-width);
   overflow: hidden;
+  flex-shrink: 0;
+  transition:
+    width var(--transition-base),
+    max-width var(--transition-base);
+}
+
+.admin-shell-sidebar--collapsed {
+  width: var(--sidebar-width-collapsed);
+  max-width: var(--sidebar-width-collapsed);
 }
 
 .admin-shell-drawer {
-  width: 16rem;
+  width: var(--sidebar-width);
   max-width: 85vw;
 }

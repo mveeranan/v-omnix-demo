@@ -11,8 +11,8 @@
       <li class="admin-widget-list__item">
         <span class="admin-widget-time">{{ booking.time }}</span>
         <div class="min-w-0 flex-1">
-          <p class="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">{{ booking.customer }}</p>
-          <p class="truncate text-[11px] text-zinc-500 dark:text-zinc-400">{{ booking.service }}</p>
+          <p class="truncate text-xs font-medium text-[var(--text-primary)]">{{ booking.customer }}</p>
+          <p class="truncate text-[11px] text-[var(--text-muted)]">{{ booking.service }}</p>
         </div>
         <span class="admin-status-pill shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase {{ statusClass(booking.status) }}">
           {{ statusLabel(booking.status) }}
@@ -21,3 +21,4 @@
     }
   </ul>
 </app-dashboard-widget-shell>
+

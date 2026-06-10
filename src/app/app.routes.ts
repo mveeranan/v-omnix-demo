@@ -15,6 +15,10 @@ import { AdminShellComponent } from './features/admin/layout/admin-shell.compone
 import { AdminDashboardComponent } from './features/admin/dashboard/admin-dashboard.component';
 
 import { AdminSectionPageComponent } from './features/admin/pages/admin-section-page.component';
+import { AdminBookingsListComponent } from './features/admin/bookings/pages/admin-bookings-list.component';
+import { AdminBookingCreateComponent } from './features/admin/bookings/pages/admin-booking-create.component';
+import { AdminBookingDetailsComponent } from './features/admin/bookings/pages/admin-booking-details.component';
+import { AdminBookingCalendarComponent } from './features/admin/bookings/pages/admin-booking-calendar.component';
 import { AdminServicesComponent } from './features/admin/pages/admin-services.component';
 import { AdminBranchesComponent } from './features/admin/pages/admin-branches.component';
 import { AdminProfileComponent } from './features/admin/pages/admin-profile.component';
@@ -74,13 +78,12 @@ export const routes: Routes = [
         canActivate: [manageBranchesGuard],
         component: AdminBranchesComponent
       },
-      {
-        path: 'bookings',
-        component: AdminSectionPageComponent
-      },
+      { path: 'bookings', component: AdminBookingsListComponent },
+      { path: 'bookings/new', component: AdminBookingCreateComponent },
+      { path: 'bookings/:id', component: AdminBookingDetailsComponent },
       {
         path: 'calendar',
-        component: AdminSectionPageComponent
+        component: AdminBookingCalendarComponent
       },
       {
         path: 'customers',

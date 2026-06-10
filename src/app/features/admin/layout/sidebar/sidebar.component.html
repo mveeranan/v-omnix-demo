@@ -1,46 +1,52 @@
 <aside
-  class="admin-sidebar flex h-full flex-col border-r border-zinc-200/80 bg-white/80 backdrop-blur-xl transition-[width] duration-300 dark:border-zinc-800 dark:bg-zinc-950/90"
+  class="admin-sidebar flex h-full flex-col"
   [class.admin-sidebar--collapsed]="collapsed()"
   [class.admin-sidebar--mobile]="mobile()">
   <div
-    class="admin-sidebar-header flex h-16 shrink-0 items-center gap-3 border-b border-zinc-200/80 px-4 dark:border-zinc-800">
+    class="admin-sidebar-header flex h-[var(--header-height)] shrink-0 items-center gap-3 border-b border-[var(--border-subtle)] px-4">
     <app-brand-logo gradientId="vOmnixMarkAdminSidebar" />
     @if (!collapsed() || mobile()) {
       <div class="min-w-0">
-        <p class="truncate text-sm font-semibold tracking-[0.04em] text-zinc-900 dark:text-zinc-100">V-Omnix</p>
-        <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">Admin</p>
+        <p class="truncate text-sm font-semibold text-[var(--text-primary)]">V-Omnix</p>
+        <p class="truncate text-xs text-[var(--text-muted)]">Workspace</p>
       </div>
     }
   </div>
 
-  <nav class="admin-sidebar-nav flex-1 space-y-0.5 overflow-x-hidden overflow-y-auto p-2.5" aria-label="Admin navigation">
-    @for (item of navItems(); track item.id) {
-      <a
-        [routerLink]="['/admin', item.path]"
-        routerLinkActive="admin-nav-item--active"
-        [routerLinkActiveOptions]="{ exact: item.path === 'dashboard' }"
-        (click)="onNavClick()"
-        class="admin-nav-item group relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-zinc-600 no-underline transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
-        [attr.title]="collapsed() && !mobile() ? item.label : null">
-        <lucide-icon [img]="item.icon" class="h-[18px] w-[18px] shrink-0" />
+  <nav class="admin-sidebar-nav flex-1 overflow-x-hidden overflow-y-auto px-3 py-4" aria-label="Admin navigation">
+    @for (section of sections; track section.id) {
+      @if (navBySection().get(section.id); as items) {
         @if (!collapsed() || mobile()) {
-          <span class="truncate">{{ item.label }}</span>
+          <p class="admin-sidebar__section-label mb-2 mt-4 px-2.5 first:mt-0">{{ section.label }}</p>
         }
-      </a>
+        <div class="space-y-0.5">
+          @for (item of items; track item.id) {
+            <a
+              [routerLink]="['/admin', item.path]"
+              routerLinkActive="admin-nav-item--active"
+              [routerLinkActiveOptions]="{ exact: item.path === 'dashboard' }"
+              (click)="onNavClick()"
+              class="admin-nav-item group relative flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium no-underline"
+              [attr.title]="collapsed() && !mobile() ? item.label : null">
+              <lucide-icon [img]="item.icon" class="h-[18px] w-[18px] shrink-0" />
+              @if (!collapsed() || mobile()) {
+                <span class="truncate">{{ item.label }}</span>
+              }
+            </a>
+          }
+        </div>
+      }
     }
   </nav>
 
   @if (!mobile()) {
-    <div class="admin-sidebar-footer border-t border-zinc-200/80 p-2.5 dark:border-zinc-800">
+    <div class="admin-sidebar-footer border-t border-[var(--border-subtle)] p-3">
       <button
         type="button"
         (click)="toggleCollapse()"
-        class="admin-sidebar-toggle flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        class="admin-sidebar-toggle app-btn app-btn--secondary app-btn--icon"
         [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
         <lucide-icon [img]="collapsed() ? chevronRight : chevronLeft" class="h-4 w-4" />
-        @if (!collapsed()) {
-          <span>Collapse</span>
-        }
       </button>
     </div>
   }

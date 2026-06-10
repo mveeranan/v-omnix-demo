@@ -1,0 +1,153 @@
+@if (notFound()) {
+  <app-admin-page-shell @pageFadeIn eyebrow="Operations" title="Booking not found" description="">
+    <app-booking-empty-state
+      variant="no-results"
+      actionLabel="Back to bookings"
+      (actionClick)="goBack()" />
+  </app-admin-page-shell>
+} @else if (loading()) {
+  <app-admin-page-shell eyebrow="Operations" title="Booking Details" description="Loading booking information...">
+    <app-booking-skeleton variant="detail" />
+  </app-admin-page-shell>
+} @else {
+  @if (booking(); as b) {
+  <app-admin-page-shell
+    @pageFadeIn
+    eyebrow="Operations"
+    [title]="b.displayId"
+    [description]="b.customerName + ' · ' + b.serviceName">
+    <div admin-page-actions class="admin-bookings__actions">
+      <button type="button" class="admin-bookings-secondary-btn" (click)="goBack()">
+        <lucide-icon [img]="backIcon" class="h-4 w-4" />
+        Back
+      </button>
+    </div>
+
+    <div class="admin-bookings-detail grid gap-4 lg:grid-cols-3">
+      <div class="flex flex-col gap-4 lg:col-span-2">
+        <section class="admin-glass-card admin-bookings-detail__card rounded-xl p-5">
+          <div class="mb-4 flex items-center gap-2">
+            <lucide-icon [img]="userIcon" class="h-4 w-4 text-[var(--accent)]" />
+            <h2 class="admin-bookings-detail__heading">Customer Information</h2>
+          </div>
+          <dl class="admin-bookings-detail__dl">
+            <div><dt>Name</dt><dd>{{ b.customerName }}</dd></div>
+            <div><dt>Phone</dt><dd>{{ b.phone }}</dd></div>
+            <div><dt>Email</dt><dd>{{ b.email ?? '—' }}</dd></div>
+          </dl>
+        </section>
+
+        <section class="admin-glass-card admin-bookings-detail__card rounded-xl p-5">
+          <div class="mb-4 flex items-center gap-2">
+            <lucide-icon [img]="serviceIcon" class="h-4 w-4 text-[var(--accent)]" />
+            <h2 class="admin-bookings-detail__heading">Service Information</h2>
+          </div>
+          <dl class="admin-bookings-detail__dl">
+            <div><dt>Service</dt><dd>{{ b.serviceName }}</dd></div>
+            <div><dt>Duration</dt><dd>{{ b.durationMinutes }} min</dd></div>
+            <div><dt>Price</dt><dd>{{ b.price | currency }}</dd></div>
+            <div><dt>Branch</dt><dd>{{ b.branchName }}</dd></div>
+          </dl>
+        </section>
+
+        <section class="admin-glass-card admin-bookings-detail__card rounded-xl p-5">
+          <div class="mb-4 flex items-center gap-2">
+            <lucide-icon [img]="calendarIcon" class="h-4 w-4 text-[var(--accent)]" />
+            <h2 class="admin-bookings-detail__heading">Schedule Information</h2>
+          </div>
+          <dl class="admin-bookings-detail__dl">
+            <div><dt>Date</dt><dd>{{ b.scheduledAt | date: 'fullDate' }}</dd></div>
+            <div><dt>Time</dt><dd>{{ b.scheduledAt | date: 'h:mm a' }}</dd></div>
+            <div><dt>Status</dt><dd><app-booking-status-badge [status]="b.status" /></dd></div>
+          </dl>
+        </section>
+
+        <section class="admin-glass-card admin-bookings-detail__card rounded-xl p-5">
+          <div class="mb-4 flex items-center gap-2">
+            <lucide-icon [img]="paymentIcon" class="h-4 w-4 text-[var(--accent)]" />
+            <h2 class="admin-bookings-detail__heading">Payment Information</h2>
+          </div>
+          <dl class="admin-bookings-detail__dl">
+            <div><dt>Payment status</dt><dd><app-booking-payment-badge [status]="b.paymentStatus" /></dd></div>
+            <div><dt>Subtotal</dt><dd>{{ b.price | currency }}</dd></div>
+            <div><dt>Tax</dt><dd>{{ b.taxAmount | currency }}</dd></div>
+            <div><dt>Total</dt><dd class="font-semibold">{{ b.totalAmount | currency }}</dd></div>
+            @if (b.paymentMethod) {
+              <div><dt>Method</dt><dd>{{ formatPaymentMethodLabel(b.paymentMethod) }}</dd></div>
+            }
+          </dl>
+        </section>
+
+        <section class="admin-glass-card admin-bookings-detail__card rounded-xl p-5">
+          <div class="mb-4 flex items-center gap-2">
+            <lucide-icon [img]="staffIcon" class="h-4 w-4 text-[var(--accent)]" />
+            <h2 class="admin-bookings-detail__heading">Assigned Staff</h2>
+          </div>
+          @if (b.staffName) {
+            <p class="text-sm font-medium text-[var(--text-primary)]">{{ b.staffName }}</p>
+          } @else {
+            <p class="text-sm text-[var(--text-muted)]">No staff assigned yet.</p>
+          }
+        </section>
+
+        @if (b.notes) {
+          <section class="admin-glass-card admin-bookings-detail__card rounded-xl p-5">
+            <div class="mb-4 flex items-center gap-2">
+              <lucide-icon [img]="notesIcon" class="h-4 w-4 text-[var(--accent)]" />
+              <h2 class="admin-bookings-detail__heading">Booking Notes</h2>
+            </div>
+            <p class="text-sm text-[var(--text-secondary)]">{{ b.notes }}</p>
+          </section>
+        }
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <app-booking-timeline [events]="b.timeline" />
+
+        <section class="admin-glass-card rounded-xl p-5">
+          <h3 class="admin-widget__title mb-4">Actions</h3>
+          <div class="flex flex-col gap-2">
+            <button
+              type="button"
+              class="admin-bookings-primary-btn w-full justify-center"
+              [disabled]="!canConfirm(b.status)"
+              (click)="confirm()">
+              Confirm Booking
+            </button>
+            <button
+              type="button"
+              class="admin-bookings-secondary-btn w-full justify-center"
+              [disabled]="!canAssign(b.status)"
+              (click)="assignStaff()">
+              Assign Staff
+            </button>
+            <button
+              type="button"
+              class="admin-bookings-secondary-btn w-full justify-center"
+              [disabled]="!canStart(b.status)"
+              (click)="startService()">
+              Start Service
+            </button>
+            <button
+              type="button"
+              class="admin-bookings-secondary-btn w-full justify-center"
+              [disabled]="!canComplete(b.status)"
+              (click)="complete()">
+              Complete Service
+            </button>
+            <button
+              type="button"
+              class="admin-bookings-danger-btn w-full justify-center"
+              [disabled]="!canCancel(b.status)"
+              (click)="cancel()">
+              Cancel Booking
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </app-admin-page-shell>
+  }
+}
+
+<app-assign-staff-modal />

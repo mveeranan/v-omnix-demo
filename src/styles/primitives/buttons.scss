@@ -1,0 +1,134 @@
+/* Piloz flat CTAs — no heavy gradients */
+
+.admin-section-action-btn,
+.admin-bookings-primary-btn,
+.pa-submit,
+.pf-editor-btn-primary,
+.pf-editor-publish-btn {
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-body);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-section-action-btn,
+.admin-bookings-primary-btn:not(.admin-bookings-primary-btn--ghost):not(.admin-bookings-primary-btn--ghost),
+.pf-editor-publish-btn {
+  border: 1px solid transparent;
+  background: var(--accent) !important;
+  background-image: none !important;
+  color: var(--accent-foreground) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-section-action-btn:hover,
+.admin-bookings-primary-btn:hover:not(:disabled),
+.pf-editor-publish-btn:hover:not(:disabled) {
+  background: var(--accent-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  filter: none;
+}
+
+.admin-bookings-primary-btn--ghost,
+.admin-bookings-secondary-btn,
+.pf-editor-btn-secondary {
+  border: 1px solid var(--border-strong);
+  background: var(--surface-0);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+.admin-bookings-secondary-btn:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.admin-header-action {
+  height: 2.5rem;
+  width: 2.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-0);
+  color: var(--text-primary);
+  transition: background-color var(--transition-fast);
+}
+
+.admin-header-action:hover {
+  transform: none;
+  background: var(--surface-2);
+  box-shadow: none;
+}
+
+.admin-header-action:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.app-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.app-btn--primary {
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.app-btn--primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.app-btn--secondary {
+  border: 1px solid var(--border-strong);
+  background: var(--surface-0);
+  color: var(--text-primary);
+}
+
+.app-btn--ghost {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.app-btn--danger {
+  border: 1px solid transparent;
+  background: var(--danger);
+  color: #fff;
+}
+
+.app-btn--icon {
+  padding: var(--space-2);
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.app-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pa-submit,
+.premium-submit-btn {
+  background: var(--accent) !important;
+  background-image: none !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.pa-submit:hover:not(:disabled),
+.premium-submit-btn:hover:not(:disabled) {
+  background: var(--accent-hover) !important;
+  box-shadow: var(--shadow-md) !important;
+}

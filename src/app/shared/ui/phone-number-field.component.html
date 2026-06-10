@@ -1,0 +1,85 @@
+@if (variant() === 'pa') {
+  <div class="phone-number-field phone-number-field--pa">
+    <div
+      class="pa-field pa-span-2"
+      [class.pa-field-invalid]="shouldShowErrors() && (validationErrors()?.['dialCodeRequired'] || countriesError())">
+      <label class="pa-label">{{ countryCodeLabel() }}</label>
+      <app-country-dial-code-picker
+        layout="pa-icon-control"
+        variant="pa"
+        mode="phone"
+        [ngModel]="countryPickerValue()"
+        (ngModelChange)="onCountryPickerChange($event)"
+        [disabled]="isFieldDisabled()">
+        <lucide-icon pickerIcon [img]="globeIcon" class="pa-icon" aria-hidden="true" />
+      </app-country-dial-code-picker>
+      @if (countriesError()) {
+        <p class="pa-error" role="alert">{{ countriesError() }}</p>
+      }
+    </div>
+
+    <div class="pa-field pa-span-2" [class.pa-field-invalid]="shouldShowErrors()">
+      <label class="pa-label">
+        {{ phoneLabel() }}
+        @if (required()) {
+          <span class="text-rose-500">*</span>
+        }
+      </label>
+      <div class="pa-control">
+        <lucide-icon [img]="phoneIcon" class="pa-icon" aria-hidden="true" />
+        <input
+          type="tel"
+          class="pa-input"
+          [value]="nationalNumber()"
+          (input)="onNationalNumberInput($event)"
+          (blur)="onNationalNumberBlur()"
+          [placeholder]="resolvedPlaceholder()"
+          [attr.maxlength]="nationalMaxLength() ?? null"
+          [disabled]="isFieldDisabled()"
+          inputmode="numeric"
+          autocomplete="tel-national" />
+      </div>
+      @if (errorMessage()) {
+        <p class="pa-error" role="alert">{{ errorMessage() }}</p>
+      }
+    </div>
+  </div>
+} @else {
+  <div class="phone-number-field phone-number-field--editor">
+    <div class="pf-editor-phone-row">
+      <div class="pf-editor-field">
+        <span class="pf-editor-label">{{ countryCodeLabel() }}</span>
+        <app-country-dial-code-picker
+          mode="phone"
+          [ngModel]="countryPickerValue()"
+          (ngModelChange)="onCountryPickerChange($event)"
+          [disabled]="isFieldDisabled()" />
+        @if (countriesError()) {
+          <p class="pf-editor-error">{{ countriesError() }}</p>
+        }
+      </div>
+      <div class="pf-editor-field">
+        <span class="pf-editor-label">
+          {{ phoneLabel() }}
+          @if (required()) {
+            <span class="text-rose-500">*</span>
+          }
+        </span>
+        <input
+          type="tel"
+          class="pf-editor-input"
+          [value]="nationalNumber()"
+          (input)="onNationalNumberInput($event)"
+          (blur)="onNationalNumberBlur()"
+          [placeholder]="resolvedPlaceholder()"
+          [attr.maxlength]="nationalMaxLength() ?? null"
+          [disabled]="isFieldDisabled()"
+          inputmode="numeric"
+          autocomplete="tel-national" />
+        @if (errorMessage()) {
+          <p class="pf-editor-error">{{ errorMessage() }}</p>
+        }
+      </div>
+    </div>
+  </div>
+}

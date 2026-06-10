@@ -1,5 +1,30 @@
 :host {
   display: block;
+  font-family: var(--font-sans);
+}
+
+/* Piloz landing alignment — flat accent, soft surfaces */
+.header-cta,
+.hero-primary-btn,
+.pricing-card__cta--primary {
+  background: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+  border-color: transparent !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.header-cta:hover,
+.hero-primary-btn:hover,
+.pricing-card__cta--primary:hover {
+  background: var(--accent-hover) !important;
+}
+
+.feature-card,
+.pricing-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: none;
 }
 
 .bg-mesh {
@@ -119,6 +144,23 @@
   display: block;
 }
 
+/* Slight gap between sections — a bit more than the old pb-20 only */
+.home-section {
+  padding-top: 0.75rem;
+  padding-bottom: 5.5rem;
+}
+
+@media (min-width: 1024px) {
+  .home-section {
+    padding-top: 1rem;
+    padding-bottom: 6rem;
+  }
+}
+
+.home-section__intro {
+  margin-bottom: 2rem;
+}
+
 .premium-header {
   position: sticky;
   overflow: hidden;
@@ -170,6 +212,20 @@
 .nav-link {
   letter-spacing: 0.01em;
   opacity: 0.92;
+}
+
+.header-nav {
+  padding-left: 0.75rem;
+  margin-left: 0.15rem;
+  border-left: 1px solid rgba(228, 228, 231, 0.95);
+}
+
+.hero-trust-pills {
+  width: 100%;
+}
+
+:host-context(.dark) .header-nav {
+  border-left-color: rgba(63, 63, 70, 0.95);
 }
 
 .mobile-menu-toggle {

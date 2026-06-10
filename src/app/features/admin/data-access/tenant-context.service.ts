@@ -21,6 +21,24 @@ export class TenantContextService {
     return role === 'ADMIN';
   });
 
+  /** Master / multi-branch tenants must pick a branch before services in booking flows. */
+  readonly isMultiBranchTenant = computed(() => {
+    const multiBranch = this.multiBranch();
+    if (multiBranch === true) {
+      return true;
+    }
+    if (multiBranch === false) {
+      return false;
+    }
+    const name = (this.planName() ?? '').toLowerCase();
+    if (!name) {
+      return false;
+    }
+    return (
+      name.includes('master') || name.includes('gold') || name.includes('enterprise')
+    );
+  });
+
   readonly showBranchOnProfile = computed(() => {
     const multiBranch = this.multiBranch();
     if (multiBranch === false) {

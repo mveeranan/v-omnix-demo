@@ -51,6 +51,16 @@ export class AdminShellComponent implements OnInit {
     return !this.isMobile && this.sidebarCollapsed();
   }
 
+  /** Main content left edge for in-page modals (sidebar width on desktop). */
+  get modalInsetLeft(): string {
+    if (this.isMobile) {
+      return '0px';
+    }
+    return this.sidebarCollapsedForView
+      ? 'var(--sidebar-width-collapsed)'
+      : 'var(--sidebar-width)';
+  }
+
   private updateBreakpoints(): void {
     const width = window.innerWidth;
     this.isMobile = width < 768;

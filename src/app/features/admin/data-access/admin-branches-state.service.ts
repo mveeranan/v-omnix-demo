@@ -13,7 +13,8 @@ import {
   branchToFormValue,
   createEmptyBranchFormValue,
   getBranchAssignedServiceIds,
-  inputValueToTimeSpan
+  formWorkingDaysToApi,
+  validateWorkingDaysForm
 } from '../models/branch.model';
 import { ServiceDto } from '../models/service.model';
 
@@ -218,6 +219,10 @@ export class AdminBranchesStateService {
   }
 
   saveServiceAssignments(): void {
+    if (this.assigningServices()) {
+      return;
+    }
+
     const tenantId = this.resolveTenantId();
     const branchId = this.managingServicesBranchId();
 
@@ -255,6 +260,10 @@ export class AdminBranchesStateService {
   }
 
   saveForm(): void {
+    if (this.saving()) {
+      return;
+    }
+
     const tenantId = this.resolveTenantId();
     if (!tenantId) {
       this.notifications.warning('No tenant selected.');
@@ -274,6 +283,12 @@ export class AdminBranchesStateService {
       return;
     }
 
+    const workingDaysError = validateWorkingDaysForm(form.workingDays);
+    if (workingDaysError) {
+      this.notifications.warning(workingDaysError);
+      return;
+    }
+
     const payload: BranchUpsertRequest = {
       tenantId,
       name,
@@ -286,9 +301,7 @@ export class AdminBranchesStateService {
       longitude: form.longitude ?? null,
       phoneNumber: form.phoneNumber.trim() || null,
       email: email || null,
-      openingTime: inputValueToTimeSpan(form.openingTime),
-      closingTime: inputValueToTimeSpan(form.closingTime),
-      timeZone: form.timeZone.trim() || null,
+      workingDays: formWorkingDaysToApi(form.workingDays),
       isActive: form.isActive,
       isPrimaryBranch: form.isPrimaryBranch
     };
@@ -329,7 +342,8 @@ export class AdminBranchesStateService {
         services: saved.services?.length ? saved.services : existing?.services,
         serviceIds: saved.serviceIds?.length
           ? saved.serviceIds
-          : existing?.serviceIds ?? getBranchAssignedServiceIds(existing ?? saved)
+          : existing?.serviceIds ?? getBranchAssignedServiceIds(existing ?? saved),
+        workingDays: saved.workingDays?.length ? saved.workingDays : existing?.workingDays
       };
 
       const index = list.findIndex((b) => b.id === saved.id);

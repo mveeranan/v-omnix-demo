@@ -103,8 +103,11 @@ export class MediaUploadZoneComponent {
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
-      if (!this.clearAfterSelect()) {
+      const isImage = file.type.startsWith('image/');
+      if (!this.clearAfterSelect() && isImage) {
         this.localPreview.set(dataUrl);
+      } else if (!this.clearAfterSelect()) {
+        this.localPreview.set('');
       }
       this.fileSelected.emit({ file, dataUrl });
       if (this.clearAfterSelect()) {

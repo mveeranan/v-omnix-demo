@@ -21,7 +21,7 @@
           </linearGradient>
         </defs>
       </svg>
-      <span class="absolute inset-0 flex items-center justify-center text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ percent() }}%</span>
+      <span class="absolute inset-0 flex items-center justify-center text-sm font-bold text-[var(--text-primary)]">{{ percent() }}%</span>
     </div>
     <ul class="min-w-0 flex-1 space-y-1.5">
       @for (step of steps(); track step.id) {
@@ -33,7 +33,7 @@
             <span class="truncate text-zinc-500 line-through dark:text-zinc-500">{{ step.label }}</span>
           } @else {
             <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-600">
-              <lucide-icon [img]="circleIcon" class="h-2.5 w-2.5 text-zinc-400 dark:text-zinc-500" />
+              <lucide-icon [img]="circleIcon" class="h-2.5 w-2.5 text-[var(--text-muted)] dark:text-zinc-500" />
             </span>
             <span class="truncate font-medium text-zinc-800 dark:text-zinc-200">{{ step.label }}</span>
           }
@@ -42,3 +42,4 @@
     </ul>
   </div>
 </app-dashboard-widget-shell>
+

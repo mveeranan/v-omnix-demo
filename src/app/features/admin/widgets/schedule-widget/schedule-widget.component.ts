@@ -36,7 +36,7 @@ export class ScheduleWidgetComponent {
       completed:
         'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/35 dark:bg-emerald-500/15 dark:text-emerald-300',
       cancelled:
-        'border-zinc-200 bg-zinc-100 text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
+        'border-zinc-200 bg-zinc-100 text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-[var(--text-muted)]'
     };
     return map[status];
   }
@@ -45,3 +45,4 @@ export class ScheduleWidgetComponent {
     return status.replace('-', ' ');
   }
 }
+

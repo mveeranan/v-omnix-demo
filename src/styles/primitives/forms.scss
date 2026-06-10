@@ -1,0 +1,38 @@
+.pa-input,
+.pf-editor-input,
+.app-input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font-size: var(--font-size-body);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.pa-input:focus,
+.pf-editor-input:focus,
+.app-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+}
+
+.app-field__label {
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+.app-field__hint {
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+}
+
+.app-field__error {
+  font-size: var(--font-size-caption);
+  color: var(--danger);
+}

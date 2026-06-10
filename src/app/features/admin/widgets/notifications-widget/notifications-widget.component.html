@@ -35,8 +35,8 @@
               }
             </div>
             <div class="min-w-0 flex-1">
-              <p class="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">{{ notification.title }}</p>
-              <p class="line-clamp-1 text-[11px] text-zinc-600 dark:text-zinc-400">{{ notification.message }}</p>
+              <p class="truncate text-xs font-medium text-[var(--text-primary)]">{{ notification.title }}</p>
+              <p class="line-clamp-1 text-[11px] text-zinc-600 dark:text-[var(--text-muted)]">{{ notification.message }}</p>
               <p class="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-500">{{ notification.time }}</p>
             </div>
             <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500 dark:bg-indigo-400"></span>
@@ -46,3 +46,4 @@
     }
   </ul>
 </app-dashboard-widget-shell>
+

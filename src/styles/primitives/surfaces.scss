@@ -1,0 +1,54 @@
+.admin-shell-bg {
+  background: var(--surface-1);
+}
+
+.admin-glass-card,
+.app-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: none;
+}
+
+.app-card__header {
+  padding: var(--space-4) var(--space-5) 0;
+}
+
+.app-card__body {
+  padding: var(--space-4) var(--space-5);
+}
+
+.admin-widget-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.app-metric-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-elevated);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-metric-card__label {
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+}
+
+.app-metric-card__value {
+  margin-top: var(--space-1);
+  font-size: var(--font-size-metric);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-form-section-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-sm);
+}

@@ -1,0 +1,29 @@
+.admin-page__eyebrow {
+  font-size: var(--font-size-caption);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: var(--font-weight-semibold);
+}
+
+.admin-page__title {
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.admin-page__description {
+  font-size: var(--font-size-body);
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
+.admin-widget__title {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.admin-widget__subtitle {
+  color: var(--text-muted);
+}
