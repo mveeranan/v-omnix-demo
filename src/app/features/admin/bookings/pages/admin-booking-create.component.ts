@@ -1,4 +1,4 @@
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -36,6 +36,7 @@ const RECEIPT_MAX_MB = 5;
   standalone: true,
   imports: [
     CurrencyPipe,
+    DecimalPipe,
     FormsModule,
     AdminPageShellComponent,
     LucideAngularModule,

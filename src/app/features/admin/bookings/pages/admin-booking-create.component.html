@@ -285,83 +285,112 @@
           </p>
 
           @if (selectedServices().length > 0) {
-            <div class="mt-4 grid gap-4 lg:grid-cols-3">
-              <div class="admin-glass-card admin-bookings-review-card rounded-lg p-4 text-sm lg:col-span-3">
-                <p class="admin-widget__section-label">Booking overview</p>
-                <dl class="mt-3 grid gap-3 sm:grid-cols-2">
+            <div class="admin-bookings-summary-layout mt-5 grid gap-5 lg:grid-cols-5 lg:items-start">
+              <section class="admin-glass-card admin-bookings-summary-details rounded-xl p-5 sm:p-6 lg:col-span-2">
+                <p class="admin-widget__section-label">Booking details</p>
+                <p class="admin-bookings-summary-details__hint mt-1 text-sm text-[var(--text-muted)]">
+                  Confirm who, where, and when — pricing is on the order summary.
+                </p>
+                <dl class="admin-bookings-summary-meta mt-4 grid grid-cols-2 gap-x-5 gap-y-4 text-sm">
                   @if (requiresBranchSelection()) {
-                    <div>
-                      <dt class="admin-bookings-review-card__muted">Branch</dt>
-                      <dd class="admin-bookings-review-card__primary mt-1">{{ selectedBranchName() }}</dd>
+                    <div class="admin-bookings-summary-meta__cell">
+                      <dt>Branch</dt>
+                      <dd class="admin-bookings-summary-meta__value">{{ selectedBranchName() }}</dd>
                     </div>
                   }
-                  <div class="sm:col-span-2">
-                    <dt class="admin-bookings-review-card__muted">Services</dt>
-                    <dd class="admin-bookings-review-card__primary mt-1">{{ bookingCapture().serviceNames }}</dd>
-                    <ul class="admin-bookings-selected-services mt-2 space-y-1">
-                      @for (svc of selectedServices(); track svc.id) {
-                        <li class="admin-bookings-review-card__muted text-xs">
-                          {{ svc.name }} · {{ formatDuration(svc.durationMinutes) }} · {{ svc.price | currency }}
-                        </li>
+                  <div
+                    class="admin-bookings-summary-meta__cell"
+                    [class.col-span-2]="!requiresBranchSelection()">
+                    <dt>Customer</dt>
+                    <dd>
+                      <span class="admin-bookings-summary-meta__value block">{{ bookingCapture().customerName }}</span>
+                      <span class="mt-0.5 block text-[var(--text-secondary)]">{{ bookingCapture().phoneNumber }}</span>
+                      @if (bookingCapture().email) {
+                        <span class="mt-0.5 block text-[var(--text-secondary)]">{{ bookingCapture().email }}</span>
                       }
-                    </ul>
-                    <p class="admin-bookings-review-card__muted mt-2 text-xs">
-                      Total: {{ formatDuration(bookingCapture().totalDurationMinutes) }} ·
-                      {{ bookingCapture().totalPrice | currency }}
-                    </p>
-                  </div>
-                  <div>
-                    <dt class="admin-bookings-review-card__muted">Customer</dt>
-                    <dd class="admin-bookings-review-card__primary mt-1">{{ bookingCapture().customerName }}</dd>
-                    <p class="admin-bookings-review-card__muted mt-1">{{ bookingCapture().phoneNumber }}</p>
-                    @if (bookingCapture().email) {
-                      <p class="admin-bookings-review-card__muted mt-1">{{ bookingCapture().email }}</p>
-                    }
-                  </div>
-                  <div>
-                    <dt class="admin-bookings-review-card__muted">Schedule</dt>
-                    <dd class="admin-bookings-review-card__primary mt-1">
-                      {{ bookingCapture().startDateTimeLocal }} – {{ bookingCapture().endDateTimeLocal }}
                     </dd>
-                    <p class="admin-bookings-review-card__muted mt-1">
-                      UTC: {{ bookingCapture().startDateTimeUtc }} → {{ bookingCapture().endDateTimeUtc }}
-                    </p>
+                  </div>
+                  <div class="admin-bookings-summary-meta__cell">
+                    <dt>Schedule</dt>
+                    <dd>
+                      <span class="admin-bookings-summary-meta__value block">
+                        {{ bookingCapture().startDateTimeLocal }}
+                      </span>
+                      <span class="mt-0.5 block text-[var(--text-secondary)]">
+                        Ends {{ bookingCapture().endDateTimeLocal }}
+                      </span>
+                      <span class="admin-bookings-summary-duration mt-2 inline-flex items-center gap-1.5 rounded-full bg-[var(--surface-2)] px-2.5 py-1 text-xs font-medium text-[var(--text-secondary)]">
+                        <lucide-icon [img]="clockIcon" class="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
+                        {{ formatDuration(bookingCapture().totalDurationMinutes) }} total
+                      </span>
+                    </dd>
+                  </div>
+                  <div class="admin-bookings-summary-meta__cell">
+                    <dt>Services</dt>
+                    <dd>
+                      <ul class="admin-bookings-summary-service-tags">
+                        @for (svc of selectedServices(); track svc.id) {
+                          <li class="admin-bookings-summary-service-tag">
+                            <span class="admin-bookings-summary-service-tag__name">{{ svc.name }}</span>
+                            <span class="admin-bookings-summary-service-tag__meta">{{ formatDuration(svc.durationMinutes) }}</span>
+                          </li>
+                        }
+                      </ul>
+                    </dd>
                   </div>
                 </dl>
-              </div>
-            </div>
+              </section>
 
-            <div class="admin-glass-card admin-bookings-invoice__summary mt-4 rounded-xl p-5 sm:p-6">
-              <div class="space-y-3 text-sm">
-                @for (svc of selectedServices(); track svc.id) {
-                  <div class="flex justify-between gap-4 border-b border-zinc-100 pb-3 last:border-0 last:pb-0 dark:border-zinc-800">
-                    <span class="admin-bookings-invoice__label">{{ svc.name }}</span>
-                    <span class="admin-bookings-invoice__value text-right">
-                      {{ formatDuration(svc.durationMinutes) }} · {{ svc.price | currency }}
-                    </span>
+              <section class="admin-glass-card admin-bookings-summary-order rounded-xl p-5 sm:p-6 lg:col-span-3">
+                <div class="admin-bookings-summary-order__head flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p class="admin-widget__section-label">Order summary</p>
+                    <p class="mt-1 text-sm text-[var(--text-muted)]">Line items and amount due</p>
                   </div>
-                }
-                <div class="flex justify-between gap-4">
-                  <span class="admin-bookings-invoice__label">Total duration</span>
-                  <span class="admin-bookings-invoice__value">{{
-                    formatDuration(bookingCapture().totalDurationMinutes)
-                  }}</span>
+                  <span class="admin-bookings-summary-order__badge">
+                    {{ selectedServices().length }}
+                    {{ selectedServices().length === 1 ? 'service' : 'services' }}
+                  </span>
                 </div>
-                <div class="flex justify-between gap-4">
-                  <span class="admin-bookings-invoice__label">Subtotal</span>
-                  <span class="admin-bookings-invoice__value">{{ invoice().subtotal | currency }}</span>
+
+                <div class="admin-bookings-line-items mt-4 overflow-x-auto">
+                  <table class="admin-bookings-line-items__table w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th scope="col">Description</th>
+                        <th scope="col" class="text-right">Duration</th>
+                        <th scope="col" class="text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (svc of selectedServices(); track svc.id) {
+                        <tr>
+                          <td class="admin-bookings-line-items__name">{{ svc.name }}</td>
+                          <td class="text-right text-[var(--text-secondary)]">{{ formatDuration(svc.durationMinutes) }}</td>
+                          <td class="text-right font-medium tabular-nums text-[var(--text-primary)]">{{ svc.price | currency }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
                 </div>
-                <div class="flex justify-between gap-4">
-                  <span class="admin-bookings-invoice__label">Tax ({{ invoice().taxRate * 100 }}%)</span>
-                  <span class="admin-bookings-invoice__value">{{ invoice().tax | currency }}</span>
+
+                <dl class="admin-bookings-summary-totals mt-4 space-y-2 border-t border-[var(--border-subtle)] pt-4 text-sm">
+                  <div class="admin-bookings-summary-totals__row">
+                    <dt>Subtotal</dt>
+                    <dd>{{ invoice().subtotal | currency }}</dd>
+                  </div>
+                  <div class="admin-bookings-summary-totals__row">
+                    <dt>Tax ({{ invoice().taxRate * 100 | number : '1.0-2' }}%)</dt>
+                    <dd>{{ invoice().tax | currency }}</dd>
+                  </div>
+                </dl>
+                <div class="admin-bookings-invoice__total-block mt-4 border-t border-[var(--border-subtle)] pt-4">
+                  <div class="admin-bookings-invoice__total-row">
+                    <span class="admin-bookings-invoice__total-label">Amount due</span>
+                    <span class="admin-bookings-invoice__total-amount">{{ invoice().total | currency }}</span>
+                  </div>
                 </div>
-              </div>
-              <div class="admin-bookings-invoice__total-block border-t border-zinc-100 pt-4 dark:border-zinc-800">
-                <div class="admin-bookings-invoice__total-row">
-                  <span class="admin-bookings-invoice__total-label">Total</span>
-                  <span class="admin-bookings-invoice__total-amount">{{ invoice().total | currency }}</span>
-                </div>
-              </div>
+              </section>
             </div>
             <div class="admin-bookings-invoice__actions mt-4">
               <button
