@@ -1,14 +1,13 @@
-import {
+﻿import {
   LayoutDashboard,
   Briefcase,
-  Wrench,
-  CalendarCheck,
-  Calendar,
   Users,
   CreditCard,
   Settings,
   User,
-  MapPin
+  Package,
+  ShoppingCart,
+  Globe
 } from 'lucide-angular';
 
 export type AdminNavSection = 'overview' | 'operations' | 'business' | 'settings';
@@ -20,7 +19,6 @@ export interface AdminNavItemConfig {
   icon: typeof LayoutDashboard;
   description: string;
   section: AdminNavSection;
-  requiresCapability?: 'manageBranches';
 }
 
 export const ADMIN_NAV_SECTIONS: { id: AdminNavSection; label: string }[] = [
@@ -36,7 +34,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     label: 'Dashboard',
     path: 'dashboard',
     icon: LayoutDashboard,
-    description: 'Your business at a glance — bookings, revenue, and activity.',
+    description: 'Your business at a glance — orders, revenue, and activity.',
     section: 'overview'
   },
   {
@@ -48,19 +46,11 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     section: 'overview'
   },
   {
-    id: 'bookings',
-    label: 'Bookings',
-    path: 'bookings',
-    icon: CalendarCheck,
-    description: 'View and manage all customer bookings.',
-    section: 'operations'
-  },
-  {
-    id: 'calendar',
-    label: 'Calendar',
-    path: 'calendar',
-    icon: Calendar,
-    description: 'Schedule availability and team calendars.',
+    id: 'orders',
+    label: 'Orders',
+    path: 'orders',
+    icon: ShoppingCart,
+    description: 'View and manage customer orders.',
     section: 'operations'
   },
   {
@@ -72,20 +62,11 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     section: 'operations'
   },
   {
-    id: 'services',
-    label: 'Services',
-    path: 'services',
-    icon: Wrench,
-    description: 'Manage service offerings, pricing, and durations.',
-    section: 'business'
-  },
-  {
-    id: 'branches',
-    label: 'Branches',
-    path: 'branches',
-    icon: MapPin,
-    description: 'Manage locations, hours, and primary branch settings.',
-    requiresCapability: 'manageBranches',
+    id: 'products',
+    label: 'Products',
+    path: 'products',
+    icon: Package,
+    description: 'Manage your product catalog, pricing, and inventory.',
     section: 'business'
   },
   {
@@ -94,6 +75,14 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     path: 'portfolio',
     icon: Briefcase,
     description: 'Showcase your work, galleries, and brand presence.',
+    section: 'business'
+  },
+  {
+    id: 'website',
+    label: 'Website',
+    path: 'website',
+    icon: Globe,
+    description: 'Configure your public storefront and website settings.',
     section: 'business'
   },
   {

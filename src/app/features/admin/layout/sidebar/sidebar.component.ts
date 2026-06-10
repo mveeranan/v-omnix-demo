@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LucideAngularModule, ChevronLeft, ChevronRight } from 'lucide-angular';
@@ -9,7 +9,6 @@ import {
   AdminNavItemConfig,
   AdminNavSection
 } from '../../config/admin-nav.config';
-import { TenantContextService } from '../../data-access/tenant-context.service';
 import { AdminLayoutStateService } from '../../services/admin-layout-state.service';
 
 @Component({
@@ -30,20 +29,11 @@ export class SidebarComponent {
   readonly closeMobile = output<void>();
 
   private readonly layoutState = inject(AdminLayoutStateService);
-  private readonly tenantContext = inject(TenantContextService);
 
   readonly chevronLeft = ChevronLeft;
   readonly chevronRight = ChevronRight;
   readonly sections = ADMIN_NAV_SECTIONS;
-
-  readonly navItems = computed(() =>
-    ADMIN_NAV_ITEMS.filter((item) => {
-      if (item.requiresCapability === 'manageBranches') {
-        return this.tenantContext.canManageBranches();
-      }
-      return true;
-    })
-  );
+  readonly navItems = computed(() => ADMIN_NAV_ITEMS);
 
   readonly navBySection = computed(() => {
     const items = this.navItems();

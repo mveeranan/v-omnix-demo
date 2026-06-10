@@ -1,7 +1,7 @@
-<app-admin-page-shell
+﻿<app-admin-page-shell
   eyebrow="Dashboard"
   title="Overview"
-  description="Your business at a glance — bookings, revenue, and activity.">
+  description="Your business at a glance — orders, revenue, and activity.">
   <span
     admin-page-actions
     class="rounded-full border border-[var(--accent)]/30 bg-[var(--accent-muted)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--accent)]">
@@ -17,12 +17,6 @@
     </div>
     <div class="admin-widget-grid__cell admin-widget-grid__customers" @widgetEnter>
       <app-customers-widget />
-    </div>
-    <div class="admin-widget-grid__cell admin-widget-grid__schedule" @widgetEnter>
-      <app-schedule-widget />
-    </div>
-    <div class="admin-widget-grid__cell admin-widget-grid__upcoming" @widgetEnter>
-      <app-upcoming-bookings-widget />
     </div>
   </div>
 </app-admin-page-shell>
@@ -96,7 +90,7 @@
         @if (onboardingStep() === 3) {
           <label class="block space-y-1">
             <span class="text-sm font-medium">Workspace Details</span>
-            <textarea formControlName="workspaceDetails" rows="4" placeholder="Describe your workspace setup, locations, and team workflow" class="onboarding-control w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"></textarea>
+            <textarea formControlName="workspaceDetails" rows="4" placeholder="Describe your business, products, and how you sell online" class="onboarding-control w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"></textarea>
           </label>
         }
         @if (onboardingStep() === 4) {

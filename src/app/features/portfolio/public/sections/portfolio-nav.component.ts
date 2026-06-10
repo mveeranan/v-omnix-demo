@@ -1,4 +1,4 @@
-import { Component, input, inject, PLATFORM_ID } from '@angular/core';
+﻿import { Component, input, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser, DOCUMENT } from '@angular/common';
 import { Portfolio } from '../../models/portfolio.model';
 
@@ -50,7 +50,6 @@ export class PortfolioNavComponent {
     const p = this.portfolio();
     const links: { id: string; label: string }[] = [{ id: 'hero', label: 'Home' }];
     if (p.about.enabled) links.push({ id: 'about', label: 'About' });
-    if (p.services.some((s) => s.enabled)) links.push({ id: 'services', label: 'Services' });
     if (p.gallery.length) links.push({ id: 'gallery', label: 'Work' });
     if (p.reviews.length) links.push({ id: 'reviews', label: 'Reviews' });
     if (p.highlights.enabled && p.highlights.items.length) links.push({ id: 'highlights', label: 'Why us' });
@@ -63,3 +62,4 @@ export class PortfolioNavComponent {
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
+

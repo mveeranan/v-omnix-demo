@@ -1,9 +1,9 @@
-<app-dashboard-widget-shell
+﻿<app-dashboard-widget-shell
   title="Recent customers"
   subtitle="Latest activity"
   [loading]="loading()"
   [empty]="isEmpty()"
-  emptyMessage="No customers yet. New bookings will appear here.">
+  emptyMessage="No customers yet. New orders will appear here.">
   <span widgetActions class="admin-widget-count-badge">{{ customers().length }}</span>
 
   <ul class="admin-widget-scroll admin-widget-list">
@@ -27,4 +27,5 @@
     }
   </ul>
 </app-dashboard-widget-shell>
+
 

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -35,7 +35,7 @@ import { PortfolioStateService } from '../../data-access/portfolio-state.service
             <span class="pf-editor-label">CTA type</span>
             <select class="pf-editor-input" [(ngModel)]="d.cta.type" (ngModelChange)="sync()">
               <option value="whatsapp">WhatsApp</option>
-              <option value="internal">In-app booking</option>
+              <option value="internal">Storefront link</option>
               <option value="customUrl">Custom URL</option>
             </select>
           </div>
@@ -81,3 +81,4 @@ export class PublishEditorPanelComponent {
     this.state.patchDraft((p) => ({ ...p }));
   }
 }
+

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -34,7 +34,7 @@ export class StatsSectionComponent implements AfterViewInit, OnDestroy {
     if (!p.stats.enabled) return;
 
     this.stats.set([
-      { label: 'Bookings completed', value: p.stats.bookingsCompleted, display: 0 },
+      { label: 'Orders completed', value: p.stats.bookingsCompleted, display: 0 },
       { label: 'Years experience', value: p.stats.yearsExperience, display: 0 },
       { label: 'Happy customers', value: p.stats.happyCustomers, display: 0 }
     ]);
@@ -79,3 +79,4 @@ export class StatsSectionComponent implements AfterViewInit, OnDestroy {
     requestAnimationFrame(tick);
   }
 }
+

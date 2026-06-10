@@ -1,18 +1,4 @@
-.admin-services__card,
-.admin-branches__card {
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  background: var(--surface-elevated);
-  box-shadow: var(--shadow-sm);
-}
-
-.admin-services__card-title,
-.admin-branches__card-title {
-  color: var(--text-primary);
-  font-weight: var(--font-weight-semibold);
-}
-
-.admin-profile__section {
+﻿.admin-profile__section {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   background: var(--surface-elevated);

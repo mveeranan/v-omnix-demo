@@ -1,13 +1,10 @@
-<app-admin-page-shell
+﻿<app-admin-page-shell
   eyebrow="Workspace"
   title="Profile"
-  description="Manage your business identity and primary location.">
+  description="Manage your business identity, branding, and contact details.">
   @if (loading()) {
     <div class="admin-profile-sections">
       <div class="admin-glass-card h-48 animate-pulse rounded-xl"></div>
-      @if (showBranchSection()) {
-        <div class="admin-glass-card h-48 animate-pulse rounded-xl"></div>
-      }
     </div>
   } @else {
     <div @pageFadeIn class="admin-profile-sections">
@@ -19,17 +16,6 @@
       }
 
       <app-business-profile-form-section />
-
-      @if (showBranchSection()) {
-        <app-branch-form-section />
-      } @else {
-        <section class="admin-glass-card rounded-xl border border-zinc-200/80 p-4 dark:border-zinc-700">
-          <p class="text-sm font-medium text-[var(--text-primary)]">Multiple locations</p>
-          <p class="mt-1 text-xs text-[var(--text-muted)]">
-            Your plan includes multi-branch management. Location settings will be available in the Branches area soon.
-          </p>
-        </section>
-      }
     </div>
   }
 </app-admin-page-shell>

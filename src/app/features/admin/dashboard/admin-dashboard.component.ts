@@ -1,11 +1,9 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideAngularModule, Trash2 } from 'lucide-angular';
 import { RevenueWidgetComponent } from '../widgets/revenue-widget/revenue-widget.component';
-import { ScheduleWidgetComponent } from '../widgets/schedule-widget/schedule-widget.component';
-import { UpcomingBookingsWidgetComponent } from '../widgets/upcoming-bookings-widget/upcoming-bookings-widget.component';
 import { CustomersWidgetComponent } from '../widgets/customers-widget/customers-widget.component';
 import { BrandingWidgetComponent } from '../widgets/branding-widget/branding-widget.component';
 import { AdminPageShellComponent } from '../shared/admin-page-shell.component';
@@ -19,8 +17,6 @@ import { widgetEnter, widgetsStagger } from '../animations/admin.animations';
     ReactiveFormsModule,
     LucideAngularModule,
     RevenueWidgetComponent,
-    ScheduleWidgetComponent,
-    UpcomingBookingsWidgetComponent,
     CustomersWidgetComponent,
     BrandingWidgetComponent,
     AdminPageShellComponent

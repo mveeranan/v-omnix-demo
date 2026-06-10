@@ -1,4 +1,4 @@
-import { environment } from './environment';
+﻿import { environment } from './environment';
 
 const base = environment.apiBaseUrl;
 
@@ -33,23 +33,10 @@ export const API_ENDPOINTS = {
     getByTenant: (tenantId: string) => `${base}/business-profiles/${tenantId}`,
     upsert: `${base}/business-profiles`
   },
-  branches: {
-    listByTenant: (tenantId: string) => `${base}/branches?tenantId=${encodeURIComponent(tenantId)}`,
-    upsert: `${base}/branches`
-  },
   documents: {
     upload: `${base}/documents/upload`
   },
   tenant: {
     current: `${base}/tenant`
-  },
-  services: {
-    listByTenant: (tenantId: string) =>
-      `${base}/services?tenantId=${encodeURIComponent(tenantId)}`,
-    create: `${base}/services`,
-    update: `${base}/services`
-  },
-  serviceAssignments: {
-    assign: `${base}/service-assignments`
   }
 } as const;

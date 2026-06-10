@@ -1,11 +1,11 @@
-<app-admin-page-shell
+﻿<app-admin-page-shell
   eyebrow="Portfolio"
   title="Portfolio builder"
   description="Build your portfolio in a focused workspace. Preview anytime with the button below."
   @pageFadeIn
 >
   @if (state.isLoading()) {
-    <p class="pf-editor-muted py-12 text-center">Loading your portfolio…</p>
+    <p class="pf-editor-muted py-12 text-center">Loading your portfolioâ€¦</p>
   } @else {
     @if (state.draft(); as draft) {
     <div class="pf-editor-shell">
@@ -44,7 +44,6 @@
           <div class="pf-editor-sections">
             <app-brand-editor-section />
             <app-about-editor-section />
-            <app-services-editor-section />
             <app-gallery-editor-section />
             <app-reviews-editor-section />
             <app-social-editor-section />
@@ -103,3 +102,4 @@
     }
   }
 </app-admin-page-shell>
+

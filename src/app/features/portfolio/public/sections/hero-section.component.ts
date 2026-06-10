@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+﻿import { Component, input, output } from '@angular/core';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 import { Portfolio, PortfolioCta } from '../../models/portfolio.model';
 import { PortfolioSocial } from '../../models/portfolio.model';
@@ -24,10 +24,11 @@ export class HeroSectionComponent {
   readonly viewWork = output<void>();
 
   ctaUrl(cta: PortfolioCta, social: PortfolioSocial): string {
-    return resolvePortfolioCtaUrl(cta, social);
+    return resolvePortfolioCtaUrl(cta, social, this.portfolio().slug);
   }
 
   ctaExternal(cta: PortfolioCta): boolean {
     return resolvePortfolioCtaExternal(cta);
   }
 }
+

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ADMIN_NAV_ITEMS } from '../config/admin-nav.config';
@@ -6,13 +6,15 @@ import { AdminPageShellComponent } from '../shared/admin-page-shell.component';
 import { AdminSectionPlaceholderComponent } from '../shared/admin-section-placeholder.component';
 
 const ACTION_LABELS: Record<string, string> = {
-  services: 'Add service',
-  bookings: 'New booking',
-  calendar: 'Set availability',
+  products: 'Add product',
+  orders: 'New order',
   customers: 'Add customer',
+  website: 'Configure website',
   payments: 'Create invoice',
   settings: 'Open preferences'
 };
+
+const PLACEHOLDER_IDS = new Set(['products', 'orders', 'customers', 'website', 'payments', 'settings']);
 
 @Component({
   selector: 'app-admin-section-page',
@@ -37,8 +39,13 @@ export class AdminSectionPageComponent {
   }
 
   readonly section = computed(() => {
-    const segment = this.currentUrl().split('?')[0].split('/').filter(Boolean).pop();
-    return ADMIN_NAV_ITEMS.find((item) => item.path === segment && item.id !== 'dashboard') ?? null;
+    const segments = this.currentUrl().split('?')[0].split('/').filter(Boolean);
+    const adminIndex = segments.indexOf('admin');
+    const segment = adminIndex >= 0 ? segments[adminIndex + 1] : segments.pop();
+    if (!segment || !PLACEHOLDER_IDS.has(segment)) {
+      return null;
+    }
+    return ADMIN_NAV_ITEMS.find((item) => item.path === segment) ?? null;
   });
 
   readonly actionLabel = computed(() => {

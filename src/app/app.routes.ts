@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+﻿import { Routes } from '@angular/router';
 
 import { SampleComponent } from '../components/sample/sample.component';
 
@@ -15,16 +15,10 @@ import { AdminShellComponent } from './features/admin/layout/admin-shell.compone
 import { AdminDashboardComponent } from './features/admin/dashboard/admin-dashboard.component';
 
 import { AdminSectionPageComponent } from './features/admin/pages/admin-section-page.component';
-import { AdminBookingsListComponent } from './features/admin/bookings/pages/admin-bookings-list.component';
-import { AdminBookingCreateComponent } from './features/admin/bookings/pages/admin-booking-create.component';
-import { AdminBookingDetailsComponent } from './features/admin/bookings/pages/admin-booking-details.component';
-import { AdminBookingCalendarComponent } from './features/admin/bookings/pages/admin-booking-calendar.component';
-import { AdminServicesComponent } from './features/admin/pages/admin-services.component';
-import { AdminBranchesComponent } from './features/admin/pages/admin-branches.component';
 import { AdminProfileComponent } from './features/admin/pages/admin-profile.component';
-import { manageBranchesGuard } from './core/auth/manage-branches.guard';
 import { PortfolioEditorComponent } from './features/portfolio/editor/portfolio-editor.component';
 import { PublicPortfolioComponent } from './features/portfolio/public/public-portfolio.component';
+import { ShopStorefrontComponent } from './features/shop/public/shop-storefront.component';
 
 export const routes: Routes = [
   {
@@ -70,20 +64,20 @@ export const routes: Routes = [
         component: PortfolioEditorComponent
       },
       {
-        path: 'services',
-        component: AdminServicesComponent
+        path: 'products',
+        component: AdminSectionPageComponent
       },
       {
-        path: 'branches',
-        canActivate: [manageBranchesGuard],
-        component: AdminBranchesComponent
+        path: 'orders',
+        component: AdminSectionPageComponent
       },
-      { path: 'bookings', component: AdminBookingsListComponent },
-      { path: 'bookings/new', component: AdminBookingCreateComponent },
-      { path: 'bookings/:id', component: AdminBookingDetailsComponent },
       {
-        path: 'calendar',
-        component: AdminBookingCalendarComponent
+        path: 'orders/:id',
+        component: AdminSectionPageComponent
+      },
+      {
+        path: 'website',
+        component: AdminSectionPageComponent
       },
       {
         path: 'customers',
@@ -106,6 +100,10 @@ export const routes: Routes = [
   {
     path: 'portfolio/:slug',
     component: PublicPortfolioComponent
+  },
+  {
+    path: 'shop/:slug',
+    component: ShopStorefrontComponent
   },
   {
     path: '**',

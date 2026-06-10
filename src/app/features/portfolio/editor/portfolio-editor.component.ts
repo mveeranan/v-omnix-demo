@@ -1,4 +1,4 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
+﻿import { CommonModule, DOCUMENT } from '@angular/common';
 import {
   Component,
   HostListener,
@@ -15,7 +15,6 @@ import { PortfolioStateService } from '../data-access/portfolio-state.service';
 import { PublicPortfolioComponent } from '../public/public-portfolio.component';
 import { BrandEditorSectionComponent } from './sections/brand-editor-section.component';
 import { AboutEditorSectionComponent } from './sections/about-editor-section.component';
-import { ServicesEditorSectionComponent } from './sections/services-editor-section.component';
 import { GalleryEditorSectionComponent } from './sections/gallery-editor-section.component';
 import { ReviewsEditorSectionComponent } from './sections/reviews-editor-section.component';
 import { SocialEditorSectionComponent } from './sections/social-editor-section.component';
@@ -37,7 +36,6 @@ type EditorTab = 'content' | 'theme' | 'publish';
     PublicPortfolioComponent,
     BrandEditorSectionComponent,
     AboutEditorSectionComponent,
-    ServicesEditorSectionComponent,
     GalleryEditorSectionComponent,
     ReviewsEditorSectionComponent,
     SocialEditorSectionComponent,
@@ -96,7 +94,7 @@ export class PortfolioEditorComponent implements OnDestroy {
   }
 
   savingLabel(): string {
-    if (this.state.isSaving()) return 'Saving…';
+    if (this.state.isSaving()) return 'Savingâ€¦';
     if (this.state.isDirty()) return 'Unsaved changes';
     return 'All changes saved';
   }
@@ -111,3 +109,4 @@ export class PortfolioEditorComponent implements OnDestroy {
     this.document.body.style.overflow = '';
   }
 }
+

@@ -1,4 +1,4 @@
-<app-dashboard-widget-shell title="Revenue summary" subtitle="Last 30 days performance" [loading]="loading()">
+﻿<app-dashboard-widget-shell title="Revenue summary" subtitle="Last 30 days performance" [loading]="loading()">
   <div class="flex h-full min-h-0 flex-col gap-3">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div class="min-w-0">
@@ -26,14 +26,14 @@
 
     <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
       <div class="admin-widget-kpi">
-        <p class="admin-widget-kpi__label">Bookings</p>
+        <p class="admin-widget-kpi__label">Orders</p>
         <p class="admin-widget-kpi__value">{{ revenue().bookingsThisMonth }}</p>
         <p class="admin-widget-kpi__hint">this month</p>
       </div>
       <div class="admin-widget-kpi">
         <p class="admin-widget-kpi__label">Avg. ticket</p>
         <p class="admin-widget-kpi__value">{{ formatCurrency(revenue().averageTicket, revenue().currency) }}</p>
-        <p class="admin-widget-kpi__hint">per booking</p>
+        <p class="admin-widget-kpi__hint">per order</p>
       </div>
       <div class="admin-widget-kpi">
         <p class="admin-widget-kpi__label">Pending</p>
@@ -67,4 +67,5 @@
     </div>
   </div>
 </app-dashboard-widget-shell>
+
 
