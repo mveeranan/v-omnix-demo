@@ -24,11 +24,11 @@
             <div
               class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border"
               [ngClass]="
-                notification.type === 'booking'
+                notification.type === 'order'
                   ? 'border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300'
                   : 'border-zinc-200 bg-zinc-100 text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'
               ">
-              @if (notification.type === 'booking') {
+              @if (notification.type === 'order') {
                 <lucide-icon [img]="calendarIcon" class="h-3.5 w-3.5" />
               } @else {
                 <lucide-icon [img]="bellIcon" class="h-3.5 w-3.5" />

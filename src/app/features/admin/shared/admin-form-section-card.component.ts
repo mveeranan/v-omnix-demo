@@ -7,6 +7,7 @@ import {
   Pencil,
   Save,
   X,
+  RotateCcw,
   LucideIconData
 } from 'lucide-angular';
 
@@ -52,6 +53,17 @@ import {
               <lucide-icon [img]="editIcon" class="h-4 w-4" />
             </button>
           } @else {
+            @if (showClear()) {
+              <button
+                type="button"
+                class="admin-form-section-card__action"
+                (click)="clear.emit()"
+                [disabled]="saving()"
+                aria-label="Reset section"
+              >
+                <lucide-icon [img]="clearIcon" class="h-4 w-4" />
+              </button>
+            }
             <button
               type="button"
               class="admin-form-section-card__action admin-form-section-card__action--save"
@@ -77,8 +89,9 @@ import {
       @if (expanded()) {
         <div class="pf-editor-card__body">
           @if (lastSavedAt()) {
-            <p class="admin-form-section-card__hint pf-editor-hint">
-              Last saved {{ lastSavedAt() | date: 'short' }}
+            <p class="admin-form-section-card__saved" role="status">
+              <lucide-icon [img]="checkIcon" class="h-4 w-4" />
+              Saved {{ lastSavedAt() | date: 'short' }}
             </p>
           }
           <ng-content />
@@ -198,10 +211,12 @@ export class AdminFormSectionCardComponent {
   readonly editing = input(false);
   readonly saving = input(false);
   readonly canSave = input(true);
+  readonly showClear = input(false);
   readonly lastSavedAt = input<Date | null>(null);
 
   readonly save = output<void>();
   readonly cancel = output<void>();
+  readonly clear = output<void>();
   readonly edit = output<void>();
 
   readonly chevronIcon = ChevronDown;
@@ -209,6 +224,7 @@ export class AdminFormSectionCardComponent {
   readonly editIcon = Pencil;
   readonly saveIcon = Save;
   readonly cancelIcon = X;
+  readonly clearIcon = RotateCcw;
 
   onEdit(): void {
     this.expanded.set(true);

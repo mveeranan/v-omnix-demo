@@ -39,7 +39,7 @@ import { LucideAngularModule, X } from 'lucide-angular';
             @if (showCloseButton()) {
               <button
                 type="button"
-                class="admin-bookings-icon-btn shrink-0"
+                class="admin-icon-btn shrink-0"
                 aria-label="Close"
                 [disabled]="disableClose()"
                 (click)="close.emit()">

@@ -1798,8 +1798,8 @@ html {
 .pf-reveal-hidden {
   opacity: 0;
   transition:
-    opacity 650ms ease,
-    transform 650ms ease;
+    opacity 400ms ease,
+    transform 400ms ease;
   transition-delay: var(--pf-delay, 0ms);
   will-change: opacity, transform;
 }

@@ -1,7 +1,6 @@
 import { Injectable, inject, signal, computed, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs';
-import { toObservable } from '@angular/core/rxjs-interop';
+import { Observable, tap } from 'rxjs';
 import { Portfolio } from '../models/portfolio.model';
 import { PortfolioService } from './portfolio.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -17,14 +16,12 @@ export class PortfolioStateService {
   readonly draft = signal<Portfolio | null>(null);
   readonly isLoading = signal(true);
   readonly isSaving = signal(false);
-  readonly isDirty = signal(false);
   readonly lastSavedAt = signal<Date | null>(null);
 
   readonly hasGalleryItems = computed(() => (this.draft()?.gallery.length ?? 0) > 0);
 
   constructor() {
     this.loadDraft();
-    this.setupAutosave();
   }
 
   loadDraft(): void {
@@ -36,21 +33,43 @@ export class PortfolioStateService {
         next: (portfolio) => {
           this.draft.set(portfolio);
           this.isLoading.set(false);
-          this.isDirty.set(false);
         },
         error: () => this.isLoading.set(false)
       });
   }
 
-  patchDraft(updater: (current: Portfolio) => Portfolio): void {
+  commitAndSave(partial: Partial<Portfolio>): Observable<Portfolio> {
     const current = this.draft();
-    if (!current) return;
-    const next = updater(structuredClone(current));
-    this.draft.set(next);
-    this.isDirty.set(true);
-    if (next.gallery.length > 0) {
-      this.dashboardData.markPortfolioUploaded();
+    if (!current) {
+      throw new Error('No draft loaded');
     }
+
+    const next = this.mergePartial(current, partial);
+    this.draft.set(next);
+
+    if (this.isSaving()) {
+      return new Observable((subscriber) => {
+        subscriber.next(next);
+        subscriber.complete();
+      });
+    }
+
+    this.isSaving.set(true);
+    return this.portfolioService.saveDraft(next).pipe(
+      tap({
+        next: (saved) => {
+          this.draft.set(saved);
+          this.isSaving.set(false);
+          this.lastSavedAt.set(new Date());
+          if (saved.gallery.length > 0) {
+            this.dashboardData.markPortfolioUploaded();
+          }
+        },
+        error: () => {
+          this.isSaving.set(false);
+        }
+      })
+    );
   }
 
   publish(): void {
@@ -60,7 +79,7 @@ export class PortfolioStateService {
 
     const current = this.draft();
     if (!current?.slug?.trim()) {
-      this.notifications.warning('Set a portfolio URL slug before publishing.');
+      this.notifications.warning('Set a store URL slug before publishing.');
       return;
     }
     this.isSaving.set(true);
@@ -70,60 +89,58 @@ export class PortfolioStateService {
       .subscribe({
         next: (published) => {
           this.draft.set(published);
-          this.isDirty.set(false);
           this.isSaving.set(false);
           this.lastSavedAt.set(new Date());
-          this.notifications.success('Portfolio published!', `Live at /portfolio/${published.slug}`);
+          this.notifications.success('Store published!', `Live at /store/${published.slug}`);
         },
         error: () => {
           this.isSaving.set(false);
-          this.notifications.error('Could not publish portfolio.');
+          this.notifications.error('Could not publish store.');
         }
       });
   }
 
-  saveNow(): void {
-    if (this.isSaving()) {
-      return;
+  private mergePartial(current: Portfolio, partial: Partial<Portfolio>): Portfolio {
+    const next = structuredClone(current);
+    if (partial.brand) next.brand = partial.brand;
+    if (partial.hero) next.hero = partial.hero;
+    if (partial.offerBanner) next.offerBanner = partial.offerBanner;
+    if (partial.saleCollection) next.saleCollection = partial.saleCollection;
+    if (partial.storeDescription) {
+      next.storeDescription = partial.storeDescription;
+      next.about = {
+        ...next.about,
+        enabled: partial.storeDescription.enabled,
+        description: partial.storeDescription.description
+      };
     }
-
-    const current = this.draft();
-    if (!current) return;
-    this.isSaving.set(true);
-    this.portfolioService
-      .saveDraft(current)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (saved) => {
-          this.draft.set(saved);
-          this.isDirty.set(false);
-          this.isSaving.set(false);
-          this.lastSavedAt.set(new Date());
-        },
-        error: () => this.isSaving.set(false)
-      });
-  }
-
-  private setupAutosave(): void {
-    toObservable(this.draft)
-      .pipe(
-        filter((d): d is Portfolio => d !== null),
-        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-        debounceTime(800),
-        filter(() => this.isDirty()),
-        tap(() => this.isSaving.set(true)),
-        switchMap((portfolio) => this.portfolioService.saveDraft(portfolio)),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe({
-        next: (saved) => {
-          this.draft.set(saved);
-          this.isDirty.set(false);
-          this.isSaving.set(false);
-          this.lastSavedAt.set(new Date());
-          // Silent autosave — status shown in editor header
-        },
-        error: () => this.isSaving.set(false)
-      });
+    if (partial.gallerySection) next.gallerySection = partial.gallerySection;
+    if (partial.gallery) next.gallery = partial.gallery;
+    if (partial.featuredProducts) next.featuredProducts = partial.featuredProducts;
+    if (partial.reviewsSection) next.reviewsSection = partial.reviewsSection;
+    if (partial.reviews) next.reviews = partial.reviews;
+    if (partial.contactSupport) {
+      next.contactSupport = partial.contactSupport;
+      next.contact = {
+        ...next.contact,
+        enabled: partial.contactSupport.enabled,
+        email: partial.contactSupport.email,
+        phone: partial.contactSupport.phone
+      };
+    }
+    if (partial.paymentMethods) next.paymentMethods = partial.paymentMethods;
+    if (partial.storePolicies) next.storePolicies = partial.storePolicies;
+    if (partial.trustBadges) next.trustBadges = partial.trustBadges;
+    if (partial.newsletter) next.newsletter = partial.newsletter;
+    if (partial.highlights) next.highlights = partial.highlights;
+    if (partial.socialSection) next.socialSection = partial.socialSection;
+    if (partial.social) next.social = partial.social;
+    if (partial.theme) next.theme = partial.theme;
+    if (partial.slug !== undefined) next.slug = partial.slug;
+    if (partial.cta) next.cta = partial.cta;
+    if (partial.published !== undefined) next.published = partial.published;
+    if (partial.about) next.about = partial.about;
+    if (partial.contact) next.contact = partial.contact;
+    return next;
   }
 }

@@ -33,10 +33,16 @@ export class StatsSectionComponent implements AfterViewInit, OnDestroy {
     const p = this.portfolio();
     if (!p.stats.enabled) return;
 
+    const s = p.stats;
     this.stats.set([
-      { label: 'Orders completed', value: p.stats.bookingsCompleted, display: 0 },
-      { label: 'Years experience', value: p.stats.yearsExperience, display: 0 },
-      { label: 'Happy customers', value: p.stats.happyCustomers, display: 0 }
+      { label: 'Total products', value: s.totalProducts ?? 0, display: 0 },
+      {
+        label: 'Total orders',
+        value: s.totalOrders ?? s.ordersCompleted ?? s.bookingsCompleted ?? 0,
+        display: 0
+      },
+      { label: 'Total customers', value: s.totalCustomers ?? s.happyCustomers ?? 0, display: 0 },
+      { label: 'Years in business', value: s.yearsExperience, display: 0 }
     ]);
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

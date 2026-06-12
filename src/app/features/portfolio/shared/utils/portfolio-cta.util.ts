@@ -1,6 +1,6 @@
 ﻿import { PortfolioCta, PortfolioSocial } from '../../models/portfolio.model';
 
-const SHOP_PATH_PREFIX = '/shop';
+const STORE_PATH_PREFIX = '/store';
 
 export function resolvePortfolioCtaUrl(
   cta: PortfolioCta,
@@ -17,7 +17,9 @@ export function resolvePortfolioCtaUrl(
         return cta.target;
       }
       const normalizedSlug = slug?.trim();
-      return normalizedSlug ? `${SHOP_PATH_PREFIX}/${normalizedSlug}` : SHOP_PATH_PREFIX;
+      return normalizedSlug
+        ? `${STORE_PATH_PREFIX}/${normalizedSlug}/products`
+        : `${STORE_PATH_PREFIX}`;
     }
     case 'customUrl':
       return cta.target || '#';

@@ -1,6 +1,5 @@
 ﻿import {
   LayoutDashboard,
-  Briefcase,
   Users,
   CreditCard,
   Settings,
@@ -70,19 +69,11 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     section: 'business'
   },
   {
-    id: 'portfolio',
-    label: 'Portfolio',
-    path: 'portfolio',
-    icon: Briefcase,
-    description: 'Showcase your work, galleries, and brand presence.',
-    section: 'business'
-  },
-  {
     id: 'website',
     label: 'Website',
     path: 'website',
     icon: Globe,
-    description: 'Configure your public storefront and website settings.',
+    description: 'Edit your public store pages, content, theme, and publish settings.',
     section: 'business'
   },
   {

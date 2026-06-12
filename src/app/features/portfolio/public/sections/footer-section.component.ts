@@ -1,15 +1,20 @@
 import { Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Portfolio } from '../../models/portfolio.model';
 import { SocialLinksComponent } from '../../shared/ui/social-links.component';
-import { ScrollRevealDirective } from '../../shared/directives/scroll-reveal.directive';
 
 @Component({
   selector: 'app-pf-footer-section',
   standalone: true,
-  imports: [SocialLinksComponent, ScrollRevealDirective],
+  imports: [RouterLink, SocialLinksComponent],
   templateUrl: './footer-section.component.html'
 })
 export class FooterSectionComponent {
   readonly portfolio = input.required<Portfolio>();
   readonly currentYear = new Date().getFullYear();
+
+  storeLink(segment?: string): string[] {
+    const base = ['/store', this.portfolio().slug];
+    return segment ? [...base, segment] : base;
+  }
 }

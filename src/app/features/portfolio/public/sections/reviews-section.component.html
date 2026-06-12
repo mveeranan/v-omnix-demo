@@ -1,27 +1,27 @@
-@if (portfolio().reviews.length) {
+@if (portfolio().reviewsSection.enabled && portfolio().reviews.length) {
   <section class="pf-section pf-section-alt" id="reviews">
     <div class="container mx-auto px-6">
-      <div appScrollReveal class="text-center">
-        <p class="pf-eyebrow">Reviews</p>
-        <h2 class="pf-display pf-heading mt-2 text-3xl font-semibold md:text-4xl">What clients say</h2>
+      <div appScrollReveal>
+        <app-store-section-header eyebrow="Reviews" title="What customers say" [icon]="sectionIcon" />
       </div>
       <div appScrollReveal="slide-right" [appScrollRevealDelay]="100" class="relative mx-auto mt-12 max-w-2xl">
         @for (review of portfolio().reviews; track review.id; let i = $index) {
           @if (activeIndex() === i) {
-            <article class="pf-glass-card p-8 text-center">
-              <div class="mb-4 flex justify-center gap-1">
-                @for (s of stars(review.rating); track s) {
-                  <lucide-icon
-                    [img]="starIcon"
-                    class="h-5 w-5"
-                    [style.color]="s < review.rating ? 'var(--pf-accent-text, var(--pf-accent))' : 'currentColor'"
-                    [style.opacity]="s < review.rating ? '1' : '0.3'"
-                  />
-                }
+            <app-store-card class="block p-8 text-center">
+              @if (review.avatarUrl) {
+                <img [src]="review.avatarUrl" alt="" class="mx-auto mb-4 h-14 w-14 rounded-full object-cover" />
+              } @else {
+                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--pf-accent)]/10 text-lg font-semibold text-[var(--pf-accent)]">
+                  {{ review.author.charAt(0) || '?' }}
+                </div>
+              }
+              <app-star-rating [rating]="review.rating" [showValue]="false" />
+              <div class="mt-3 flex justify-center">
+                <app-verified-badge />
               </div>
-              <p class="pf-text text-lg italic leading-relaxed">"{{ review.text }}"</p>
+              <p class="pf-text mt-4 text-lg italic leading-relaxed">"{{ review.text }}"</p>
               <p class="mt-6 font-medium pf-accent-text">— {{ review.author }}</p>
-            </article>
+            </app-store-card>
           }
         }
         @if (portfolio().reviews.length > 1) {

@@ -1,19 +1,22 @@
-﻿import { Component, input, output } from '@angular/core';
+﻿import { Component, computed, input, output } from '@angular/core';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
-import { Portfolio, PortfolioCta } from '../../models/portfolio.model';
-import { PortfolioSocial } from '../../models/portfolio.model';
-import { resolvePortfolioCtaUrl, resolvePortfolioCtaExternal } from '../../shared/utils/portfolio-cta.util';
+import { RouterLink } from '@angular/router';
+import { LucideAngularModule, ShoppingBag } from 'lucide-angular';
+import { Portfolio } from '../../models/portfolio.model';
 
 @Component({
   selector: 'app-pf-hero-section',
   standalone: true,
+  imports: [RouterLink, LucideAngularModule],
   templateUrl: './hero-section.component.html',
   animations: [
     trigger('heroEnter', [
       transition(':enter', [
         query('.hero-item', [
           style({ opacity: 0, transform: 'translateY(24px)' }),
-          stagger(120, [animate('600ms cubic-bezier(0.22, 1, 0.36, 1)', style({ opacity: 1, transform: 'translateY(0)' }))])
+          stagger(120, [
+            animate('600ms cubic-bezier(0.22, 1, 0.36, 1)', style({ opacity: 1, transform: 'translateY(0)' }))
+          ])
         ])
       ])
     ])
@@ -22,13 +25,30 @@ import { resolvePortfolioCtaUrl, resolvePortfolioCtaExternal } from '../../share
 export class HeroSectionComponent {
   readonly portfolio = input.required<Portfolio>();
   readonly viewWork = output<void>();
+  readonly shopIcon = ShoppingBag;
 
-  ctaUrl(cta: PortfolioCta, social: PortfolioSocial): string {
-    return resolvePortfolioCtaUrl(cta, social, this.portfolio().slug);
+  readonly eyebrow = computed(() => {
+    const p = this.portfolio();
+    return p.hero.eyebrow?.trim() || 'special offer';
+  });
+
+  readonly headline = computed(() => {
+    const p = this.portfolio();
+    return p.hero.headline?.trim() || p.brand.businessName || 'top collection';
+  });
+
+  readonly subheadline = computed(() => {
+    const p = this.portfolio();
+    return p.hero.subheadline?.trim() || p.brand.tagline;
+  });
+
+  shopLink(): string[] {
+    const slug = this.portfolio().slug;
+    return slug ? ['/store', slug, 'products'] : ['/store'];
   }
 
-  ctaExternal(cta: PortfolioCta): boolean {
-    return resolvePortfolioCtaExternal(cta);
+  contactLink(): string[] {
+    const slug = this.portfolio().slug;
+    return slug ? ['/store', slug, 'contact'] : ['/store'];
   }
 }
-

@@ -1,6 +1,7 @@
 /* Piloz flat CTAs — no heavy gradients */
 
 .admin-section-action-btn,
+.admin-action-primary,
 .admin-bookings-primary-btn,
 .pa-submit,
 .pf-editor-btn-primary,
@@ -35,6 +36,8 @@
   filter: none;
 }
 
+.admin-action-primary--ghost,
+.admin-action-secondary,
 .admin-bookings-primary-btn--ghost,
 .admin-bookings-secondary-btn,
 .pf-editor-btn-secondary {
@@ -45,6 +48,24 @@
 }
 
 .admin-bookings-secondary-btn:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.admin-icon-btn,
+.admin-bookings-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.25rem;
+  width: 2.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-0);
+  color: var(--text-primary);
+}
+
+.admin-icon-btn:hover,
+.admin-bookings-icon-btn:hover {
   background: var(--surface-2);
 }
 

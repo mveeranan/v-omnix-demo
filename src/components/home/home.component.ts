@@ -921,7 +921,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private buildPlanDescription(planName: string): string {
     const normalized = planName.toLowerCase();
     if (normalized.includes('starter')) {
-      return 'For early-stage teams launching their first booking workflow.';
+      return 'For early-stage teams launching their first online store.';
     }
     if (normalized.includes('silver') || normalized.includes('growth')) {
       return 'For growing teams scaling operations across locations.';
@@ -929,7 +929,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (normalized.includes('gold') || normalized.includes('pro') || normalized.includes('enterprise')) {
       return 'For high-volume operators that need enterprise-grade controls.';
     }
-    return 'A scalable plan designed for booking operations growth.';
+    return 'A scalable plan designed for e-commerce growth.';
   }
 
   private getFirstError(errors?: string[]): string {

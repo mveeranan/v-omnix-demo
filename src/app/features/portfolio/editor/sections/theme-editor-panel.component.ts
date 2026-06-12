@@ -1,0 +1,137 @@
+import { Component, computed, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Palette } from 'lucide-angular';
+import { AdminDetailFieldComponent } from '../../../admin/shared/admin-detail-field.component';
+import { WebsiteSectionShellComponent } from '../shared/website-section-shell.component';
+import { PortfolioStateService } from '../../data-access/portfolio-state.service';
+import { WebsiteSectionStateService } from '../../data-access/website-section-state.service';
+import { PortfolioTheme } from '../../models/portfolio.model';
+import { PORTFOLIO_THEME_PRESETS } from '../../models/portfolio-theme.presets';
+
+@Component({
+  selector: 'app-theme-editor-panel',
+  standalone: true,
+  imports: [FormsModule, WebsiteSectionShellComponent, AdminDetailFieldComponent],
+  template: `
+    <app-website-section-shell sectionId="theme" title="Theme" [icon]="icon" [complete]="true">
+      <div view class="admin-detail-view">
+        @if (draft()?.theme; as t) {
+          <div class="admin-detail-view__grid admin-detail-view__grid--2">
+            <app-admin-detail-field label="Preset" [value]="presetLabel(t.presetId)" />
+            <app-admin-detail-field label="Mode" [value]="t.mode" />
+          </div>
+          <div class="pf-theme-preview-row">
+            <div class="pf-editor-color-preview">
+              <span class="pf-editor-label">Primary</span>
+              <span class="pf-editor-color-preview__chip" [style.background]="t.primaryColor"></span>
+              <span class="pf-editor-color-preview__hex">{{ t.primaryColor }}</span>
+            </div>
+            <div class="pf-editor-color-preview">
+              <span class="pf-editor-label">Accent</span>
+              <span class="pf-editor-color-preview__chip" [style.background]="t.accentColor"></span>
+              <span class="pf-editor-color-preview__hex">{{ t.accentColor }}</span>
+            </div>
+          </div>
+          <app-admin-detail-field label="Font family" [value]="t.fontFamily" />
+          <app-admin-detail-field label="Border radius" [value]="t.borderRadius" />
+        }
+      </div>
+
+      <div edit class="pf-editor-fields">
+        @if (buffer(); as t) {
+          <div class="pf-editor-field">
+            <span class="pf-editor-label">Preset</span>
+            <select class="pf-editor-input" [ngModel]="t.presetId" (ngModelChange)="applyPreset($event)">
+              @for (preset of presets; track preset.id) {
+                <option [value]="preset.id">{{ preset.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Primary color</span>
+              <div class="pf-editor-color-row">
+                <input type="color" class="pf-editor-color-input" [ngModel]="t.primaryColor" (ngModelChange)="patch({ primaryColor: $event })" />
+                <span class="pf-editor-color-preview__chip" [style.background]="t.primaryColor"></span>
+              </div>
+            </div>
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Accent color</span>
+              <div class="pf-editor-color-row">
+                <input type="color" class="pf-editor-color-input" [ngModel]="t.accentColor" (ngModelChange)="patch({ accentColor: $event })" />
+                <span class="pf-editor-color-preview__chip" [style.background]="t.accentColor"></span>
+              </div>
+            </div>
+          </div>
+          <div class="pf-editor-field">
+            <span class="pf-editor-label">Font family</span>
+            <input class="pf-editor-input" [ngModel]="t.fontFamily" (ngModelChange)="patch({ fontFamily: $event })" />
+          </div>
+          <div class="pf-editor-field">
+            <span class="pf-editor-label">Border radius</span>
+            <input class="pf-editor-input" [ngModel]="t.borderRadius" (ngModelChange)="patch({ borderRadius: $event })" placeholder="0.75rem" />
+          </div>
+          <div class="pf-editor-field">
+            <span class="pf-editor-label">Mode</span>
+            <select class="pf-editor-input" [ngModel]="t.mode" (ngModelChange)="patch({ mode: $event })">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+        }
+      </div>
+    </app-website-section-shell>
+  `,
+  styles: `
+    .pf-theme-preview-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .pf-editor-color-preview,
+    .pf-editor-color-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .pf-editor-color-preview__chip {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 0.375rem;
+      border: 1px solid rgb(226 232 240);
+    }
+
+    .pf-editor-color-preview__hex {
+      font-size: 0.8125rem;
+      color: rgb(100 116 139);
+      font-family: ui-monospace, monospace;
+    }
+  `
+})
+export class ThemeEditorPanelComponent {
+  private readonly state = inject(PortfolioStateService);
+  private readonly sectionState = inject(WebsiteSectionStateService);
+
+  readonly draft = this.state.draft;
+  readonly icon = Palette;
+  readonly presets = PORTFOLIO_THEME_PRESETS;
+  readonly buffer = computed(() => this.sectionState.buffer<PortfolioTheme>('theme'));
+
+  presetLabel(id: string): string {
+    return this.presets.find((p) => p.id === id)?.label ?? id;
+  }
+
+  applyPreset(id: string): void {
+    const preset = this.presets.find((p) => p.id === id);
+    if (!preset) return;
+    this.sectionState.patchBuffer<PortfolioTheme>('theme', () => ({ ...preset.theme }));
+  }
+
+  patch(partial: Partial<PortfolioTheme>): void {
+    this.sectionState.patchBuffer<PortfolioTheme>('theme', (t) => ({ ...t, ...partial }));
+  }
+}

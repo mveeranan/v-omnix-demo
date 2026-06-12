@@ -136,6 +136,14 @@ export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, s
     '--pf-glass-bg': glassBg,
     '--pf-glass-border': glassBorder,
     '--pf-nav-bg': `color-mix(in srgb, ${bg} 88%, transparent)`,
-    '--pf-nav-border': glassBorder
+    '--pf-nav-border': glassBorder,
+    '--mk-primary': brand,
+    '--mk-accent': accent,
+    '--mk-sale': accent,
+    '--mk-text': text,
+    '--mk-muted': textMuted,
+    '--mk-border': isLight ? '#eeeeee' : mixHex(bg, PAPER, 0.15),
+    '--mk-font-body': theme.fontFamily,
+    '--mk-font-heading': theme.fontFamily
   };
 }

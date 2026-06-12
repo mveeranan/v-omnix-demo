@@ -14,11 +14,17 @@ import { AdminShellComponent } from './features/admin/layout/admin-shell.compone
 
 import { AdminDashboardComponent } from './features/admin/dashboard/admin-dashboard.component';
 
-import { AdminSectionPageComponent } from './features/admin/pages/admin-section-page.component';
 import { AdminProfileComponent } from './features/admin/pages/admin-profile.component';
 import { PortfolioEditorComponent } from './features/portfolio/editor/portfolio-editor.component';
-import { PublicPortfolioComponent } from './features/portfolio/public/public-portfolio.component';
-import { ShopStorefrontComponent } from './features/shop/public/shop-storefront.component';
+import { StoreShellComponent } from './features/store/layout/store-shell.component';
+import { StoreHomePageComponent } from './features/store/pages/store-home-page.component';
+import { StoreAboutPageComponent } from './features/store/pages/store-about-page.component';
+import { StoreContactPageComponent } from './features/store/pages/store-contact-page.component';
+import { ProductListPageComponent } from './features/store/pages/product-list-page.component';
+import { ProductDetailPageComponent } from './features/store/pages/product-detail-page.component';
+import { CartPageComponent } from './features/store/cart/cart-page.component';
+import { CheckoutPageComponent } from './features/store/checkout/checkout-page.component';
+import { CheckoutSuccessPageComponent } from './features/store/checkout/checkout-success-page.component';
 
 export const routes: Routes = [
   {
@@ -61,35 +67,57 @@ export const routes: Routes = [
       },
       {
         path: 'portfolio',
+        redirectTo: 'website',
+        pathMatch: 'full'
+      },
+      {
+        path: 'website',
         component: PortfolioEditorComponent
       },
       {
         path: 'products',
-        component: AdminSectionPageComponent
+        loadComponent: () =>
+          import('./features/admin/products/products-list.component').then((m) => m.ProductsListComponent)
+      },
+      {
+        path: 'products/new',
+        loadComponent: () =>
+          import('./features/admin/products/product-form.component').then((m) => m.ProductFormComponent)
+      },
+      {
+        path: 'products/:id/edit',
+        loadComponent: () =>
+          import('./features/admin/products/product-form.component').then((m) => m.ProductFormComponent)
       },
       {
         path: 'orders',
-        component: AdminSectionPageComponent
+        loadComponent: () =>
+          import('./features/admin/orders/orders-list.component').then((m) => m.OrdersListComponent)
       },
       {
         path: 'orders/:id',
-        component: AdminSectionPageComponent
-      },
-      {
-        path: 'website',
-        component: AdminSectionPageComponent
+        loadComponent: () =>
+          import('./features/admin/orders/order-detail.component').then((m) => m.OrderDetailComponent)
       },
       {
         path: 'customers',
-        component: AdminSectionPageComponent
+        loadComponent: () =>
+          import('./features/admin/customers/customers-list.component').then((m) => m.CustomersListComponent)
+      },
+      {
+        path: 'customers/:id',
+        loadComponent: () =>
+          import('./features/admin/customers/customer-detail.component').then((m) => m.CustomerDetailComponent)
       },
       {
         path: 'payments',
-        component: AdminSectionPageComponent
+        loadComponent: () =>
+          import('./features/admin/payments/payments-list.component').then((m) => m.PaymentsListComponent)
       },
       {
         path: 'settings',
-        component: AdminSectionPageComponent
+        loadComponent: () =>
+          import('./features/admin/settings/settings.component').then((m) => m.SettingsComponent)
       }
     ]
   },
@@ -98,12 +126,35 @@ export const routes: Routes = [
     component: HomeComponent
   },
   {
+    path: 'store/:slug',
+    component: StoreShellComponent,
+    children: [
+      { path: '', component: StoreHomePageComponent },
+      { path: 'about', component: StoreAboutPageComponent },
+      { path: 'contact', component: StoreContactPageComponent },
+      { path: 'products', component: ProductListPageComponent },
+      { path: 'products/:productSlug', component: ProductDetailPageComponent }
+    ]
+  },
+  {
     path: 'portfolio/:slug',
-    component: PublicPortfolioComponent
+    redirectTo: 'store/:slug'
   },
   {
     path: 'shop/:slug',
-    component: ShopStorefrontComponent
+    redirectTo: 'store/:slug/products'
+  },
+  {
+    path: 'cart',
+    component: CartPageComponent
+  },
+  {
+    path: 'checkout',
+    component: CheckoutPageComponent
+  },
+  {
+    path: 'checkout/success',
+    component: CheckoutSuccessPageComponent
   },
   {
     path: '**',

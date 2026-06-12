@@ -64,16 +64,16 @@ import { PORTFOLIO_THEME_PRESETS } from '../../models/portfolio-theme.presets';
           @if (d.stats.enabled) {
             <div class="pf-editor-fields-grid pf-editor-fields-grid--3">
               <div class="pf-editor-field">
-                <span class="pf-editor-label">Bookings completed</span>
+                <span class="pf-editor-label">Total orders</span>
                 <input
                   type="number"
                   class="pf-editor-input"
-                  [(ngModel)]="d.stats.bookingsCompleted"
+                  [(ngModel)]="d.stats.totalOrders"
                   (ngModelChange)="sync()"
                 />
               </div>
               <div class="pf-editor-field">
-                <span class="pf-editor-label">Years of experience</span>
+                <span class="pf-editor-label">Years in business</span>
                 <input
                   type="number"
                   class="pf-editor-input"
@@ -82,11 +82,11 @@ import { PORTFOLIO_THEME_PRESETS } from '../../models/portfolio-theme.presets';
                 />
               </div>
               <div class="pf-editor-field">
-                <span class="pf-editor-label">Happy customers</span>
+                <span class="pf-editor-label">Total customers</span>
                 <input
                   type="number"
                   class="pf-editor-input"
-                  [(ngModel)]="d.stats.happyCustomers"
+                  [(ngModel)]="d.stats.totalCustomers"
                   (ngModelChange)="sync()"
                 />
               </div>

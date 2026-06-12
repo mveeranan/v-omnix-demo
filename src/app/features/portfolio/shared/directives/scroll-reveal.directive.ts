@@ -9,7 +9,7 @@ import {
 import { Subscription } from 'rxjs';
 import { ScrollRevealService } from '../services/scroll-reveal.service';
 
-export type ScrollRevealAnimation = 'fade-up' | 'slide-left' | 'slide-right' | 'scale-in';
+export type ScrollRevealAnimation = 'fade-up' | 'slide-left' | 'slide-right' | 'scale-in' | 'zoom-in';
 
 @Directive({
   selector: '[appScrollReveal]',

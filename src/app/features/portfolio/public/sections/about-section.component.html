@@ -1,25 +1,37 @@
-@if (portfolio().about.enabled) {
+@if (portfolio().storeDescription.enabled) {
   <section class="pf-section" id="about">
     <div class="container mx-auto px-6">
       <div class="mx-auto max-w-3xl text-center" appScrollReveal>
         <p class="pf-eyebrow">About</p>
         <h2 class="pf-display pf-heading mt-2 text-3xl font-semibold md:text-4xl">Our story</h2>
-        <p class="pf-text mt-6 text-lg leading-relaxed">{{ portfolio().about.description }}</p>
+        <p class="pf-text mt-6 text-lg leading-relaxed">{{ portfolio().storeDescription.description }}</p>
       </div>
-      @if (portfolio().about.experience) {
+      @if (mode() === 'full' && portfolio().about.mission) {
+        <div appScrollReveal="slide-right" [appScrollRevealDelay]="80" class="pf-glass-card mx-auto mt-10 max-w-2xl p-6">
+          <p class="pf-eyebrow mb-2">Mission</p>
+          <p class="pf-text text-lg">{{ portfolio().about.mission }}</p>
+        </div>
+      }
+      @if (mode() === 'full' && portfolio().about.vision) {
+        <div appScrollReveal="slide-right" [appScrollRevealDelay]="100" class="pf-glass-card mx-auto mt-6 max-w-2xl p-6">
+          <p class="pf-eyebrow mb-2">Vision</p>
+          <p class="pf-text text-lg">{{ portfolio().about.vision }}</p>
+        </div>
+      }
+      @if (mode() === 'full' && portfolio().about.experience) {
         <div appScrollReveal="slide-right" [appScrollRevealDelay]="100" class="pf-glass-card mx-auto mt-12 max-w-2xl p-6">
           <p class="pf-eyebrow mb-2">Experience</p>
           <p class="pf-text text-lg">{{ portfolio().about.experience }}</p>
         </div>
       }
-      @if (portfolio().about.achievements.length) {
+      @if (mode() === 'full' && portfolio().about.achievements.length) {
         <div appScrollReveal="scale-in" [appScrollRevealDelay]="150" class="mt-12 flex flex-wrap justify-center gap-3">
           @for (item of portfolio().about.achievements; track item) {
             <span class="pf-chip pf-text">{{ item }}</span>
           }
         </div>
       }
-      @if (portfolio().about.certifications.length) {
+      @if (mode() === 'full' && portfolio().about.certifications.length) {
         <div appScrollReveal="scale-in" [appScrollRevealDelay]="200" class="mt-8 flex flex-wrap justify-center gap-4">
           @for (cert of portfolio().about.certifications; track cert) {
             <span class="pf-text-muted text-sm">✓ {{ cert }}</span>

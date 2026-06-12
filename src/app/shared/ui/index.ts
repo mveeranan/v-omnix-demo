@@ -8,3 +8,7 @@ export * from './app-table.component';
 export * from './icon.constants';
 export * from './media-upload-zone.component';
 export * from './phone-number-field.component';
+export * from './pagination.component';
+export * from './confirm-dialog.component';
+export * from './stars-rating.component';
+export * from './loading-spinner.component';

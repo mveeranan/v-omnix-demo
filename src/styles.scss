@@ -10,10 +10,11 @@
 @use "styles/primitives/tables";
 @use "styles/primitives/overlays";
 @use "styles/layout/admin-shell";
-@use "styles/features/bookings";
 @use "styles/features/portfolio-public";
 @use "styles/features/portfolio-editor";
 @use "styles/features/auth-marketing";
 @use "styles/features/admin-pages";
+@use "styles/features/store-commerce";
+@use "styles/features/multikart-fashion-seven";
 
 @custom-variant dark (&:where(.dark, .dark *));

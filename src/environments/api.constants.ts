@@ -38,5 +38,11 @@ export const API_ENDPOINTS = {
   },
   tenant: {
     current: `${base}/tenant`
+  },
+  store: {
+    productsBySlug: (storeSlug: string) => `${base}/stores/${encodeURIComponent(storeSlug)}/products`,
+    productBySlug: (storeSlug: string, productSlug: string) =>
+      `${base}/stores/${encodeURIComponent(storeSlug)}/products/${encodeURIComponent(productSlug)}`,
+    createOrder: `${base}/orders`
   }
 } as const;

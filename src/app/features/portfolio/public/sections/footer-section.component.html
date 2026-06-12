@@ -1,18 +1,28 @@
-<footer
-  appScrollReveal="fade-up"
-  class="pf-footer border-t py-12"
-  style="border-color: color-mix(in srgb, var(--pf-text-muted) 35%, transparent)"
->
+<footer class="mk-footer">
   <div class="container mx-auto px-6">
-    <div class="flex flex-col items-center justify-between gap-8 md:flex-row">
-      <div class="text-center md:text-left">
-        <p class="pf-display pf-heading text-lg font-semibold">{{ portfolio().brand.businessName }}</p>
-        <p class="pf-text-muted mt-1 text-sm">{{ portfolio().brand.tagline }}</p>
+    <div class="mk-footer__grid">
+      <div>
+        <p class="mk-footer__title">{{ portfolio().brand.businessName }}</p>
+        <p class="text-sm text-[var(--mk-muted)]">{{ portfolio().brand.tagline }}</p>
+        <div class="mt-4">
+          <app-pf-social-links [social]="portfolio().social" variant="footer" />
+        </div>
       </div>
-      <app-pf-social-links [social]="portfolio().social" variant="footer" />
+      <div>
+        <p class="mk-footer__title">Shop</p>
+        <a class="mk-footer__link" [routerLink]="storeLink()">All products</a>
+        <a class="mk-footer__link" [routerLink]="storeLink('contact')">Contact</a>
+      </div>
+      <div>
+        <p class="mk-footer__title">Support</p>
+        @if (portfolio().contactSupport.email) {
+          <a class="mk-footer__link" [href]="'mailto:' + portfolio().contactSupport.email">{{ portfolio().contactSupport.email }}</a>
+        }
+        @if (portfolio().contactSupport.phone) {
+          <a class="mk-footer__link" [href]="'tel:' + portfolio().contactSupport.phone">{{ portfolio().contactSupport.phone }}</a>
+        }
+      </div>
     </div>
-    <p class="pf-text-muted mt-8 text-center text-xs">
-      © {{ currentYear }} {{ portfolio().brand.businessName }}. All rights reserved.
-    </p>
+    <p class="mk-footer__copy">© {{ currentYear }} {{ portfolio().brand.businessName }}. All rights reserved.</p>
   </div>
 </footer>

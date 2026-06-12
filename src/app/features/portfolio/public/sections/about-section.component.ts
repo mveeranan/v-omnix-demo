@@ -10,4 +10,6 @@ import { Portfolio } from '../../models/portfolio.model';
 })
 export class AboutSectionComponent {
   readonly portfolio = input.required<Portfolio>();
+  /** summary = home teaser; full = about page */
+  readonly mode = input<'summary' | 'full'>('full');
 }

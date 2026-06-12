@@ -1,21 +1,10 @@
 import { Injectable, computed, signal } from '@angular/core';
 
-export type BookingStatus = 'confirmed' | 'pending' | 'in-progress' | 'completed' | 'cancelled';
-
-export interface Booking {
-  id: string;
-  time: string;
-  customer: string;
-  service: string;
-  status: BookingStatus;
-  dateLabel?: string;
-}
-
 export interface Customer {
   id: string;
   name: string;
   initials: string;
-  lastBooking: string;
+  lastOrder: string;
   avatarColor: string;
 }
 
@@ -24,7 +13,7 @@ export interface DashboardNotification {
   title: string;
   message: string;
   time: string;
-  type: 'system' | 'booking';
+  type: 'system' | 'order';
   read: boolean;
 }
 
@@ -33,7 +22,7 @@ export interface RevenueSummary {
   currency: string;
   monthlyGrowth: number;
   sparkline: number[];
-  bookingsThisMonth: number;
+  ordersThisMonth: number;
   averageTicket: number;
   pendingPayouts: number;
 }
@@ -50,19 +39,26 @@ export interface TenantBranding {
   tagline: string;
 }
 
+export interface RecentOrder {
+  id: string;
+  orderNumber: string;
+  customer: string;
+  total: number;
+  currency: string;
+  status: 'pending' | 'confirmed' | 'shipped' | 'delivered';
+  dateLabel: string;
+}
+
 export interface DashboardData {
   revenue: RevenueSummary;
-  todaySchedule: Booking[];
-  upcomingBookings: Booking[];
+  recentOrders: RecentOrder[];
   recentCustomers: Customer[];
   notifications: DashboardNotification[];
   profileSteps: ProfileStep[];
   tenant: TenantBranding;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AdminDashboardDataService {
   private readonly loading = signal(true);
   private readonly data = signal<DashboardData>(this.buildMockData());
@@ -87,9 +83,7 @@ export class AdminDashboardDataService {
   markNotificationRead(id: string): void {
     this.data.update((current) => ({
       ...current,
-      notifications: current.notifications.map((n) =>
-        n.id === id ? { ...n, read: true } : n
-      )
+      notifications: current.notifications.map((n) => (n.id === id ? { ...n, read: true } : n))
     }));
   }
 
@@ -123,104 +117,37 @@ export class AdminDashboardDataService {
         currency: 'USD',
         monthlyGrowth: 12.4,
         sparkline: [32, 38, 35, 42, 48, 45, 52, 58, 55, 62, 68, 72],
-        bookingsThisMonth: 128,
+        ordersThisMonth: 128,
         averageTicket: 377,
         pendingPayouts: 6240
       },
-      todaySchedule: [
+      recentOrders: [
         {
-          id: '1',
-          time: '09:00',
+          id: 'o1',
+          orderNumber: 'WO-482901',
           customer: 'Sarah Mitchell',
-          service: 'Consultation',
-          status: 'completed'
-        },
-        {
-          id: '2',
-          time: '10:30',
-          customer: 'James Chen',
-          service: 'Premium Service',
-          status: 'in-progress'
-        },
-        {
-          id: '3',
-          time: '13:00',
-          customer: 'Emma Rodriguez',
-          service: 'Standard Booking',
-          status: 'confirmed'
-        },
-        {
-          id: '4',
-          time: '15:30',
-          customer: 'Michael Park',
-          service: 'Follow-up',
-          status: 'pending'
-        }
-      ],
-      upcomingBookings: [
-        {
-          id: '5',
-          time: '16:00',
-          customer: 'Lisa Thompson',
-          service: 'Group Session',
-          status: 'confirmed',
+          total: 149.99,
+          currency: 'USD',
+          status: 'delivered',
           dateLabel: 'Today'
         },
         {
-          id: '6',
-          time: '09:30',
-          customer: 'David Wilson',
-          service: 'Initial Assessment',
+          id: 'o2',
+          orderNumber: 'WO-482902',
+          customer: 'James Chen',
+          total: 89.0,
+          currency: 'USD',
+          status: 'shipped',
+          dateLabel: 'Today'
+        },
+        {
+          id: 'o3',
+          orderNumber: 'WO-482903',
+          customer: 'Emma Rodriguez',
+          total: 245.5,
+          currency: 'USD',
           status: 'confirmed',
-          dateLabel: 'Tomorrow'
-        },
-        {
-          id: '7',
-          time: '11:00',
-          customer: 'Anna Kowalski',
-          service: 'Premium Package',
-          status: 'pending',
-          dateLabel: 'Tomorrow'
-        },
-        {
-          id: '8',
-          time: '14:00',
-          customer: 'Robert Singh',
-          service: 'Consultation',
-          status: 'confirmed',
-          dateLabel: 'Wed, May 20'
-        },
-        {
-          id: '9',
-          time: '10:00',
-          customer: 'Jennifer Lee',
-          service: 'Standard Service',
-          status: 'confirmed',
-          dateLabel: 'Wed, May 20'
-        },
-        {
-          id: '10',
-          time: '15:00',
-          customer: 'Chris Martinez',
-          service: 'Express Booking',
-          status: 'pending',
-          dateLabel: 'Thu, May 21'
-        },
-        {
-          id: '11',
-          time: '11:30',
-          customer: 'Patricia Brown',
-          service: 'Follow-up',
-          status: 'confirmed',
-          dateLabel: 'Thu, May 21'
-        },
-        {
-          id: '12',
-          time: '16:30',
-          customer: 'Thomas Anderson',
-          service: 'Premium Service',
-          status: 'confirmed',
-          dateLabel: 'Fri, May 22'
+          dateLabel: 'Yesterday'
         }
       ],
       recentCustomers: [
@@ -228,45 +155,31 @@ export class AdminDashboardDataService {
           id: 'c1',
           name: 'Sarah Mitchell',
           initials: 'SM',
-          lastBooking: '2 hours ago',
+          lastOrder: '2 hours ago',
           avatarColor: 'bg-indigo-500'
         },
         {
           id: 'c2',
           name: 'James Chen',
           initials: 'JC',
-          lastBooking: 'Today',
+          lastOrder: 'Today',
           avatarColor: 'bg-emerald-500'
         },
         {
           id: 'c3',
           name: 'Emma Rodriguez',
           initials: 'ER',
-          lastBooking: 'Yesterday',
+          lastOrder: 'Yesterday',
           avatarColor: 'bg-violet-500'
-        },
-        {
-          id: 'c4',
-          name: 'Michael Park',
-          initials: 'MP',
-          lastBooking: '2 days ago',
-          avatarColor: 'bg-amber-500'
-        },
-        {
-          id: 'c5',
-          name: 'Lisa Thompson',
-          initials: 'LT',
-          lastBooking: '3 days ago',
-          avatarColor: 'bg-rose-500'
         }
       ],
       notifications: [
         {
           id: 'n1',
-          title: 'New booking request',
-          message: 'Michael Park requested a follow-up for 3:30 PM',
+          title: 'New order',
+          message: 'Order WO-482904 placed — $128.00',
           time: '5 min ago',
-          type: 'booking',
+          type: 'order',
           read: false
         },
         {
@@ -279,31 +192,23 @@ export class AdminDashboardDataService {
         },
         {
           id: 'n3',
-          title: 'Booking confirmed',
-          message: 'Emma Rodriguez confirmed for 1:00 PM today',
+          title: 'Order shipped',
+          message: 'WO-482902 marked as shipped',
           time: '2 hours ago',
-          type: 'booking',
+          type: 'order',
           read: false
-        },
-        {
-          id: 'n4',
-          title: 'System update',
-          message: 'Scheduled maintenance completed successfully',
-          time: 'Yesterday',
-          type: 'system',
-          read: true
         }
       ],
       profileSteps: [
         { id: 's1', label: 'Business profile', completed: false },
-        { id: 's2', label: 'Services added', completed: true },
-        { id: 's3', label: 'Availability set', completed: false },
-        { id: 's4', label: 'Portfolio uploaded', completed: false }
+        { id: 's2', label: 'Products added', completed: true },
+        { id: 's3', label: 'Payment setup', completed: false },
+        { id: 's4', label: 'Website published', completed: false }
       ],
       tenant: {
-        businessName: 'Acme Services Co.',
+        businessName: 'Acme Store Co.',
         logoInitials: 'AS',
-        tagline: 'Universal booking platform'
+        tagline: 'E-commerce made simple'
       }
     };
   }

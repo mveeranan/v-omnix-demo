@@ -186,7 +186,7 @@ interface BusinessProfileFormSnapshot {
           </div>
         </form>
         <ng-container modalFooter>
-          <button type="button" class="admin-section-action-btn admin-bookings-secondary-btn" (click)="cancelEdit()" [disabled]="state.profileSaving() || uploading()">Cancel</button>
+          <button type="button" class="admin-section-action-btn admin-action-secondary" (click)="cancelEdit()" [disabled]="state.profileSaving() || uploading()">Cancel</button>
           <button type="button" class="admin-section-action-btn" (click)="save()" [disabled]="state.profileSaving() || uploading() || !form.valid">
             {{ state.profileSaving() ? 'Saving…' : 'Save changes' }}
           </button>
