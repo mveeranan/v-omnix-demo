@@ -1,30 +1,36 @@
-/** Sections editable in /admin/website — drives the marketing landing page only. */
-export type WebsiteSectionId =
-  | 'brand'
-  | 'hero'
-  | 'storeDescription'
-  | 'featuredProducts'
-  | 'offerBanner'
-  | 'saleCollection'
-  | 'reviews'
-  | 'whyChooseUs'
-  | 'contactSupport'
-  | 'newsletter'
-  | 'social'
-  | 'theme'
-  | 'publish';
-
-/** Content tab order — each maps 1:1 to a block on the store home (marketing) page. */
-export const WEBSITE_CONTENT_SECTIONS: WebsiteSectionId[] = [
-  'brand',
-  'hero',
-  'storeDescription',
-  'featuredProducts',
-  'offerBanner',
-  'saleCollection',
-  'reviews',
-  'whyChooseUs',
-  'contactSupport',
-  'newsletter',
-  'social'
-];
+/** Sections editable in /admin/website — drives the marketing landing page only. */
+export type WebsiteSectionId =
+  | 'brand'
+  | 'hero'
+  | 'categoryShowcase'
+  | 'storeDescription'
+  | 'featuredProducts'
+  | 'offerBanner'
+  | 'saleCollection'
+  | 'lookbook'
+  | 'reviews'
+  | 'whyChooseUs'
+  | 'stats'
+  | 'newsletter'
+  | 'contactSupport'
+  | 'social'
+  | 'theme'
+  | 'publish';
+
+/** Content tab order — each maps 1:1 to a block on the store home (marketing) page. */
+export const WEBSITE_CONTENT_SECTIONS: WebsiteSectionId[] = [
+  'brand',
+  'hero',
+  'categoryShowcase',
+  'storeDescription',
+  'featuredProducts',
+  'offerBanner',
+  'saleCollection',
+  'lookbook',
+  'reviews',
+  'whyChooseUs',
+  'stats',
+  'newsletter',
+  'contactSupport',
+  'social'
+];

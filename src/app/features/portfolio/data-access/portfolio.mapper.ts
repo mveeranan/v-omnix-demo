@@ -1,6 +1,7 @@
 import { Mapper } from '../../../shared/mappers/mapper';
 import { PortfolioDto, PortfolioHighlightsDto } from '../models/portfolio.dto';
 import { Portfolio, PortfolioHighlightItem, createEmptyPortfolio } from '../models/portfolio.model';
+import { mergeWithWebsiteDefaults } from '../models/portfolio-defaults';
 
 const defaults = createEmptyPortfolio();
 
@@ -40,9 +41,13 @@ function syncLegacyFields(portfolio: Portfolio): Portfolio {
 
 export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
   map(source: PortfolioDto): Portfolio {
-    const storeDescription = source.storeDescription ?? {
-      enabled: source.about?.enabled ?? true,
-      description: source.about?.description ?? ''
+    const storeDescription = {
+      enabled: source.storeDescription?.enabled ?? source.about?.enabled ?? true,
+      description: source.storeDescription?.description ?? source.about?.description ?? '',
+      imageUrl:
+        source.storeDescription?.imageUrl?.trim() ||
+        source.brand?.coverImageUrl?.trim() ||
+        ''
     };
 
     const contactSupport = source.contactSupport ?? {
@@ -70,13 +75,23 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
         ? {
             ...defaults.hero,
             ...source.hero,
-            eyebrow: source.hero.eyebrow ?? defaults.hero.eyebrow
+            eyebrow: source.hero.eyebrow ?? defaults.hero.eyebrow,
+            slides: (source.hero.slides ?? []).map((s) => ({ ...s }))
           }
         : {
             ...defaults.hero,
             headline: brand.businessName || defaults.hero.headline,
             subheadline: brand.tagline
           },
+      categoryShowcase: source.categoryShowcase
+        ? {
+            ...defaults.categoryShowcase,
+            ...source.categoryShowcase,
+            categoryNames: [...source.categoryShowcase.categoryNames]
+          }
+        : { ...defaults.categoryShowcase },
+      lookbook: source.lookbook ? { ...defaults.lookbook, ...source.lookbook } : { ...defaults.lookbook },
+      promoStrip: source.promoStrip ? { ...defaults.promoStrip, ...source.promoStrip } : { ...defaults.promoStrip },
       offerBanner: source.offerBanner
         ? { ...source.offerBanner, productIds: [...source.offerBanner.productIds] }
         : { ...defaults.offerBanner },
@@ -141,10 +156,14 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
             items: normalizeHighlightItems(source.highlights.items)
           }
         : { ...defaults.highlights },
-      theme: { ...source.theme }
+      theme: {
+        ...defaults.theme,
+        ...source.theme,
+        colorScheme: source.theme.colorScheme ?? defaults.theme.colorScheme
+      }
     };
 
-    return syncLegacyFields(portfolio);
+    return mergeWithWebsiteDefaults(syncLegacyFields(portfolio));
   }
 
   toDto(portfolio: Portfolio): PortfolioDto {
@@ -155,7 +174,13 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
       published: synced.published,
       updatedAt: synced.updatedAt,
       brand: { ...synced.brand },
-      hero: { ...synced.hero },
+      hero: { ...synced.hero, slides: synced.hero.slides.map((s) => ({ ...s })) },
+      categoryShowcase: {
+        ...synced.categoryShowcase,
+        categoryNames: [...synced.categoryShowcase.categoryNames]
+      },
+      lookbook: { ...synced.lookbook },
+      promoStrip: { ...synced.promoStrip },
       offerBanner: { ...synced.offerBanner, productIds: [...synced.offerBanner.productIds] },
       saleCollection: {
         ...synced.saleCollection,

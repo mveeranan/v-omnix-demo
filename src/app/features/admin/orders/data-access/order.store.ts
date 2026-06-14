@@ -64,6 +64,10 @@ class OrderStore {
     this.orders[idx] = { ...this.orders[idx], ...patch, updatedAt: new Date().toISOString() };
     return structuredClone(this.orders[idx]);
   }
+
+  replaceAll(items: Order[]): void {
+    this.orders = items.map((o) => structuredClone(o));
+  }
 }
 
 export const orderStore = new OrderStore();

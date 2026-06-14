@@ -34,6 +34,8 @@ import { BrandSectionComponent } from './sections/brand-section.component';
 
 import { HeroEditorSectionComponent } from './sections/hero-editor-section.component';
 
+import { CategoryShowcaseEditorSectionComponent } from './sections/category-showcase-editor-section.component';
+
 import { StoreDescriptionSectionComponent } from './sections/store-description-section.component';
 
 import { FeaturedProductsEditorSectionComponent } from './sections/featured-products-section.component';
@@ -42,7 +44,11 @@ import { OfferBannerEditorSectionComponent } from './sections/offer-banner-edito
 
 import { SaleCollectionEditorSectionComponent } from './sections/sale-collection-editor-section.component';
 
+import { LookbookEditorSectionComponent } from './sections/lookbook-editor-section.component';
+
 import { ReviewsSectionComponent } from './sections/reviews-section.component';
+
+import { StatsEditorSectionComponent } from './sections/stats-editor-section.component';
 
 import { WhyChooseUsSectionComponent } from './sections/why-choose-us-section.component';
 
@@ -84,6 +90,8 @@ type EditorTab = 'content' | 'theme' | 'publish';
 
     HeroEditorSectionComponent,
 
+    CategoryShowcaseEditorSectionComponent,
+
     StoreDescriptionSectionComponent,
 
     FeaturedProductsEditorSectionComponent,
@@ -92,7 +100,11 @@ type EditorTab = 'content' | 'theme' | 'publish';
 
     SaleCollectionEditorSectionComponent,
 
+    LookbookEditorSectionComponent,
+
     ReviewsSectionComponent,
+
+    StatsEditorSectionComponent,
 
     WhyChooseUsSectionComponent,
 

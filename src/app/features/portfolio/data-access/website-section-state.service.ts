@@ -7,13 +7,16 @@ import {
   PortfolioBrand,
   PortfolioCta,
   PortfolioFeaturedProducts,
+  PortfolioCategoryShowcase,
   PortfolioHero,
   PortfolioHighlights,
+  PortfolioLookbook,
   PortfolioNewsletter,
   PortfolioOfferBanner,
   PortfolioReview,
   PortfolioSaleCollection,
   PortfolioSocial,
+  PortfolioStats,
   PortfolioStoreDescription,
   PortfolioTheme
 } from '../models/portfolio.model';
@@ -56,15 +59,24 @@ export interface PublishSectionBuffer {
   published: boolean;
 }
 
+export interface LookbookSectionBuffer {
+  lookbook: PortfolioLookbook;
+  gallerySection: Portfolio['gallerySection'];
+  gallery: Portfolio['gallery'];
+}
+
 export type SectionBuffer =
   | BrandSectionBuffer
   | PortfolioHero
+  | PortfolioCategoryShowcase
   | PortfolioStoreDescription
   | PortfolioFeaturedProducts
   | PortfolioOfferBanner
   | PortfolioSaleCollection
+  | LookbookSectionBuffer
   | ReviewsSectionBuffer
   | PortfolioHighlights
+  | PortfolioStats
   | Portfolio['contactSupport']
   | PortfolioNewsletter
   | SocialSectionBuffer
@@ -204,9 +216,12 @@ export class WebsiteSectionStateService {
       case 'contactSupport':
         return validateContactSupport(buffer as Portfolio['contactSupport']);
       case 'hero':
+      case 'categoryShowcase':
       case 'offerBanner':
       case 'saleCollection':
+      case 'lookbook':
       case 'whyChooseUs':
+      case 'stats':
       case 'newsletter':
       case 'social':
       case 'theme':
@@ -222,8 +237,12 @@ export class WebsiteSectionStateService {
     switch (id) {
       case 'brand':
         return { brand: structuredClone(draft.brand), primaryColor: draft.theme.primaryColor };
-      case 'hero':
-        return structuredClone(draft.hero);
+      case 'hero': {
+        const hero = structuredClone(draft.hero);
+        return { ...hero, slides: hero.slides ?? [] };
+      }
+      case 'categoryShowcase':
+        return structuredClone(draft.categoryShowcase);
       case 'storeDescription':
         return structuredClone(draft.storeDescription);
       case 'featuredProducts':
@@ -232,6 +251,12 @@ export class WebsiteSectionStateService {
         return structuredClone(draft.offerBanner);
       case 'saleCollection':
         return structuredClone(draft.saleCollection);
+      case 'lookbook':
+        return {
+          lookbook: structuredClone(draft.lookbook),
+          gallerySection: structuredClone(draft.gallerySection),
+          gallery: structuredClone(draft.gallery)
+        };
       case 'reviews':
         return {
           reviewsSection: structuredClone(draft.reviewsSection),
@@ -239,6 +264,8 @@ export class WebsiteSectionStateService {
         };
       case 'whyChooseUs':
         return structuredClone(draft.highlights);
+      case 'stats':
+        return structuredClone(draft.stats);
       case 'contactSupport':
         return structuredClone(draft.contactSupport);
       case 'newsletter':
@@ -268,6 +295,8 @@ export class WebsiteSectionStateService {
       }
       case 'hero':
         return { hero: buffer as PortfolioHero };
+      case 'categoryShowcase':
+        return { categoryShowcase: buffer as PortfolioCategoryShowcase };
       case 'storeDescription': {
         const sd = buffer as PortfolioStoreDescription;
         return {
@@ -281,12 +310,22 @@ export class WebsiteSectionStateService {
         return { offerBanner: buffer as PortfolioOfferBanner };
       case 'saleCollection':
         return { saleCollection: buffer as PortfolioSaleCollection };
+      case 'lookbook': {
+        const lb = buffer as LookbookSectionBuffer;
+        return {
+          lookbook: lb.lookbook,
+          gallerySection: lb.gallerySection,
+          gallery: lb.gallery
+        };
+      }
       case 'reviews': {
         const r = buffer as ReviewsSectionBuffer;
         return { reviewsSection: r.reviewsSection, reviews: r.reviews };
       }
       case 'whyChooseUs':
         return { highlights: buffer as PortfolioHighlights };
+      case 'stats':
+        return { stats: buffer as PortfolioStats };
       case 'contactSupport': {
         const cs = buffer as Portfolio['contactSupport'];
         return {

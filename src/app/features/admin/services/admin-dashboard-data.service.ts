@@ -1,4 +1,8 @@
 import { Injectable, computed, signal } from '@angular/core';
+import { productCatalogStore } from '../../store/data-access/product-catalog.store';
+import { orderStore } from '../orders/data-access/order.store';
+import { subscriptionStore } from '../data-access/subscription.store';
+import { DashboardStats } from '../models/dashboard-stats.model';
 
 export interface Customer {
   id: string;
@@ -56,12 +60,13 @@ export interface DashboardData {
   notifications: DashboardNotification[];
   profileSteps: ProfileStep[];
   tenant: TenantBranding;
+  stats: DashboardStats;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AdminDashboardDataService {
   private readonly loading = signal(true);
-  private readonly data = signal<DashboardData>(this.buildMockData());
+  private readonly data = signal<DashboardData>(this.buildData());
 
   readonly isLoading = this.loading.asReadonly();
   readonly dashboardData = this.data.asReadonly();
@@ -78,6 +83,10 @@ export class AdminDashboardDataService {
 
   constructor() {
     setTimeout(() => this.loading.set(false), 750);
+  }
+
+  refreshFromStores(): void {
+    this.data.set(this.buildData());
   }
 
   markNotificationRead(id: string): void {
@@ -110,106 +119,53 @@ export class AdminDashboardDataService {
     }));
   }
 
-  private buildMockData(): DashboardData {
+  private buildData(): DashboardData {
+    const orders = orderStore.getAll();
+    const products = productCatalogStore.getAll();
+    const sub = subscriptionStore.refreshFromSession();
+    const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
+    const pendingOrders = orders.filter((o) => o.status === 'pending').length;
+
+    const stats: DashboardStats = {
+      totalOrders: orders.length,
+      totalRevenue,
+      totalCustomers: new Set(orders.map((o) => o.customerEmail)).size,
+      totalProducts: products.length,
+      pendingOrders,
+      subscriptionStatus: sub.status,
+      planName: sub.planType
+    };
+
+    const recentOrders: RecentOrder[] = orders.slice(0, 3).map((o) => ({
+      id: o.id,
+      orderNumber: o.orderNumber,
+      customer: o.customerName,
+      total: o.total,
+      currency: o.currency,
+      status: o.status as RecentOrder['status'],
+      dateLabel: 'Recent'
+    }));
+
     return {
       revenue: {
-        total: 48250,
+        total: totalRevenue,
         currency: 'USD',
         monthlyGrowth: 12.4,
-        sparkline: [32, 38, 35, 42, 48, 45, 52, 58, 55, 62, 68, 72],
-        ordersThisMonth: 128,
-        averageTicket: 377,
-        pendingPayouts: 6240
+        sparkline: [32, 38, 35, 42, 48, 45, 52, 58, 55, 62, 68, totalRevenue || 72],
+        ordersThisMonth: orders.length,
+        averageTicket: orders.length ? totalRevenue / orders.length : 0,
+        pendingPayouts: pendingOrders * 50
       },
-      recentOrders: [
-        {
-          id: 'o1',
-          orderNumber: 'WO-482901',
-          customer: 'Sarah Mitchell',
-          total: 149.99,
-          currency: 'USD',
-          status: 'delivered',
-          dateLabel: 'Today'
-        },
-        {
-          id: 'o2',
-          orderNumber: 'WO-482902',
-          customer: 'James Chen',
-          total: 89.0,
-          currency: 'USD',
-          status: 'shipped',
-          dateLabel: 'Today'
-        },
-        {
-          id: 'o3',
-          orderNumber: 'WO-482903',
-          customer: 'Emma Rodriguez',
-          total: 245.5,
-          currency: 'USD',
-          status: 'confirmed',
-          dateLabel: 'Yesterday'
-        }
-      ],
-      recentCustomers: [
-        {
-          id: 'c1',
-          name: 'Sarah Mitchell',
-          initials: 'SM',
-          lastOrder: '2 hours ago',
-          avatarColor: 'bg-indigo-500'
-        },
-        {
-          id: 'c2',
-          name: 'James Chen',
-          initials: 'JC',
-          lastOrder: 'Today',
-          avatarColor: 'bg-emerald-500'
-        },
-        {
-          id: 'c3',
-          name: 'Emma Rodriguez',
-          initials: 'ER',
-          lastOrder: 'Yesterday',
-          avatarColor: 'bg-violet-500'
-        }
-      ],
-      notifications: [
-        {
-          id: 'n1',
-          title: 'New order',
-          message: 'Order WO-482904 placed — $128.00',
-          time: '5 min ago',
-          type: 'order',
-          read: false
-        },
-        {
-          id: 'n2',
-          title: 'Payment received',
-          message: 'Invoice #1842 paid — $245.00',
-          time: '1 hour ago',
-          type: 'system',
-          read: false
-        },
-        {
-          id: 'n3',
-          title: 'Order shipped',
-          message: 'WO-482902 marked as shipped',
-          time: '2 hours ago',
-          type: 'order',
-          read: false
-        }
-      ],
-      profileSteps: [
-        { id: 's1', label: 'Business profile', completed: false },
-        { id: 's2', label: 'Products added', completed: true },
-        { id: 's3', label: 'Payment setup', completed: false },
-        { id: 's4', label: 'Website published', completed: false }
-      ],
+      recentOrders,
+      recentCustomers: [],
+      notifications: [],
+      profileSteps: [],
       tenant: {
-        businessName: 'Acme Store Co.',
-        logoInitials: 'AS',
+        businessName: 'My Store',
+        logoInitials: 'MS',
         tagline: 'E-commerce made simple'
-      }
+      },
+      stats
     };
   }
 }

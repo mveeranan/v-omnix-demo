@@ -11,27 +11,27 @@ import { Portfolio } from '../../portfolio/models/portfolio.model';
   imports: [RouterLink, ProductCardComponent],
   template: `
     @if (enabled()) {
-    <section class="mk-section" id="products">
+    <section class="mox-section" id="products">
       <div class="container mx-auto px-6">
         <header class="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p class="mk-hero__eyebrow">Top picks</p>
-            <h2 class="mk-sale-section__title">Featured products</h2>
-            <p class="mk-sale-section__subtitle mt-1 text-left">Highlight your best sellers on your company website.</p>
+            <p class="mox-hero__eyebrow">Top picks</p>
+            <h2 class="mox-sale-section__title">Featured products</h2>
+            <p class="mox-sale-section__subtitle mt-1 text-left">Highlight your best sellers on your company website.</p>
           </div>
           @if (showShopCta()) {
-            <a [routerLink]="shopLink()" class="mk-btn mk-btn--outline text-sm">View all in shop</a>
+            <a [routerLink]="shopLink()" class="mox-btn mox-btn--outline text-sm">View all in shop</a>
           }
         </header>
 
         @if (loading()) {
-          <div class="mk-product-grid">
+          <div class="mox-product-grid">
             @for (i of [1, 2, 3, 4]; track i) {
-              <div class="mk-product-card h-80 animate-pulse bg-[#f0f0f0]"></div>
+              <div class="mox-product-card h-80 animate-pulse bg-[#f0f0f0]"></div>
             }
           </div>
         } @else if (products().length) {
-          <div class="mk-product-grid">
+          <div class="mox-product-grid">
             @for (product of products(); track product.id) {
               <app-product-card
                 [product]="product"
@@ -42,7 +42,7 @@ import { Portfolio } from '../../portfolio/models/portfolio.model';
             }
           </div>
         } @else {
-          <p class="text-center text-sm text-[var(--mk-muted)]">Pin products in Website → Featured products.</p>
+          <p class="text-center text-sm text-[var(--mox-muted)]">Pin products in Website → Featured products.</p>
         }
       </div>
     </section>

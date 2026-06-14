@@ -106,10 +106,21 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
               <div class="rounded-lg border p-3 text-sm">100% secure payments</div>
             </div>
 
-            <details class="mt-8">
-              <summary class="cursor-pointer font-semibold">About this product</summary>
+            <div class="mox-tabs mt-8">
+              <button type="button" class="mox-tabs__btn" [class.mox-tabs__btn--active]="detailTab() === 'description'" (click)="detailTab.set('description')">Description</button>
+              <button type="button" class="mox-tabs__btn" [class.mox-tabs__btn--active]="detailTab() === 'specs'" (click)="detailTab.set('specs')">Specifications</button>
+              <button type="button" class="mox-tabs__btn" [class.mox-tabs__btn--active]="detailTab() === 'reviews'" (click)="detailTab.set('reviews')">Reviews</button>
+            </div>
+            @if (detailTab() === 'description') {
               <p class="pf-text mt-4 leading-relaxed">{{ p.description }}</p>
-            </details>
+            } @else if (detailTab() === 'specs') {
+              <dl class="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+                <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">SKU</dt><dd class="font-medium">{{ p.sku || '—' }}</dd></div>
+                <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">Brand</dt><dd class="font-medium">{{ p.brand }}</dd></div>
+                <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">Category</dt><dd class="font-medium">{{ p.category }}</dd></div>
+                <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">Weight</dt><dd class="font-medium">{{ formatWeight(p) }}</dd></div>
+              </dl>
+            }
 
             <div class="mt-6 flex flex-wrap gap-2">
               <button type="button" class="admin-action-secondary rounded-lg px-3 py-1 text-sm" (click)="share('whatsapp')">WhatsApp</button>
@@ -118,7 +129,16 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
           </div>
         </div>
 
-        <app-product-reviews-section [productId]="p.id" />
+        @if (detailTab() === 'reviews') {
+          <div class="container mx-auto px-6">
+            <app-product-reviews-section [productId]="p.id" />
+          </div>
+        }
+
+        <div class="mox-sticky-bar">
+          <span class="flex-1 font-semibold">{{ formatPrice(p.price) }}</span>
+          <button type="button" class="mox-btn mox-btn--primary flex-1" [disabled]="!inStock()" (click)="addToCart()">Add to cart</button>
+        </div>
 
         @if (related().length) {
           <section class="container mx-auto px-6 pb-16">
@@ -147,6 +167,7 @@ export class ProductDetailPageComponent implements OnInit {
   readonly activeImage = signal('');
   readonly selectedVariantId = signal<string | undefined>(undefined);
   readonly qty = signal(1);
+  readonly detailTab = signal<'description' | 'specs' | 'reviews'>('description');
 
   ngOnInit(): void {
     const productSlug = this.route.snapshot.paramMap.get('productSlug');
@@ -183,6 +204,11 @@ export class ProductDetailPageComponent implements OnInit {
     }
     return productInStock(p);
   };
+
+  formatWeight(product: StoreProduct): string {
+    const weight = product.dimensions?.weight;
+    return weight != null ? `${weight}g` : '—';
+  }
 
   formatPrice(value: number): string {
     const p = this.product();

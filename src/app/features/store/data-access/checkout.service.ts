@@ -4,6 +4,7 @@ import { OrderService } from '../../admin/orders/data-access/order.service';
 import { Order, OrderLineItem, PaymentMethod } from '../../admin/orders/models/order.model';
 import { PaymentService } from '../../admin/payments/data-access/payment.service';
 import { SettingsService } from '../../admin/settings/data-access/settings.service';
+import { couponStore } from '../../admin/data-access/coupon.store';
 import {
   CartLineItem,
   CheckoutCustomer,
@@ -38,8 +39,15 @@ export class CheckoutService {
   private readonly paymentService = inject(PaymentService);
   private readonly settingsService = inject(SettingsService);
 
-  readonly coupons: Record<string, number> = { SAVE10: 0.1, WELCOME5: 0.05 };
-
+  validateCoupon(code: string): Observable<{ valid: boolean; percent: number }> {
+    const coupon = couponStore.getByCode(code.trim());
+    if (!coupon?.isActive) {
+      return of({ valid: false, percent: 0 }).pipe(delay(150));
+    }
+    const percent =
+      coupon.discountType === 'Percentage' ? coupon.discountValue / 100 : 0;
+    return of({ valid: percent > 0, percent }).pipe(delay(150));
+  }
   getShippingOptions(subtotal: number): Observable<ShippingOption[]> {
     return this.settingsService.getShipping().pipe(
       map((s) => {
@@ -53,11 +61,6 @@ export class CheckoutService {
         return options;
       })
     );
-  }
-
-  validateCoupon(code: string): Observable<{ valid: boolean; percent: number }> {
-    const percent = this.coupons[code.trim().toUpperCase()] ?? 0;
-    return of({ valid: percent > 0, percent }).pipe(delay(150));
   }
 
   calculateTax(subtotal: number): Observable<number> {

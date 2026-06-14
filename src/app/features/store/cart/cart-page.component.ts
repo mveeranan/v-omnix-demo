@@ -13,7 +13,7 @@ import { StoreProduct } from '../models/product.model';
   standalone: true,
   imports: [FormsModule, RouterLink, ConfirmDialogComponent, ProductCardComponent],
   template: `
-    <div class="min-h-screen bg-[var(--bg-primary,#fafafa)] px-6 py-10">
+    <div class="mox-section min-h-screen px-6 py-10">
       <div class="container mx-auto grid max-w-6xl gap-10 lg:grid-cols-3">
         <div class="lg:col-span-2">
           <h1 class="text-2xl font-semibold">Your cart</h1>
@@ -38,7 +38,7 @@ import { StoreProduct } from '../models/product.model';
           } @else {
             <ul class="mt-8 space-y-4">
               @for (line of cart.lineItems(); track line.productId + (line.variantId ?? '')) {
-                <li class="pf-glass-card flex flex-wrap items-center gap-4 rounded-xl p-4">
+                <li class="mox-card flex flex-wrap items-center gap-4 p-4">
                   <img [src]="line.imageUrl" alt="" class="h-16 w-16 rounded-lg object-cover" />
                   <div class="min-w-0 flex-1">
                     @if (cart.storeSlug()) {

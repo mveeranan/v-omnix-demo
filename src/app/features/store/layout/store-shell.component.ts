@@ -1,6 +1,7 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
 import {
   Component,
+  effect,
   inject,
   OnInit,
   OnDestroy,
@@ -10,11 +11,12 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
 import { StoreContextService } from '../data-access/store-context.service';
+import { StoreThemeService } from '../data-access/store-theme.service';
 import { StoreNavComponent } from './store-nav.component';
 import { FooterSectionComponent } from '../../portfolio/public/sections/footer-section.component';
-import { buildPortfolioThemeVars } from '../../portfolio/shared/utils/portfolio-theme.util';
+import { buildPortfolioThemeVars, moxSchemeClass } from '../../portfolio/shared/utils/portfolio-theme.util';
 import { ScrollRevealService } from '../../portfolio/shared/services/scroll-reveal.service';
-import { Portfolio } from '../../portfolio/models/portfolio.model';
+import { Portfolio, PortfolioThemeMode } from '../../portfolio/models/portfolio.model';
 
 @Component({
   selector: 'app-store-shell',
@@ -39,9 +41,7 @@ import { Portfolio } from '../../portfolio/models/portfolio.model';
     } @else {
       @if (ctx.portfolio(); as p) {
         <div
-          class="pf-root store-shell mk-theme"
-          [class.pf-dark]="p.theme.mode === 'dark'"
-          [class.pf-light]="p.theme.mode === 'light'"
+          [class]="shellClass(p)"
           [class.pf-root--preview]="ctx.previewMode()"
           [ngStyle]="themeStyles(p)"
         >
@@ -49,6 +49,7 @@ import { Portfolio } from '../../portfolio/models/portfolio.model';
             [portfolio]="p"
             [storeSlug]="ctx.slug()"
             [previewMode]="ctx.previewMode()"
+            [themeMode]="resolvedMode(p)"
           />
           <main class="store-shell__main">
             <router-outlet />
@@ -63,7 +64,9 @@ import { Portfolio } from '../../portfolio/models/portfolio.model';
   `
 })
 export class StoreShellComponent implements OnInit, OnDestroy {
+  readonly moxSchemeClass = moxSchemeClass;
   readonly ctx = inject(StoreContextService);
+  readonly storeTheme = inject(StoreThemeService);
   private readonly route = inject(ActivatedRoute);
   private readonly document = inject(DOCUMENT);
   private readonly platformId = inject(PLATFORM_ID);
@@ -71,6 +74,17 @@ export class StoreShellComponent implements OnInit, OnDestroy {
 
   constructor() {
     afterNextRender(() => this.scheduleRevealRefresh());
+
+    effect(() => {
+      const p = this.ctx.portfolio();
+      const slug = this.ctx.slug();
+      if (!p || !slug) return;
+      if (this.ctx.previewMode()) {
+        this.storeTheme.visitorMode.set(p.theme.mode);
+      } else {
+        this.storeTheme.init(slug, p.theme.mode);
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -87,8 +101,18 @@ export class StoreShellComponent implements OnInit, OnDestroy {
     /* context scoped to shell */
   }
 
+  resolvedMode(p: Portfolio): PortfolioThemeMode {
+    this.storeTheme.visitorMode();
+    return this.ctx.previewMode() ? p.theme.mode : this.storeTheme.effectiveMode(p.theme.mode);
+  }
+
+  shellClass(p: Portfolio): string {
+    const mode = this.resolvedMode(p);
+    return `pf-root store-shell mox-theme ${moxSchemeClass(p.theme.colorScheme)} ${mode === 'dark' ? 'pf-dark' : 'pf-light'}`;
+  }
+
   themeStyles(p: Portfolio): Record<string, string> {
-    return buildPortfolioThemeVars(p.theme);
+    return buildPortfolioThemeVars({ ...p.theme, mode: this.resolvedMode(p) });
   }
 
   private scheduleRevealRefresh(): void {

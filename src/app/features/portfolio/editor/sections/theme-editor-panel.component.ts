@@ -6,7 +6,8 @@ import { WebsiteSectionShellComponent } from '../shared/website-section-shell.co
 import { PortfolioStateService } from '../../data-access/portfolio-state.service';
 import { WebsiteSectionStateService } from '../../data-access/website-section-state.service';
 import { PortfolioTheme } from '../../models/portfolio.model';
-import { PORTFOLIO_THEME_PRESETS } from '../../models/portfolio-theme.presets';
+import { MOX_COLOR_SCHEMES, PORTFOLIO_THEME_PRESETS } from '../../models/portfolio-theme.presets';
+import { MOX_COLOR_SCHEME_ACCENTS } from '../../shared/utils/portfolio-theme.util';
 
 @Component({
   selector: 'app-theme-editor-panel',
@@ -78,6 +79,25 @@ import { PORTFOLIO_THEME_PRESETS } from '../../models/portfolio-theme.presets';
               <option value="dark">Dark</option>
             </select>
           </div>
+          @if (t.presetId === 'mox-ecommerce') {
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Mox color scheme</span>
+              <div class="pf-mox-schemes">
+                @for (scheme of moxSchemes; track scheme.id) {
+                  <button
+                    type="button"
+                    class="pf-mox-scheme"
+                    [class.pf-mox-scheme--active]="t.colorScheme === scheme.id"
+                    [style.--scheme-color]="scheme.accent"
+                    (click)="applyColorScheme(scheme.id)"
+                  >
+                    <span class="pf-mox-scheme__swatch"></span>
+                    {{ scheme.label }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
         }
       </div>
     </app-website-section-shell>
@@ -110,6 +130,36 @@ import { PORTFOLIO_THEME_PRESETS } from '../../models/portfolio-theme.presets';
       color: rgb(100 116 139);
       font-family: ui-monospace, monospace;
     }
+
+    .pf-mox-schemes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .pf-mox-scheme {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid rgb(226 232 240);
+      background: #fff;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .pf-mox-scheme--active {
+      border-color: var(--scheme-color);
+      box-shadow: 0 0 0 1px var(--scheme-color);
+    }
+
+    .pf-mox-scheme__swatch {
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 999px;
+      background: var(--scheme-color);
+    }
   `
 })
 export class ThemeEditorPanelComponent {
@@ -119,6 +169,7 @@ export class ThemeEditorPanelComponent {
   readonly draft = this.state.draft;
   readonly icon = Palette;
   readonly presets = PORTFOLIO_THEME_PRESETS;
+  readonly moxSchemes = MOX_COLOR_SCHEMES;
   readonly buffer = computed(() => this.sectionState.buffer<PortfolioTheme>('theme'));
 
   presetLabel(id: string): string {
@@ -133,5 +184,12 @@ export class ThemeEditorPanelComponent {
 
   patch(partial: Partial<PortfolioTheme>): void {
     this.sectionState.patchBuffer<PortfolioTheme>('theme', (t) => ({ ...t, ...partial }));
+  }
+
+  applyColorScheme(id: PortfolioTheme['colorScheme']): void {
+    this.patch({
+      colorScheme: id,
+      accentColor: MOX_COLOR_SCHEME_ACCENTS[id]
+    });
   }
 }

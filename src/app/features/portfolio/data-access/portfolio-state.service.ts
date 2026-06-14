@@ -103,7 +103,16 @@ export class PortfolioStateService {
   private mergePartial(current: Portfolio, partial: Partial<Portfolio>): Portfolio {
     const next = structuredClone(current);
     if (partial.brand) next.brand = partial.brand;
-    if (partial.hero) next.hero = partial.hero;
+    if (partial.hero) {
+      next.hero = {
+        ...partial.hero,
+        slides: partial.hero.slides ?? next.hero.slides ?? []
+      };
+    }
+    if (partial.categoryShowcase) next.categoryShowcase = partial.categoryShowcase;
+    if (partial.lookbook) next.lookbook = partial.lookbook;
+    if (partial.promoStrip) next.promoStrip = partial.promoStrip;
+    if (partial.stats) next.stats = partial.stats;
     if (partial.offerBanner) next.offerBanner = partial.offerBanner;
     if (partial.saleCollection) next.saleCollection = partial.saleCollection;
     if (partial.storeDescription) {

@@ -1,13 +1,13 @@
-@if (portfolio().stats.enabled) {
-  <section class="pf-section" id="stats">
+@if (portfolio().stats.enabled && stats().length) {
+  <section class="mox-section" id="stats">
     <div class="container mx-auto px-6">
-      <div class="pf-stats-grid grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        @for (stat of stats(); track stat.label; let i = $index) {
-          <div appScrollReveal="scale-in" [appScrollRevealDelay]="i * 80" class="pf-glass-card pf-stat-card p-8 text-center">
-            <p class="pf-display pf-accent-text text-4xl font-bold md:text-5xl">
-              {{ stat.display | number }}{{ stat.label === 'Years in business' ? '+' : '' }}
+      <div class="mox-stats-band pf-stats-grid rounded-xl">
+        @for (stat of stats(); track stat.label) {
+          <div class="mox-stats-band__item">
+            <p class="mox-stats-band__value">
+              {{ stat.value | number }}{{ stat.label === 'Years in business' && stat.value > 0 ? '+' : '' }}
             </p>
-            <p class="pf-text-muted mt-2 text-sm uppercase tracking-wider">{{ stat.label }}</p>
+            <p class="mox-stats-band__label">{{ stat.label }}</p>
           </div>
         }
       </div>

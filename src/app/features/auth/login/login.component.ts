@@ -40,7 +40,7 @@ export class LoginComponent {
       .pipe(finalize(() => (this.isSubmitting = false)))
       .subscribe({
         next: () => {
-          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/sample';
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/admin/dashboard';
           this.router.navigateByUrl(returnUrl);
         },
         error: () => {

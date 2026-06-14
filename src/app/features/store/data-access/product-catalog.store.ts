@@ -48,6 +48,10 @@ class ProductCatalogStore {
     this.products.push(copy);
     return structuredClone(copy);
   }
+
+  replaceAll(items: StoreProduct[]): void {
+    this.products = items.map((p) => structuredClone(p));
+  }
 }
 
 export const productCatalogStore = new ProductCatalogStore();

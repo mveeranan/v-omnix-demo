@@ -12,7 +12,7 @@ import { LoadingSpinnerComponent } from '../../../shared/ui/loading-spinner.comp
   standalone: true,
   imports: [ReactiveFormsModule, RouterLink, LoadingSpinnerComponent],
   template: `
-    <div class="min-h-screen bg-[var(--bg-primary,#fafafa)] px-6 py-10">
+    <div class="mox-section min-h-screen px-6 py-10">
       <div class="container mx-auto grid max-w-6xl gap-10 lg:grid-cols-5">
         <div class="lg:col-span-3">
           <h1 class="text-2xl font-semibold">Checkout</h1>
@@ -23,7 +23,7 @@ import { LoadingSpinnerComponent } from '../../../shared/ui/loading-spinner.comp
           } @else {
             <div class="mb-8 flex gap-2">
               @for (label of stepLabels; track label; let i = $index) {
-                <div class="flex-1 rounded-lg py-2 text-center text-xs font-medium" [class.admin-action-primary]="step() === i + 1" [class.admin-action-secondary]="step() !== i + 1">
+                <div class="mox-card flex-1 py-2 text-center text-xs font-medium" [class.ring-2]="step() === i + 1" [style.--tw-ring-color]="step() === i + 1 ? 'var(--mox-accent)' : 'transparent'">
                   {{ i + 1 }}. {{ label }}
                 </div>
               }

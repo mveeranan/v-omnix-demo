@@ -43,7 +43,9 @@ export interface StoreProduct {
   costPrice?: number;
   currency: string;
   category: string;
+  categoryId?: string;
   brand: string;
+  brandId?: string | null;
   sku?: string;
   featured: boolean;
   status: ProductStatus;

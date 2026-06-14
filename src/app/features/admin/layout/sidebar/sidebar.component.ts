@@ -10,6 +10,7 @@ import {
   AdminNavSection
 } from '../../config/admin-nav.config';
 import { AdminLayoutStateService } from '../../services/admin-layout-state.service';
+import { PlanFeatureService } from '../../services/plan-feature.service';
 
 @Component({
   selector: 'app-admin-sidebar',
@@ -29,6 +30,7 @@ export class SidebarComponent {
   readonly closeMobile = output<void>();
 
   private readonly layoutState = inject(AdminLayoutStateService);
+  private readonly planFeatures = inject(PlanFeatureService);
 
   readonly chevronLeft = ChevronLeft;
   readonly chevronRight = ChevronRight;
@@ -46,6 +48,10 @@ export class SidebarComponent {
     }
     return map;
   });
+
+  isLocked(item: AdminNavItemConfig): boolean {
+    return Boolean(item.featureKey && !this.planFeatures.hasFeature(item.featureKey));
+  }
 
   toggleCollapse(): void {
     if (!this.mobile()) {

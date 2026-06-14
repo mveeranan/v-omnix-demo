@@ -1,13 +1,14 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
-import { Component, inject, input, OnInit, PLATFORM_ID, afterNextRender } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { Component, effect, inject, input, afterNextRender } from '@angular/core';
 import { Portfolio } from '../../portfolio/models/portfolio.model';
 import { StoreContextService } from '../data-access/store-context.service';
+import { StoreThemeService } from '../data-access/store-theme.service';
 import { StoreNavComponent } from './store-nav.component';
 import { StoreHomePageComponent } from '../pages/store-home-page.component';
 import { FooterSectionComponent } from '../../portfolio/public/sections/footer-section.component';
-import { buildPortfolioThemeVars } from '../../portfolio/shared/utils/portfolio-theme.util';
+import { buildPortfolioThemeVars, moxSchemeClass } from '../../portfolio/shared/utils/portfolio-theme.util';
 import { ScrollRevealService } from '../../portfolio/shared/services/scroll-reveal.service';
+import { PortfolioThemeMode } from '../../portfolio/models/portfolio.model';
 
 @Component({
   selector: 'app-store-preview',
@@ -17,12 +18,15 @@ import { ScrollRevealService } from '../../portfolio/shared/services/scroll-reve
   template: `
     @if (portfolio(); as p) {
       <div
-        class="pf-root pf-root--preview store-shell mk-theme"
-        [class.pf-dark]="p.theme.mode === 'dark'"
-        [class.pf-light]="p.theme.mode === 'light'"
+        [class]="shellClass(p)"
         [ngStyle]="themeStyles(p)"
       >
-        <app-store-nav [portfolio]="p" [storeSlug]="p.slug || 'preview'" [previewMode]="true" />
+        <app-store-nav
+          [portfolio]="p"
+          [storeSlug]="p.slug || 'preview'"
+          [previewMode]="true"
+          [themeMode]="resolvedMode(p)"
+        />
         <main class="store-shell__main">
           <app-store-home-page />
         </main>
@@ -32,28 +36,35 @@ import { ScrollRevealService } from '../../portfolio/shared/services/scroll-reve
   `,
   styles: `.store-shell__main { min-height: 40vh; }`
 })
-export class StorePreviewComponent implements OnInit {
+export class StorePreviewComponent {
   readonly portfolio = input.required<Portfolio>();
+  readonly moxSchemeClass = moxSchemeClass;
 
   private readonly ctx = inject(StoreContextService);
-  private readonly document = inject(DOCUMENT);
-  private readonly platformId = inject(PLATFORM_ID);
+  readonly storeTheme = inject(StoreThemeService);
   private readonly scrollReveal = inject(ScrollRevealService);
 
   constructor() {
-    afterNextRender(() => {
-      if (isPlatformBrowser(this.platformId)) {
-        requestAnimationFrame(() => this.scrollReveal.refresh());
-      }
+    effect(() => {
+      const p = this.portfolio();
+      this.storeTheme.visitorMode.set(p.theme.mode);
+      this.ctx.load(p.slug || 'preview', structuredClone(p));
     });
+
+    afterNextRender(() => this.scrollReveal.refresh());
   }
 
-  ngOnInit(): void {
-    const p = this.portfolio();
-    this.ctx.load(p.slug || 'preview', p);
+  resolvedMode(p: Portfolio): PortfolioThemeMode {
+    this.storeTheme.visitorMode();
+    return this.storeTheme.effectiveMode(p.theme.mode);
+  }
+
+  shellClass(p: Portfolio): string {
+    const mode = this.resolvedMode(p);
+    return `pf-root pf-root--preview store-shell mox-theme ${moxSchemeClass(p.theme.colorScheme)} ${mode === 'dark' ? 'pf-dark' : 'pf-light'}`;
   }
 
   themeStyles(p: Portfolio): Record<string, string> {
-    return buildPortfolioThemeVars(p.theme);
+    return buildPortfolioThemeVars({ ...p.theme, mode: this.resolvedMode(p) });
   }
 }

@@ -1,50 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, delay } from 'rxjs';
 import { Customer, CustomerListFilters, CustomerListResult } from '../models/customer.model';
-
-const MOCK_CUSTOMERS: Customer[] = [
-  {
-    id: 'c1',
-    name: 'Sarah Mitchell',
-    email: 'sarah@example.com',
-    phone: '+1 555 0101',
-    totalOrders: 12,
-    totalSpent: 1840,
-    currency: 'USD',
-    lastOrderDate: new Date().toISOString(),
-    signupDate: new Date(Date.now() - 86400000 * 90).toISOString(),
-    addresses: [
-      {
-        id: 'a1',
-        label: 'Home',
-        street: '123 Main St',
-        city: 'Austin',
-        state: 'TX',
-        zip: '78701',
-        country: 'USA',
-        isDefault: true
-      }
-    ],
-    notes: []
-  },
-  {
-    id: 'c2',
-    name: 'James Chen',
-    email: 'james@example.com',
-    phone: '+1 555 0102',
-    totalOrders: 5,
-    totalSpent: 620,
-    currency: 'USD',
-    lastOrderDate: new Date(Date.now() - 86400000).toISOString(),
-    signupDate: new Date(Date.now() - 86400000 * 60).toISOString(),
-    addresses: [],
-    notes: []
-  }
-];
+import { getDemoCustomer } from '../../../../core/demo/demo-application.seed';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerService {
-  private customers = MOCK_CUSTOMERS.map((c) => structuredClone(c));
+  private customers = [getDemoCustomer()];
 
   list(filters: CustomerListFilters = {}): Observable<CustomerListResult> {
     let items = [...this.customers];

@@ -10,14 +10,14 @@ import { ProductCardComponent } from './product-card.component';
   imports: [ProductCardComponent],
   template: `
     @if (portfolio().saleCollection.enabled) {
-      <section class="mk-sale-section">
+      <section class="mox-sale-section">
         <div class="container mx-auto px-6">
-          <header class="mk-sale-section__header">
-            <h2 class="mk-sale-section__title">{{ portfolio().saleCollection.title }}</h2>
-            <p class="mk-sale-section__subtitle">{{ portfolio().saleCollection.subtitle }}</p>
+          <header class="mox-sale-section__header">
+            <h2 class="mox-sale-section__title">{{ portfolio().saleCollection.title }}</h2>
+            <p class="mox-sale-section__subtitle">{{ portfolio().saleCollection.subtitle }}</p>
           </header>
           @if (products().length) {
-            <div class="mk-product-grid--scroll">
+            <div class="mox-product-grid--scroll">
               @for (product of products(); track product.id) {
                 <app-product-card
                   [product]="product"

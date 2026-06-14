@@ -6,7 +6,15 @@
   User,
   Package,
   ShoppingCart,
-  Globe
+  Globe,
+  FolderTree,
+  Tag,
+  RotateCcw,
+  Star,
+  Ticket,
+  Mail,
+  Receipt,
+  Percent
 } from 'lucide-angular';
 
 export type AdminNavSection = 'overview' | 'operations' | 'business' | 'settings';
@@ -18,6 +26,8 @@ export interface AdminNavItemConfig {
   icon: typeof LayoutDashboard;
   description: string;
   section: AdminNavSection;
+  /** Plan feature key for gating (Phase 6) */
+  featureKey?: string;
 }
 
 export const ADMIN_NAV_SECTIONS: { id: AdminNavSection; label: string }[] = [
@@ -42,6 +52,15 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     path: 'profile',
     icon: User,
     description: 'Complete your workspace setup and manage profile details.',
+    section: 'overview',
+    featureKey: 'profile'
+  },
+  {
+    id: 'billing',
+    label: 'Billing',
+    path: 'billing',
+    icon: Receipt,
+    description: 'SaaS subscription and plan management.',
     section: 'overview'
   },
   {
@@ -50,7 +69,8 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     path: 'orders',
     icon: ShoppingCart,
     description: 'View and manage customer orders.',
-    section: 'operations'
+    section: 'operations',
+    featureKey: 'orders'
   },
   {
     id: 'customers',
@@ -58,7 +78,26 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     path: 'customers',
     icon: Users,
     description: 'Customer profiles, history, and communication.',
-    section: 'operations'
+    section: 'operations',
+    featureKey: 'customers'
+  },
+  {
+    id: 'returns',
+    label: 'Returns',
+    path: 'returns',
+    icon: RotateCcw,
+    description: 'Manage return requests and refunds.',
+    section: 'operations',
+    featureKey: 'returns'
+  },
+  {
+    id: 'payments',
+    label: 'Payments',
+    path: 'payments',
+    icon: CreditCard,
+    description: 'Order payment transactions.',
+    section: 'operations',
+    featureKey: 'payments'
   },
   {
     id: 'products',
@@ -66,7 +105,25 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     path: 'products',
     icon: Package,
     description: 'Manage your product catalog, pricing, and inventory.',
+    section: 'business',
+    featureKey: 'products'
+  },
+  {
+    id: 'categories',
+    label: 'Categories',
+    path: 'categories',
+    icon: FolderTree,
+    description: 'Product categories — required before adding products.',
     section: 'business'
+  },
+  {
+    id: 'brands',
+    label: 'Brands',
+    path: 'brands',
+    icon: Tag,
+    description: 'Optional product brands.',
+    section: 'business',
+    featureKey: 'brands'
   },
   {
     id: 'website',
@@ -74,22 +131,52 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     path: 'website',
     icon: Globe,
     description: 'Edit your public store pages, content, theme, and publish settings.',
-    section: 'business'
+    section: 'business',
+    featureKey: 'website_builder'
   },
   {
-    id: 'payments',
-    label: 'Payments',
-    path: 'payments',
-    icon: CreditCard,
-    description: 'Invoices, transactions, and payout overview.',
-    section: 'settings'
+    id: 'reviews',
+    label: 'Reviews',
+    path: 'reviews',
+    icon: Star,
+    description: 'Customer testimonials and product reviews.',
+    section: 'business',
+    featureKey: 'reviews'
+  },
+  {
+    id: 'coupons',
+    label: 'Coupons',
+    path: 'coupons',
+    icon: Ticket,
+    description: 'Discount codes for checkout.',
+    section: 'business',
+    featureKey: 'coupons'
+  },
+  {
+    id: 'newsletter',
+    label: 'Newsletter',
+    path: 'newsletter',
+    icon: Mail,
+    description: 'Newsletter subscribers.',
+    section: 'business',
+    featureKey: 'newsletter'
   },
   {
     id: 'settings',
-    label: 'Settings',
+    label: 'Store Settings',
     path: 'settings',
     icon: Settings,
-    description: 'Workspace preferences, team, and integrations.',
-    section: 'settings'
+    description: 'Shipping, payments, tax, and checkout rules.',
+    section: 'settings',
+    featureKey: 'advanced_settings'
+  },
+  {
+    id: 'tax',
+    label: 'Tax Rules',
+    path: 'tax',
+    icon: Percent,
+    description: 'Tax rules by country/region.',
+    section: 'settings',
+    featureKey: 'tax_rules'
   }
 ];

@@ -29,10 +29,7 @@ import { WebsiteSectionStateService, BrandSectionBuffer } from '../../data-acces
     >
       <div view class="admin-detail-view">
         @if (saved(); as s) {
-          <div class="admin-detail-view__grid admin-detail-view__grid--2">
-            <app-admin-detail-media label="Logo" [url]="s.logoUrl" />
-            <app-admin-detail-media label="Cover image" [url]="s.coverImageUrl" />
-          </div>
+          <app-admin-detail-media label="Logo" [url]="s.logoUrl" />
           <app-admin-detail-field label="Business name" [value]="s.businessName" />
           <app-admin-detail-field label="Tagline" [value]="s.tagline" />
           <div class="pf-editor-color-preview">
@@ -46,26 +43,18 @@ import { WebsiteSectionStateService, BrandSectionBuffer } from '../../data-acces
       <div edit class="pf-editor-fields">
         @if (buffer(); as b) {
           <app-section-toggle
-            label="Show brand section"
+            label="Show brand in header & footer"
             [enabled]="b.brand.enabled"
             (enabledChange)="patchBrand({ enabled: $event })"
           />
-          <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
-            <app-media-upload-zone
-              label="Logo"
-              [singleSlot]="true"
-              [previewUrl]="b.brand.logoUrl"
-              (fileSelected)="patchBrand({ logoUrl: $event.dataUrl })"
-              (cleared)="patchBrand({ logoUrl: '' })"
-            />
-            <app-media-upload-zone
-              label="Cover image"
-              [singleSlot]="true"
-              [previewUrl]="b.brand.coverImageUrl"
-              (fileSelected)="patchBrand({ coverImageUrl: $event.dataUrl })"
-              (cleared)="patchBrand({ coverImageUrl: '' })"
-            />
-          </div>
+          <p class="pf-editor-hint">Logo, name, and tagline appear in the site header and footer — not in the hero banner.</p>
+          <app-media-upload-zone
+            label="Logo"
+            [singleSlot]="true"
+            [previewUrl]="b.brand.logoUrl"
+            (fileSelected)="patchBrand({ logoUrl: $event.dataUrl })"
+            (cleared)="patchBrand({ logoUrl: '' })"
+          />
           <div class="pf-editor-field">
             <span class="pf-editor-label">Business name</span>
             <input class="pf-editor-input" [ngModel]="b.brand.businessName" (ngModelChange)="patchBrand({ businessName: $event })" />

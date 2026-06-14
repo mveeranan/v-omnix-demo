@@ -5,6 +5,16 @@ export interface PortfolioThemeDto {
   fontFamily: string;
   borderRadius: string;
   mode: 'light' | 'dark';
+  colorScheme?: 'amber' | 'teal' | 'rose' | 'indigo' | 'green' | 'slate';
+}
+
+export interface PortfolioHeroSlideDto {
+  id: string;
+  imageUrl: string;
+  headline: string;
+  subheadline: string;
+  ctaLabel: string;
+  ctaTarget: string;
 }
 
 export interface PortfolioBrandDto {
@@ -22,6 +32,28 @@ export interface PortfolioHeroDto {
   subheadline: string;
   secondaryCtaLabel: string;
   showTrustStrip: boolean;
+  slides?: PortfolioHeroSlideDto[];
+}
+
+export interface PortfolioCategoryShowcaseDto {
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+  categoryNames: string[];
+  maxCount: number;
+}
+
+export interface PortfolioLookbookDto {
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+}
+
+export interface PortfolioPromoStripDto {
+  enabled: boolean;
+  text: string;
+  buttonLabel: string;
+  buttonTarget: string;
 }
 
 export interface PortfolioOfferBannerDto {
@@ -40,6 +72,7 @@ export interface PortfolioSaleCollectionDto {
 export interface PortfolioStoreDescriptionDto {
   enabled: boolean;
   description: string;
+  imageUrl?: string;
 }
 
 export interface PortfolioGallerySectionDto {
@@ -208,6 +241,9 @@ export interface PortfolioDto {
   updatedAt: string;
   brand: PortfolioBrandDto;
   hero?: PortfolioHeroDto;
+  categoryShowcase?: PortfolioCategoryShowcaseDto;
+  lookbook?: PortfolioLookbookDto;
+  promoStrip?: PortfolioPromoStripDto;
   offerBanner?: PortfolioOfferBannerDto;
   saleCollection?: PortfolioSaleCollectionDto;
   storeDescription?: PortfolioStoreDescriptionDto;

@@ -15,12 +15,23 @@ import { Package } from 'lucide-angular';
   template: `
     <div class="container mx-auto px-6 py-10">
       <div class="mb-8 text-center md:text-left">
-        <p class="mk-hero__eyebrow">Shop</p>
-        <h1 class="mk-sale-section__title">All products</h1>
-        <p class="mk-sale-section__subtitle mt-2">Browse the full catalog, add to cart, and checkout securely.</p>
+        <p class="mox-hero__eyebrow">Shop</p>
+        <h1 class="mox-sale-section__title">All products</h1>
+        <p class="mox-sale-section__subtitle mt-2">Browse the full catalog, add to cart, and checkout securely.</p>
       </div>
 
-      <div class="mb-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="mox-shop-layout">
+        <aside class="mox-shop-sidebar hidden lg:block">
+          <app-product-filters
+            [filters]="filters()"
+            [categories]="result()?.categories ?? []"
+            [brands]="result()?.brands ?? []"
+            (filtersChange)="onFiltersChange($event)"
+          />
+        </aside>
+
+        <div>
+      <div class="mb-4 lg:hidden">
         <app-product-filters
           [filters]="filters()"
           [categories]="result()?.categories ?? []"
@@ -73,7 +84,7 @@ import { Package } from 'lucide-angular';
             />
           }
         </div>
-        <div class="mt-10">
+        <div class="mt-10 pb-6">
           <app-pagination
             [total]="result()!.total"
             [page]="filters().page ?? 1"
@@ -87,6 +98,8 @@ import { Package } from 'lucide-angular';
           <button type="button" class="admin-action-secondary mt-4 rounded-lg px-4 py-2 text-sm" (click)="clearFilters()">Clear filters</button>
         </app-empty-state>
       }
+        </div>
+      </div>
     </div>
   `
 })

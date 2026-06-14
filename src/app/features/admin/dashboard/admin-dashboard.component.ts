@@ -7,6 +7,9 @@ import { RevenueWidgetComponent } from '../widgets/revenue-widget/revenue-widget
 import { CustomersWidgetComponent } from '../widgets/customers-widget/customers-widget.component';
 import { BrandingWidgetComponent } from '../widgets/branding-widget/branding-widget.component';
 import { AdminPageShellComponent } from '../shared/admin-page-shell.component';
+import { OnboardingChecklistWidgetComponent } from '../widgets/onboarding-checklist-widget/onboarding-checklist-widget.component';
+import { OnboardingService } from '../services/onboarding.service';
+import { AdminDashboardDataService } from '../services/admin-dashboard-data.service';
 import { widgetEnter, widgetsStagger } from '../animations/admin.animations';
 
 @Component({
@@ -19,6 +22,7 @@ import { widgetEnter, widgetsStagger } from '../animations/admin.animations';
     RevenueWidgetComponent,
     CustomersWidgetComponent,
     BrandingWidgetComponent,
+    OnboardingChecklistWidgetComponent,
     AdminPageShellComponent
   ],
   templateUrl: './admin-dashboard.component.html',
@@ -29,6 +33,9 @@ export class AdminDashboardComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+
+  private readonly onboarding = inject(OnboardingService);
+  private readonly dashboardData = inject(AdminDashboardDataService);
 
   readonly selectedPlanId = this.route.snapshot.queryParamMap.get('planId') ?? 'starter';
   readonly showOnboarding = signal(this.route.snapshot.queryParamMap.get('setupIncomplete') === '1');
@@ -46,6 +53,11 @@ export class AdminDashboardComponent {
     workspaceDetails: ['', [Validators.required, Validators.minLength(10)]],
     businessLogo: [null as File | null]
   });
+
+  constructor() {
+    this.dashboardData.refreshFromStores();
+    this.onboarding.refresh();
+  }
 
   nextStep(): void {
     if (this.onboardingStep() === 1 && this.setupForm.controls.businessName.invalid) {
@@ -69,6 +81,7 @@ export class AdminDashboardComponent {
 
   completeSetup(): void {
     this.showOnboarding.set(false);
+    this.onboarding.refresh();
     this.router.navigate([], {
       queryParams: { setupIncomplete: null },
       queryParamsHandling: 'merge'

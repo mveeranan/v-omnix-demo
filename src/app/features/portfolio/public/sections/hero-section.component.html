@@ -1,22 +1,47 @@
 @if (portfolio().hero.enabled) {
-<section class="mk-hero" id="hero" @heroEnter>
-  <div class="container mx-auto px-6">
-    <p class="mk-hero__eyebrow hero-item">{{ eyebrow() }}</p>
-    <h1 class="mk-hero__title hero-item">{{ headline() }}</h1>
-    @if (subheadline()) {
-      <p class="mk-hero__subtitle hero-item">{{ subheadline() }}</p>
+  <section class="mox-hero-slider" id="hero" @heroEnter>
+    @for (slide of slides(); track slide.id; let i = $index) {
+      <div
+        class="mox-hero-slider__slide"
+        [class.mox-hero-slider__slide--active]="activeIndex() === i"
+        [class.mox-hero-slider__slide--gradient]="!slide.imageUrl.trim()"
+        [style.background-image]="slideBackground(slide)"
+      ></div>
     }
-    <div class="hero-item mt-8 flex flex-wrap justify-center gap-3">
-      <a [routerLink]="shopLink()" class="mk-btn mk-btn--primary inline-flex min-h-12 items-center gap-2 px-6">
-        <lucide-icon [img]="shopIcon" class="h-5 w-5" />
-        {{ portfolio().cta.label || 'Shop now' }}
-      </a>
-      @if (portfolio().contactSupport.enabled) {
-        <a [routerLink]="contactLink()" class="mk-btn mk-btn--outline inline-flex min-h-12 items-center px-6">
-          {{ portfolio().hero.secondaryCtaLabel || 'Contact us' }}
-        </a>
-      }
+    <div class="mox-hero-slider__overlay">
+      <div class="container mx-auto px-4 sm:px-6">
+        <div class="mox-hero-slider__content hero-item">
+          <p class="mox-hero__eyebrow">{{ eyebrow() }}</p>
+          <h1 class="mox-hero__title !text-white">{{ activeSlide().headline }}</h1>
+          @if (activeSlide().subheadline) {
+            <p class="mox-hero__subtitle !text-white/90">{{ activeSlide().subheadline }}</p>
+          }
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a [routerLink]="primaryCtaLink()" class="mox-btn mox-btn--primary inline-flex min-h-12 items-center gap-2 px-6">
+              <lucide-icon [img]="shopIcon" class="h-5 w-5" />
+              {{ activeSlide().ctaLabel || portfolio().cta.label || 'Shop now' }}
+            </a>
+            @if (portfolio().contactSupport.enabled) {
+              <a [routerLink]="contactLink()" class="mox-btn mox-btn--outline !border-white !text-white inline-flex min-h-12 items-center px-6">
+                {{ portfolio().hero.secondaryCtaLabel || 'Contact us' }}
+              </a>
+            }
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-</section>
+    @if (slides().length > 1) {
+      <div class="mox-hero-slider__dots">
+        @for (slide of slides(); track slide.id; let i = $index) {
+          <button
+            type="button"
+            class="mox-hero-slider__dot"
+            [class.mox-hero-slider__dot--active]="activeIndex() === i"
+            (click)="goTo(i)"
+            [attr.aria-label]="'Slide ' + (i + 1)"
+          ></button>
+        }
+      </div>
+    }
+  </section>
 }

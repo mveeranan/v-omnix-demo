@@ -77,8 +77,15 @@ export class StoreFacadeService {
       brand: {
         ...portfolio.brand,
         businessName: profile.businessName || portfolio.brand.businessName,
-        coverImageUrl: getCoverPreviewUrl(profile) || portfolio.brand.coverImageUrl,
         logoUrl: getLogoPreviewUrl(profile) || portfolio.brand.logoUrl
+      },
+      storeDescription: {
+        ...portfolio.storeDescription,
+        imageUrl:
+          getCoverPreviewUrl(profile) ||
+          portfolio.storeDescription.imageUrl ||
+          portfolio.brand.coverImageUrl ||
+          ''
       },
       about: {
         ...portfolio.about,

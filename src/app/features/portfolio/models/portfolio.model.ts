@@ -1,6 +1,7 @@
 export type PortfolioCtaType = 'whatsapp' | 'internal' | 'customUrl';
 export type PortfolioThemeMode = 'light' | 'dark';
 export type GalleryMediaType = 'image' | 'video';
+export type PortfolioColorScheme = 'amber' | 'teal' | 'rose' | 'indigo' | 'green' | 'slate';
 
 export interface PortfolioTheme {
   presetId: string;
@@ -9,6 +10,16 @@ export interface PortfolioTheme {
   fontFamily: string;
   borderRadius: string;
   mode: PortfolioThemeMode;
+  colorScheme: PortfolioColorScheme;
+}
+
+export interface PortfolioHeroSlide {
+  id: string;
+  imageUrl: string;
+  headline: string;
+  subheadline: string;
+  ctaLabel: string;
+  ctaTarget: string;
 }
 
 export interface PortfolioBrand {
@@ -26,6 +37,28 @@ export interface PortfolioHero {
   subheadline: string;
   secondaryCtaLabel: string;
   showTrustStrip: boolean;
+  slides: PortfolioHeroSlide[];
+}
+
+export interface PortfolioCategoryShowcase {
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+  categoryNames: string[];
+  maxCount: number;
+}
+
+export interface PortfolioLookbook {
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+}
+
+export interface PortfolioPromoStrip {
+  enabled: boolean;
+  text: string;
+  buttonLabel: string;
+  buttonTarget: string;
 }
 
 export interface PortfolioOfferBanner {
@@ -44,6 +77,8 @@ export interface PortfolioSaleCollection {
 export interface PortfolioStoreDescription {
   enabled: boolean;
   description: string;
+  /** Shown beside the brand story on the marketing homepage — not used in the hero. */
+  imageUrl: string;
 }
 
 export interface PortfolioGallerySection {
@@ -213,6 +248,9 @@ export interface Portfolio {
   updatedAt: string;
   brand: PortfolioBrand;
   hero: PortfolioHero;
+  categoryShowcase: PortfolioCategoryShowcase;
+  lookbook: PortfolioLookbook;
+  promoStrip: PortfolioPromoStrip;
   offerBanner: PortfolioOfferBanner;
   saleCollection: PortfolioSaleCollection;
   storeDescription: PortfolioStoreDescription;
@@ -257,7 +295,26 @@ export function createEmptyPortfolio(): Portfolio {
       headline: 'top collection',
       subheadline: '',
       secondaryCtaLabel: 'Contact us',
-      showTrustStrip: false
+      showTrustStrip: false,
+      slides: []
+    },
+    categoryShowcase: {
+      enabled: true,
+      title: 'Shop by category',
+      subtitle: 'Browse our collections',
+      categoryNames: [],
+      maxCount: 4
+    },
+    lookbook: {
+      enabled: true,
+      title: 'Lookbook',
+      subtitle: 'Lifestyle inspiration from our catalog'
+    },
+    promoStrip: {
+      enabled: false,
+      text: 'Free shipping on orders over $50',
+      buttonLabel: 'Shop now',
+      buttonTarget: ''
     },
     offerBanner: {
       enabled: true,
@@ -272,7 +329,8 @@ export function createEmptyPortfolio(): Portfolio {
     },
     storeDescription: {
       enabled: true,
-      description: ''
+      description: '',
+      imageUrl: ''
     },
     gallerySection: { enabled: true },
     gallery: [],
@@ -333,12 +391,13 @@ export function createEmptyPortfolio(): Portfolio {
       target: ''
     },
     theme: {
-      presetId: 'multikart-fashion-seven',
-      primaryColor: '#222222',
-      accentColor: '#ff4c3b',
-      fontFamily: 'Lato, sans-serif',
-      borderRadius: '0',
-      mode: 'light'
+      presetId: 'mox-ecommerce',
+      primaryColor: '#263238',
+      accentColor: '#ff6f00',
+      fontFamily: 'Roboto, sans-serif',
+      borderRadius: '8px',
+      mode: 'light',
+      colorScheme: 'amber'
     },
     about: {
       enabled: true,
@@ -352,10 +411,14 @@ export function createEmptyPortfolio(): Portfolio {
     services: [],
     team: { enabled: false, members: [] },
     stats: {
-      enabled: false,
+      enabled: true,
       bookingsCompleted: 0,
-      yearsExperience: 0,
-      happyCustomers: 0
+      ordersCompleted: 0,
+      yearsExperience: 5,
+      happyCustomers: 0,
+      totalProducts: 0,
+      totalOrders: 0,
+      totalCustomers: 0
     },
     contact: {
       enabled: true,

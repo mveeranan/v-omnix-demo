@@ -23,6 +23,10 @@ class PaymentStore {
     this.transactions[idx] = { ...this.transactions[idx], ...patch };
     return structuredClone(this.transactions[idx]);
   }
+
+  replaceAll(items: PaymentTransaction[]): void {
+    this.transactions = items.map((t) => structuredClone(t));
+  }
 }
 
 export const paymentStore = new PaymentStore();

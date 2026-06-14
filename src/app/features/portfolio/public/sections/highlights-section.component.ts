@@ -9,15 +9,15 @@ import { resolveHighlightIcon } from '../../models/highlight-icons';
   imports: [LucideAngularModule],
   template: `
     @if (portfolio().highlights.enabled && portfolio().highlights.items.length) {
-      <section class="mk-section" id="services">
+      <section class="mox-section" id="services">
         <div class="container mx-auto px-6">
-          <div class="mk-services">
+          <div class="mox-services">
             @for (item of portfolio().highlights.items; track item.text) {
-              <div class="mk-service-item">
-                <div class="mk-service-item__icon">
+              <div class="mox-service-item">
+                <div class="mox-service-item__icon">
                   <lucide-icon [img]="iconFor(item.iconId)" class="h-5 w-5" />
                 </div>
-                <p class="mk-service-item__text">{{ item.text }}</p>
+                <p class="mox-service-item__text">{{ item.text }}</p>
               </div>
             }
           </div>

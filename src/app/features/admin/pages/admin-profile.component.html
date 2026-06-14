@@ -1,13 +1,13 @@
 ﻿<app-admin-page-shell
   eyebrow="Workspace"
   title="Profile"
-  description="Manage your business identity, branding, and contact details.">
-  @if (loading()) {
+  description="Manage your business identity, branding, store URL, and SEO.">
+  @if (!profileState.formsReady()) {
     <div class="admin-profile-sections">
       <div class="admin-glass-card h-48 animate-pulse rounded-xl"></div>
     </div>
   } @else {
-    <div @pageFadeIn class="admin-profile-sections">
+    <div @pageFadeIn class="admin-profile-sections space-y-6">
       @if (profileState.loadError()) {
         <p
           class="rounded-xl border border-amber-300/80 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
@@ -15,7 +15,11 @@
         </p>
       }
 
+      <p class="text-sm font-medium text-[var(--text-secondary)]">Identity</p>
       <app-business-profile-form-section />
+
+      <p class="text-sm font-medium text-[var(--text-secondary)]">Branding, store & SEO</p>
+      <app-business-profile-extension-section />
     </div>
   }
 </app-admin-page-shell>

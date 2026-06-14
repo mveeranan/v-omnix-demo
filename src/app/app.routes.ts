@@ -118,6 +118,46 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () =>
           import('./features/admin/settings/settings.component').then((m) => m.SettingsComponent)
+      },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import('./features/admin/categories/categories-list.component').then((m) => m.CategoriesListComponent)
+      },
+      {
+        path: 'brands',
+        loadComponent: () =>
+          import('./features/admin/brands/brands-list.component').then((m) => m.BrandsListComponent)
+      },
+      {
+        path: 'billing',
+        loadComponent: () =>
+          import('./features/admin/billing/billing.component').then((m) => m.BillingComponent)
+      },
+      {
+        path: 'returns',
+        loadComponent: () =>
+          import('./features/admin/returns/returns-list.component').then((m) => m.ReturnsListComponent)
+      },
+      {
+        path: 'reviews',
+        loadComponent: () =>
+          import('./features/admin/reviews/reviews-list.component').then((m) => m.ReviewsListComponent)
+      },
+      {
+        path: 'coupons',
+        loadComponent: () =>
+          import('./features/admin/coupons/coupons-list.component').then((m) => m.CouponsListComponent)
+      },
+      {
+        path: 'newsletter',
+        loadComponent: () =>
+          import('./features/admin/newsletter/newsletter-list.component').then((m) => m.NewsletterListComponent)
+      },
+      {
+        path: 'tax',
+        loadComponent: () =>
+          import('./features/admin/tax/tax-rules.component').then((m) => m.TaxRulesComponent)
       }
     ]
   },

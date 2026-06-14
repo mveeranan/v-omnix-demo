@@ -10,32 +10,32 @@ import { CartStateService } from '../data-access/cart-state.service';
   standalone: true,
   imports: [RouterLink, CurrencyPipe, LucideAngularModule],
   template: `
-    <article class="mk-product-card">
-      <a [routerLink]="productLink()" class="mk-product-card__media block">
+    <article class="mox-product-card">
+      <a [routerLink]="productLink()" class="mox-product-card__media block">
         <img [src]="product().imageUrl" [alt]="product().name" loading="lazy" />
         @if (variantCount() > 1) {
-          <span class="mk-product-card__variant-badge">+{{ variantCount() - 1 }}</span>
+          <span class="mox-product-card__variant-badge">+{{ variantCount() - 1 }}</span>
         }
       </a>
-      <div class="mk-product-card__body">
-        <div class="mk-product-card__rating">
+      <div class="mox-product-card__body">
+        <div class="mox-product-card__rating">
           <lucide-icon [img]="starIcon" class="h-3.5 w-3.5 fill-current" />
           <span>4.5</span>
         </div>
-        <a [routerLink]="productLink()" class="mk-product-card__title">{{ product().name }}</a>
-        <div class="mk-product-card__price-row">
-          <span class="mk-product-card__price">{{ product().price | currency: product().currency }}</span>
+        <a [routerLink]="productLink()" class="mox-product-card__title">{{ product().name }}</a>
+        <div class="mox-product-card__price-row">
+          <span class="mox-product-card__price">{{ product().price | currency: product().currency }}</span>
           @if (product().compareAtPrice && product().compareAtPrice! > product().price) {
-            <span class="mk-product-card__compare">{{ product().compareAtPrice | currency: product().currency }}</span>
+            <span class="mox-product-card__compare">{{ product().compareAtPrice | currency: product().currency }}</span>
             @if (discount(); as d) {
-              <span class="mk-product-card__off">{{ d }}% Off</span>
+              <span class="mox-product-card__off">{{ d }}% Off</span>
             }
           }
         </div>
       </div>
       @if (promoMarquee()) {
-        <div class="mk-product-card__marquee-wrap" aria-hidden="true">
-          <div class="mk-product-card__marquee">
+        <div class="mox-product-card__marquee-wrap" aria-hidden="true">
+          <div class="mox-product-card__marquee">
             <span>{{ promoMarquee() }}</span>
             <span>{{ promoMarquee() }}</span>
             <span>{{ promoMarquee() }}</span>
@@ -44,10 +44,10 @@ import { CartStateService } from '../data-access/cart-state.service';
         </div>
       }
       @if (showQtyControls()) {
-        <div class="mk-product-card__qty">
-          <button type="button" class="mk-product-card__qty-btn" (click)="decrement()" [disabled]="qty() <= 1">−</button>
-          <span class="mk-product-card__qty-val">{{ qty() }}</span>
-          <button type="button" class="mk-product-card__qty-btn" (click)="increment()" [disabled]="!inStock()">+</button>
+        <div class="mox-product-card__qty">
+          <button type="button" class="mox-product-card__qty-btn" (click)="decrement()" [disabled]="qty() <= 1">−</button>
+          <span class="mox-product-card__qty-val">{{ qty() }}</span>
+          <button type="button" class="mox-product-card__qty-btn" (click)="increment()" [disabled]="!inStock()">+</button>
         </div>
       }
     </article>

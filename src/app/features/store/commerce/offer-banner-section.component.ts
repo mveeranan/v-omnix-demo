@@ -11,15 +11,15 @@ import { StoreProduct } from '../models/product.model';
   imports: [RouterLink, CurrencyPipe],
   template: `
     @if (portfolio().offerBanner.enabled && products().length) {
-      <section class="mk-section">
+      <section class="mox-section">
         <div class="container mx-auto px-6">
-          <div class="mk-offer-tiles">
+          <div class="mox-offer-tiles">
             @for (product of products(); track product.id) {
-              <a [routerLink]="productLink(product)" class="mk-offer-tile">
+              <a [routerLink]="productLink(product)" class="mox-offer-tile">
                 <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
-                <div class="mk-offer-tile__overlay">
-                  <span class="mk-offer-tile__title">{{ product.name }}</span>
-                  <span class="mk-offer-tile__price">{{ product.price | currency: product.currency }}</span>
+                <div class="mox-offer-tile__overlay">
+                  <span class="mox-offer-tile__title">{{ product.name }}</span>
+                  <span class="mox-offer-tile__price">{{ product.price | currency: product.currency }}</span>
                 </div>
               </a>
             }

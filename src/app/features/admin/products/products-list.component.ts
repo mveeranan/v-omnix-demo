@@ -8,6 +8,7 @@ import { PaginationComponent } from '../../../shared/ui/pagination.component';
 import { LoadingSpinnerComponent } from '../../../shared/ui/loading-spinner.component';
 import { ConfirmDialogComponent } from '../../../shared/ui/confirm-dialog.component';
 import { ProductAdminService } from './data-access/product-admin.service';
+import { CategoryAdminService } from '../data-access/category-admin.service';
 import { ProductListFilters, StoreProduct, productStockQuantity } from '../../store/models/product.model';
 import { Package } from 'lucide-angular';
 
@@ -30,6 +31,13 @@ import { Package } from 'lucide-angular';
         <p class="text-sm text-[var(--text-muted)]">Showing {{ result()?.items?.length ?? 0 }} of {{ result()?.total ?? 0 }} products</p>
         <a routerLink="/admin/products/new" class="admin-section-action-btn inline-flex rounded-lg px-4 py-2 text-sm">Add product</a>
       </div>
+
+      @if (!hasCategories()) {
+        <div class="mb-4 rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
+          Create at least one category before adding products.
+          <a routerLink="/admin/categories" class="ml-1 font-semibold underline">Go to Categories</a>
+        </div>
+      }
 
       <div class="mb-4 grid gap-3 md:grid-cols-4">
         <input class="pf-editor-input md:col-span-2" placeholder="Search name or SKU" [(ngModel)]="search" (ngModelChange)="load()" />
@@ -114,9 +122,11 @@ import { Package } from 'lucide-angular';
 })
 export class ProductsListComponent implements OnInit {
   private readonly api = inject(ProductAdminService);
+  private readonly categoryApi = inject(CategoryAdminService);
   readonly packageIcon = Package;
 
   readonly loading = signal(true);
+  readonly hasCategories = signal(true);
   readonly result = signal<{ items: StoreProduct[]; total: number } | null>(null);
   readonly page = signal(1);
   readonly selected = signal(new Set<string>());
@@ -127,6 +137,9 @@ export class ProductsListComponent implements OnInit {
   pageSize = 25;
 
   ngOnInit(): void {
+    this.categoryApi.list().subscribe({
+      next: (cats) => this.hasCategories.set(cats.length > 0)
+    });
     this.load();
   }
 
