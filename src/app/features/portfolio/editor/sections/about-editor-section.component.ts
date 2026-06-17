@@ -23,6 +23,14 @@ import { PortfolioStateService } from '../../data-access/portfolio-state.service
             ></textarea>
           </div>
           <div class="pf-editor-field">
+            <span class="pf-editor-label">Mission</span>
+            <textarea class="pf-editor-input pf-editor-textarea" [(ngModel)]="d.about.mission" (ngModelChange)="sync()"></textarea>
+          </div>
+          <div class="pf-editor-field">
+            <span class="pf-editor-label">Vision</span>
+            <textarea class="pf-editor-input pf-editor-textarea" [(ngModel)]="d.about.vision" (ngModelChange)="sync()"></textarea>
+          </div>
+          <div class="pf-editor-field">
             <span class="pf-editor-label">Experience</span>
             <input class="pf-editor-input" [(ngModel)]="d.about.experience" (ngModelChange)="sync()" />
           </div>

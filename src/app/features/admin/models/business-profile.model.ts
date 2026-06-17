@@ -33,6 +33,8 @@ export interface BusinessProfileUpsertRequest {
   websiteUrl?: string | null;
   timeZone?: string | null;
   currency?: string | null;
+  isActive?: boolean;
+  attachments?: UploadDocumentRequest[];
 }
 
 /** Payload from the profile form (tenantId added in state service). */
@@ -81,6 +83,8 @@ export function getCoverPreviewUrl(profile: BusinessProfileDto | null | undefine
   return pickUrl(
     profile.coverImageDocumentUrl,
     raw['CoverImageDocumentUrl'] as string | undefined,
+    raw['storyDocumentUrl'] as string | undefined,
+    raw['StoryDocumentUrl'] as string | undefined,
     profile.coverImageUrl,
     raw['CoverImageUrl'] as string | undefined
   );

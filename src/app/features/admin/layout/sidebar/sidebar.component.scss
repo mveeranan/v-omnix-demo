@@ -28,6 +28,29 @@
   background: var(--sidebar-bg);
 }
 
+.admin-sidebar-brand__logo {
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  background: var(--surface-2);
+}
+
+.admin-sidebar-brand__mark {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--accent-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
 .admin-sidebar-nav {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -45,7 +68,8 @@
     padding-inline: 0.5rem;
   }
 
-  .admin-sidebar-header app-brand-logo {
+  .admin-sidebar-brand__logo,
+  .admin-sidebar-brand__mark {
     margin-inline: auto;
   }
 

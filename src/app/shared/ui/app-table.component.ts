@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-table',
   standalone: true,
   template: `
-    <div class="admin-glass-card admin-bookings-table-wrap overflow-hidden rounded-xl">
+    <div class="admin-glass-card admin-table-wrap overflow-hidden rounded-xl">
       <div class="overflow-x-auto">
         <ng-content />
       </div>

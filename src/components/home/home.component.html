@@ -81,10 +81,10 @@
     <div class="relative z-10 space-y-8">
       <span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-300">
         <lucide-icon [img]="layersIcon" class="h-4 w-4"></lucide-icon>
-        Multi-tenant booking made effortless
+        Multi-tenant commerce made effortless
       </span>
       <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-[2.75rem] lg:leading-[1.12]">
-        Run every location, booking, and team from one premium command center.
+        Run your store, orders, and team from one premium command center.
       </h1>
       <p class="max-w-xl text-base text-zinc-600 dark:text-zinc-300 sm:text-lg">
         Orbit helps modern service businesses automate scheduling, track payments, and scale operations without operational chaos.
@@ -109,7 +109,7 @@
         </div>
         <div class="grid gap-4">
           <div class="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white">
-            <p class="text-xs uppercase tracking-wider text-blue-100">Today bookings</p>
+            <p class="text-xs uppercase tracking-wider text-blue-100">Orders today</p>
             <p class="mt-2 text-2xl font-semibold">124</p>
           </div>
           <div class="grid gap-3 sm:grid-cols-2">
@@ -377,7 +377,7 @@
     <div class="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
       <div>
         <p class="footer-brand text-base font-semibold tracking-[0.06em]">V-omnix</p>
-        <p class="mt-1 text-base text-zinc-600 dark:text-zinc-300">Multi-tenant booking and management for ambitious teams.</p>
+        <p class="mt-1 text-base text-zinc-600 dark:text-zinc-300">Multi-tenant e-commerce and management for ambitious teams.</p>
       </div>
       <div class="flex flex-wrap items-center gap-5 text-base">
         <a class="footer-link no-underline hover:text-blue-600 dark:hover:text-blue-400" href="#">Privacy</a>
@@ -631,21 +631,6 @@
                       <p class="pa-error" role="alert">{{ getRegisterFieldError('businessName') }}</p>
                     }
                   </div>
-                  <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getRegisterFieldError('businessGroupId')">
-                    <label class="pa-label" for="reg-business-group">Business Group</label>
-                    <div class="pa-control pa-control--select">
-                      <lucide-icon [img]="buildingIcon" class="pa-icon"></lucide-icon>
-                      <select id="reg-business-group" formControlName="businessGroupId" class="pa-input">
-                        <option value="">Select business group</option>
-                        @for (group of businessGroups; track group.groupId) {
-                          <option [value]="group.groupId">{{ group.groupName }}</option>
-                        }
-                      </select>
-                    </div>
-                    @if (getRegisterFieldError('businessGroupId')) {
-                      <p class="pa-error" role="alert">{{ getRegisterFieldError('businessGroupId') }}</p>
-                    }
-                  </div>
                   <div class="pa-field pa-span-2" [class.pa-field-invalid]="!!getRegisterFieldError('businessTypeId')">
                     <label class="pa-label" for="reg-business-type">Business Type</label>
                     <div class="pa-control pa-control--select">
@@ -653,10 +638,8 @@
                       <select
                         id="reg-business-type"
                         formControlName="businessTypeId"
-                        class="pa-input"
-                        [disabled]="!registerForm.controls.businessGroupId.value || businessTypesLoading">
-                        <option value="">Select business type</option>
-                        @for (item of getBusinessTypesForSelectedGroup(); track item.id) {
+                        class="pa-input">
+                        @for (item of businessTypes; track item.id) {
                           <option [value]="item.id">{{ item.name }}</option>
                         }
                       </select>

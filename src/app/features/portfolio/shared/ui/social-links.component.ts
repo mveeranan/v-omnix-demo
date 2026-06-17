@@ -4,7 +4,6 @@ import {
   Instagram,
   Facebook,
   Youtube,
-  Globe,
   Music2,
   Phone
 } from 'lucide-angular';
@@ -95,9 +94,6 @@ export class SocialLinksComponent {
     }
     if (s.youtube?.trim()) {
       items.push({ key: 'youtube', url: s.youtube, label: 'YouTube', icon: Youtube });
-    }
-    if (s.website?.trim()) {
-      items.push({ key: 'website', url: s.website, label: 'Website', icon: Globe });
     }
     if (s.whatsapp?.trim()) {
       const phone = s.whatsapp.replace(/\D/g, '');

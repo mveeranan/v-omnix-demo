@@ -1,83 +1,135 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+﻿import { CommonModule } from '@angular/common';
+import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Rocket, ExternalLink } from 'lucide-angular';
 import { LucideAngularModule } from 'lucide-angular';
-import { CollapsibleSectionCardComponent } from '../../shared/ui/collapsible-section-card.component';
+import { AdminDetailFieldComponent } from '../../../admin/shared/admin-detail-field.component';
+import { WebsiteSectionShellComponent } from '../shared/website-section-shell.component';
 import { PortfolioStateService } from '../../data-access/portfolio-state.service';
+import { WebsiteSectionStateService, PublishSectionBuffer } from '../../data-access/website-section-state.service';
+import { normalizeSlug } from '../../data-access/website-section.validators';
 
 @Component({
   selector: 'app-publish-editor-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, LucideAngularModule, CollapsibleSectionCardComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    LucideAngularModule,
+    WebsiteSectionShellComponent,
+    AdminDetailFieldComponent
+  ],
   template: `
-    <app-collapsible-section-card title="Publish" [icon]="icon" [expanded]="true">
-      @if (draft(); as d) {
-        <div class="pf-editor-fields">
+    <app-website-section-shell
+      sectionId="publish"
+      title="Publish"
+      [icon]="icon"
+      [complete]="!!draft()?.published"
+    >
+      <div view class="admin-detail-view">
+        <app-admin-detail-field label="Store URL" [value]="'/store/' + (draft()?.slug || '')" />
+        <div class="admin-detail-view__grid admin-detail-view__grid--2">
+          <app-admin-detail-field label="CTA label" [value]="draft()?.cta?.label" />
+          <app-admin-detail-field label="CTA type" [value]="draft()?.cta?.type" />
+        </div>
+        <app-admin-detail-field label="CTA target" [value]="draft()?.cta?.target" />
+        <app-admin-detail-field label="Status" [value]="draft()?.published ? 'Published' : 'Draft'" />
+        @if (draft()?.published && draft()?.slug) {
+          <div class="mt-3 flex flex-wrap gap-2">
+            <a [routerLink]="['/store', draft()!.slug]" target="_blank" class="pf-editor-add-btn inline-flex items-center gap-2">
+              <lucide-icon [img]="externalIcon" class="h-4 w-4" /> Company website
+            </a>
+            <a [routerLink]="['/store', draft()!.slug, 'products']" target="_blank" class="pf-editor-add-btn inline-flex items-center gap-2">
+              <lucide-icon [img]="externalIcon" class="h-4 w-4" /> Shop (catalog)
+            </a>
+          </div>
+        }
+      </div>
+
+      <div edit class="pf-editor-fields">
+        @if (buffer(); as b) {
           <div class="pf-editor-field">
-            <span class="pf-editor-label">Portfolio URL slug</span>
+            <span class="pf-editor-label">Store URL slug</span>
             <div class="pf-editor-slug-input">
-              <span class="pf-editor-slug-input__prefix">/portfolio/</span>
+              <span class="pf-editor-slug-input__prefix">/store/</span>
               <input
                 class="pf-editor-input"
-                [(ngModel)]="d.slug"
-                (ngModelChange)="onSlugChange($event)"
-                placeholder="my-business"
+                [ngModel]="b.slug"
+                (ngModelChange)="patch({ slug: normalizeSlug($event) })"
+                placeholder="my-store"
               />
             </div>
           </div>
           <div class="pf-editor-field">
             <span class="pf-editor-label">CTA button label</span>
-            <input class="pf-editor-input" [(ngModel)]="d.cta.label" (ngModelChange)="sync()" />
+            <input class="pf-editor-input" [ngModel]="b.cta.label" (ngModelChange)="patchCta({ label: $event })" />
           </div>
           <div class="pf-editor-field">
             <span class="pf-editor-label">CTA type</span>
-            <select class="pf-editor-input" [(ngModel)]="d.cta.type" (ngModelChange)="sync()">
+            <select class="pf-editor-input" [ngModel]="b.cta.type" (ngModelChange)="patchCta({ type: $event })">
               <option value="whatsapp">WhatsApp</option>
-              <option value="internal">In-app booking</option>
+              <option value="internal">Storefront link</option>
               <option value="customUrl">Custom URL</option>
             </select>
           </div>
           <div class="pf-editor-field">
             <span class="pf-editor-label">CTA target (phone, path, or URL)</span>
-            <input class="pf-editor-input" [(ngModel)]="d.cta.target" (ngModelChange)="sync()" />
+            <input class="pf-editor-input" [ngModel]="b.cta.target" (ngModelChange)="patchCta({ target: $event })" />
           </div>
-          <div class="pf-editor-actions">
-            <button type="button" class="pf-editor-publish-btn" [disabled]="state.isSaving()" (click)="state.publish()">
-              <lucide-icon [img]="rocketIcon" class="h-4 w-4" />
-              {{ d.published ? 'Update published' : 'Publish portfolio' }}
-            </button>
-            @if (d.published && d.slug) {
-              <a [routerLink]="['/portfolio', d.slug]" target="_blank" class="pf-editor-add-btn inline-flex items-center gap-2">
-                <lucide-icon [img]="externalIcon" class="h-4 w-4" /> View live
-              </a>
-            }
-          </div>
-          @if (state.lastSavedAt()) {
-            <p class="pf-editor-hint">Last saved {{ state.lastSavedAt() | date: 'short' }}</p>
-          }
-        </div>
+        }
+      </div>
+    </app-website-section-shell>
+
+    <div class="pf-editor-publish-actions">
+      <button type="button" class="pf-editor-publish-btn" [disabled]="state.isSaving()" (click)="publish()">
+        <lucide-icon [img]="rocketIcon" class="h-4 w-4" />
+        {{ draft()?.published ? 'Update published store' : 'Publish store' }}
+      </button>
+      @if (state.lastSavedAt()) {
+        <p class="pf-editor-hint">Last saved {{ state.lastSavedAt() | date: 'short' }}</p>
       }
-    </app-collapsible-section-card>
+    </div>
+  `,
+  styles: `
+    .pf-editor-publish-actions {
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px solid rgb(226 232 240);
+      border-radius: 0.75rem;
+      background: rgb(248 250 252);
+    }
   `
 })
 export class PublishEditorPanelComponent {
   readonly state = inject(PortfolioStateService);
+  private readonly sectionState = inject(WebsiteSectionStateService);
+
   readonly draft = this.state.draft;
   readonly icon = Rocket;
   readonly rocketIcon = Rocket;
   readonly externalIcon = ExternalLink;
+  readonly normalizeSlug = normalizeSlug;
 
-  onSlugChange(value: string): void {
-    const slug = value
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, '-')
-      .replace(/-+/g, '-');
-    this.state.patchDraft((p) => ({ ...p, slug }));
+  readonly buffer = computed(() => this.sectionState.buffer<PublishSectionBuffer>('publish'));
+
+  patch(partial: Partial<PublishSectionBuffer>): void {
+    this.sectionState.patchBuffer<PublishSectionBuffer>('publish', (b) => ({ ...b, ...partial }));
   }
 
-  sync(): void {
-    this.state.patchDraft((p) => ({ ...p }));
+  patchCta(partial: Partial<PublishSectionBuffer['cta']>): void {
+    this.sectionState.patchBuffer<PublishSectionBuffer>('publish', (b) => ({
+      ...b,
+      cta: { ...b.cta, ...partial }
+    }));
+  }
+
+  publish(): void {
+    if (this.sectionState.isEditing('publish')) {
+      this.sectionState.saveSection('publish');
+      return;
+    }
+    this.state.publish();
   }
 }

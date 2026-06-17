@@ -1,45 +1,52 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, delay, throwError } from 'rxjs';
-import { Portfolio, createEmptyPortfolio } from '../models/portfolio.model';
+import { Portfolio } from '../models/portfolio.model';
 import { PortfolioMapper } from './portfolio.mapper';
-import { MOCK_PORTFOLIOS, DEFAULT_TENANT_DRAFT_SLUG } from './portfolio.mock';
+import { MOCK_PORTFOLIOS } from './portfolio.mock';
+import {
+  DEFAULT_TENANT_DRAFT_SLUG,
+  createDefaultWebsitePortfolio,
+  mergeWithWebsiteDefaults
+} from '../models/portfolio-defaults';
 
 const DRAFT_STORAGE_KEY = 'work-orbit.portfolio.draft';
 
 @Injectable({ providedIn: 'root' })
 export class PortfolioService {
   private readonly mapper = new PortfolioMapper();
-  private readonly store = new Map<string, Portfolio>(
-    MOCK_PORTFOLIOS.map((p) => [p.slug, structuredClone(p)])
-  );
+  private readonly store = (() => {
+    const map = new Map<string, Portfolio>(
+      MOCK_PORTFOLIOS.map((p) => [p.slug, structuredClone(p)])
+    );
+    map.set(DEFAULT_TENANT_DRAFT_SLUG, structuredClone(createDefaultWebsitePortfolio()));
+    return map;
+  })();
 
   getBySlug(slug: string, includeUnpublished = false): Observable<Portfolio> {
     const draft = this.loadDraftFromStorage();
     if (draft?.slug === slug && (includeUnpublished || draft.published)) {
-      return of(structuredClone(draft)).pipe(delay(200));
+      return of(mergeWithWebsiteDefaults(structuredClone(draft))).pipe(delay(200));
     }
 
-    const found = this.store.get(slug);
+    let found = this.store.get(slug);
+    if (!found && slug === DEFAULT_TENANT_DRAFT_SLUG) {
+      found = createDefaultWebsitePortfolio();
+    }
     if (!found) {
       return throwError(() => new Error('NOT_FOUND'));
     }
     if (!includeUnpublished && !found.published) {
       return throwError(() => new Error('NOT_FOUND'));
     }
-    return of(structuredClone(found)).pipe(delay(200));
+    return of(mergeWithWebsiteDefaults(structuredClone(found))).pipe(delay(200));
   }
 
   getTenantDraft(): Observable<Portfolio> {
     const stored = this.loadDraftFromStorage();
     if (stored) {
-      return of(structuredClone(stored));
+      return of(mergeWithWebsiteDefaults(structuredClone(stored)));
     }
-    const empty = createEmptyPortfolio();
-    empty.id = 'draft-1';
-    empty.slug = DEFAULT_TENANT_DRAFT_SLUG;
-    empty.brand.businessName = 'My Business';
-    empty.brand.tagline = 'Your tagline here';
-    return of(empty);
+    return of(createDefaultWebsitePortfolio());
   }
 
   saveDraft(portfolio: Portfolio): Observable<Portfolio> {

@@ -4,28 +4,30 @@ import { Observable, map, of } from 'rxjs';
 import { API_ENDPOINTS } from '../../../../environments/api.constants';
 import { ApiResponse } from '../../../shared/models/api-response.model';
 import {
-  BusinessGroupApiDto,
-  BusinessGroupDto,
-  mapBusinessGroup
+  BusinessTypeApiDto,
+  BusinessTypeDto,
+  mapBusinessType
 } from '../models/business-type.model';
 
 @Injectable({ providedIn: 'root' })
 export class BusinessTypesService {
   private readonly http = inject(HttpClient);
-  private cache: BusinessGroupDto[] | null = null;
+  private cache: BusinessTypeDto[] | null = null;
 
-  listGroups(): Observable<BusinessGroupDto[]> {
+  list(): Observable<BusinessTypeDto[]> {
     if (this.cache) {
       return of(this.cache);
     }
     return this.http
-      .get<ApiResponse<BusinessGroupApiDto[]>>(API_ENDPOINTS.businessTypes.list)
+      .get<ApiResponse<BusinessTypeApiDto[]>>(API_ENDPOINTS.businessTypes.list)
       .pipe(
         map((response) => {
           if (!response.success) {
             throw new Error(response.message || 'Failed to load business types');
           }
-          this.cache = (response.data ?? []).map(mapBusinessGroup);
+          this.cache = (response.data ?? [])
+            .map(mapBusinessType)
+            .filter((t) => t.id.length > 0);
           return this.cache;
         })
       );

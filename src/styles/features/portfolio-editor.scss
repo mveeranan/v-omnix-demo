@@ -5,9 +5,13 @@
 }
 
 .pf-editor-tab.active {
-  color: var(--accent);
-  background: var(--accent-muted);
+  color: #ff4c3b;
+  background: color-mix(in srgb, #ff4c3b 12%, transparent);
   border-color: transparent;
+}
+
+.pf-editor-toolbar-enhanced {
+  border: 1px solid color-mix(in srgb, #ff4c3b 15%, transparent);
 }
 
 .pf-editor-card {

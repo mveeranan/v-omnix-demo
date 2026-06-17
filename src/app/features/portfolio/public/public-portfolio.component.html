@@ -1,11 +1,11 @@
-@if (previewMode()) {
-  <div class="pf-preview-banner">Preview — changes are not yet live until you publish</div>
+﻿@if (previewMode()) {
+  <div class="pf-preview-banner">Preview â€” changes are not yet live until you publish</div>
 }
 
 @if (loading()) {
   <div class="pf-loading">
     <div class="pf-loading-shimmer"></div>
-    <p class="pf-text-muted mt-4 text-sm">Loading portfolio…</p>
+    <p class="pf-text-muted mt-4 text-sm">Loading portfolioâ€¦</p>
   </div>
 } @else if (notFound()) {
   <div class="pf-not-found">
@@ -25,7 +25,6 @@
       <app-pf-hero-section [portfolio]="p" (viewWork)="scrollToGallery()" />
       <app-pf-about-section [portfolio]="p" />
       <app-pf-highlights-section [portfolio]="p" />
-      <app-pf-services-section [portfolio]="p" />
       <app-pf-gallery-section [portfolio]="p" />
       <app-pf-reviews-section [portfolio]="p" />
       <app-pf-stats-section [portfolio]="p" />
@@ -34,3 +33,4 @@
     </div>
   }
 }
+

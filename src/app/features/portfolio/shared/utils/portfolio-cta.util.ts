@@ -1,15 +1,26 @@
-import { PortfolioCta, PortfolioSocial } from '../../models/portfolio.model';
+﻿import { PortfolioCta, PortfolioSocial } from '../../models/portfolio.model';
 
-const INTERNAL_BOOKING_PATH = '/admin/bookings';
+const STORE_PATH_PREFIX = '/store';
 
-export function resolvePortfolioCtaUrl(cta: PortfolioCta, social: PortfolioSocial): string {
+export function resolvePortfolioCtaUrl(
+  cta: PortfolioCta,
+  social: PortfolioSocial,
+  slug?: string
+): string {
   switch (cta.type) {
     case 'whatsapp': {
       const phone = (cta.target || social.whatsapp).replace(/\D/g, '');
       return phone ? `https://wa.me/${phone}` : '#';
     }
-    case 'internal':
-      return cta.target || INTERNAL_BOOKING_PATH;
+    case 'internal': {
+      if (cta.target?.trim()) {
+        return cta.target;
+      }
+      const normalizedSlug = slug?.trim();
+      return normalizedSlug
+        ? `${STORE_PATH_PREFIX}/${normalizedSlug}/products`
+        : `${STORE_PATH_PREFIX}`;
+    }
     case 'customUrl':
       return cta.target || '#';
     default:

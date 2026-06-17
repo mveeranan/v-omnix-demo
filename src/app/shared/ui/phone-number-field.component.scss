@@ -9,3 +9,7 @@
 .phone-number-field--editor {
   width: 100%;
 }
+
+.pf-editor-phone-row--stacked {
+  grid-template-columns: minmax(0, 1fr);
+}

@@ -1,39 +1,47 @@
-<section class="pf-hero relative flex min-h-[85vh] items-end overflow-hidden" id="hero" @heroEnter>
-  <div class="absolute inset-0">
-    @if (portfolio().brand.coverImageUrl) {
-      <img
-        [src]="portfolio().brand.coverImageUrl"
-        alt=""
-        class="h-full w-full scale-105 object-cover"
-      />
+@if (portfolio().hero.enabled) {
+  <section class="mox-hero-slider" id="hero" @heroEnter>
+    @for (slide of slides(); track slide.id; let i = $index) {
+      <div
+        class="mox-hero-slider__slide"
+        [class.mox-hero-slider__slide--active]="activeIndex() === i"
+        [class.mox-hero-slider__slide--gradient]="!slide.imageUrl.trim()"
+        [style.background-image]="slideBackground(slide)"
+      ></div>
     }
-    <div class="pf-hero-overlay absolute inset-0"></div>
-  </div>
-  <div class="container relative z-10 mx-auto px-6 pb-20 pt-32">
-    <div class="max-w-3xl">
-      @if (portfolio().brand.logoUrl) {
-        <img
-          [src]="portfolio().brand.logoUrl"
-          alt=""
-          class="hero-item mb-6 h-16 w-16 rounded-full border-2 object-cover shadow-xl"
-          style="border-color: color-mix(in srgb, var(--pf-hero-title) 50%, transparent)"
-        />
-      }
-      <h1 class="hero-item pf-display pf-hero-title text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl">
-        {{ portfolio().brand.businessName }}
-      </h1>
-      <p class="hero-item pf-hero-tagline mt-4 text-lg md:text-xl">{{ portfolio().brand.tagline }}</p>
-      <div class="hero-item mt-8 flex flex-wrap gap-4">
-        <a
-          [href]="ctaUrl(portfolio().cta, portfolio().social)"
-          [attr.target]="ctaExternal(portfolio().cta) ? '_blank' : null"
-          [attr.rel]="ctaExternal(portfolio().cta) ? 'noopener noreferrer' : null"
-          class="pf-btn-primary"
-        >
-          {{ portfolio().cta.label || 'Book now' }}
-        </a>
-        <button type="button" class="pf-btn-secondary pf-hero-secondary" (click)="viewWork.emit()">View work</button>
+    <div class="mox-hero-slider__overlay">
+      <div class="container mx-auto px-4 sm:px-6">
+        <div class="mox-hero-slider__content hero-item">
+          <p class="mox-hero__eyebrow">{{ eyebrow() }}</p>
+          <h1 class="mox-hero__title !text-white">{{ activeSlide().headline }}</h1>
+          @if (activeSlide().subheadline) {
+            <p class="mox-hero__subtitle !text-white/90">{{ activeSlide().subheadline }}</p>
+          }
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a [routerLink]="primaryCtaLink()" class="mox-btn mox-btn--primary inline-flex min-h-12 items-center gap-2 px-6">
+              <lucide-icon [img]="shopIcon" class="h-5 w-5" />
+              {{ activeSlide().ctaLabel || portfolio().cta.label || 'Shop now' }}
+            </a>
+            @if (portfolio().contactSupport.enabled) {
+              <a [routerLink]="contactLink()" class="mox-btn mox-btn--outline !border-white !text-white inline-flex min-h-12 items-center px-6">
+                {{ portfolio().hero.secondaryCtaLabel || 'Contact us' }}
+              </a>
+            }
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+    @if (slides().length > 1) {
+      <div class="mox-hero-slider__dots">
+        @for (slide of slides(); track slide.id; let i = $index) {
+          <button
+            type="button"
+            class="mox-hero-slider__dot"
+            [class.mox-hero-slider__dot--active]="activeIndex() === i"
+            (click)="goTo(i)"
+            [attr.aria-label]="'Slide ' + (i + 1)"
+          ></button>
+        }
+      </div>
+    }
+  </section>
+}

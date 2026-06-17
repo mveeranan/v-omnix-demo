@@ -1,4 +1,4 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
+﻿import { CommonModule, DOCUMENT } from '@angular/common';
 import {
   Component,
   inject,
@@ -15,7 +15,6 @@ import { Portfolio } from '../models/portfolio.model';
 import { PortfolioService } from '../data-access/portfolio.service';
 import { HeroSectionComponent } from './sections/hero-section.component';
 import { AboutSectionComponent } from './sections/about-section.component';
-import { ServicesSectionComponent } from './sections/services-section.component';
 import { GallerySectionComponent } from './sections/gallery-section.component';
 import { ReviewsSectionComponent } from './sections/reviews-section.component';
 import { StatsSectionComponent } from './sections/stats-section.component';
@@ -37,7 +36,6 @@ import { ScrollRevealService } from '../shared/services/scroll-reveal.service';
     CommonModule,
     HeroSectionComponent,
     AboutSectionComponent,
-    ServicesSectionComponent,
     GallerySectionComponent,
     ReviewsSectionComponent,
     StatsSectionComponent,
@@ -138,3 +136,4 @@ export class PublicPortfolioComponent implements OnInit {
     });
   }
 }
+

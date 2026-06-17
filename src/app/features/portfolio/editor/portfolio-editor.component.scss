@@ -8,6 +8,21 @@
   width: 100%;
 }
 
+.pf-editor-status--dirty {
+  color: #ff6f00;
+  font-weight: 500;
+}
+
+:host ::ng-deep .pf-editor-tab.active {
+  border-color: #ff6f00;
+  color: #263238;
+}
+
+:host ::ng-deep .website-section-shell {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+
 .pf-editor-shell {
   display: flex;
   flex-direction: column;

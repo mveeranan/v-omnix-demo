@@ -112,6 +112,8 @@ import { CountryDialCodePickerComponent } from './country-dial-code-picker.compo
 export class PhoneNumberFieldComponent implements ControlValueAccessor, Validator, OnInit {
 
   readonly variant = input<'pf-editor' | 'pa'>('pf-editor');
+  /** Inline country + number, or stacked for narrow columns. */
+  readonly layout = input<'inline' | 'stacked'>('inline');
 
   readonly required = input(false);
 
@@ -215,7 +217,7 @@ export class PhoneNumberFieldComponent implements ControlValueAccessor, Validato
 
 
 
-  readonly errorMessage = computed(() => {
+  errorMessage(): string {
 
     if (!this.showErrors() || !this.shouldShowErrors()) {
 
@@ -231,7 +233,7 @@ export class PhoneNumberFieldComponent implements ControlValueAccessor, Validato
 
     });
 
-  });
+  }
 
 
 

@@ -1,16 +1,13 @@
-<app-admin-page-shell
+﻿<app-admin-page-shell
   eyebrow="Workspace"
   title="Profile"
-  description="Manage your business identity and primary location.">
-  @if (loading()) {
+  description="Manage your business identity, branding, store URL, and SEO.">
+  @if (!profileState.formsReady()) {
     <div class="admin-profile-sections">
       <div class="admin-glass-card h-48 animate-pulse rounded-xl"></div>
-      @if (showBranchSection()) {
-        <div class="admin-glass-card h-48 animate-pulse rounded-xl"></div>
-      }
     </div>
   } @else {
-    <div @pageFadeIn class="admin-profile-sections">
+    <div @pageFadeIn class="admin-profile-sections space-y-6">
       @if (profileState.loadError()) {
         <p
           class="rounded-xl border border-amber-300/80 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
@@ -18,18 +15,14 @@
         </p>
       }
 
+      <p class="text-sm font-medium text-[var(--text-secondary)]">Personal account</p>
+      <app-personal-info-section />
+
+      <p class="text-sm font-medium text-[var(--text-secondary)]">Business info</p>
       <app-business-profile-form-section />
 
-      @if (showBranchSection()) {
-        <app-branch-form-section />
-      } @else {
-        <section class="admin-glass-card rounded-xl border border-zinc-200/80 p-4 dark:border-zinc-700">
-          <p class="text-sm font-medium text-[var(--text-primary)]">Multiple locations</p>
-          <p class="mt-1 text-xs text-[var(--text-muted)]">
-            Your plan includes multi-branch management. Location settings will be available in the Branches area soon.
-          </p>
-        </section>
-      }
+      <p class="text-sm font-medium text-[var(--text-secondary)]">Branding, store & SEO</p>
+      <app-business-profile-extension-section />
     </div>
   }
 </app-admin-page-shell>

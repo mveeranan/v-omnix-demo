@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   LucideAngularModule,
@@ -15,6 +15,8 @@ import {
 import { ThemeService } from '../../../../core/theme/theme.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { AdminDashboardDataService } from '../../services/admin-dashboard-data.service';
+import { PortfolioTenantStateService } from '../../../portfolio/data-access/portfolio-tenant-state.service';
+
 @Component({
   selector: 'app-admin-header',
   standalone: true,
@@ -29,6 +31,7 @@ export class HeaderComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly dataService = inject(AdminDashboardDataService);
+  private readonly tenantState = inject(PortfolioTenantStateService);
 
   readonly searchIcon = Search;
   readonly bellIcon = Bell;
@@ -44,6 +47,32 @@ export class HeaderComponent {
 
   readonly isDark = this.themeService.isDark;
   readonly notificationCount = this.dataService.unreadNotificationCount;
+
+  readonly displayName = computed(() => {
+    const user = this.tenantState.user();
+    const first = user?.firstName?.trim() || this.authService.getFirstName()?.trim() || '';
+    const last = user?.lastName?.trim() || this.authService.getLastName()?.trim() || '';
+    const fullName = `${first} ${last}`.trim();
+    return fullName || this.authService.getEmail()?.trim() || 'User';
+  });
+
+  readonly profileImageUrl = computed(() => {
+    const fromUser = this.tenantState.user()?.profileImageUrl?.trim();
+    return fromUser || this.authService.getProfileImageUrl()?.trim() || '';
+  });
+
+  readonly roleName = computed(() => this.authService.getRoleName()?.trim() || '');
+
+  readonly profileInitials = computed(() => {
+    const user = this.tenantState.user();
+    const first = user?.firstName?.trim() || this.authService.getFirstName()?.trim() || '';
+    const last = user?.lastName?.trim() || this.authService.getLastName()?.trim() || '';
+    if (first || last) {
+      return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
+    }
+    const email = this.authService.getEmail()?.trim();
+    return email ? email.charAt(0).toUpperCase() : 'U';
+  });
 
   toggleTheme(): void {
     this.themeService.toggle();

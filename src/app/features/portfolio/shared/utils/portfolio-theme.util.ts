@@ -1,4 +1,17 @@
-import { PortfolioTheme } from '../../models/portfolio.model';
+import { PortfolioColorScheme, PortfolioTheme } from '../../models/portfolio.model';
+
+export const MOX_COLOR_SCHEME_ACCENTS: Record<PortfolioColorScheme, string> = {
+  amber: '#ff6f00',
+  teal: '#00897b',
+  rose: '#e91e63',
+  indigo: '#3949ab',
+  green: '#43a047',
+  slate: '#546e7a'
+};
+
+export function moxSchemeClass(scheme: PortfolioColorScheme | undefined): string {
+  return `mox-scheme-${scheme ?? 'amber'}`;
+}
 
 const INK = '#0f172a';
 const PAPER = '#f8fafc';
@@ -83,9 +96,15 @@ function buttonColors(accent: string, pageBg: string): { bg: string; fg: string 
 }
 
 export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, string> {
-  const isLight = theme.mode === 'light';
+  const mode = theme.mode ?? 'light';
+  const borderRadius = theme.borderRadius ?? '0.75rem';
+  const isLight = mode === 'light';
   const brand = normalizeHex(theme.primaryColor, isLight ? INK : DARK_BASE);
-  const accent = normalizeHex(theme.accentColor, isLight ? '#2563eb' : '#c4b5fd');
+  const schemeAccent = theme.colorScheme ? MOX_COLOR_SCHEME_ACCENTS[theme.colorScheme] : undefined;
+  const accent = normalizeHex(
+    theme.presetId === 'mox-ecommerce' && schemeAccent ? schemeAccent : theme.accentColor,
+    isLight ? '#2563eb' : '#c4b5fd'
+  );
 
   const bg = isLight
     ? mixHex(WHITE, brand, 0.04)
@@ -119,7 +138,7 @@ export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, s
     '--pf-primary': brand,
     '--pf-accent': accent,
     '--pf-accent-text': accentText,
-    '--pf-radius': theme.borderRadius,
+    '--pf-radius': borderRadius,
     '--pf-font': theme.fontFamily,
     '--pf-bg': bg,
     '--pf-surface': bg,
@@ -136,6 +155,15 @@ export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, s
     '--pf-glass-bg': glassBg,
     '--pf-glass-border': glassBorder,
     '--pf-nav-bg': `color-mix(in srgb, ${bg} 88%, transparent)`,
-    '--pf-nav-border': glassBorder
+    '--pf-nav-border': glassBorder,
+    '--mox-primary': brand,
+    '--mox-accent': accent,
+    '--mox-sale': accent,
+    '--mox-text': text,
+    '--mox-muted': textMuted,
+    '--mox-border': isLight ? '#e0e0e0' : mixHex(bg, PAPER, 0.15),
+    '--mox-radius': borderRadius,
+    '--mox-font-body': theme.fontFamily,
+    '--mox-font-heading': "'Poppins', Roboto, sans-serif"
   };
 }

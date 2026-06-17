@@ -4,12 +4,18 @@
   [class.admin-sidebar--mobile]="mobile()">
   <div
     class="admin-sidebar-header flex h-[var(--header-height)] shrink-0 items-center gap-3 border-b border-[var(--border-subtle)] px-4">
-    <app-brand-logo gradientId="vOmnixMarkAdminSidebar" />
-    @if (!collapsed() || mobile()) {
-      <div class="min-w-0">
-        <p class="truncate text-sm font-semibold text-[var(--text-primary)]">V-Omnix</p>
-        <p class="truncate text-xs text-[var(--text-muted)]">Workspace</p>
+    @if (tenantLogoUrl()) {
+      <img
+        [src]="tenantLogoUrl()"
+        [alt]="tenantName()"
+        class="admin-sidebar-brand__logo" />
+    } @else {
+      <div class="admin-sidebar-brand__mark" aria-hidden="true">
+        {{ tenantInitials() }}
       </div>
+    }
+    @if (!collapsed() || mobile()) {
+      <p class="min-w-0 truncate text-sm font-semibold text-[var(--text-primary)]">{{ tenantName() }}</p>
     }
   </div>
 
@@ -21,18 +27,31 @@
         }
         <div class="space-y-0.5">
           @for (item of items; track item.id) {
-            <a
-              [routerLink]="['/admin', item.path]"
-              routerLinkActive="admin-nav-item--active"
-              [routerLinkActiveOptions]="{ exact: item.path === 'dashboard' }"
-              (click)="onNavClick()"
-              class="admin-nav-item group relative flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium no-underline"
-              [attr.title]="collapsed() && !mobile() ? item.label : null">
-              <lucide-icon [img]="item.icon" class="h-[18px] w-[18px] shrink-0" />
-              @if (!collapsed() || mobile()) {
-                <span class="truncate">{{ item.label }}</span>
-              }
-            </a>
+            @if (isLocked(item)) {
+              <a
+                [routerLink]="['/admin', 'billing']"
+                (click)="onNavClick()"
+                class="admin-nav-item group relative flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium no-underline opacity-60"
+                title="Upgrade plan to unlock">
+                <lucide-icon [img]="item.icon" class="h-[18px] w-[18px] shrink-0" />
+                @if (!collapsed() || mobile()) {
+                  <span class="truncate">{{ item.label }} 🔒</span>
+                }
+              </a>
+            } @else {
+              <a
+                [routerLink]="['/admin', item.path]"
+                routerLinkActive="admin-nav-item--active"
+                [routerLinkActiveOptions]="{ exact: item.path === 'dashboard' }"
+                (click)="onNavClick()"
+                class="admin-nav-item group relative flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium no-underline"
+                [attr.title]="collapsed() && !mobile() ? item.label : null">
+                <lucide-icon [img]="item.icon" class="h-[18px] w-[18px] shrink-0" />
+                @if (!collapsed() || mobile()) {
+                  <span class="truncate">{{ item.label }}</span>
+                }
+              </a>
+            }
           }
         </div>
       }

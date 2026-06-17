@@ -2,14 +2,14 @@
   <section class="pf-section" id="gallery">
     <div class="container mx-auto px-6">
       <div appScrollReveal class="text-center">
-        <p class="pf-eyebrow">Portfolio</p>
-        <h2 class="pf-display mt-2 text-3xl font-semibold md:text-4xl">Our work</h2>
+        <p class="pf-eyebrow">Gallery</p>
+        <h2 class="pf-display mt-2 text-3xl font-semibold md:text-4xl">Product showcase</h2>
       </div>
       <div class="pf-masonry mt-12">
         @for (item of sortedGallery(); track item.id; let i = $index) {
           <button
             type="button"
-            appScrollReveal="scale-in"
+            appScrollReveal="zoom-in"
             [appScrollRevealDelay]="i * 60"
             class="pf-masonry-item group mb-4 block w-full break-inside-avoid overflow-hidden rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--pf-accent)]"
             (click)="openLightbox(item)"

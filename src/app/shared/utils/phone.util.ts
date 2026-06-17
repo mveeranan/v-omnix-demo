@@ -23,13 +23,32 @@ export function parseStoredPhone(
     return { dialCode: '', nationalNumber: '' };
   }
 
+  const compact = trimmed.replace(/\s+/g, '');
   const sorted = [...countries].sort((a, b) => b.dialCode.length - a.dialCode.length);
+
   for (const country of sorted) {
-    if (trimmed.startsWith(country.dialCode)) {
+    if (compact.startsWith(country.dialCode)) {
       return {
         dialCode: country.dialCode,
-        nationalNumber: trimmed.slice(country.dialCode.length).replace(/^\s+/, '').trim()
+        nationalNumber: compact.slice(country.dialCode.length).trim()
       };
+    }
+  }
+
+  const digitsOnly = compact.replace(/\D/g, '');
+  if (digitsOnly) {
+    for (const country of sorted) {
+      const dialDigits = country.dialCode.replace(/\D/g, '');
+      if (!dialDigits || !digitsOnly.startsWith(dialDigits)) {
+        continue;
+      }
+      const nationalDigits = digitsOnly.slice(dialDigits.length);
+      if (nationalDigits) {
+        return {
+          dialCode: country.dialCode,
+          nationalNumber: nationalDigits
+        };
+      }
     }
   }
 
@@ -89,4 +108,21 @@ export function formatPhoneWithDialCode(
 
 export function displayPhoneValue(phone: string | null | undefined): string {
   return (phone ?? '').trim() || '—';
+}
+
+/** Compact international number for APIs that store dial code + national digits without separators. */
+export function formatPhoneForApi(value: PhoneNumberValue | null | undefined): string {
+  const normalized = normalizePhoneNumberValue(value ?? EMPTY_PHONE_NUMBER);
+  const dialDigits = normalized.dialCode.replace(/\D/g, '');
+  const nationalDigits = normalized.nationalNumber.replace(/\D/g, '');
+  if (!nationalDigits) {
+    return '';
+  }
+  if (!dialDigits) {
+    return nationalDigits;
+  }
+  if (nationalDigits.startsWith(dialDigits)) {
+    return nationalDigits;
+  }
+  return `${dialDigits}${nationalDigits}`;
 }

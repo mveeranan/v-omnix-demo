@@ -1,9 +1,9 @@
-<app-dashboard-widget-shell
+﻿<app-dashboard-widget-shell
   title="Recent customers"
   subtitle="Latest activity"
   [loading]="loading()"
   [empty]="isEmpty()"
-  emptyMessage="No customers yet. New bookings will appear here.">
+  emptyMessage="No customers yet. New orders will appear here.">
   <span widgetActions class="admin-widget-count-badge">{{ customers().length }}</span>
 
   <ul class="admin-widget-scroll admin-widget-list">
@@ -14,7 +14,7 @@
         </div>
         <div class="min-w-0 flex-1">
           <p class="truncate text-xs font-medium text-[var(--text-primary)]">{{ customer.name }}</p>
-          <p class="text-[11px] text-[var(--text-muted)]">{{ customer.lastBooking }}</p>
+          <p class="text-[11px] text-[var(--text-muted)]">{{ customer.lastOrder }}</p>
         </div>
         <button
           type="button"
@@ -27,4 +27,5 @@
     }
   </ul>
 </app-dashboard-widget-shell>
+
 

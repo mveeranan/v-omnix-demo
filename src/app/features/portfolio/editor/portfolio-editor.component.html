@@ -1,60 +1,44 @@
-<app-admin-page-shell
-  eyebrow="Portfolio"
-  title="Portfolio builder"
-  description="Build your portfolio in a focused workspace. Preview anytime with the button below."
+﻿<app-admin-page-shell
+  eyebrow="Website"
+  title="Company website"
+  description="Build your marketing homepage — brand, contact, and featured products. Customers shop the full catalog from the Shop page."
   @pageFadeIn
 >
   @if (state.isLoading()) {
-    <p class="pf-editor-muted py-12 text-center">Loading your portfolio…</p>
+    <p class="pf-editor-muted py-12 text-center">Loading your website…</p>
   } @else {
     @if (state.draft(); as draft) {
     <div class="pf-editor-shell">
-      <div class="pf-editor-toolbar">
-        <p class="pf-editor-status">{{ savingLabel() }}</p>
-        <nav class="pf-editor-tabs" aria-label="Portfolio editor sections">
-          <button
-            type="button"
-            class="pf-editor-tab"
-            [class.active]="activeTab() === 'content'"
-            (click)="setTab('content')"
-          >
-            Content
-          </button>
-          <button
-            type="button"
-            class="pf-editor-tab"
-            [class.active]="activeTab() === 'theme'"
-            (click)="setTab('theme')"
-          >
-            Theme
-          </button>
-          <button
-            type="button"
-            class="pf-editor-tab"
-            [class.active]="activeTab() === 'publish'"
-            (click)="setTab('publish')"
-          >
-            Publish
-          </button>
+      <div class="pf-editor-toolbar pf-editor-toolbar-enhanced">
+        <p class="pf-editor-status" [class.pf-editor-status--dirty]="sectionState.anyDirty()">{{ savingLabel() }}</p>
+        <nav class="pf-editor-tabs" aria-label="Website builder sections">
+          <button type="button" class="pf-editor-tab" [class.active]="activeTab() === 'content'" (click)="setTab('content')">Content</button>
+          <button type="button" class="pf-editor-tab" [class.active]="activeTab() === 'theme'" (click)="setTab('theme')">Theme</button>
+          <button type="button" class="pf-editor-tab" [class.active]="activeTab() === 'publish'" (click)="setTab('publish')">Publish</button>
         </nav>
       </div>
 
       <div class="pf-editor-workspace">
         @if (activeTab() === 'content') {
           <div class="pf-editor-sections">
-            <app-brand-editor-section />
-            <app-about-editor-section />
-            <app-services-editor-section />
-            <app-gallery-editor-section />
-            <app-reviews-editor-section />
-            <app-social-editor-section />
-            <app-highlights-editor-section />
-            <app-team-editor-section />
+            <app-brand-section />
+            <app-hero-editor-section />
+            <app-category-showcase-editor-section />
+            <app-featured-products-editor-section />
+            <app-offer-banner-editor-section />
+            <app-sale-collection-editor-section />
+            <app-lookbook-editor-section />
+            <app-reviews-section />
+            <app-why-choose-us-section />
+            <app-stats-editor-section />
+            <app-newsletter-editor-section />
+            <app-contact-support-section />
+            <app-social-section />
           </div>
         }
         @if (activeTab() === 'theme') {
           <div class="pf-editor-sections">
-            <app-theme-editor-section />
+            <app-theme-editor-panel />
           </div>
         }
         @if (activeTab() === 'publish') {
@@ -65,37 +49,26 @@
       </div>
     </div>
 
-    <button
-      type="button"
-      class="pf-preview-fab"
-      (click)="openPreview()"
-      aria-label="Preview portfolio"
-    >
+    <button type="button" class="pf-preview-fab" (click)="openPreview()" aria-label="Preview website">
       <lucide-icon [img]="eyeIcon" class="h-5 w-5 shrink-0" />
       <span class="pf-preview-fab__label">Preview</span>
     </button>
 
     @if (previewOpen()) {
-      <div class="pf-preview-modal" role="dialog" aria-modal="true" aria-label="Portfolio preview">
-        <button
-          type="button"
-          class="pf-preview-modal__backdrop"
-          @backdropFade
-          (click)="closePreview()"
-          aria-label="Close preview"
-        ></button>
+      <div class="pf-preview-modal" role="dialog" aria-modal="true" aria-label="Website preview">
+        <button type="button" class="pf-preview-modal__backdrop" @backdropFade (click)="closePreview()" aria-label="Close preview"></button>
         <div class="pf-preview-modal__panel">
           <header class="pf-preview-modal__header">
             <div class="min-w-0">
               <p class="pf-preview-modal__eyebrow">Live preview</p>
-              <h2 class="pf-preview-modal__title truncate">{{ draft.brand.businessName || 'Your portfolio' }}</h2>
+              <h2 class="pf-preview-modal__title truncate">{{ draft.brand.businessName || 'Your website' }}</h2>
             </div>
             <button type="button" class="pf-preview-modal__close" (click)="closePreview()" aria-label="Close">
               <lucide-icon [img]="closeIcon" class="h-5 w-5" />
             </button>
           </header>
           <div class="pf-preview-modal__body">
-            <app-public-portfolio [portfolio]="draft" [previewMode]="true" />
+            <app-store-preview [portfolio]="draft" />
           </div>
         </div>
       </div>

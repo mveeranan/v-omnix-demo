@@ -3,20 +3,87 @@ export interface PortfolioThemeDto {
   primaryColor: string;
   accentColor: string;
   fontFamily: string;
-  borderRadius: string;
-  mode: 'light' | 'dark';
+  colorScheme?: 'amber' | 'teal' | 'rose' | 'indigo' | 'green' | 'slate';
+  mode?: 'light' | 'dark';
+  borderRadius?: string;
+}
+
+export interface PortfolioHeroSlideDto {
+  id: string;
+  imageUrl: string;
+  headline: string;
+  subheadline: string;
+  ctaLabel: string;
+  ctaTarget: string;
 }
 
 export interface PortfolioBrandDto {
+  enabled?: boolean;
   logoUrl: string;
   businessName: string;
   tagline: string;
   coverImageUrl: string;
 }
 
+export interface PortfolioHeroDto {
+  enabled: boolean;
+  eyebrow?: string;
+  headline: string;
+  subheadline: string;
+  secondaryCtaLabel: string;
+  showTrustStrip: boolean;
+  slides?: PortfolioHeroSlideDto[];
+}
+
+export interface PortfolioCategoryShowcaseDto {
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+  categoryNames: string[];
+  maxCount: number;
+}
+
+export interface PortfolioLookbookDto {
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+}
+
+export interface PortfolioPromoStripDto {
+  enabled: boolean;
+  text: string;
+  buttonLabel: string;
+  buttonTarget: string;
+}
+
+export interface PortfolioOfferBannerDto {
+  enabled: boolean;
+  productIds: string[];
+}
+
+export interface PortfolioSaleCollectionDto {
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+  productIds: string[];
+  maxCount: number;
+}
+
+export interface PortfolioStoreDescriptionDto {
+  enabled: boolean;
+  description: string;
+  imageUrl?: string;
+}
+
+export interface PortfolioGallerySectionDto {
+  enabled: boolean;
+}
+
 export interface PortfolioAboutDto {
   enabled: boolean;
   description: string;
+  mission?: string;
+  vision?: string;
   experience: string;
   achievements: string[];
   certifications: string[];
@@ -42,6 +109,10 @@ export interface PortfolioGalleryItemDto {
   sortOrder: number;
 }
 
+export interface PortfolioReviewsSectionDto {
+  enabled: boolean;
+}
+
 export interface PortfolioReviewDto {
   id: string;
   author: string;
@@ -50,13 +121,69 @@ export interface PortfolioReviewDto {
   avatarUrl: string;
 }
 
+export interface PortfolioSocialSectionDto {
+  enabled: boolean;
+}
+
 export interface PortfolioSocialDto {
   instagram: string;
   facebook: string;
   tiktok: string;
   whatsapp: string;
-  website: string;
+  website?: string;
   youtube: string;
+}
+
+export interface PortfolioFeaturedProductsDto {
+  enabled: boolean;
+  maxCount: number;
+  productIds: string[];
+  promoMarqueeText?: string;
+  showQtyControls?: boolean;
+}
+
+export interface PortfolioStorePoliciesDto {
+  enabled: boolean;
+  returnPolicy: string;
+  shippingInfo: string;
+  deliveryTime: string;
+}
+
+export interface PortfolioContactSupportDto {
+  enabled: boolean;
+  phone: string;
+  email: string;
+  supportHours: string;
+}
+
+export interface PortfolioPaymentMethodsDto {
+  enabled: boolean;
+  upi: boolean;
+  card: boolean;
+  cod: boolean;
+  wallet: boolean;
+}
+
+export interface PortfolioTrustBadgesDto {
+  enabled: boolean;
+  freeShipping: boolean;
+  securePayment: boolean;
+  moneyBack: boolean;
+  fastDelivery: boolean;
+  customerCountLabel: string;
+}
+
+export interface PortfolioNewsletterDto {
+  enabled: boolean;
+  heading: string;
+  subheading: string;
+  placeholder: string;
+  buttonLabel: string;
+}
+
+export interface PortfolioHighlightItemDto {
+  text: string;
+  iconId: string;
 }
 
 export interface PortfolioTeamMemberDto {
@@ -76,8 +203,12 @@ export interface PortfolioTeamDto {
 export interface PortfolioStatsDto {
   enabled: boolean;
   bookingsCompleted: number;
+  ordersCompleted?: number;
   yearsExperience: number;
   happyCustomers: number;
+  totalProducts?: number;
+  totalOrders?: number;
+  totalCustomers?: number;
 }
 
 export interface PortfolioCtaDto {
@@ -92,12 +223,15 @@ export interface PortfolioContactDto {
   phone: string;
   address: string;
   city: string;
+  country?: string;
+  whatsapp?: string;
+  mapUrl?: string;
 }
 
 export interface PortfolioHighlightsDto {
   enabled: boolean;
   title: string;
-  items: string[];
+  items: (string | PortfolioHighlightItemDto)[];
 }
 
 export interface PortfolioDto {
@@ -106,6 +240,22 @@ export interface PortfolioDto {
   published: boolean;
   updatedAt: string;
   brand: PortfolioBrandDto;
+  hero?: PortfolioHeroDto;
+  categoryShowcase?: PortfolioCategoryShowcaseDto;
+  lookbook?: PortfolioLookbookDto;
+  promoStrip?: PortfolioPromoStripDto;
+  offerBanner?: PortfolioOfferBannerDto;
+  saleCollection?: PortfolioSaleCollectionDto;
+  storeDescription?: PortfolioStoreDescriptionDto;
+  gallerySection?: PortfolioGallerySectionDto;
+  featuredProducts?: PortfolioFeaturedProductsDto;
+  reviewsSection?: PortfolioReviewsSectionDto;
+  contactSupport?: PortfolioContactSupportDto;
+  paymentMethods?: PortfolioPaymentMethodsDto;
+  storePolicies?: PortfolioStorePoliciesDto;
+  trustBadges?: PortfolioTrustBadgesDto;
+  newsletter?: PortfolioNewsletterDto;
+  socialSection?: PortfolioSocialSectionDto;
   about: PortfolioAboutDto;
   services: PortfolioServiceItemDto[];
   gallery: PortfolioGalleryItemDto[];
