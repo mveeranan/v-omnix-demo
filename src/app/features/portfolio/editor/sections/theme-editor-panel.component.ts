@@ -1,12 +1,14 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Palette } from 'lucide-angular';
 import { AdminDetailFieldComponent } from '../../../admin/shared/admin-detail-field.component';
 import { WebsiteSectionShellComponent } from '../shared/website-section-shell.component';
 import { PortfolioStateService } from '../../data-access/portfolio-state.service';
 import { WebsiteSectionStateService } from '../../data-access/website-section-state.service';
+import { ThemePresetsService } from '../../data-access/theme-presets.service';
 import { PortfolioTheme } from '../../models/portfolio.model';
-import { MOX_COLOR_SCHEMES, PORTFOLIO_THEME_PRESETS } from '../../models/portfolio-theme.presets';
+import { ThemePresetDto } from '../../models/theme-preset.model';
+import { MOX_COLOR_SCHEMES } from '../../models/portfolio-theme.presets';
 import { MOX_COLOR_SCHEME_ACCENTS } from '../../shared/utils/portfolio-theme.util';
 
 @Component({
@@ -17,10 +19,7 @@ import { MOX_COLOR_SCHEME_ACCENTS } from '../../shared/utils/portfolio-theme.uti
     <app-website-section-shell sectionId="theme" title="Theme" [icon]="icon" [complete]="true">
       <div view class="admin-detail-view">
         @if (draft()?.theme; as t) {
-          <div class="admin-detail-view__grid admin-detail-view__grid--2">
-            <app-admin-detail-field label="Preset" [value]="presetLabel(t.presetId)" />
-            <app-admin-detail-field label="Mode" [value]="t.mode" />
-          </div>
+          <app-admin-detail-field label="Preset" [value]="presetLabel(t.presetId)" />
           <div class="pf-theme-preview-row">
             <div class="pf-editor-color-preview">
               <span class="pf-editor-label">Primary</span>
@@ -34,7 +33,6 @@ import { MOX_COLOR_SCHEME_ACCENTS } from '../../shared/utils/portfolio-theme.uti
             </div>
           </div>
           <app-admin-detail-field label="Font family" [value]="t.fontFamily" />
-          <app-admin-detail-field label="Border radius" [value]="t.borderRadius" />
         }
       </div>
 
@@ -43,8 +41,8 @@ import { MOX_COLOR_SCHEME_ACCENTS } from '../../shared/utils/portfolio-theme.uti
           <div class="pf-editor-field">
             <span class="pf-editor-label">Preset</span>
             <select class="pf-editor-input" [ngModel]="t.presetId" (ngModelChange)="applyPreset($event)">
-              @for (preset of presets; track preset.id) {
-                <option [value]="preset.id">{{ preset.label }}</option>
+              @for (preset of presets(); track preset.id) {
+                <option [value]="preset.id">{{ preset.name }}</option>
               }
             </select>
           </div>
@@ -67,17 +65,6 @@ import { MOX_COLOR_SCHEME_ACCENTS } from '../../shared/utils/portfolio-theme.uti
           <div class="pf-editor-field">
             <span class="pf-editor-label">Font family</span>
             <input class="pf-editor-input" [ngModel]="t.fontFamily" (ngModelChange)="patch({ fontFamily: $event })" />
-          </div>
-          <div class="pf-editor-field">
-            <span class="pf-editor-label">Border radius</span>
-            <input class="pf-editor-input" [ngModel]="t.borderRadius" (ngModelChange)="patch({ borderRadius: $event })" placeholder="0.75rem" />
-          </div>
-          <div class="pf-editor-field">
-            <span class="pf-editor-label">Mode</span>
-            <select class="pf-editor-input" [ngModel]="t.mode" (ngModelChange)="patch({ mode: $event })">
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
           </div>
           @if (t.presetId === 'mox-ecommerce') {
             <div class="pf-editor-field">
@@ -162,24 +149,34 @@ import { MOX_COLOR_SCHEME_ACCENTS } from '../../shared/utils/portfolio-theme.uti
     }
   `
 })
-export class ThemeEditorPanelComponent {
+export class ThemeEditorPanelComponent implements OnInit {
   private readonly state = inject(PortfolioStateService);
   private readonly sectionState = inject(WebsiteSectionStateService);
+  private readonly themePresetsService = inject(ThemePresetsService);
 
   readonly draft = this.state.draft;
   readonly icon = Palette;
-  readonly presets = PORTFOLIO_THEME_PRESETS;
+  readonly presets = signal<ThemePresetDto[]>([]);
   readonly moxSchemes = MOX_COLOR_SCHEMES;
   readonly buffer = computed(() => this.sectionState.buffer<PortfolioTheme>('theme'));
 
+  ngOnInit(): void {
+    this.themePresetsService.list().subscribe({
+      next: (presets) => this.presets.set(presets),
+      error: () => undefined
+    });
+  }
+
   presetLabel(id: string): string {
-    return this.presets.find((p) => p.id === id)?.label ?? id;
+    return this.presets().find((p) => p.id === id)?.name ?? id;
   }
 
   applyPreset(id: string): void {
-    const preset = this.presets.find((p) => p.id === id);
+    const preset = this.presets().find((p) => p.id === id);
     if (!preset) return;
-    this.sectionState.patchBuffer<PortfolioTheme>('theme', () => ({ ...preset.theme }));
+    this.sectionState.patchBuffer<PortfolioTheme>('theme', () =>
+      this.themePresetsService.toPortfolioTheme(preset)
+    );
   }
 
   patch(partial: Partial<PortfolioTheme>): void {

@@ -3,9 +3,9 @@ export interface PortfolioThemeDto {
   primaryColor: string;
   accentColor: string;
   fontFamily: string;
-  borderRadius: string;
-  mode: 'light' | 'dark';
   colorScheme?: 'amber' | 'teal' | 'rose' | 'indigo' | 'green' | 'slate';
+  mode?: 'light' | 'dark';
+  borderRadius?: string;
 }
 
 export interface PortfolioHeroSlideDto {

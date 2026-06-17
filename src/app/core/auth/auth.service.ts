@@ -16,6 +16,13 @@ import { ApiResponse } from '../../shared/models/api-response.model';
 
 const STORAGE_KEYS = {
   accessToken: 'access_token',
+  userId: 'user_id',
+  firstName: 'first_name',
+  lastName: 'last_name',
+  mobile: 'user_mobile',
+  email: 'user_email',
+  profileImageDocumentId: 'profile_image_document_id',
+  profileImageUrl: 'profile_image_url',
   tenantId: 'tenant_id',
   tenantName: 'tenant_name',
   businessLogoUrl: 'business_logo_url',
@@ -27,10 +34,6 @@ const STORAGE_KEYS = {
 const LEGACY_STORAGE_KEYS = [
   'refresh_token',
   'expires_at',
-  'user_id',
-  'user_email',
-  'profile_image_document_id',
-  'profile_image_url',
   'role_id',
   'business_logo_document_id',
   'tenantId',
@@ -98,6 +101,58 @@ export class AuthService {
     return localStorage.getItem(STORAGE_KEYS.accessToken);
   }
 
+  getUserId(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.userId) ?? localStorage.getItem('user_id');
+  }
+
+  getFirstName(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.firstName);
+  }
+
+  getLastName(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.lastName);
+  }
+
+  getMobile(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.mobile);
+  }
+
+  getEmail(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.email) ?? localStorage.getItem('user_email');
+  }
+
+  getProfileImageUrl(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.profileImageUrl) ?? localStorage.getItem('profile_image_url');
+  }
+
+  updateLocalUserProfile(partial: {
+    firstName?: string | null;
+    lastName?: string | null;
+    mobile?: string | null;
+    email?: string | null;
+    profileImageUrl?: string | null;
+    userId?: string | null;
+  }): void {
+    if (partial.userId !== undefined) {
+      this.setOrRemove(STORAGE_KEYS.userId, partial.userId);
+    }
+    if (partial.firstName !== undefined) {
+      this.setOrRemove(STORAGE_KEYS.firstName, partial.firstName);
+    }
+    if (partial.lastName !== undefined) {
+      this.setOrRemove(STORAGE_KEYS.lastName, partial.lastName);
+    }
+    if (partial.mobile !== undefined) {
+      this.setOrRemove(STORAGE_KEYS.mobile, partial.mobile);
+    }
+    if (partial.email !== undefined) {
+      this.setOrRemove(STORAGE_KEYS.email, partial.email);
+    }
+    if (partial.profileImageUrl !== undefined) {
+      this.setOrRemove(STORAGE_KEYS.profileImageUrl, partial.profileImageUrl);
+    }
+  }
+
   getTenantId(): string | null {
     return this.readTenantIdFromStorage() ?? this.getTenantIdFromToken();
   }
@@ -160,6 +215,23 @@ export class AuthService {
   persistLogin(data: LoginData): void {
     this.clearLegacyStorage();
     localStorage.setItem(STORAGE_KEYS.accessToken, data.token);
+    const raw = data as LoginData & Record<string, unknown>;
+    this.setOrRemove(STORAGE_KEYS.userId, firstNonEmpty(data.userId, pickString(raw['UserId'])));
+    this.setOrRemove(
+      STORAGE_KEYS.firstName,
+      firstNonEmpty(data.firstName, pickString(raw['FirstName']))
+    );
+    this.setOrRemove(STORAGE_KEYS.lastName, firstNonEmpty(data.lastName, pickString(raw['LastName'])));
+    this.setOrRemove(STORAGE_KEYS.mobile, firstNonEmpty(data.mobile, pickString(raw['Mobile'])));
+    this.setOrRemove(STORAGE_KEYS.email, firstNonEmpty(data.email, pickString(raw['Email'])));
+    this.setOrRemove(
+      STORAGE_KEYS.profileImageDocumentId,
+      firstNonEmpty(data.profileImageDocumentId ?? undefined, pickString(raw['ProfileImageDocumentId']))
+    );
+    this.setOrRemove(
+      STORAGE_KEYS.profileImageUrl,
+      firstNonEmpty(data.profileImageUrl ?? undefined, pickString(raw['ProfileImageUrl']))
+    );
 
     const contexts = extractLoginContexts(data);
     if (contexts.length === 1 && contexts[0].tenantId) {
@@ -253,4 +325,14 @@ function pickString(...values: unknown[]): string {
     }
   }
   return '';
+}
+
+function firstNonEmpty(...values: Array<string | undefined>): string | null {
+  for (const value of values) {
+    const trimmed = value?.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+  return null;
 }

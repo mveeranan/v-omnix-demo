@@ -10,6 +10,8 @@ import {
 
   OnDestroy,
 
+  OnInit,
+
   PLATFORM_ID,
 
   signal
@@ -35,8 +37,6 @@ import { BrandSectionComponent } from './sections/brand-section.component';
 import { HeroEditorSectionComponent } from './sections/hero-editor-section.component';
 
 import { CategoryShowcaseEditorSectionComponent } from './sections/category-showcase-editor-section.component';
-
-import { StoreDescriptionSectionComponent } from './sections/store-description-section.component';
 
 import { FeaturedProductsEditorSectionComponent } from './sections/featured-products-section.component';
 
@@ -92,8 +92,6 @@ type EditorTab = 'content' | 'theme' | 'publish';
 
     CategoryShowcaseEditorSectionComponent,
 
-    StoreDescriptionSectionComponent,
-
     FeaturedProductsEditorSectionComponent,
 
     OfferBannerEditorSectionComponent,
@@ -130,7 +128,7 @@ type EditorTab = 'content' | 'theme' | 'publish';
 
 })
 
-export class PortfolioEditorComponent implements OnDestroy {
+export class PortfolioEditorComponent implements OnInit, OnDestroy {
 
   readonly state = inject(PortfolioStateService);
 
@@ -153,6 +151,12 @@ export class PortfolioEditorComponent implements OnDestroy {
   readonly eyeIcon = Eye;
 
   readonly closeIcon = X;
+
+
+
+  ngOnInit(): void {
+    this.state.loadDraft();
+  }
 
 
 

@@ -8,9 +8,11 @@ export interface PortfolioTheme {
   primaryColor: string;
   accentColor: string;
   fontFamily: string;
-  borderRadius: string;
-  mode: PortfolioThemeMode;
   colorScheme: PortfolioColorScheme;
+  /** Visitor toggle overrides this locally; defaults to light when omitted. */
+  mode?: PortfolioThemeMode;
+  /** Fixed design token when omitted from tenant config. */
+  borderRadius?: string;
 }
 
 export interface PortfolioHeroSlide {

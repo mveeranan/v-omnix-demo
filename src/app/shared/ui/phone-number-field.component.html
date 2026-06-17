@@ -46,7 +46,9 @@
   </div>
 } @else {
   <div class="phone-number-field phone-number-field--editor">
-    <div class="pf-editor-phone-row">
+    <div
+      class="pf-editor-phone-row"
+      [class.pf-editor-phone-row--stacked]="layout() === 'stacked'">
       <div class="pf-editor-field">
         <span class="pf-editor-label">{{ countryCodeLabel() }}</span>
         <app-country-dial-code-picker

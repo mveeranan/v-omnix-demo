@@ -128,6 +128,7 @@ export class PublishEditorPanelComponent {
   publish(): void {
     if (this.sectionState.isEditing('publish')) {
       this.sectionState.saveSection('publish');
+      return;
     }
     this.state.publish();
   }

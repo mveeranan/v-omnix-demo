@@ -2,12 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, map, of, catchError } from 'rxjs';
 import { Portfolio, PortfolioStats } from '../../portfolio/models/portfolio.model';
 import { PortfolioService } from '../../portfolio/data-access/portfolio.service';
-import { BusinessProfileService } from '../../admin/data-access/business-profile.service';
+import { PortfolioApiService } from '../../portfolio/data-access/portfolio-api.service';
 import { BusinessProfileDto } from '../../admin/models/business-profile.model';
-import {
-  getCoverPreviewUrl,
-  getLogoPreviewUrl
-} from '../../admin/models/business-profile.model';
+import { mergeBusinessProfileIntoPortfolio } from '../../portfolio/data-access/business-profile-portfolio.util';
 import { ProductApiService } from './product-api.service';
 import { StoreProduct } from '../models/product.model';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -20,7 +17,7 @@ export interface StoreViewModel {
 @Injectable({ providedIn: 'root' })
 export class StoreFacadeService {
   private readonly portfolioService = inject(PortfolioService);
-  private readonly businessProfileService = inject(BusinessProfileService);
+  private readonly portfolioApiService = inject(PortfolioApiService);
   private readonly productApi = inject(ProductApiService);
   private readonly authService = inject(AuthService);
 
@@ -42,7 +39,7 @@ export class StoreFacadeService {
       return portfolio$.pipe(map((portfolio) => this.mergeBusinessProfile(portfolio, null)));
     }
 
-    const profile$ = this.businessProfileService.getByTenant(tenantId).pipe(catchError(() => of(null)));
+    const profile$ = this.portfolioApiService.getBusinessProfileByTenant(tenantId);
 
     return forkJoin({ portfolio: portfolio$, profile: profile$ }).pipe(
       map(({ portfolio, profile }) => this.mergeBusinessProfile(portfolio, profile))
@@ -72,35 +69,8 @@ export class StoreFacadeService {
       return { portfolio: this.applyCommerceDefaults(portfolio), businessProfile: null };
     }
 
-    const merged: Portfolio = {
-      ...portfolio,
-      brand: {
-        ...portfolio.brand,
-        businessName: profile.businessName || portfolio.brand.businessName,
-        logoUrl: getLogoPreviewUrl(profile) || portfolio.brand.logoUrl
-      },
-      storeDescription: {
-        ...portfolio.storeDescription,
-        imageUrl:
-          getCoverPreviewUrl(profile) ||
-          portfolio.storeDescription.imageUrl ||
-          portfolio.brand.coverImageUrl ||
-          ''
-      },
-      about: {
-        ...portfolio.about,
-        description: profile.description?.trim() || portfolio.about.description
-      },
-      contact: {
-        ...portfolio.contact,
-        enabled: true,
-        email: profile.email?.trim() || portfolio.contact.email,
-        phone: profile.phone?.trim() || portfolio.contact.phone
-      }
-    };
-
     return {
-      portfolio: this.applyCommerceDefaults(merged),
+      portfolio: this.applyCommerceDefaults(mergeBusinessProfileIntoPortfolio(portfolio, profile)),
       businessProfile: profile
     };
   }

@@ -1,13 +1,13 @@
-﻿<header class="admin-header sticky top-0 z-40 flex shrink-0 items-center gap-3 px-4 sm:gap-4 sm:px-6">
+<header class="admin-header sticky top-0 z-40 flex shrink-0 items-center gap-3 px-4 sm:gap-4 sm:px-6">
   <div class="ml-auto flex flex-1 items-center justify-end gap-2 sm:gap-3">
-    <div class="relative hidden md:block">
-      <lucide-icon [img]="searchIcon" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+    <label class="admin-header-search-wrap admin-header-search-wrap--desktop hidden md:inline-flex">
+      <lucide-icon [img]="searchIcon" class="admin-header-search__icon" aria-hidden="true" />
       <input
         type="search"
         placeholder="Search orders, customers..."
-        class="app-input w-56 py-2 pl-10 pr-3 lg:w-72"
+        class="admin-header-search"
         aria-label="Global search" />
-    </div>
+    </label>
 
     <button
       type="button"
@@ -43,15 +43,26 @@
       <button
         type="button"
         (click)="toggleProfile()"
-        class="flex items-center gap-2 rounded-full border border-[var(--border-subtle)] py-1.5 pl-1.5 pr-2 transition-colors hover:bg-[var(--surface-2)]"
+        class="admin-header-profile"
         [attr.aria-expanded]="profileOpen()"
         aria-haspopup="true">
-        <div
-          class="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent-muted)] text-xs font-semibold text-[var(--accent)]">
-          AD
+        @if (profileImageUrl()) {
+          <img
+            [src]="profileImageUrl()"
+            [alt]="displayName()"
+            class="admin-header-profile__avatar admin-header-profile__avatar--image" />
+        } @else {
+          <div class="admin-header-profile__avatar">
+            {{ profileInitials() }}
+          </div>
+        }
+        <div class="admin-header-profile__text">
+          <span class="admin-header-profile__name">{{ displayName() }}</span>
+          @if (roleName()) {
+            <span class="admin-header-profile__role">{{ roleName() }}</span>
+          }
         </div>
-        <span class="hidden text-sm font-medium text-[var(--text-primary)] sm:inline">Admin</span>
-        <lucide-icon [img]="chevronDown" class="hidden h-4 w-4 text-[var(--text-muted)] sm:block" />
+        <lucide-icon [img]="chevronDown" class="admin-header-profile__chevron" />
       </button>
 
       @if (profileOpen()) {
@@ -82,14 +93,13 @@
 
 @if (searchExpanded()) {
   <div class="border-b border-[var(--border-subtle)] bg-[var(--surface-0)] px-4 py-3 md:hidden">
-    <div class="relative">
-      <lucide-icon [img]="searchIcon" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+    <label class="admin-header-search-wrap admin-header-search-wrap--full">
+      <lucide-icon [img]="searchIcon" class="admin-header-search__icon" aria-hidden="true" />
       <input
         type="search"
         placeholder="Search orders, customers..."
-        class="app-input w-full py-2 pl-10 pr-3"
+        class="admin-header-search"
         aria-label="Global search mobile" />
-    </div>
+    </label>
   </div>
 }
-

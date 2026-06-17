@@ -14,6 +14,9 @@ export const API_ENDPOINTS = {
   businessTypes: {
     list: `${base}/business-types`
   },
+  themePresets: {
+    list: `${base}/theme-presets`
+  },
   plans: {
     list: `${base}/plans`
   },
@@ -24,6 +27,7 @@ export const API_ENDPOINTS = {
     hub: `${base}/hubs/connect`
   },
   portfolio: {
+    getByTenant: (tenantId: string) => `${base}/portfolio/${tenantId}`,
     getBySlug: (slug: string) => `${base}/portfolio/${slug}`,
     save: `${base}/portfolio`,
     publish: `${base}/portfolio/publish`,
@@ -38,6 +42,9 @@ export const API_ENDPOINTS = {
   },
   tenant: {
     current: `${base}/tenant`
+  },
+  user: {
+    update: `${base}/User`
   },
   store: {
     productsBySlug: (storeSlug: string) => `${base}/stores/${encodeURIComponent(storeSlug)}/products`,

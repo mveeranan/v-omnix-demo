@@ -2,6 +2,7 @@ import { Mapper } from '../../../shared/mappers/mapper';
 import { PortfolioDto, PortfolioHighlightsDto } from '../models/portfolio.dto';
 import { Portfolio, PortfolioHighlightItem, createEmptyPortfolio } from '../models/portfolio.model';
 import { mergeWithWebsiteDefaults } from '../models/portfolio-defaults';
+import { normalizePortfolioTheme } from '../models/theme-preset.model';
 
 const defaults = createEmptyPortfolio();
 
@@ -156,11 +157,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
             items: normalizeHighlightItems(source.highlights.items)
           }
         : { ...defaults.highlights },
-      theme: {
-        ...defaults.theme,
-        ...source.theme,
-        colorScheme: source.theme.colorScheme ?? defaults.theme.colorScheme
-      }
+      theme: normalizePortfolioTheme(source.theme)
     };
 
     return mergeWithWebsiteDefaults(syncLegacyFields(portfolio));
@@ -219,7 +216,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
         ...synced.highlights,
         items: synced.highlights.items.map((i) => ({ ...i }))
       },
-      theme: { ...synced.theme }
+      theme: normalizePortfolioTheme(synced.theme)
     };
   }
 }

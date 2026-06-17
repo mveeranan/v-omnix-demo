@@ -1,14 +1,16 @@
-﻿import { Injectable, inject, signal, computed } from '@angular/core';
-import { EMPTY, Observable, tap, catchError, of } from 'rxjs';
-import { BusinessProfileService } from './business-profile.service';
+﻿import { computed, effect, Injectable, inject, signal } from '@angular/core';
+import { EMPTY, Observable, map, switchMap, tap } from 'rxjs';
+import { PortfolioTenantStateService } from '../../portfolio/data-access/portfolio-tenant-state.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { AdminDashboardDataService } from '../services/admin-dashboard-data.service';
+import { BusinessProfileService } from './business-profile.service';
 import {
   BusinessProfileDto,
   BusinessProfileUpsertRequest,
   BusinessProfileUpdateRequest,
   createEmptyBusinessProfile,
+  getLogoPreviewUrl,
   hasBusinessProfileData
 } from '../models/business-profile.model';
 
@@ -17,60 +19,64 @@ const PROFILE_LOAD_WARNING = 'Could not load business profile.';
 @Injectable({ providedIn: 'root' })
 export class AdminProfileStateService {
   private readonly businessProfileService = inject(BusinessProfileService);
+  private readonly tenantState = inject(PortfolioTenantStateService);
   private readonly authService = inject(AuthService);
   private readonly notifications = inject(NotificationService);
   private readonly dashboardData = inject(AdminDashboardDataService);
 
-  readonly profile = signal<BusinessProfileDto | null>(null);
-  readonly profileLoading = signal(true);
+  readonly profile = signal<BusinessProfileDto>(createEmptyBusinessProfile());
   readonly profileSaving = signal(false);
   readonly profileLastSavedAt = signal<Date | null>(null);
-  readonly loadError = signal<string | null>(null);
 
-  readonly formsReady = computed(() => !this.profileLoading());
+  readonly profileLoading = computed(() => this.tenantState.loading());
+  readonly formsReady = computed(() => {
+    if (this.tenantState.loaded()) {
+      return true;
+    }
+    return !this.tenantState.loading();
+  });
+  readonly loadError = computed(() => {
+    if (!this.authService.resolveTenantId()) {
+      return 'No tenant selected. Please log in and select a workspace.';
+    }
+    if (this.tenantState.loadError()) {
+      return PROFILE_LOAD_WARNING;
+    }
+    if (
+      this.tenantState.loaded() &&
+      !hasBusinessProfileData(this.tenantState.businessProfile())
+    ) {
+      return PROFILE_LOAD_WARNING;
+    }
+    return null;
+  });
 
   readonly profileComplete = computed(() => {
     const p = this.profile();
     return Boolean(p?.businessName?.trim() && p?.businessTypeId);
   });
 
-  load(): void {
-    const tenantId = this.resolveTenantId();
-    if (!tenantId) {
-      this.profileLoading.set(false);
-      this.loadError.set('No tenant selected. Please log in and select a workspace.');
-      this.profile.set(createEmptyBusinessProfile());
-      return;
-    }
-
-    this.profileLoading.set(true);
-    this.loadError.set(null);
-
-    this.businessProfileService.getByTenant(tenantId).pipe(catchError(() => of(null))).subscribe({
-      next: (profile) => {
-        if (!hasBusinessProfileData(profile)) {
-          this.loadError.set(PROFILE_LOAD_WARNING);
-          this.profile.set(createEmptyBusinessProfile(tenantId));
-        } else {
-          this.loadError.set(null);
-          this.profile.set({ ...profile!, tenantId: profile!.tenantId ?? tenantId });
-        }
-
-        this.profileLoading.set(false);
-
-        if (tenantId) {
-          this.authService.setTenantId(tenantId);
-        }
-        if (hasBusinessProfileData(this.profile())) {
-          this.syncDashboardFromProfile(this.profile()!);
-        }
-      },
-      error: () => {
-        this.profileLoading.set(false);
-        this.loadError.set(PROFILE_LOAD_WARNING);
-        this.profile.set(createEmptyBusinessProfile(tenantId));
+  constructor() {
+    effect(() => {
+      if (!this.tenantState.loaded()) {
+        return;
       }
+
+      const tenantId = this.authService.resolveTenantId() ?? '';
+      const loaded = this.tenantState.businessProfile();
+      if (loaded && hasBusinessProfileData(loaded)) {
+        const next = { ...loaded, tenantId: loaded.tenantId ?? tenantId };
+        this.profile.set(next);
+        this.syncDashboardFromProfile(next);
+        return;
+      }
+
+      this.profile.set(createEmptyBusinessProfile(tenantId));
     });
+  }
+
+  load(): void {
+    this.tenantState.ensureLoaded();
   }
 
   saveProfile(payload: BusinessProfileUpdateRequest): Observable<BusinessProfileDto> {
@@ -87,15 +93,21 @@ export class AdminProfileStateService {
     const body: BusinessProfileUpsertRequest = { ...payload, tenantId };
     this.profileSaving.set(true);
     return this.businessProfileService.upsert(body).pipe(
+      switchMap((updated) =>
+        this.tenantState.refresh().pipe(
+          map((result) => {
+            const refreshed = result.businessProfile ?? updated;
+            return { ...refreshed, tenantId: refreshed.tenantId ?? tenantId };
+          })
+        )
+      ),
       tap({
-        next: (updated) => {
-          const savedTenantId = updated.tenantId ?? tenantId;
-          this.authService.setTenantId(savedTenantId);
-          this.profile.set({ ...updated, tenantId: savedTenantId });
+        next: (saved) => {
+          this.profile.set({ ...saved, tenantId: saved.tenantId ?? tenantId });
+          this.authService.setTenantId(saved.tenantId ?? tenantId);
           this.profileSaving.set(false);
           this.profileLastSavedAt.set(new Date());
-          this.loadError.set(null);
-          this.syncDashboardFromProfile(updated);
+          this.syncDashboardFromProfile(saved);
           this.notifications.success('Business profile saved');
         },
         error: () => {
@@ -107,7 +119,9 @@ export class AdminProfileStateService {
   }
 
   private resolveTenantId(): string | null {
-    return this.authService.resolveTenantId(this.profile()?.tenantId ?? undefined);
+    return this.authService.resolveTenantId(
+      this.tenantState.businessProfile()?.tenantId ?? this.profile().tenantId ?? undefined
+    );
   }
 
   private syncDashboardFromProfile(profile: BusinessProfileDto): void {
@@ -122,6 +136,7 @@ export class AdminProfileStateService {
       this.dashboardData.updateTenantBranding({
         businessName: profile.businessName,
         logoInitials: initials || 'WB',
+        logoUrl: getLogoPreviewUrl(profile) || undefined,
         tagline: profile.description?.slice(0, 80) ?? this.dashboardData.dashboardData().tenant.tagline
       });
     }

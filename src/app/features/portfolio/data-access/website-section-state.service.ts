@@ -1,7 +1,12 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { finalize, take } from 'rxjs';
+import { catchError, finalize, map, Observable, of, switchMap, take, throwError } from 'rxjs';
+import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { WebsiteSectionId, WEBSITE_CONTENT_SECTIONS } from '../models/website-section.ids';
+import {
+  buildWebsitePublishRequest,
+  buildWebsiteSectionSaveRequest
+} from '../models/website-api.model';
 import {
   Portfolio,
   PortfolioBrand,
@@ -21,6 +26,12 @@ import {
   PortfolioTheme
 } from '../models/portfolio.model';
 import { PortfolioStateService } from './portfolio-state.service';
+import { WebsiteApiService } from './website-api.service';
+import {
+  BrandBusinessProfileService,
+  BrandPendingUploads
+} from './brand-business-profile.service';
+import { applyBusinessProfileToPortfolioPartial } from './business-profile-portfolio.util';
 import {
   validateBrand,
   validateContactSupport,
@@ -41,6 +52,7 @@ export interface SectionMeta {
 export interface BrandSectionBuffer {
   brand: PortfolioBrand;
   primaryColor: string;
+  storeDescription: PortfolioStoreDescription;
 }
 
 export interface ReviewsSectionBuffer {
@@ -69,7 +81,6 @@ export type SectionBuffer =
   | BrandSectionBuffer
   | PortfolioHero
   | PortfolioCategoryShowcase
-  | PortfolioStoreDescription
   | PortfolioFeaturedProducts
   | PortfolioOfferBanner
   | PortfolioSaleCollection
@@ -94,7 +105,17 @@ const DEFAULT_META: SectionMeta = {
 @Injectable({ providedIn: 'root' })
 export class WebsiteSectionStateService {
   private readonly portfolioState = inject(PortfolioStateService);
+  private readonly websiteApi = inject(WebsiteApiService);
+  private readonly authService = inject(AuthService);
   private readonly notifications = inject(NotificationService);
+  private readonly brandBusinessProfile = inject(BrandBusinessProfileService);
+
+  private readonly brandPendingUploads = signal<BrandPendingUploads>({
+    logoFile: null,
+    storyImageFile: null,
+    logoDocumentId: null,
+    coverDocumentId: null
+  });
 
   private readonly meta = signal<Record<WebsiteSectionId, SectionMeta>>(this.createInitialMeta());
   private readonly buffers = signal<Partial<Record<WebsiteSectionId, SectionBuffer>>>({});
@@ -131,6 +152,66 @@ export class WebsiteSectionStateService {
     const buffer = this.extractSlice(id, draft);
     this.buffers.update((b) => ({ ...b, [id]: structuredClone(buffer) }));
     this.patchMeta(id, { editing: true, dirty: false, error: null });
+
+    if (id === 'brand') {
+      this.resetBrandPendingUploads();
+      const cached = this.portfolioState.businessProfile();
+      if (cached) {
+        this.brandPendingUploads.update((pending) => ({
+          ...pending,
+          logoDocumentId: cached.logoDocumentId ?? null,
+          coverDocumentId: cached.coverImageDocumentId ?? null
+        }));
+        return;
+      }
+
+      const tenantId = this.brandBusinessProfile.resolveTenantId();
+      if (tenantId) {
+        this.brandBusinessProfile.getExistingProfile(tenantId).subscribe({
+          next: (profile) => {
+            this.brandPendingUploads.update((pending) => ({
+              ...pending,
+              logoDocumentId: profile?.logoDocumentId ?? null,
+              coverDocumentId: profile?.coverImageDocumentId ?? null
+            }));
+          },
+          error: () => undefined
+        });
+      }
+    }
+  }
+
+  setBrandPendingLogo(file: File | null): void {
+    this.brandPendingUploads.update((p) => ({ ...p, logoFile: file }));
+  }
+
+  setBrandPendingStoryImage(file: File | null): void {
+    this.brandPendingUploads.update((p) => ({ ...p, storyImageFile: file }));
+  }
+
+  clearBrandPendingLogo(): void {
+    this.brandPendingUploads.update((p) => ({
+      ...p,
+      logoFile: null,
+      logoDocumentId: null
+    }));
+  }
+
+  clearBrandPendingStoryImage(): void {
+    this.brandPendingUploads.update((p) => ({
+      ...p,
+      storyImageFile: null,
+      coverDocumentId: null
+    }));
+  }
+
+  private resetBrandPendingUploads(): void {
+    this.brandPendingUploads.set({
+      logoFile: null,
+      storyImageFile: null,
+      logoDocumentId: null,
+      coverDocumentId: null
+    });
   }
 
   patchBuffer<T extends SectionBuffer>(id: WebsiteSectionId, updater: (current: T) => T): void {
@@ -171,9 +252,22 @@ export class WebsiteSectionStateService {
 
     this.patchMeta(id, { saving: true, error: null });
     const partial = this.bufferToPartial(id, buffer);
+    const tenantId = this.authService.resolveTenantId();
 
-    this.portfolioState
-      .commitAndSave(partial)
+    if (!tenantId) {
+      this.patchMeta(id, {
+        saving: false,
+        error: 'No tenant selected. Please log in again.'
+      });
+      return;
+    }
+
+    const save$ = this.persistSection(id, buffer, partial, tenantId).pipe(
+      switchMap(() => this.portfolioState.syncFromPortfolioApi()),
+      map(() => void 0)
+    );
+
+    save$
       .pipe(
         take(1),
         finalize(() => this.patchMeta(id, { saving: false }))
@@ -185,6 +279,9 @@ export class WebsiteSectionStateService {
             delete next[id];
             return next;
           });
+          if (id === 'brand') {
+            this.resetBrandPendingUploads();
+          }
           this.patchMeta(id, {
             editing: false,
             dirty: false,
@@ -193,20 +290,69 @@ export class WebsiteSectionStateService {
           });
           this.notifications.success('Section saved');
         },
-        error: () => {
-          this.patchMeta(id, { error: 'Could not save section. Try again.' });
+        error: (err: unknown) => {
+          const message = err instanceof Error ? err.message : '';
+          if (!this.meta()[id]?.error) {
+            this.patchMeta(id, {
+              error: message || 'Could not save section. Try again.'
+            });
+          }
         }
       });
+  }
+
+  private persistSection(
+    id: WebsiteSectionId,
+    buffer: SectionBuffer,
+    partial: Partial<Portfolio>,
+    tenantId: string
+  ): Observable<void> {
+    if (id === 'brand') {
+      return this.brandBusinessProfile.getExistingProfile(tenantId).pipe(
+        switchMap((existing) =>
+          this.brandBusinessProfile
+            .upsertFromBrandBuffer(buffer as BrandSectionBuffer, this.brandPendingUploads(), existing)
+            .pipe(
+              map((profile) => {
+                const merged = applyBusinessProfileToPortfolioPartial(partial, profile);
+                this.portfolioState.applyDraftPartial(merged);
+              })
+            )
+        ),
+        catchError((err: Error) => {
+          this.patchMeta(id, { error: err.message || 'Could not save brand.' });
+          return throwError(() => err);
+        })
+      );
+    }
+
+    this.portfolioState.applyDraftPartial(partial);
+
+    if (id === 'publish') {
+      return this.websiteApi.publish(
+        buildWebsitePublishRequest(tenantId, buffer as PublishSectionBuffer)
+      );
+    }
+
+    if (id === 'theme' || WEBSITE_CONTENT_SECTIONS.includes(id)) {
+      return this.websiteApi.saveSection(
+        buildWebsiteSectionSaveRequest(tenantId, id, partial)
+      );
+    }
+
+    return of(void 0);
   }
 
   private validateSection(id: WebsiteSectionId, buffer: SectionBuffer) {
     switch (id) {
       case 'brand': {
         const b = buffer as BrandSectionBuffer;
-        return validateBrand(b.brand, b.primaryColor);
+        const brandValidation = validateBrand(b.brand, b.primaryColor);
+        if (!brandValidation.valid) {
+          return brandValidation;
+        }
+        return validateStoreDescription(b.storeDescription);
       }
-      case 'storeDescription':
-        return validateStoreDescription(buffer as PortfolioStoreDescription);
       case 'featuredProducts':
         return validateFeaturedProducts(buffer as PortfolioFeaturedProducts);
       case 'reviews': {
@@ -236,15 +382,17 @@ export class WebsiteSectionStateService {
   private extractSlice(id: WebsiteSectionId, draft: Portfolio): SectionBuffer {
     switch (id) {
       case 'brand':
-        return { brand: structuredClone(draft.brand), primaryColor: draft.theme.primaryColor };
+        return {
+          brand: structuredClone(draft.brand),
+          primaryColor: draft.theme.primaryColor,
+          storeDescription: structuredClone(draft.storeDescription)
+        };
       case 'hero': {
         const hero = structuredClone(draft.hero);
         return { ...hero, slides: hero.slides ?? [] };
       }
       case 'categoryShowcase':
         return structuredClone(draft.categoryShowcase);
-      case 'storeDescription':
-        return structuredClone(draft.storeDescription);
       case 'featuredProducts':
         return structuredClone(draft.featuredProducts);
       case 'offerBanner':
@@ -291,19 +439,18 @@ export class WebsiteSectionStateService {
     switch (id) {
       case 'brand': {
         const b = buffer as BrandSectionBuffer;
-        return { brand: b.brand, theme: { ...draft.theme, primaryColor: b.primaryColor } };
+        const sd = b.storeDescription;
+        return {
+          brand: b.brand,
+          theme: { ...draft.theme, primaryColor: b.primaryColor },
+          storeDescription: sd,
+          about: { ...draft.about, enabled: sd.enabled, description: sd.description }
+        };
       }
       case 'hero':
         return { hero: buffer as PortfolioHero };
       case 'categoryShowcase':
         return { categoryShowcase: buffer as PortfolioCategoryShowcase };
-      case 'storeDescription': {
-        const sd = buffer as PortfolioStoreDescription;
-        return {
-          storeDescription: sd,
-          about: { ...draft.about, enabled: sd.enabled, description: sd.description }
-        };
-      }
       case 'featuredProducts':
         return { featuredProducts: buffer as PortfolioFeaturedProducts };
       case 'offerBanner':

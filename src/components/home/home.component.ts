@@ -56,6 +56,9 @@ import { firstValueFrom } from 'rxjs';
 import { PhoneNumberFieldComponent } from '../../app/shared/ui/phone-number-field.component';
 import { EMPTY_PHONE_NUMBER } from '../../app/shared/models/phone-number.model';
 import { formatPhoneWithDialCode } from '../../app/shared/utils/phone.util';
+import { BusinessTypesService } from '../../app/features/admin/data-access/business-types.service';
+import { BusinessTypeDto } from '../../app/features/admin/models/business-type.model';
+import { PortfolioTenantStateService } from '../../app/features/portfolio/data-access/portfolio-tenant-state.service';
 
 interface PricingFeature {
   name: string;
@@ -105,18 +108,6 @@ interface CheckoutSessionResponse {
   checkoutUrl: string;
 }
 
-interface BusinessTypeDto {
-  id: string;
-  name: string;
-}
-
-interface BusinessGroupDto {
-  groupId: string;
-  groupName: string;
-  types: BusinessTypeDto[];
-}
-
-
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -132,6 +123,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly tenantContext = inject(TenantContextService);
   private readonly notificationService = inject(NotificationService);
   private readonly themeService = inject(ThemeService);
+  private readonly businessTypesService = inject(BusinessTypesService);
+  private readonly tenantPortfolioState = inject(PortfolioTenantStateService);
   @ViewChildren('revealEl') revealElements!: QueryList<ElementRef<HTMLElement>>;
 
   annual = false;
@@ -165,7 +158,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedContextTenantId = '';
   businessLogoFile: File | null = null;
   businessLogoPreview: string | null = null;
-  businessGroups: BusinessGroupDto[] = [];
+  businessTypes: BusinessTypeDto[] = [];
   businessTypesLoading = false;
   businessTypesError = '';
   private revealObserver?: IntersectionObserver;
@@ -216,7 +209,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     businessName: ['', [Validators.required, Validators.maxLength(80)]],
-    businessGroupId: ['', [Validators.required]],
     businessTypeId: ['', [Validators.required]],
     description: [''],
     acceptTerms: [false, [Validators.requiredTrue]]
@@ -224,7 +216,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadPricingPlans();
-    this.setupBusinessTypeWatcher();
     this.loadBusinessTypes();
   }
 
@@ -327,11 +318,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       email: '',
       password: '',
       businessName: '',
-      businessGroupId: '',
       businessTypeId: '',
       description: '',
       acceptTerms: false
     });
+    this.applyDefaultBusinessType();
 
     this.removeLogoFile();
     this.registerStep = 1;
@@ -405,6 +396,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       if (context) {
         this.authService.persistActiveContext(context);
         this.tenantContext.syncFromAuthStorage();
+        this.tenantPortfolioState.ensureLoaded();
       }
 
       this.authSubmitting = false;
@@ -441,6 +433,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.authService.persistActiveContext(selected);
     this.tenantContext.syncFromAuthStorage();
+    this.tenantPortfolioState.ensureLoaded();
     this.contextSubmitting = false;
     this.notificationService.success('Context selected successfully.');
     this.closeAuthOverlays();
@@ -486,7 +479,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       | 'firstName'
       | 'lastName'
       | 'businessName'
-      | 'businessGroupId'
       | 'businessTypeId'
       | 'email'
       | 'password'
@@ -512,9 +504,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       if (controlName === 'businessName') {
         return 'Business name is required.';
-      }
-      if (controlName === 'businessGroupId') {
-        return 'Business group is required.';
       }
       if (controlName === 'businessTypeId') {
         return 'Business type is required.';
@@ -553,7 +542,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const subtitles = [
       'Enter your name and mobile number.',
       'Set your email, password, and accept the terms.',
-      'Enter your business name, group, and type.',
+      'Enter your business name and type.',
       'Add an optional description and logo.'
     ];
     return subtitles[this.registerStep - 1] ?? '';
@@ -584,8 +573,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       case 3:
         return (
           this.registerForm.controls.businessName.valid &&
-          this.registerForm.controls.businessGroupId.valid &&
-          this.registerForm.controls.businessTypeId.valid
+          Boolean(this.registerForm.getRawValue().businessTypeId?.trim())
         );
       case 4:
         return true;
@@ -623,6 +611,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.registerForm.controls.firstName.markAsTouched();
         this.registerForm.controls.lastName.markAsTouched();
         this.registerForm.controls.phone.markAsTouched();
+        this.registerForm.controls.phone.updateValueAndValidity();
         break;
       case 2:
         this.registerForm.controls.email.markAsTouched();
@@ -631,18 +620,45 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         break;
       case 3:
         this.registerForm.controls.businessName.markAsTouched();
-        this.registerForm.controls.businessGroupId.markAsTouched();
         this.registerForm.controls.businessTypeId.markAsTouched();
         break;
     }
   }
 
-  getBusinessTypesForSelectedGroup(): BusinessTypeDto[] {
-    const selectedGroupId = this.registerForm.controls.businessGroupId.value;
-    if (!selectedGroupId) {
-      return [];
+  private async loadBusinessTypes(): Promise<void> {
+    this.businessTypesLoading = true;
+    this.businessTypesError = '';
+    try {
+      const types = await firstValueFrom(this.businessTypesService.list());
+      if (!types.length) {
+        this.businessTypesLoading = false;
+        this.businessTypesError = 'Unable to load business types.';
+        this.businessTypes = [];
+        this.registerForm.controls.businessTypeId.enable({ emitEvent: false });
+        this.registerForm.controls.businessTypeId.setValue('');
+        return;
+      }
+      this.businessTypes = types;
+      this.applyDefaultBusinessType();
+      this.businessTypesLoading = false;
+    } catch {
+      this.businessTypesLoading = false;
+      this.businessTypesError = 'Unable to load business types.';
+      this.businessTypes = [];
+      this.registerForm.controls.businessTypeId.enable({ emitEvent: false });
+      this.registerForm.controls.businessTypeId.setValue('');
     }
-    return this.businessGroups.find((group) => group.groupId === selectedGroupId)?.types ?? [];
+  }
+
+  private applyDefaultBusinessType(): void {
+    const first = this.businessTypes[0];
+    if (!first) {
+      this.registerForm.controls.businessTypeId.enable({ emitEvent: false });
+      this.registerForm.controls.businessTypeId.setValue('');
+      return;
+    }
+    this.registerForm.controls.businessTypeId.setValue(first.id);
+    this.registerForm.controls.businessTypeId.disable({ emitEvent: false });
   }
 
   onLogoFileSelected(event: Event): void {
@@ -717,7 +733,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         email: this.registerForm.controls.email.value.trim(),
         password: this.registerForm.controls.password.value,
         businessName: this.registerForm.controls.businessName.value.trim(),
-        businessTypeId: this.registerForm.controls.businessTypeId.value,
+        businessTypeId: this.registerForm.getRawValue().businessTypeId,
         mobileNumber
       };
 
@@ -792,35 +808,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.authError =
         this.extractErrorMessage(error) || 'Payment setup failed. Please try again.';
       this.notificationService.error(this.authError);
-    }
-  }
-
-  private setupBusinessTypeWatcher(): void {
-    this.registerForm.controls.businessGroupId.valueChanges.subscribe(() => {
-      this.registerForm.controls.businessTypeId.setValue('');
-      this.registerForm.controls.businessTypeId.markAsUntouched();
-    });
-  }
-
-  private async loadBusinessTypes(): Promise<void> {
-    this.businessTypesLoading = true;
-    this.businessTypesError = '';
-    try {
-      const response = await firstValueFrom(
-        this.http.get<ApiResponse<BusinessGroupDto[]>>(API_ENDPOINTS.businessTypes.list)
-      );
-      if (!response.success || !Array.isArray(response.data) || response.data.length === 0) {
-        this.businessTypesLoading = false;
-        this.businessTypesError = response.message || 'Unable to load business types.';
-        this.businessGroups = [];
-        return;
-      }
-      this.businessGroups = response.data;
-      this.businessTypesLoading = false;
-    } catch {
-      this.businessTypesLoading = false;
-      this.businessTypesError = 'Unable to load business types.';
-      this.businessGroups = [];
     }
   }
 

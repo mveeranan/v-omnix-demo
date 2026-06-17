@@ -80,9 +80,9 @@ export class StoreShellComponent implements OnInit, OnDestroy {
       const slug = this.ctx.slug();
       if (!p || !slug) return;
       if (this.ctx.previewMode()) {
-        this.storeTheme.visitorMode.set(p.theme.mode);
+        this.storeTheme.visitorMode.set(p.theme.mode ?? 'light');
       } else {
-        this.storeTheme.init(slug, p.theme.mode);
+        this.storeTheme.init(slug, p.theme.mode ?? 'light');
       }
     });
   }
@@ -103,7 +103,9 @@ export class StoreShellComponent implements OnInit, OnDestroy {
 
   resolvedMode(p: Portfolio): PortfolioThemeMode {
     this.storeTheme.visitorMode();
-    return this.ctx.previewMode() ? p.theme.mode : this.storeTheme.effectiveMode(p.theme.mode);
+    return this.ctx.previewMode()
+      ? (p.theme.mode ?? 'light')
+      : this.storeTheme.effectiveMode(p.theme.mode ?? 'light');
   }
 
   shellClass(p: Portfolio): string {

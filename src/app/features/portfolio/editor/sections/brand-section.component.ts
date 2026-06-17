@@ -8,6 +8,7 @@ import { SectionToggleComponent } from '../../shared/ui/section-toggle.component
 import { WebsiteSectionShellComponent } from '../shared/website-section-shell.component';
 import { PortfolioStateService } from '../../data-access/portfolio-state.service';
 import { WebsiteSectionStateService, BrandSectionBuffer } from '../../data-access/website-section-state.service';
+import { PortfolioStoreDescription } from '../../models/portfolio.model';
 
 @Component({
   selector: 'app-brand-section',
@@ -25,7 +26,7 @@ import { WebsiteSectionStateService, BrandSectionBuffer } from '../../data-acces
       sectionId="brand"
       title="Brand"
       [icon]="icon"
-      [complete]="!!draft()?.brand?.businessName && !!draft()?.brand?.logoUrl"
+      [complete]="isComplete()"
     >
       <div view class="admin-detail-view">
         @if (saved(); as s) {
@@ -37,6 +38,11 @@ import { WebsiteSectionStateService, BrandSectionBuffer } from '../../data-acces
             <span class="pf-editor-color-preview__chip" [style.background]="savedPrimaryColor()"></span>
             <span class="pf-editor-color-preview__hex">{{ savedPrimaryColor() }}</span>
           </div>
+        }
+        @if (savedStory(); as story) {
+          <p class="pf-editor-subsection-label">Brand story</p>
+          <app-admin-detail-media label="Story image" [url]="story.imageUrl" />
+          <app-admin-detail-field label="Description" [value]="story.description" [span2]="true" />
         }
       </div>
 
@@ -52,8 +58,8 @@ import { WebsiteSectionStateService, BrandSectionBuffer } from '../../data-acces
             label="Logo"
             [singleSlot]="true"
             [previewUrl]="b.brand.logoUrl"
-            (fileSelected)="patchBrand({ logoUrl: $event.dataUrl })"
-            (cleared)="patchBrand({ logoUrl: '' })"
+            (fileSelected)="onLogoSelected($event)"
+            (cleared)="onLogoCleared()"
           />
           <div class="pf-editor-field">
             <span class="pf-editor-label">Business name</span>
@@ -70,6 +76,31 @@ import { WebsiteSectionStateService, BrandSectionBuffer } from '../../data-acces
               <span class="pf-editor-color-preview__chip" [style.background]="b.primaryColor"></span>
               <span class="pf-editor-color-preview__hex">{{ b.primaryColor }}</span>
             </div>
+          </div>
+
+          <p class="pf-editor-subsection-label">Brand story</p>
+          <app-section-toggle
+            label="Show brand story section"
+            [enabled]="b.storeDescription.enabled"
+            (enabledChange)="patchStoreDescription({ enabled: $event })"
+          />
+          <p class="pf-editor-hint">This is the “Our story” block on your homepage — separate from the hero slideshow.</p>
+          <app-media-upload-zone
+            label="Story image (optional)"
+            [singleSlot]="true"
+            [previewUrl]="b.storeDescription.imageUrl"
+            (fileSelected)="onStoryImageSelected($event)"
+            (cleared)="onStoryImageCleared()"
+          />
+          <div class="pf-editor-field">
+            <span class="pf-editor-label">Your story</span>
+            <textarea
+              class="pf-editor-input pf-editor-textarea"
+              [ngModel]="b.storeDescription.description"
+              (ngModelChange)="patchStoreDescription({ description: $event })"
+              rows="4"
+              placeholder="Describe your products and what makes your store unique..."
+            ></textarea>
           </div>
         }
       </div>
@@ -96,6 +127,13 @@ import { WebsiteSectionStateService, BrandSectionBuffer } from '../../data-acces
       color: rgb(100 116 139);
       font-family: ui-monospace, monospace;
     }
+
+    .pf-editor-subsection-label {
+      margin: 1.25rem 0 0.5rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: rgb(51 65 85);
+    }
   `
 })
 export class BrandSectionComponent {
@@ -107,7 +145,19 @@ export class BrandSectionComponent {
 
   readonly buffer = computed(() => this.sectionState.buffer<BrandSectionBuffer>('brand'));
   readonly saved = computed(() => this.draft()?.brand);
+  readonly savedStory = computed(() => this.draft()?.storeDescription);
   readonly savedPrimaryColor = computed(() => this.draft()?.theme.primaryColor ?? '#000');
+
+  isComplete(): boolean {
+    const draft = this.draft();
+    if (!draft?.brand?.businessName?.trim() || !draft.brand.logoUrl?.trim()) {
+      return false;
+    }
+    if (draft.storeDescription.enabled && !draft.storeDescription.description?.trim()) {
+      return false;
+    }
+    return true;
+  }
 
   patchBrand(partial: Partial<BrandSectionBuffer['brand']>): void {
     this.sectionState.patchBuffer<BrandSectionBuffer>('brand', (b) => ({
@@ -118,5 +168,32 @@ export class BrandSectionComponent {
 
   patchColor(color: string): void {
     this.sectionState.patchBuffer<BrandSectionBuffer>('brand', (b) => ({ ...b, primaryColor: color }));
+  }
+
+  patchStoreDescription(partial: Partial<PortfolioStoreDescription>): void {
+    this.sectionState.patchBuffer<BrandSectionBuffer>('brand', (b) => ({
+      ...b,
+      storeDescription: { ...b.storeDescription, ...partial }
+    }));
+  }
+
+  onLogoSelected(event: { file: File; dataUrl: string }): void {
+    this.sectionState.setBrandPendingLogo(event.file);
+    this.patchBrand({ logoUrl: event.dataUrl });
+  }
+
+  onLogoCleared(): void {
+    this.sectionState.clearBrandPendingLogo();
+    this.patchBrand({ logoUrl: '' });
+  }
+
+  onStoryImageSelected(event: { file: File; dataUrl: string }): void {
+    this.sectionState.setBrandPendingStoryImage(event.file);
+    this.patchStoreDescription({ imageUrl: event.dataUrl });
+  }
+
+  onStoryImageCleared(): void {
+    this.sectionState.clearBrandPendingStoryImage();
+    this.patchStoreDescription({ imageUrl: '' });
   }
 }

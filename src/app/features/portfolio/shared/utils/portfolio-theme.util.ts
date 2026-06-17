@@ -96,7 +96,9 @@ function buttonColors(accent: string, pageBg: string): { bg: string; fg: string 
 }
 
 export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, string> {
-  const isLight = theme.mode === 'light';
+  const mode = theme.mode ?? 'light';
+  const borderRadius = theme.borderRadius ?? '0.75rem';
+  const isLight = mode === 'light';
   const brand = normalizeHex(theme.primaryColor, isLight ? INK : DARK_BASE);
   const schemeAccent = theme.colorScheme ? MOX_COLOR_SCHEME_ACCENTS[theme.colorScheme] : undefined;
   const accent = normalizeHex(
@@ -136,7 +138,7 @@ export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, s
     '--pf-primary': brand,
     '--pf-accent': accent,
     '--pf-accent-text': accentText,
-    '--pf-radius': theme.borderRadius,
+    '--pf-radius': borderRadius,
     '--pf-font': theme.fontFamily,
     '--pf-bg': bg,
     '--pf-surface': bg,
@@ -160,7 +162,7 @@ export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, s
     '--mox-text': text,
     '--mox-muted': textMuted,
     '--mox-border': isLight ? '#e0e0e0' : mixHex(bg, PAPER, 0.15),
-    '--mox-radius': theme.borderRadius || '8px',
+    '--mox-radius': borderRadius,
     '--mox-font-body': theme.fontFamily,
     '--mox-font-heading': "'Poppins', Roboto, sans-serif"
   };

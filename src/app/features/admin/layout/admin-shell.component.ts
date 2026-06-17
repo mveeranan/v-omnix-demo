@@ -6,6 +6,8 @@ import { SidebarComponent } from './sidebar/sidebar.component';
 import { HeaderComponent } from './header/header.component';
 import { AdminLayoutStateService } from '../services/admin-layout-state.service';
 import { TenantContextService } from '../data-access/tenant-context.service';
+import { PortfolioTenantStateService } from '../../portfolio/data-access/portfolio-tenant-state.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { backdropFade, drawerSlide } from '../animations/admin.animations';
 
 @Component({
@@ -19,6 +21,8 @@ import { backdropFade, drawerSlide } from '../animations/admin.animations';
 export class AdminShellComponent implements OnInit {
   private readonly layoutState = inject(AdminLayoutStateService);
   private readonly tenantContext = inject(TenantContextService);
+  private readonly tenantPortfolioState = inject(PortfolioTenantStateService);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
   readonly mobileDrawerOpen = this.layoutState.mobileDrawerOpen;
@@ -28,6 +32,9 @@ export class AdminShellComponent implements OnInit {
 
   ngOnInit(): void {
     this.tenantContext.syncFromAuthStorage();
+    if (this.authService.isLoggedIn()) {
+      this.tenantPortfolioState.ensureLoaded();
+    }
     this.updateBreakpoints();
     this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd))

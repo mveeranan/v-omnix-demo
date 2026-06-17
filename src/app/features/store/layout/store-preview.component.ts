@@ -47,7 +47,7 @@ export class StorePreviewComponent {
   constructor() {
     effect(() => {
       const p = this.portfolio();
-      this.storeTheme.visitorMode.set(p.theme.mode);
+      this.storeTheme.visitorMode.set(p.theme.mode ?? 'light');
       this.ctx.load(p.slug || 'preview', structuredClone(p));
     });
 
@@ -56,7 +56,7 @@ export class StorePreviewComponent {
 
   resolvedMode(p: Portfolio): PortfolioThemeMode {
     this.storeTheme.visitorMode();
-    return this.storeTheme.effectiveMode(p.theme.mode);
+    return this.storeTheme.effectiveMode(p.theme.mode ?? 'light');
   }
 
   shellClass(p: Portfolio): string {

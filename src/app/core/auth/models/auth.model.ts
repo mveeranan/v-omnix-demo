@@ -33,6 +33,9 @@ export interface LoginData {
   refreshToken?: string;
   expiresAt?: string;
   userId?: string;
+  firstName?: string;
+  lastName?: string;
+  mobile?: string;
   email?: string;
   profileImageDocumentId?: string | null;
   profileImageUrl?: string | null;

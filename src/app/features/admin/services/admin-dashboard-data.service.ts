@@ -40,6 +40,7 @@ export interface ProfileStep {
 export interface TenantBranding {
   businessName: string;
   logoInitials: string;
+  logoUrl?: string;
   tagline: string;
 }
 

@@ -1,34 +1,46 @@
 import { Injectable, inject, signal, computed, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, forkJoin, map, switchMap } from 'rxjs';
 import { Portfolio } from '../models/portfolio.model';
 import { PortfolioService } from './portfolio.service';
+import { PortfolioTenantStateService } from './portfolio-tenant-state.service';
+import { PortfolioLoadResult } from './portfolio-api.service';
+import { WebsiteApiService } from './website-api.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { AdminDashboardDataService } from '../../admin/services/admin-dashboard-data.service';
+import { mergeBusinessProfileIntoPortfolio } from './business-profile-portfolio.util';
+import { hasBusinessProfileData } from '../../admin/models/business-profile.model';
+import { mergeWithWebsiteDefaults } from '../models/portfolio-defaults';
+import { buildWebsitePublishRequest } from '../models/website-api.model';
 
 @Injectable({ providedIn: 'root' })
 export class PortfolioStateService {
   private readonly portfolioService = inject(PortfolioService);
+  private readonly tenantState = inject(PortfolioTenantStateService);
+  private readonly websiteApi = inject(WebsiteApiService);
+  private readonly authService = inject(AuthService);
   private readonly notifications = inject(NotificationService);
   private readonly dashboardData = inject(AdminDashboardDataService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly draft = signal<Portfolio | null>(null);
+  readonly businessProfile = computed(() => this.tenantState.businessProfile());
   readonly isLoading = signal(true);
   readonly isSaving = signal(false);
   readonly lastSavedAt = signal<Date | null>(null);
 
   readonly hasGalleryItems = computed(() => (this.draft()?.gallery.length ?? 0) > 0);
 
-  constructor() {
-    this.loadDraft();
-  }
-
   loadDraft(): void {
     this.isLoading.set(true);
-    this.portfolioService
-      .getTenantDraft()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    const portfolio$ = this.portfolioService.getTenantDraft();
+
+    forkJoin({ portfolio: portfolio$, aggregate: this.tenantState.ensureLoaded$() })
+      .pipe(
+        map(({ portfolio, aggregate }) => this.mergeAggregateIntoDraft(portfolio, aggregate)),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: (portfolio) => {
           this.draft.set(portfolio);
@@ -36,6 +48,65 @@ export class PortfolioStateService {
         },
         error: () => this.isLoading.set(false)
       });
+  }
+
+  applyDraftPartial(partial: Partial<Portfolio>): void {
+    const current = this.draft();
+    if (!current) {
+      return;
+    }
+    const next = this.mergePartial(current, partial);
+    this.draft.set(next);
+  }
+
+  /** Re-fetch GET /portfolio/{tenantId} and merge server data into the editor draft. */
+  syncFromPortfolioApi(): Observable<Portfolio | null> {
+    return this.tenantState.refresh().pipe(
+      map((aggregate) => {
+        const current = this.draft();
+        if (!current) {
+          return null;
+        }
+        const merged = this.mergeAggregateIntoDraft(current, aggregate);
+        this.draft.set(merged);
+        this.lastSavedAt.set(new Date());
+        return merged;
+      }),
+      tap((merged) => {
+        if (merged) {
+          this.portfolioService.saveDraft(merged).subscribe({ error: () => undefined });
+        }
+      })
+    );
+  }
+
+  private mergeAggregateIntoDraft(
+    portfolio: Portfolio,
+    aggregate: PortfolioLoadResult
+  ): Portfolio {
+    let merged = aggregate.portfolio ?? portfolio;
+
+    const profile = aggregate.businessProfile;
+    if (profile && hasBusinessProfileData(profile)) {
+      merged = mergeBusinessProfileIntoPortfolio(merged, profile);
+    }
+
+    const presetId = aggregate.presetId?.trim();
+    if (presetId) {
+      merged = {
+        ...merged,
+        theme: {
+          ...merged.theme,
+          presetId
+        }
+      };
+    }
+
+    return mergeWithWebsiteDefaults(merged);
+  }
+
+  private refreshTenantAggregate(): void {
+    this.syncFromPortfolioApi().subscribe({ error: () => undefined });
   }
 
   commitAndSave(partial: Partial<Portfolio>): Observable<Portfolio> {
@@ -64,6 +135,7 @@ export class PortfolioStateService {
           if (saved.gallery.length > 0) {
             this.dashboardData.markPortfolioUploaded();
           }
+          this.refreshTenantAggregate();
         },
         error: () => {
           this.isSaving.set(false);
@@ -78,20 +150,35 @@ export class PortfolioStateService {
     }
 
     const current = this.draft();
+    const tenantId = this.authService.resolveTenantId();
     if (!current?.slug?.trim()) {
       this.notifications.warning('Set a store URL slug before publishing.');
       return;
     }
+    if (!tenantId) {
+      this.notifications.error('No tenant selected. Please log in again.');
+      return;
+    }
+
     this.isSaving.set(true);
-    this.portfolioService
-      .publish(current)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.websiteApi
+      .publish(
+        buildWebsitePublishRequest(tenantId, {
+          slug: current.slug,
+          published: true,
+          cta: current.cta
+        })
+      )
+      .pipe(
+        switchMap(() => this.syncFromPortfolioApi()),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: (published) => {
-          this.draft.set(published);
           this.isSaving.set(false);
-          this.lastSavedAt.set(new Date());
-          this.notifications.success('Store published!', `Live at /store/${published.slug}`);
+          if (published) {
+            this.notifications.success('Store published!', `Live at /store/${published.slug}`);
+          }
         },
         error: () => {
           this.isSaving.set(false);
