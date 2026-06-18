@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
+import { PlanSelectionPageComponent } from './plan-selection/plan-selection-page.component';
 
 export const marketingRoutes: Routes = [
   {
@@ -10,5 +11,9 @@ export const marketingRoutes: Routes = [
   {
     path: 'home',
     component: HomeComponent
+  },
+  {
+    path: 'select-plan',
+    component: PlanSelectionPageComponent
   }
 ];

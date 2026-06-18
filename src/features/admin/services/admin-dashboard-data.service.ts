@@ -11,7 +11,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class AdminDashboardDataService {
-  private readonly loading = signal(true);
+  private readonly loading = signal(false);
   private readonly data = signal<DashboardData>(this.buildData());
 
   readonly isLoading = this.loading.asReadonly();
@@ -23,16 +23,16 @@ export class AdminDashboardDataService {
 
   readonly profileCompletionPercent = computed(() => {
     const steps = this.data().profileSteps;
+    if (!steps.length) {
+      return 0;
+    }
     const completed = steps.filter((s) => s.completed).length;
     return Math.round((completed / steps.length) * 100);
   });
 
-  constructor() {
-    setTimeout(() => this.loading.set(false), 750);
-  }
-
   refreshFromStores(): void {
     this.data.set(this.buildData());
+    this.loading.set(false);
   }
 
   markNotificationRead(id: string): void {
