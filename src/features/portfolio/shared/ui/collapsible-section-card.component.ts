@@ -40,7 +40,7 @@ export class CollapsibleSectionCardComponent {
   readonly title = input.required<string>();
   readonly icon = input<LucideIconData | null>(null);
   readonly complete = input(false);
-  readonly expanded = model(true);
+  readonly expanded = model(false);
 
   readonly chevronIcon = ChevronDown;
   readonly checkIcon = Check;

@@ -76,6 +76,7 @@ export class BrandBusinessProfileService {
           websiteUrl: existing?.websiteUrl ?? null,
           timeZone: existing?.timeZone ?? null,
           currency: existing?.currency ?? null,
+          presetId: buffer.presetId?.trim() || existing?.presetId || null,
           ...(attachments.length > 0 ? { attachments } : {})
         };
         return this.businessProfileService.upsert(body);

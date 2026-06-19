@@ -1,10 +1,12 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Rocket, ExternalLink } from 'lucide-angular';
+import { CircleDot, ExternalLink, Link, MousePointerClick, Rocket, Tag, Target } from 'lucide-angular';
 import { LucideAngularModule } from 'lucide-angular';
-import { AdminDetailFieldComponent } from '../../../admin/shared/admin-detail-field.component';
+import { AdminDetailCardComponent } from '@features/admin/shared/admin-detail-card.component';
+import { AdminDetailItemComponent } from '@features/admin/shared/admin-detail-item.component';
+import { AdminDetailMediaComponent } from '@features/admin/shared/admin-detail-media.component';
 import { WebsiteSectionShellComponent } from '@features/portfolio/editor/shared/website-section-shell.component';
 import { PortfolioStateService } from '../../data-access/portfolio-state.service';
 import { WebsiteSectionStateService, PublishSectionBuffer } from '../../data-access/website-section-state.service';
@@ -19,7 +21,9 @@ import { normalizeSlug } from '../../data-access/website-section.validators';
     RouterLink,
     LucideAngularModule,
     WebsiteSectionShellComponent,
-    AdminDetailFieldComponent
+    AdminDetailCardComponent,
+    AdminDetailItemComponent,
+    AdminDetailMediaComponent
   ],
   template: `
     <app-website-section-shell
@@ -28,14 +32,31 @@ import { normalizeSlug } from '../../data-access/website-section.validators';
       [icon]="icon"
       [complete]="!!draft()?.published"
     >
-      <div view class="admin-detail-view">
-        <app-admin-detail-field label="Store URL" [value]="'/store/' + (draft()?.slug || '')" />
+      <div view class="admin-detail-view admin-detail-view--rich">
+        <app-admin-detail-card [full]="true">
+          <app-admin-detail-item
+            [icon]="storeUrlIcon"
+            label="Store URL"
+            [value]="'/store/' + (draft()?.slug || '')"
+            [divider]="true"
+          />
+          <app-admin-detail-item
+            [icon]="statusIcon"
+            label="Status"
+            [value]="draft()?.published ? 'Published' : 'Draft'"
+          />
+        </app-admin-detail-card>
         <div class="admin-detail-view__grid admin-detail-view__grid--2">
-          <app-admin-detail-field label="CTA label" [value]="draft()?.cta?.label" />
-          <app-admin-detail-field label="CTA type" [value]="draft()?.cta?.type" />
+          <app-admin-detail-card>
+            <app-admin-detail-item [icon]="ctaLabelIcon" label="CTA label" [value]="draft()?.cta?.label" />
+          </app-admin-detail-card>
+          <app-admin-detail-card>
+            <app-admin-detail-item [icon]="ctaTypeIcon" label="CTA type" [value]="draft()?.cta?.type" />
+          </app-admin-detail-card>
         </div>
-        <app-admin-detail-field label="CTA target" [value]="draft()?.cta?.target" />
-        <app-admin-detail-field label="Status" [value]="draft()?.published ? 'Published' : 'Draft'" />
+        <app-admin-detail-card [full]="true">
+          <app-admin-detail-item [icon]="ctaTargetIcon" label="CTA target" [value]="draft()?.cta?.target" />
+        </app-admin-detail-card>
         @if (draft()?.published && draft()?.slug) {
           <div class="mt-3 flex flex-wrap gap-2">
             <a [routerLink]="['/store', draft()!.slug]" target="_blank" class="pf-editor-add-btn inline-flex items-center gap-2">
@@ -110,6 +131,11 @@ export class PublishEditorPanelComponent {
   readonly icon = Rocket;
   readonly rocketIcon = Rocket;
   readonly externalIcon = ExternalLink;
+  readonly storeUrlIcon = Link;
+  readonly ctaLabelIcon = MousePointerClick;
+  readonly ctaTypeIcon = Tag;
+  readonly ctaTargetIcon = Target;
+  readonly statusIcon = CircleDot;
   readonly normalizeSlug = normalizeSlug;
 
   readonly buffer = computed(() => this.sectionState.buffer<PublishSectionBuffer>('publish'));

@@ -11,11 +11,22 @@ import {
 } from '../models/theme-preset.model';
 import { PortfolioTheme } from '../models/portfolio.model';
 import { PORTFOLIO_THEME_PRESETS } from '../models/portfolio-theme.presets';
+import { resolvePortfolioThemeFromPresetId } from '../shared/utils/theme-preset-resolve.util';
 
 @Injectable({ providedIn: 'root' })
 export class ThemePresetsService {
   private readonly http = inject(HttpClient);
   private cache: ThemePresetDto[] | null = null;
+
+  /** Preset catalog from GET /theme-presets (falls back to local presets until loaded). */
+  getCatalog(): ThemePresetDto[] {
+    return this.cache ?? this.localFallback();
+  }
+
+  /** Map a saved presetId to full portfolio theme colors/font from the catalog. */
+  resolvePortfolioTheme(presetId: string): PortfolioTheme {
+    return resolvePortfolioThemeFromPresetId(presetId, this.getCatalog());
+  }
 
   list(): Observable<ThemePresetDto[]> {
     if (this.cache) {

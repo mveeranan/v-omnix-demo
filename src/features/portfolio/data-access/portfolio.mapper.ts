@@ -3,6 +3,7 @@ import { PortfolioDto, PortfolioHighlightsDto } from '../models/dto/portfolio.dt
 import { Portfolio, PortfolioHighlightItem, PortfolioTeamMember, createEmptyPortfolio } from '../models/portfolio.model';
 import { mergeWithWebsiteDefaults } from '../models/portfolio-defaults';
 import { normalizePortfolioTheme } from '../models/theme-preset.model';
+import { mapLegacySocialDtoToLinks, mapPortfolioLinksToLegacySocialDto } from './social-media-portfolio.util';
 
 const defaults = createEmptyPortfolio();
 
@@ -122,11 +123,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
       newsletter: source.newsletter ? { ...source.newsletter } : { ...defaults.newsletter },
       socialSection: source.socialSection ?? { enabled: true },
       social: {
-        instagram: source.social.instagram,
-        facebook: source.social.facebook,
-        tiktok: source.social.tiktok,
-        whatsapp: source.social.whatsapp,
-        youtube: source.social.youtube
+        links: mapLegacySocialDtoToLinks(source.social)
       },
       about: {
         ...source.about,
@@ -204,7 +201,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
       services: synced.services.map((s) => ({ ...s })),
       gallery: synced.gallery.map((g) => ({ ...g })),
       reviews: synced.reviews.map((r) => ({ ...r })),
-      social: { ...synced.social },
+      social: mapPortfolioLinksToLegacySocialDto(synced.social.links),
       team: {
         enabled: synced.team.enabled,
         members: synced.team.members.map((m) => ({ ...m }))

@@ -1,13 +1,11 @@
-﻿import { Component, computed, input, OnDestroy, OnInit, output, signal } from '@angular/core';
+﻿import { Component, computed, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
-import { RouterLink } from '@angular/router';
-import { LucideAngularModule, ShoppingBag } from 'lucide-angular';
 import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
 
 @Component({
   selector: 'app-pf-hero-section',
   standalone: true,
-  imports: [RouterLink, LucideAngularModule],
+  imports: [],
   templateUrl: './hero-section.component.html',
   animations: [
     trigger('heroEnter', [
@@ -24,8 +22,6 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
 })
 export class HeroSectionComponent implements OnInit, OnDestroy {
   readonly portfolio = input.required<Portfolio>();
-  readonly viewWork = output<void>();
-  readonly shopIcon = ShoppingBag;
 
   readonly activeIndex = signal(0);
   private rotateTimer?: ReturnType<typeof setInterval>;
@@ -45,22 +41,20 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
       {
         id: 'fallback',
         imageUrl: '',
-        headline: p.hero.headline?.trim() || p.brand.businessName || 'Welcome',
-        subheadline: p.hero.subheadline?.trim() || p.brand.tagline,
-        ctaLabel: p.cta.label || 'Shop now',
+        headline: p.brand.businessName || 'Welcome',
+        subheadline: p.brand.tagline,
+        ctaLabel: '',
         ctaTarget: ''
       }
     ];
   });
 
   readonly activeSlide = computed(() => {
-    const p = this.portfolio();
     const slide = this.slides()[this.activeIndex()] ?? this.slides()[0];
     return {
       ...slide,
-      headline: slide.headline?.trim() || p.hero.headline?.trim() || p.brand.businessName || 'Welcome',
-      subheadline: slide.subheadline?.trim() || p.hero.subheadline?.trim() || p.brand.tagline,
-      ctaLabel: slide.ctaLabel?.trim() || p.cta.label || 'Shop now'
+      headline: slide.headline?.trim() || 'Welcome',
+      subheadline: slide.subheadline?.trim() || ''
     };
   });
 
@@ -80,20 +74,6 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
 
   slideBackground(slide: PortfolioHeroSlide): string | null {
     return slide.imageUrl?.trim() ? `url(${slide.imageUrl})` : null;
-  }
-
-  primaryCtaLink(): string[] {
-    const slide = this.activeSlide();
-    if (slide.ctaTarget?.startsWith('/')) {
-      return slide.ctaTarget.split('/').filter(Boolean);
-    }
-    const slug = this.portfolio().slug;
-    return slug ? ['/store', slug, 'products'] : ['/store'];
-  }
-
-  contactLink(): string[] {
-    const slug = this.portfolio().slug;
-    return slug ? ['/store', slug, 'contact'] : ['/store'];
   }
 
   private startRotation(): void {

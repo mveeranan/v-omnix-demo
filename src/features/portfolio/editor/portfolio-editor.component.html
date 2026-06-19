@@ -13,7 +13,6 @@
         <p class="pf-editor-status" [class.pf-editor-status--dirty]="sectionState.anyDirty()">{{ savingLabel() }}</p>
         <nav class="pf-editor-tabs" aria-label="Website builder sections">
           <button type="button" class="pf-editor-tab" [class.active]="activeTab() === 'content'" (click)="setTab('content')">Content</button>
-          <button type="button" class="pf-editor-tab" [class.active]="activeTab() === 'theme'" (click)="setTab('theme')">Theme</button>
           <button type="button" class="pf-editor-tab" [class.active]="activeTab() === 'publish'" (click)="setTab('publish')">Publish</button>
         </nav>
       </div>
@@ -34,11 +33,6 @@
             <app-newsletter-editor-section />
             <app-contact-support-section />
             <app-social-section />
-          </div>
-        }
-        @if (activeTab() === 'theme') {
-          <div class="pf-editor-sections">
-            <app-theme-editor-panel />
           </div>
         }
         @if (activeTab() === 'publish') {

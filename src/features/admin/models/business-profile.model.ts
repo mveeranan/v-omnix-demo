@@ -19,6 +19,7 @@ export interface BusinessProfileDto {
   websiteUrl?: string | null;
   timeZone?: string | null;
   currency?: string | null;
+  presetId?: string | null;
 }
 
 export interface BusinessProfileUpsertRequest {
@@ -33,6 +34,7 @@ export interface BusinessProfileUpsertRequest {
   websiteUrl?: string | null;
   timeZone?: string | null;
   currency?: string | null;
+  presetId?: string | null;
   isActive?: boolean;
   attachments?: UploadDocumentRequest[];
 }

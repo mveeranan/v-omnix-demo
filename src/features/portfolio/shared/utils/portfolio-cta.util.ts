@@ -4,12 +4,12 @@ const STORE_PATH_PREFIX = '/store';
 
 export function resolvePortfolioCtaUrl(
   cta: PortfolioCta,
-  social: PortfolioSocial,
+  _social: PortfolioSocial,
   slug?: string
 ): string {
   switch (cta.type) {
     case 'whatsapp': {
-      const phone = (cta.target || social.whatsapp).replace(/\D/g, '');
+      const phone = cta.target.replace(/\D/g, '');
       return phone ? `https://wa.me/${phone}` : '#';
     }
     case 'internal': {

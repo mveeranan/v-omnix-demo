@@ -10,7 +10,10 @@ import { AuthService } from '@core/auth/auth.service';
 import { NotificationService } from '@core/notifications/notification.service';
 import { AdminDashboardDataService } from '../../admin/services/admin-dashboard-data.service';
 import { mergeBusinessProfileIntoPortfolio } from './business-profile-portfolio.util';
+import { mergeHeroSlidesIntoPortfolio } from './hero-slides-portfolio.util';
+import { mergeSocialMediaIntoPortfolio } from './social-media-portfolio.util';
 import { hasBusinessProfileData } from '../../admin/models/business-profile.model';
+import { ThemePresetsService } from './theme-presets.service';
 import { mergeWithWebsiteDefaults, createDefaultWebsitePortfolio } from '../models/portfolio-defaults';
 import { buildWebsitePublishRequest } from '../models/website-api.model';
 
@@ -22,6 +25,7 @@ export class PortfolioStateService {
   private readonly authService = inject(AuthService);
   private readonly notifications = inject(NotificationService);
   private readonly dashboardData = inject(AdminDashboardDataService);
+  private readonly themePresets = inject(ThemePresetsService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly draft = signal<Portfolio | null>(null);
@@ -35,9 +39,10 @@ export class PortfolioStateService {
   loadDraft(): void {
     this.isLoading.set(true);
 
-    this.tenantState
-      .ensureLoaded$()
+    this.themePresets
+      .list()
       .pipe(
+        switchMap(() => this.tenantState.ensureLoaded$()),
         map((aggregate) => {
           const base = aggregate.portfolio ?? createDefaultWebsitePortfolio();
           return this.mergeAggregateIntoDraft(base, aggregate);
@@ -65,6 +70,11 @@ export class PortfolioStateService {
 
   /** Re-fetch GET /portfolio/{tenantId} and merge server data into the editor draft. */
   syncFromPortfolioApi(): Observable<Portfolio | null> {
+    return this.themePresets.list().pipe(switchMap(() => this.reloadFromPortfolioApi()));
+  }
+
+  /** Portfolio GET only (no theme-presets prefetch). Used after hero-slides upsert. */
+  reloadFromPortfolioApi(): Observable<Portfolio | null> {
     return this.tenantState.refresh().pipe(
       map((aggregate) => {
         const current = this.draft();
@@ -90,23 +100,31 @@ export class PortfolioStateService {
   ): Portfolio {
     let merged = aggregate.portfolio ?? portfolio;
 
+    const catalog = this.themePresets.getCatalog();
     const profile = aggregate.businessProfile;
     if (profile && hasBusinessProfileData(profile)) {
-      merged = mergeBusinessProfileIntoPortfolio(merged, profile);
+      merged = mergeBusinessProfileIntoPortfolio(merged, profile, catalog);
     }
 
-    const presetId = aggregate.presetId?.trim();
+    const presetId = aggregate.presetId?.trim() || profile?.presetId?.trim();
     if (presetId) {
       merged = {
         ...merged,
-        theme: {
-          ...merged.theme,
-          presetId
-        }
+        theme: this.themePresets.resolvePortfolioTheme(presetId)
       };
     }
 
-    return mergeWithWebsiteDefaults(merged);
+    merged = mergeWithWebsiteDefaults(merged);
+
+    if (aggregate.heroSlides?.length) {
+      merged = mergeHeroSlidesIntoPortfolio(merged, aggregate.heroSlides);
+    }
+
+    if (aggregate.socialMedia) {
+      merged = mergeSocialMediaIntoPortfolio(merged, aggregate.socialMedia);
+    }
+
+    return merged;
   }
 
   private refreshTenantAggregate(): void {
@@ -234,7 +252,7 @@ export class PortfolioStateService {
     if (partial.newsletter) next.newsletter = partial.newsletter;
     if (partial.highlights) next.highlights = partial.highlights;
     if (partial.socialSection) next.socialSection = partial.socialSection;
-    if (partial.social) next.social = partial.social;
+    if (partial.social) next.social = { links: partial.social.links.map((link) => ({ ...link })) };
     if (partial.theme) next.theme = partial.theme;
     if (partial.slug !== undefined) next.slug = partial.slug;
     if (partial.cta) next.cta = partial.cta;

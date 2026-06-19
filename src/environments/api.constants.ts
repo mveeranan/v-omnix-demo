@@ -37,6 +37,12 @@ export const API_ENDPOINTS = {
     getByTenant: (tenantId: string) => `${base}/business-profiles/${tenantId}`,
     upsert: `${base}/business-profiles`
   },
+  heroSlides: {
+    upsert: `${base}/hero-slides`
+  },
+  socialMedia: {
+    upsert: `${base}/social-media`
+  },
   documents: {
     upload: `${base}/documents/upload`
   },

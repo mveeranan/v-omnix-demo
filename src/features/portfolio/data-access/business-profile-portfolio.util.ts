@@ -1,4 +1,6 @@
 import { Portfolio } from '../models/portfolio.model';
+import { resolvePortfolioThemeFromPresetId } from '../shared/utils/theme-preset-resolve.util';
+import { ThemePresetDto } from '../models/theme-preset.model';
 import {
   BusinessProfileDto,
   getCoverPreviewUrl,
@@ -8,7 +10,8 @@ import {
 /** Merge live business profile into portfolio draft (brand + story + contact). */
 export function mergeBusinessProfileIntoPortfolio(
   portfolio: Portfolio,
-  profile: BusinessProfileDto
+  profile: BusinessProfileDto,
+  presetCatalog?: ThemePresetDto[]
 ): Portfolio {
   const logoUrl = getLogoPreviewUrl(profile) || portfolio.brand.logoUrl;
   const storyImageUrl =
@@ -17,9 +20,11 @@ export function mergeBusinessProfileIntoPortfolio(
     portfolio.brand.coverImageUrl ||
     '';
   const description = profile.description?.trim() || portfolio.storeDescription.description;
+  const presetId = profile.presetId?.trim();
 
   return {
     ...portfolio,
+    ...(presetId ? { theme: resolvePortfolioThemeFromPresetId(presetId, presetCatalog) } : {}),
     brand: {
       ...portfolio.brand,
       businessName: profile.businessName?.trim() || portfolio.brand.businessName,
@@ -47,13 +52,16 @@ export function mergeBusinessProfileIntoPortfolio(
 /** Apply business profile API response URLs back onto a portfolio partial after upsert. */
 export function applyBusinessProfileToPortfolioPartial(
   partial: Partial<Portfolio>,
-  profile: BusinessProfileDto
+  profile: BusinessProfileDto,
+  presetCatalog?: ThemePresetDto[]
 ): Partial<Portfolio> {
   const logoUrl = getLogoPreviewUrl(profile);
   const coverUrl = getCoverPreviewUrl(profile);
+  const presetId = profile.presetId?.trim();
 
   return {
     ...partial,
+    ...(presetId ? { theme: resolvePortfolioThemeFromPresetId(presetId, presetCatalog) } : {}),
     brand: partial.brand
       ? {
           ...partial.brand,

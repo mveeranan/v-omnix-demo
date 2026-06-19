@@ -1,3 +1,5 @@
+import { SocialMediaType } from '@shared/models/enums/social-media-type.enum';
+
 export type PortfolioCtaType = 'whatsapp' | 'internal' | 'customUrl';
 export type PortfolioThemeMode = 'light' | 'dark';
 export type GalleryMediaType = 'image' | 'video';
@@ -16,7 +18,11 @@ export interface PortfolioTheme {
 }
 
 export interface PortfolioHeroSlide {
+  /** Local id for editor tracking (always present). */
   id: string;
+  /** Server id — set when loaded from API; omitted on create upsert. */
+  persistedId?: string;
+  sortOrder?: number;
   imageUrl: string;
   headline: string;
   subheadline: string;
@@ -123,12 +129,17 @@ export interface PortfolioSocialSection {
   enabled: boolean;
 }
 
+export interface PortfolioSocialLink {
+  /** Local id for editor tracking. */
+  id: string;
+  /** Server id — set when loaded from API; omitted on create upsert. */
+  persistedId?: string;
+  type: SocialMediaType;
+  url: string;
+}
+
 export interface PortfolioSocial {
-  instagram: string;
-  facebook: string;
-  tiktok: string;
-  whatsapp: string;
-  youtube: string;
+  links: PortfolioSocialLink[];
 }
 
 export interface PortfolioFeaturedProducts {
@@ -381,11 +392,7 @@ export function createEmptyPortfolio(): Portfolio {
     },
     socialSection: { enabled: true },
     social: {
-      instagram: '',
-      facebook: '',
-      tiktok: '',
-      whatsapp: '',
-      youtube: ''
+      links: []
     },
     cta: {
       type: 'internal',

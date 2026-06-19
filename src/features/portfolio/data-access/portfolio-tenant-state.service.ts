@@ -11,6 +11,8 @@ const EMPTY_RESULT: PortfolioLoadResult = {
   user: null,
   businessProfile: null,
   presetId: null,
+  heroSlides: [],
+  socialMedia: null,
   portfolio: null
 };
 
@@ -109,6 +111,8 @@ export class PortfolioTenantStateService {
       user: this.user(),
       businessProfile: this.businessProfile(),
       presetId: this.presetId(),
+      heroSlides: [],
+      socialMedia: null,
       portfolio: this.portfolio()
     };
   }

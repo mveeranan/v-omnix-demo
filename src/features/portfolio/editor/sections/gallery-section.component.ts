@@ -1,8 +1,10 @@
 import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Image, Trash2, Star } from 'lucide-angular';
+import { Image, Trash2, Star, Video } from 'lucide-angular';
 import { LucideAngularModule } from 'lucide-angular';
-import { AdminDetailFieldComponent } from '../../../admin/shared/admin-detail-field.component';
+import { AdminDetailCardComponent } from '@features/admin/shared/admin-detail-card.component';
+import { AdminDetailItemComponent } from '@features/admin/shared/admin-detail-item.component';
+import { AdminDetailMediaComponent } from '@features/admin/shared/admin-detail-media.component';
 import { MediaUploadZoneComponent } from '@shared/ui/media-upload-zone.component';
 import { SectionToggleComponent } from '@features/portfolio/shared/ui/section-toggle.component';
 import { WebsiteSectionShellComponent } from '@features/portfolio/editor/shared/website-section-shell.component';
@@ -20,7 +22,9 @@ import { captureVideoThumbnail, isGalleryImageThumbnail } from '@features/portfo
     WebsiteSectionShellComponent,
     SectionToggleComponent,
     MediaUploadZoneComponent,
-    AdminDetailFieldComponent
+    AdminDetailCardComponent,
+    AdminDetailItemComponent,
+    AdminDetailMediaComponent
   ],
   template: `
     <app-website-section-shell
@@ -29,13 +33,24 @@ import { captureVideoThumbnail, isGalleryImageThumbnail } from '@features/portfo
       [icon]="icon"
       [complete]="imageCount() >= 3"
     >
-      <div view class="admin-detail-view">
-        <app-admin-detail-field label="Images" [value]="imageCount() + ' uploaded'" />
-        <app-admin-detail-field label="Videos" [value]="videoCount() + ' uploaded'" />
+      <div view class="admin-detail-view admin-detail-view--rich">
+        <div class="admin-detail-view__grid admin-detail-view__grid--2">
+          <app-admin-detail-card>
+            <app-admin-detail-item [icon]="imageIcon" label="Images" [value]="imageCount() + ' uploaded'" />
+          </app-admin-detail-card>
+          <app-admin-detail-card>
+            <app-admin-detail-item [icon]="videoIcon" label="Videos" [value]="videoCount() + ' uploaded'" />
+          </app-admin-detail-card>
+        </div>
         @if (draft()?.gallery?.length) {
-          <div class="pf-gallery-view-grid">
+          <div class="admin-detail-view__grid admin-detail-view__grid--2">
             @for (item of draft()!.gallery.slice(0, 6); track item.id) {
-              <img [src]="item.thumbnailUrl || item.url" class="pf-gallery-view-grid__thumb" alt="" />
+              <app-admin-detail-media
+                [label]="item.category?.trim() || (item.type === 'video' ? 'Video' : 'Image')"
+                variant="card"
+                fit="cover"
+                [url]="item.thumbnailUrl || item.url"
+              />
             }
           </div>
         }
@@ -81,21 +96,6 @@ import { captureVideoThumbnail, isGalleryImageThumbnail } from '@features/portfo
         }
       </div>
     </app-website-section-shell>
-  `,
-  styles: `
-    .pf-gallery-view-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-    }
-
-    .pf-gallery-view-grid__thumb {
-      aspect-ratio: 1;
-      width: 100%;
-      object-fit: cover;
-      border-radius: 0.5rem;
-    }
   `
 })
 export class GallerySectionComponent {
@@ -104,6 +104,8 @@ export class GallerySectionComponent {
 
   readonly draft = this.state.draft;
   readonly icon = Image;
+  readonly imageIcon = Image;
+  readonly videoIcon = Video;
   readonly trashIcon = Trash2;
   readonly starIcon = Star;
 

@@ -10,9 +10,10 @@ import {
   formatPhoneWithDialCode,
   parsePhoneNumberValue
 } from '@shared/utils/phone.util';
-import { Building2 } from 'lucide-angular';
+import { Briefcase, Building2, FileText, Mail, Phone, UserRound } from 'lucide-angular';
 import { AdminFormSectionCardComponent } from '@features/admin/shared/admin-form-section-card.component';
-import { AdminDetailFieldComponent } from '@features/admin/shared/admin-detail-field.component';
+import { AdminDetailCardComponent } from '@features/admin/shared/admin-detail-card.component';
+import { AdminDetailItemComponent } from '@features/admin/shared/admin-detail-item.component';
 import { AdminDetailMediaComponent } from '@features/admin/shared/admin-detail-media.component';
 import { MediaUploadZoneComponent } from '@shared/ui/media-upload-zone.component';
 import { AdminProfileStateService } from '../data-access/admin-profile-state.service';
@@ -47,15 +48,16 @@ interface BusinessProfileFormSnapshot {
   imports: [
     ReactiveFormsModule,
     AdminFormSectionCardComponent,
-    AdminDetailFieldComponent,
+    AdminDetailCardComponent,
+    AdminDetailItemComponent,
     AdminDetailMediaComponent,
     MediaUploadZoneComponent,
     PhoneNumberFieldComponent
   ],
   template: `
     <app-admin-form-section-card
-      title="businessInfo"
-      subtitle="Company identity"
+      title="Business Details"
+      subtitle="Company Identity"
       [icon]="sectionIcon"
       [complete]="state.profileComplete()"
       [(expanded)]="expanded"
@@ -68,20 +70,60 @@ interface BusinessProfileFormSnapshot {
       (cancel)="cancelEdit()"
     >
       @if (!editing()) {
-        <div class="admin-detail-view">
-            <div class="admin-detail-view__grid admin-detail-view__grid--2">
-              <app-admin-detail-media label="Logo" [url]="logoPreview()" />
-              <app-admin-detail-media label="Cover image" [url]="coverPreview()" />
-            </div>
-
-            <app-admin-detail-field label="Business name" [value]="displayValue('businessName')" />
-            <div class="admin-detail-view__grid admin-detail-view__grid--2">
-              <app-admin-detail-field label="Email" [value]="displayValue('email')" />
-              <app-admin-detail-field label="Phone" [value]="displayPhone()" />
-            </div>
-            <app-admin-detail-field label="Business type" [value]="selectedTypeName()" />
-            <app-admin-detail-field label="Description" [value]="displayValue('description')" />
+        <div class="admin-detail-view admin-detail-view--rich">
+          <div class="admin-detail-view__grid admin-detail-view__grid--2">
+            <app-admin-detail-media
+              label="Logo"
+              variant="card"
+              fit="contain"
+              [url]="logoPreview()"
+            />
+            <app-admin-detail-media
+              label="Cover Image"
+              variant="card"
+              fit="cover"
+              [url]="coverPreview()"
+            />
           </div>
+
+          <div class="admin-detail-view__grid admin-detail-view__grid--2">
+            <app-admin-detail-card>
+              <app-admin-detail-item
+                [icon]="businessNameIcon"
+                label="Business Name"
+                [value]="displayValue('businessName')"
+                [divider]="true"
+              />
+              <app-admin-detail-item
+                [icon]="emailIcon"
+                label="Email"
+                [value]="displayValue('email')"
+                [divider]="true"
+              />
+              <app-admin-detail-item
+                [icon]="businessTypeIcon"
+                label="Business Type"
+                [value]="selectedTypeName()"
+              />
+            </app-admin-detail-card>
+            <app-admin-detail-card>
+              <app-admin-detail-item
+                [icon]="phoneIcon"
+                label="Phone"
+                [value]="displayPhone()"
+              />
+            </app-admin-detail-card>
+          </div>
+
+          <app-admin-detail-card [full]="true">
+            <app-admin-detail-item
+              [icon]="descriptionIcon"
+              label="Description"
+              [value]="displayValue('description')"
+              [multiline]="true"
+            />
+          </app-admin-detail-card>
+        </div>
       } @else {
         <form class="pf-editor-fields" [formGroup]="form">
           <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
@@ -149,7 +191,12 @@ export class BusinessProfileFormSectionComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly sectionIcon = Building2;
-  readonly expanded = signal(true);
+  readonly businessNameIcon = UserRound;
+  readonly emailIcon = Mail;
+  readonly phoneIcon = Phone;
+  readonly businessTypeIcon = Briefcase;
+  readonly descriptionIcon = FileText;
+  readonly expanded = signal(false);
   readonly editing = signal(false);
   readonly uploading = signal(false);
   readonly businessTypes = signal<BusinessTypeDto[]>([]);

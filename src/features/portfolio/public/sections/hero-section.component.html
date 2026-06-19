@@ -16,17 +16,6 @@
           @if (activeSlide().subheadline) {
             <p class="mox-hero__subtitle !text-white/90">{{ activeSlide().subheadline }}</p>
           }
-          <div class="mt-8 flex flex-wrap gap-3">
-            <a [routerLink]="primaryCtaLink()" class="mox-btn mox-btn--primary inline-flex min-h-12 items-center gap-2 px-6">
-              <lucide-icon [img]="shopIcon" class="h-5 w-5" />
-              {{ activeSlide().ctaLabel || portfolio().cta.label || 'Shop now' }}
-            </a>
-            @if (portfolio().contactSupport.enabled) {
-              <a [routerLink]="contactLink()" class="mox-btn mox-btn--outline !border-white !text-white inline-flex min-h-12 items-center px-6">
-                {{ portfolio().hero.secondaryCtaLabel || 'Contact us' }}
-              </a>
-            }
-          </div>
         </div>
       </div>
     </div>

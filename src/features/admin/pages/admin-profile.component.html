@@ -7,7 +7,7 @@
       <div class="admin-glass-card h-48 animate-pulse rounded-xl"></div>
     </div>
   } @else {
-    <div @pageFadeIn class="admin-profile-sections space-y-6">
+    <div @pageFadeIn class="admin-profile-sections">
       @if (profileState.loadError()) {
         <p
           class="rounded-xl border border-amber-300/80 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
@@ -15,10 +15,8 @@
         </p>
       }
 
-      <p class="text-sm font-medium text-[var(--text-secondary)]">Personal account</p>
       <app-personal-info-section />
 
-      <p class="text-sm font-medium text-[var(--text-secondary)]">Business info</p>
       <app-business-profile-form-section />
 
       <p class="text-sm font-medium text-[var(--text-secondary)]">Branding, store & SEO</p>

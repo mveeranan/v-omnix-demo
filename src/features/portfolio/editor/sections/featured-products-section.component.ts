@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Package } from 'lucide-angular';
-import { AdminDetailFieldComponent } from '../../../admin/shared/admin-detail-field.component';
+import { Hash, Package, Pin } from 'lucide-angular';
+import { AdminDetailCardComponent } from '@features/admin/shared/admin-detail-card.component';
+import { AdminDetailItemComponent } from '@features/admin/shared/admin-detail-item.component';
+import { AdminDetailMediaComponent } from '@features/admin/shared/admin-detail-media.component';
 import { SectionToggleComponent } from '@features/portfolio/shared/ui/section-toggle.component';
 import { WebsiteSectionShellComponent } from '@features/portfolio/editor/shared/website-section-shell.component';
 import { PortfolioStateService } from '../../data-access/portfolio-state.service';
@@ -14,7 +16,9 @@ import { StoreProduct } from '../../../store/models/product.model';
 @Component({
   selector: 'app-featured-products-editor-section',
   standalone: true,
-  imports: [CommonModule, FormsModule, WebsiteSectionShellComponent, SectionToggleComponent, AdminDetailFieldComponent],
+  imports: [CommonModule, FormsModule, WebsiteSectionShellComponent, SectionToggleComponent, AdminDetailCardComponent,
+    AdminDetailItemComponent,
+    AdminDetailMediaComponent],
   template: `
     <app-website-section-shell
       sectionId="featuredProducts"
@@ -22,9 +26,15 @@ import { StoreProduct } from '../../../store/models/product.model';
       [icon]="icon"
       [complete]="pinnedCount() > 0"
     >
-      <div view class="admin-detail-view">
-        <app-admin-detail-field label="Max products to show" [value]="draft()?.featuredProducts?.maxCount" />
-        <app-admin-detail-field label="Pinned products" [value]="pinnedCount() + ' selected'" />
+      <div view class="admin-detail-view admin-detail-view--rich">
+        <div class="admin-detail-view__grid admin-detail-view__grid--2">
+          <app-admin-detail-card>
+            <app-admin-detail-item [icon]="maxCountIcon" label="Max products to show" [value]="draft()?.featuredProducts?.maxCount" />
+          </app-admin-detail-card>
+          <app-admin-detail-card>
+            <app-admin-detail-item [icon]="pinnedIcon" label="Pinned products" [value]="pinnedCount() + ' selected'" />
+          </app-admin-detail-card>
+        </div>
       </div>
 
       <div edit class="pf-editor-fields">
@@ -116,6 +126,8 @@ export class FeaturedProductsEditorSectionComponent implements OnInit {
 
   readonly draft = this.state.draft;
   readonly icon = Package;
+  readonly maxCountIcon = Hash;
+  readonly pinnedIcon = Pin;
   readonly catalog = signal<StoreProduct[]>([]);
   readonly loading = signal(true);
 

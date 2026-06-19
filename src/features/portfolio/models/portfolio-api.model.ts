@@ -1,6 +1,12 @@
 import { BusinessProfileDto } from '../../admin/models/business-profile.model';
 import { mapUserDto, UserApiDto, UserDto } from '../../admin/models/user.model';
 import { PortfolioDto } from './dto/portfolio.dto';
+import { HeroSlideDto, HeroSlideApiDto, PortfolioHeroSlidesApiDto, extractHeroSlidesFromApiPayload } from './hero-slides.model';
+import {
+  PortfolioSocialMediaApiDto,
+  SocialMediaDto,
+  extractSocialMediaFromPortfolioApi
+} from './social-media.model';
 
 export interface PortfolioBusinessProfileApiDto {
   id?: string;
@@ -46,6 +52,10 @@ export interface PortfolioApiDto {
   User?: UserApiDto | null;
   businessProfile?: PortfolioBusinessProfileApiDto | null;
   BusinessProfile?: PortfolioBusinessProfileApiDto | null;
+  heroSlides?: PortfolioHeroSlidesApiDto | HeroSlideApiDto[] | null;
+  HeroSlides?: PortfolioHeroSlidesApiDto | HeroSlideApiDto[] | null;
+  socialMedia?: PortfolioSocialMediaApiDto | null;
+  SocialMedia?: PortfolioSocialMediaApiDto | null;
   website?: PortfolioDto | null;
   Website?: PortfolioDto | null;
   portfolio?: PortfolioDto | null;
@@ -112,7 +122,8 @@ export function mapPortfolioBusinessProfile(
     ),
     websiteUrl: pickNullable(dto.websiteUrl, dto.WebsiteUrl),
     timeZone: pickNullable(dto.timeZone, dto.TimeZone),
-    currency: pickNullable(dto.currency, dto.Currency)
+    currency: pickNullable(dto.currency, dto.Currency),
+    presetId: pickNullable(dto.presetId, dto.PresetId)
   };
 }
 
@@ -140,6 +151,25 @@ export function extractPresetIdFromPortfolio(
     return null;
   }
   return pickNullable(profile.presetId, profile.PresetId);
+}
+
+export function extractHeroSlidesFromPortfolio(
+  dto: PortfolioApiDto | null | undefined
+): HeroSlideDto[] {
+  if (!dto) {
+    return [];
+  }
+  return extractHeroSlidesFromApiPayload(dto.heroSlides ?? dto.HeroSlides);
+}
+
+export function extractSocialMediaFromPortfolio(
+  dto: PortfolioApiDto | null | undefined,
+  tenantIdFallback = ''
+): SocialMediaDto | null {
+  if (!dto) {
+    return null;
+  }
+  return extractSocialMediaFromPortfolioApi(dto.socialMedia ?? dto.SocialMedia, tenantIdFallback);
 }
 
 export function extractPortfolioDraftFromApi(
