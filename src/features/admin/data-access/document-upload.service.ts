@@ -59,4 +59,20 @@ export class DocumentUploadService {
       reader.readAsDataURL(file);
     });
   }
+
+  delete(documentId: string): Observable<void> {
+    const id = documentId.trim();
+    if (!id) {
+      throw new Error('Document id is required.');
+    }
+    return this.http
+      .delete<ApiResponse<unknown>>(API_ENDPOINTS.documents.delete(id))
+      .pipe(
+        map((response) => {
+          if (!response.success) {
+            throw new Error(response.message || 'Failed to delete document');
+          }
+        })
+      );
+  }
 }

@@ -28,10 +28,7 @@ import { PortfolioHero, PortfolioHeroSlide } from '../../models/portfolio.model'
     <app-website-section-shell sectionId="hero" title="Hero slideshow" [icon]="icon" [complete]="slideCount() > 0">
       <div view class="admin-detail-view admin-detail-view--rich">
         <app-admin-detail-card [full]="true">
-          <app-admin-detail-item [icon]="slidesIcon" label="Slides" [value]="slideCount() + ' on homepage'" [divider]="!!draft()?.hero?.secondaryCtaLabel" />
-          @if (draft()?.hero?.secondaryCtaLabel) {
-            <app-admin-detail-item [icon]="typeIcon" label="Secondary CTA" [value]="draft()?.hero?.secondaryCtaLabel" />
-          }
+          <app-admin-detail-item [icon]="slidesIcon" label="Slides" [value]="slideCount() + ' on homepage'" />
         </app-admin-detail-card>
         @if ((draft()?.hero?.slides?.length ?? 0) > 0) {
           <div class="admin-detail-view__grid admin-detail-view__grid--2">
@@ -62,20 +59,19 @@ import { PortfolioHero, PortfolioHeroSlide } from '../../models/portfolio.model'
             <span class="pf-editor-label">Default subheadline</span>
             <input class="pf-editor-input" [ngModel]="b.subheadline" (ngModelChange)="patch({ subheadline: $event })" [placeholder]="draft()?.brand?.tagline" />
           </div>
-          <div class="pf-editor-field">
-            <span class="pf-editor-label">Secondary button label</span>
-            <input class="pf-editor-input" [ngModel]="b.secondaryCtaLabel" (ngModelChange)="patch({ secondaryCtaLabel: $event })" />
-          </div>
 
           <div class="pf-editor-field pf-hero-slides-section">
             <span class="pf-editor-label">Slides (homepage banner)</span>
             @if (!(b.slides?.length)) {
-              <div class="pf-hero-slides-empty">
-                <p class="pf-hero-slides-empty__text">Add slides to customize the hero banner on your homepage.</p>
-                <button type="button" class="pf-editor-btn-secondary" (click)="addSlide()">
-                  <lucide-icon [img]="plusIcon" class="h-4 w-4" /> Add first slide
-                </button>
-              </div>
+              <button type="button" class="pf-hero-add-slide pf-hero-add-slide--prominent" (click)="addSlide()">
+                <span class="pf-hero-add-slide__icon" aria-hidden="true">
+                  <lucide-icon [img]="plusIcon" class="h-5 w-5" />
+                </span>
+                <span class="pf-hero-add-slide__copy">
+                  <span class="pf-hero-add-slide__label">Add your first slide</span>
+                  <span class="pf-hero-add-slide__hint">Upload a banner image and optional headline for your homepage hero.</span>
+                </span>
+              </button>
             } @else {
               @for (slide of b.slides; track slide.id; let i = $index) {
                 <div class="pf-editor-item-card pf-hero-slide-card">
@@ -127,14 +123,12 @@ import { PortfolioHero, PortfolioHeroSlide } from '../../models/portfolio.model'
                     <span class="pf-editor-label">Subheadline</span>
                     <input class="pf-editor-input" [ngModel]="slide.subheadline" (ngModelChange)="updateSlide(slide.id, { subheadline: $event })" />
                   </div>
-                  <div class="pf-editor-field">
-                    <span class="pf-editor-label">Shop button label</span>
-                    <input class="pf-editor-input" [ngModel]="slide.ctaLabel" (ngModelChange)="updateSlide(slide.id, { ctaLabel: $event })" />
-                  </div>
                 </div>
               }
               <button type="button" class="pf-hero-add-slide" (click)="addSlide()">
-                <lucide-icon [img]="plusIcon" class="h-5 w-5 text-violet-600 dark:text-violet-400" />
+                <span class="pf-hero-add-slide__icon pf-hero-add-slide__icon--compact" aria-hidden="true">
+                  <lucide-icon [img]="plusIcon" class="h-4 w-4" />
+                </span>
                 <span class="pf-hero-add-slide__label">Add another slide</span>
               </button>
             }
@@ -269,6 +263,105 @@ import { PortfolioHero, PortfolioHeroSlide } from '../../models/portfolio.model'
       opacity: 0.35;
       cursor: not-allowed;
     }
+
+    .pf-hero-slides-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .pf-hero-add-slide {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      width: 100%;
+      box-sizing: border-box;
+      font: inherit;
+      padding: 0.875rem 1rem;
+      border-radius: 0.625rem;
+      border: 1px dashed rgb(203 213 225);
+      background: rgb(248 250 252);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .pf-hero-add-slide--prominent {
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 1rem;
+      padding: 1.25rem 1.125rem;
+    }
+
+    :host-context(.dark) .pf-hero-add-slide {
+      border-color: rgb(63 63 70);
+      background: rgb(24 24 27);
+    }
+
+    .pf-hero-add-slide:hover {
+      border-color: rgb(124 58 237);
+      background: rgb(245 243 255);
+      box-shadow: 0 0 0 1px rgb(124 58 237 / 0.15);
+    }
+
+    :host-context(.dark) .pf-hero-add-slide:hover {
+      border-color: rgb(167 139 250);
+      background: rgb(39 39 42);
+      box-shadow: 0 0 0 1px rgb(167 139 250 / 0.2);
+    }
+
+    .pf-hero-add-slide__icon {
+      display: inline-flex;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 999px;
+      background: rgb(237 233 254);
+      color: rgb(109 40 217);
+    }
+
+    .pf-hero-add-slide__icon--compact {
+      width: 2rem;
+      height: 2rem;
+    }
+
+    :host-context(.dark) .pf-hero-add-slide__icon {
+      background: rgb(59 7 100);
+      color: rgb(196 181 253);
+    }
+
+    .pf-hero-add-slide__copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      min-width: 0;
+    }
+
+    .pf-hero-add-slide__label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: rgb(51 65 85);
+    }
+
+    :host-context(.dark) .pf-hero-add-slide__label {
+      color: rgb(244 244 245);
+    }
+
+    .pf-hero-add-slide__hint {
+      font-size: 0.8125rem;
+      line-height: 1.45;
+      color: rgb(100 116 139);
+    }
+
+    :host-context(.dark) .pf-hero-add-slide__hint {
+      color: rgb(161 161 170);
+    }
   `
 })
 export class HeroEditorSectionComponent {
@@ -302,7 +395,7 @@ export class HeroEditorSectionComponent {
       imageUrl: '',
       headline: '',
       subheadline: '',
-      ctaLabel: 'Shop now',
+      ctaLabel: '',
       ctaTarget: ''
     };
     this.sectionState.patchBuffer<PortfolioHero>('hero', (b) => {
@@ -312,11 +405,7 @@ export class HeroEditorSectionComponent {
   }
 
   removeSlide(id: string): void {
-    this.sectionState.clearHeroPendingSlide(id);
-    this.sectionState.patchBuffer<PortfolioHero>('hero', (b) => ({
-      ...b,
-      slides: withSortOrder((b.slides ?? []).filter((s) => s.id !== id))
-    }));
+    this.sectionState.removeHeroSlide(id);
   }
 
   moveSlideUp(id: string): void {
@@ -336,12 +425,11 @@ export class HeroEditorSectionComponent {
 
   onSlideImageSelected(slideId: string, event: { file: File; dataUrl: string }): void {
     this.sectionState.setHeroPendingSlideFile(slideId, event.file);
-    this.updateSlide(slideId, { imageUrl: event.dataUrl });
+    this.updateSlide(slideId, { imageUrl: event.dataUrl, imageDocumentId: undefined });
   }
 
   onSlideImageCleared(slideId: string): void {
-    this.sectionState.clearHeroPendingSlide(slideId);
-    this.updateSlide(slideId, { imageUrl: '' });
+    this.sectionState.clearHeroSlideImage(slideId);
   }
 
   private reorderSlide(id: string, direction: -1 | 1): void {

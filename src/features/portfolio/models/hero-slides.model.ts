@@ -60,6 +60,7 @@ export interface HeroSlideDto {
   subHeadline: string;
   sortOrder: number;
   imageUrl: string;
+  imageDocumentId?: string;
 }
 
 function pickString(...values: Array<string | null | undefined>): string {
@@ -85,6 +86,7 @@ export function mapHeroSlideApiDto(dto: HeroSlideApiDto): HeroSlideDto | null {
     headline: pickString(dto.headline, dto.Headline),
     subHeadline: pickString(dto.subHeadline, dto.SubHeadline),
     sortOrder: dto.sortOrder ?? dto.SortOrder ?? 0,
+    imageDocumentId: pickString(dto.slideImageDocumentId, dto.SlideImageDocumentId) || undefined,
     imageUrl: pickString(
       dto.slideImageDocumentUrl,
       dto.SlideImageDocumentUrl,

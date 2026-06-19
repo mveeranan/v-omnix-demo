@@ -9,7 +9,6 @@ import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell
 import { OnboardingChecklistWidgetComponent } from '../widgets/onboarding-checklist-widget/onboarding-checklist-widget.component';
 import { OnboardingService } from '../services/onboarding.service';
 import { AdminDashboardDataService } from '../services/admin-dashboard-data.service';
-import { widgetEnter, widgetsStagger } from '../animations/admin.animations';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -23,8 +22,7 @@ import { widgetEnter, widgetsStagger } from '../animations/admin.animations';
     AdminPageShellComponent
   ],
   templateUrl: './admin-dashboard.component.html',
-  styleUrl: './admin-dashboard.component.scss',
-  animations: [widgetEnter, widgetsStagger]
+  styleUrl: './admin-dashboard.component.scss'
 })
 export class AdminDashboardComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

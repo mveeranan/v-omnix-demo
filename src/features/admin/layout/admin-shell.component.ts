@@ -33,7 +33,8 @@ export class AdminShellComponent implements OnInit {
   ngOnInit(): void {
     this.tenantContext.syncFromAuthStorage();
     if (this.authService.isLoggedIn()) {
-      this.tenantPortfolioState.ensureLoaded();
+      // Defer workspace fetch so the shell paints and stays interactive first.
+      setTimeout(() => this.tenantPortfolioState.ensureLoaded(), 0);
     }
     this.updateBreakpoints();
     this.router.events

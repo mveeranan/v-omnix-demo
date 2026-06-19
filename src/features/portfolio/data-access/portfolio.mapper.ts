@@ -59,12 +59,13 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
       supportHours: ''
     };
 
+    const brandSource = source.brand ?? defaults.brand;
     const brand = {
-      enabled: source.brand.enabled ?? true,
-      logoUrl: source.brand.logoUrl,
-      businessName: source.brand.businessName,
-      tagline: source.brand.tagline,
-      coverImageUrl: source.brand.coverImageUrl
+      enabled: brandSource.enabled ?? true,
+      logoUrl: brandSource.logoUrl ?? '',
+      businessName: brandSource.businessName ?? '',
+      tagline: brandSource.tagline ?? '',
+      coverImageUrl: brandSource.coverImageUrl ?? ''
     };
 
     const portfolio: Portfolio = {
@@ -102,7 +103,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
         : { ...defaults.saleCollection },
       storeDescription: { ...storeDescription },
       gallerySection: source.gallerySection ?? { enabled: true },
-      gallery: source.gallery.map((g) => ({ ...g })),
+      gallery: (source.gallery ?? []).map((g) => ({ ...g })),
       featuredProducts: source.featuredProducts
         ? {
             ...defaults.featuredProducts,
@@ -115,7 +116,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
           }
         : { ...defaults.featuredProducts },
       reviewsSection: source.reviewsSection ?? { enabled: true },
-      reviews: source.reviews.map((r) => ({ ...r })),
+      reviews: (source.reviews ?? []).map((r) => ({ ...r })),
       contactSupport: { ...contactSupport },
       paymentMethods: source.paymentMethods ? { ...source.paymentMethods } : { ...defaults.paymentMethods },
       storePolicies: source.storePolicies ? { ...source.storePolicies } : { ...defaults.storePolicies },
@@ -126,14 +127,15 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
         links: mapLegacySocialDtoToLinks(source.social)
       },
       about: {
+        ...defaults.about,
         ...source.about,
-        achievements: [...source.about.achievements],
-        certifications: [...source.about.certifications]
+        achievements: [...(source.about?.achievements ?? [])],
+        certifications: [...(source.about?.certifications ?? [])]
       },
-      services: source.services.map((s) => ({ ...s })),
+      services: (source.services ?? []).map((s) => ({ ...s })),
       team: {
-        enabled: source.team.enabled,
-        members: source.team.members.map((m: PortfolioTeamMember) => ({ ...m }))
+        enabled: source.team?.enabled ?? defaults.team.enabled,
+        members: (source.team?.members ?? []).map((m: PortfolioTeamMember) => ({ ...m }))
       },
       stats: {
         ...defaults.stats,
@@ -145,7 +147,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
           0,
         totalCustomers: source.stats.totalCustomers ?? source.stats.happyCustomers ?? 0
       },
-      cta: { ...source.cta },
+      cta: { ...defaults.cta, ...source.cta },
       contact: source.contact ? { ...source.contact } : { ...defaults.contact },
       highlights: source.highlights
         ? {

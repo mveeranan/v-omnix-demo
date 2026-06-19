@@ -44,25 +44,19 @@ import { resolvePortfolioThemeFromPresetId } from '../../shared/utils/theme-pres
             </app-admin-detail-card>
           </div>
           @if (presetDisplay(); as theme) {
-            <app-admin-detail-card [full]="true">
-              <div class="admin-detail-rich-theme-row">
-                <div class="admin-detail-rich-theme-item">
-                  <span class="admin-detail-item__label">Primary</span>
-                  <span class="admin-detail-rich-color-row">
-                    <span class="admin-detail-rich-color-chip" [style.background]="theme.primaryColor"></span>
-                    <span class="admin-detail-item__value">{{ theme.primaryColor }}</span>
-                  </span>
+            <app-admin-detail-card [full]="true" [stack]="false">
+              <div class="brand-theme-row">
+                <div class="brand-theme-row__item">
+                  <span class="brand-theme-row__label">Primary</span>
+                  <span class="brand-theme-row__swatch" [style.background]="theme.primaryColor" [title]="theme.primaryColor"></span>
                 </div>
-                <div class="admin-detail-rich-theme-item">
-                  <span class="admin-detail-item__label">Accent</span>
-                  <span class="admin-detail-rich-color-row">
-                    <span class="admin-detail-rich-color-chip" [style.background]="theme.accentColor"></span>
-                    <span class="admin-detail-item__value">{{ theme.accentColor }}</span>
-                  </span>
+                <div class="brand-theme-row__item">
+                  <span class="brand-theme-row__label">Accent</span>
+                  <span class="brand-theme-row__swatch" [style.background]="theme.accentColor" [title]="theme.accentColor"></span>
                 </div>
-                <div class="admin-detail-rich-theme-item">
-                  <span class="admin-detail-item__label">Font</span>
-                  <span class="admin-detail-item__value">{{ theme.fontFamily }}</span>
+                <div class="brand-theme-row__item">
+                  <span class="brand-theme-row__label">Font</span>
+                  <span class="brand-theme-row__value">{{ theme.fontFamily }}</span>
                 </div>
               </div>
             </app-admin-detail-card>
@@ -113,21 +107,19 @@ import { resolvePortfolioThemeFromPresetId } from '../../shared/utils/theme-pres
             </select>
           </div>
           @if (presetDisplay(); as theme) {
-            <div class="pf-theme-display-row">
-              <span class="pf-theme-display-item">
-                <span class="pf-editor-label">Primary</span>
-                <span class="pf-theme-swatch" [style.background]="theme.primaryColor"></span>
-                <span class="pf-theme-value">{{ theme.primaryColor }}</span>
-              </span>
-              <span class="pf-theme-display-item">
-                <span class="pf-editor-label">Accent</span>
-                <span class="pf-theme-swatch" [style.background]="theme.accentColor"></span>
-                <span class="pf-theme-value">{{ theme.accentColor }}</span>
-              </span>
-              <span class="pf-theme-display-item">
-                <span class="pf-editor-label">Font</span>
-                <span class="pf-theme-value">{{ theme.fontFamily }}</span>
-              </span>
+            <div class="brand-theme-row brand-theme-row--edit">
+              <div class="brand-theme-row__item">
+                <span class="brand-theme-row__label">Primary</span>
+                <span class="brand-theme-row__swatch" [style.background]="theme.primaryColor" [title]="theme.primaryColor"></span>
+              </div>
+              <div class="brand-theme-row__item">
+                <span class="brand-theme-row__label">Accent</span>
+                <span class="brand-theme-row__swatch" [style.background]="theme.accentColor" [title]="theme.accentColor"></span>
+              </div>
+              <div class="brand-theme-row__item">
+                <span class="brand-theme-row__label">Font</span>
+                <span class="brand-theme-row__value">{{ theme.fontFamily }}</span>
+              </div>
             </div>
           }
 
@@ -158,6 +150,76 @@ import { resolvePortfolioThemeFromPresetId } from '../../shared/utils/theme-pres
         }
       </div>
     </app-website-section-shell>
+  `,
+  styles: `
+    .brand-theme-row {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem 2rem;
+      width: 100%;
+    }
+
+    .brand-theme-row--edit {
+      margin-top: 0.25rem;
+      padding: 0.875rem 1rem;
+      border-radius: 0.625rem;
+      border: 1px solid rgb(226 232 240);
+      background: rgb(248 250 252);
+      box-sizing: border-box;
+    }
+
+    :host-context(.dark) .brand-theme-row--edit {
+      border-color: rgb(63 63 70);
+      background: rgb(24 24 27);
+    }
+
+    .brand-theme-row__item {
+      display: inline-flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 0;
+    }
+
+    .brand-theme-row__label {
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: rgb(100 116 139);
+    }
+
+    :host-context(.dark) .brand-theme-row__label {
+      color: rgb(161 161 170);
+    }
+
+    .brand-theme-row__swatch {
+      display: inline-block;
+      flex-shrink: 0;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 0.375rem;
+      border: 1px solid rgb(203 213 225);
+      box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2);
+    }
+
+    :host-context(.dark) .brand-theme-row__swatch {
+      border-color: rgb(82 82 91);
+    }
+
+    .brand-theme-row__value {
+      font-size: 0.875rem;
+      font-weight: 500;
+      line-height: 1.25rem;
+      color: rgb(51 65 85);
+      word-break: break-word;
+    }
+
+    :host-context(.dark) .brand-theme-row__value {
+      color: rgb(244 244 245);
+    }
   `
 })
 export class BrandSectionComponent implements OnInit {

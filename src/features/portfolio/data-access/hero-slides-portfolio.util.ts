@@ -81,6 +81,7 @@ function mapHeroSlideDtoToPortfolioSlide(
     persistedId: dto.id,
     sortOrder: dto.sortOrder,
     imageUrl: dto.imageUrl || existing?.imageUrl || '',
+    imageDocumentId: dto.imageDocumentId || existing?.imageDocumentId,
     headline: dto.headline || existing?.headline || '',
     subheadline: dto.subHeadline || existing?.subheadline || '',
     ctaLabel: existing?.ctaLabel || '',

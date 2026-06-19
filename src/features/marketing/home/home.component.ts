@@ -222,6 +222,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.revealFallbackTimer) {
       clearTimeout(this.revealFallbackTimer);
     }
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = '';
+    }
   }
 
   toggleTheme(): void {

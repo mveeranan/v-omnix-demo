@@ -34,6 +34,7 @@ import {
 import { ThemePresetsService } from './theme-presets.service';
 import { HeroSlidesService } from './hero-slides.service';
 import { SocialMediaService } from './social-media.service';
+import { DocumentUploadService } from '../../admin/data-access/document-upload.service';
 import { applyBusinessProfileToPortfolioPartial } from './business-profile-portfolio.util';
 import { HeroSlidePendingUploads } from './hero-slides-portfolio.util';
 import {
@@ -116,6 +117,7 @@ export class WebsiteSectionStateService {
   private readonly themePresets = inject(ThemePresetsService);
   private readonly heroSlidesService = inject(HeroSlidesService);
   private readonly socialMediaService = inject(SocialMediaService);
+  private readonly documentUpload = inject(DocumentUploadService);
 
   private readonly brandPendingUploads = signal<BrandPendingUploads>({
     logoFile: null,
@@ -209,6 +211,45 @@ export class WebsiteSectionStateService {
     this.setHeroPendingSlideFile(slideId, null);
   }
 
+  clearHeroSlideImage(slideId: string): void {
+    const hero = this.buffer<PortfolioHero>('hero');
+    const slide = hero?.slides?.find((item) => item.id === slideId);
+    this.deleteDocumentIfExists(slide?.imageDocumentId);
+    this.clearHeroPendingSlide(slideId);
+    this.patchBuffer<PortfolioHero>('hero', (b) => ({
+      ...b,
+      slides: (b.slides ?? []).map((item) =>
+        item.id === slideId ? { ...item, imageUrl: '', imageDocumentId: undefined } : item
+      )
+    }));
+  }
+
+  removeHeroSlide(slideId: string): void {
+    const hero = this.buffer<PortfolioHero>('hero');
+    const slide = hero?.slides?.find((item) => item.id === slideId);
+    this.deleteDocumentIfExists(slide?.imageDocumentId);
+    this.clearHeroPendingSlide(slideId);
+    this.patchBuffer<PortfolioHero>('hero', (b) => ({
+      ...b,
+      slides: (b.slides ?? [])
+        .filter((item) => item.id !== slideId)
+        .map((item, index) => ({ ...item, sortOrder: index }))
+    }));
+  }
+
+  private deleteDocumentIfExists(documentId: string | null | undefined): void {
+    const id = documentId?.trim();
+    if (!id) {
+      return;
+    }
+    this.documentUpload.delete(id).subscribe({
+      error: (err: unknown) => {
+        const message = err instanceof Error ? err.message : 'Could not delete file.';
+        this.notifications.warning(message);
+      }
+    });
+  }
+
   private resetHeroPendingUploads(): void {
     this.heroPendingUploads.set({ slideFiles: {} });
   }
@@ -222,6 +263,7 @@ export class WebsiteSectionStateService {
   }
 
   clearBrandPendingLogo(): void {
+    this.deleteDocumentIfExists(this.brandPendingUploads().logoDocumentId);
     this.brandPendingUploads.update((p) => ({
       ...p,
       logoFile: null,
@@ -230,6 +272,7 @@ export class WebsiteSectionStateService {
   }
 
   clearBrandPendingStoryImage(): void {
+    this.deleteDocumentIfExists(this.brandPendingUploads().coverDocumentId);
     this.brandPendingUploads.update((p) => ({
       ...p,
       storyImageFile: null,

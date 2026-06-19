@@ -2232,6 +2232,63 @@ html {
   margin-top: 0.5rem;
 }
 
+.pf-editor-theme-preview {
+  margin-top: 0.25rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.625rem;
+  border: 1px solid rgb(226 232 240);
+  background: rgb(248 250 252);
+}
+
+.dark .pf-editor-theme-preview {
+  border-color: rgb(63 63 70);
+  background: rgb(24 24 27);
+}
+
+.pf-editor-theme-preview__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.25rem 2rem;
+}
+
+.pf-editor-theme-preview__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.pf-editor-theme-preview__color {
+  display: inline-flex;
+  align-items: center;
+}
+
+.pf-editor-theme-preview__swatch {
+  display: inline-block;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid rgb(203 213 225);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.25);
+}
+
+.dark .pf-editor-theme-preview__swatch {
+  border-color: rgb(82 82 91);
+}
+
+.pf-editor-theme-preview__font {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.75rem;
+  color: rgb(51 65 85);
+  word-break: break-word;
+}
+
+.dark .pf-editor-theme-preview__font {
+  color: rgb(212 212 216);
+}
+
 .pf-theme-display-item {
   display: flex;
   flex-direction: column;

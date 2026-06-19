@@ -24,6 +24,7 @@ export interface PortfolioHeroSlide {
   persistedId?: string;
   sortOrder?: number;
   imageUrl: string;
+  imageDocumentId?: string;
   headline: string;
   subheadline: string;
   ctaLabel: string;

@@ -40,15 +40,6 @@
     </button>
 
     <div class="relative">
-      @if (profileLoading()) {
-        <div class="admin-header-profile admin-header-profile--loading" aria-hidden="true">
-          <div class="admin-header-profile__avatar admin-header-profile__avatar--loading"></div>
-          <div class="admin-header-profile__text">
-            <span class="admin-header-profile__name admin-header-profile__name--loading"></span>
-            <span class="admin-header-profile__role admin-header-profile__role--loading"></span>
-          </div>
-        </div>
-      } @else {
       <button
         type="button"
         (click)="toggleProfile()"
@@ -73,7 +64,6 @@
         </div>
         <lucide-icon [img]="chevronDown" class="admin-header-profile__chevron" />
       </button>
-      }
 
       @if (profileOpen()) {
         <div

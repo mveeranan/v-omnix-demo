@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, catchError, finalize, of, shareReplay, tap } from 'rxjs';
+import { Observable, catchError, finalize, of, shareReplay, tap, timeout } from 'rxjs';
 import { AuthService } from '@core/auth/auth.service';
 import { BusinessProfileDto } from '../../admin/models/business-profile.model';
 import { Portfolio } from '../models/portfolio.model';
@@ -15,6 +15,8 @@ const EMPTY_RESULT: PortfolioLoadResult = {
   socialMedia: null,
   portfolio: null
 };
+
+const PORTFOLIO_LOAD_TIMEOUT_MS = 30_000;
 
 @Injectable({ providedIn: 'root' })
 export class PortfolioTenantStateService {
@@ -80,10 +82,11 @@ export class PortfolioTenantStateService {
     this.activeTenantId = tenantId;
 
     this.inFlight = this.portfolioApi.getByTenant(tenantId).pipe(
+      timeout(PORTFOLIO_LOAD_TIMEOUT_MS),
       tap((result) => this.applyResult(result, tenantId)),
       catchError(() => {
         this.loadError.set('Could not load workspace data.');
-        this.applyResult(EMPTY_RESULT, tenantId);
+        this.applyResult(EMPTY_RESULT, tenantId, { preserveError: true });
         return of(EMPTY_RESULT);
       }),
       finalize(() => {
@@ -96,13 +99,19 @@ export class PortfolioTenantStateService {
     return this.inFlight;
   }
 
-  private applyResult(result: PortfolioLoadResult, tenantId: string): void {
+  private applyResult(
+    result: PortfolioLoadResult,
+    tenantId: string,
+    options?: { preserveError?: boolean }
+  ): void {
     this.user.set(result.user);
     this.businessProfile.set(result.businessProfile);
     this.presetId.set(result.presetId);
     this.portfolio.set(result.portfolio);
     this.loaded.set(true);
-    this.loadError.set(null);
+    if (!options?.preserveError) {
+      this.loadError.set(null);
+    }
     this.auth.setTenantId(tenantId);
   }
 

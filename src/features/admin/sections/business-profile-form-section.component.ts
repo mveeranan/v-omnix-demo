@@ -17,6 +17,7 @@ import { AdminDetailItemComponent } from '@features/admin/shared/admin-detail-it
 import { AdminDetailMediaComponent } from '@features/admin/shared/admin-detail-media.component';
 import { MediaUploadZoneComponent } from '@shared/ui/media-upload-zone.component';
 import { AdminProfileStateService } from '../data-access/admin-profile-state.service';
+import { DocumentUploadService } from '../data-access/document-upload.service';
 import { BusinessTypesService } from '../data-access/business-types.service';
 import { BusinessTypeDto } from '../models/business-type.model';
 import {
@@ -186,6 +187,7 @@ interface BusinessProfileFormSnapshot {
 export class BusinessProfileFormSectionComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   readonly state = inject(AdminProfileStateService);
+  private readonly documentUpload = inject(DocumentUploadService);
   private readonly businessTypesService = inject(BusinessTypesService);
   private readonly countriesService = inject(CountriesService);
   private readonly destroyRef = inject(DestroyRef);
@@ -376,15 +378,27 @@ export class BusinessProfileFormSectionComponent implements OnInit {
   }
 
   onLogoCleared(): void {
+    this.deleteStoredDocument(this.logoDocumentId);
     this.pendingLogoFile = null;
     this.logoDocumentId = null;
     this.logoPreview.set('');
   }
 
   onCoverCleared(): void {
+    this.deleteStoredDocument(this.coverDocumentId);
     this.pendingCoverFile = null;
     this.coverDocumentId = null;
     this.coverPreview.set('');
+  }
+
+  private deleteStoredDocument(documentId: string | null | undefined): void {
+    const id = documentId?.trim();
+    if (!id) {
+      return;
+    }
+    this.documentUpload.delete(id).subscribe({
+      error: () => undefined
+    });
   }
 
   private async buildAttachments(): Promise<UploadDocumentRequest[]> {

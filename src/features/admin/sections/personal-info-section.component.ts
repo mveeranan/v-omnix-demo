@@ -19,6 +19,7 @@ import { AdminFormSectionCardComponent } from '@features/admin/shared/admin-form
 import { MediaUploadZoneComponent } from '@shared/ui/media-upload-zone.component';
 
 import { AdminUserStateService } from '../data-access/admin-user-state.service';
+import { DocumentUploadService } from '../data-access/document-upload.service';
 
 import {
 
@@ -450,6 +451,7 @@ import { isDataUrl } from '@shared/files/upload-document.model';
 
 export class PersonalInfoSectionComponent implements OnInit {
   readonly state = inject(AdminUserStateService);
+  private readonly documentUpload = inject(DocumentUploadService);
   private readonly notifications = inject(NotificationService);
   private readonly fb = inject(FormBuilder);
   private readonly countriesService = inject(CountriesService);
@@ -633,11 +635,19 @@ export class PersonalInfoSectionComponent implements OnInit {
 
 
   onProfileImageCleared(): void {
-
+    this.deleteStoredDocument(this.state.user()?.profileImageDocumentId);
     this.pendingProfileImageFile = null;
-
     this.profileImageDraft.set('');
+  }
 
+  private deleteStoredDocument(documentId: string | null | undefined): void {
+    const id = documentId?.trim();
+    if (!id) {
+      return;
+    }
+    this.documentUpload.delete(id).subscribe({
+      error: () => this.notifications.warning('Could not delete profile image file.')
+    });
   }
 
 

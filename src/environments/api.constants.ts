@@ -44,7 +44,8 @@ export const API_ENDPOINTS = {
     upsert: `${base}/social-media`
   },
   documents: {
-    upload: `${base}/documents/upload`
+    upload: `${base}/documents/upload`,
+    delete: (documentId: string) => `${base}/documents/${encodeURIComponent(documentId)}`
   },
   tenant: {
     current: `${base}/tenant`

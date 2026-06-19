@@ -84,7 +84,14 @@ export class PortfolioApiService {
     const portfolioDto = extractPortfolioDraftFromApi(data);
     const heroSlides = extractHeroSlidesFromPortfolio(data);
     const socialMedia = extractSocialMediaFromPortfolio(data, tenantIdFallback);
-    let portfolio = portfolioDto ? this.mapper.map(portfolioDto) : null;
+    let portfolio = null;
+    if (portfolioDto) {
+      try {
+        portfolio = this.mapper.map(portfolioDto);
+      } catch {
+        portfolio = null;
+      }
+    }
     if (portfolio) {
       portfolio = mergeWithWebsiteDefaults(portfolio);
       if (heroSlides.length) {

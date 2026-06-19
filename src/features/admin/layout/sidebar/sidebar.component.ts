@@ -41,38 +41,22 @@ export class SidebarComponent {
   readonly sections = ADMIN_NAV_SECTIONS;
   readonly navItems = computed(() => ADMIN_NAV_ITEMS);
 
-  readonly brandingLoading = computed(
-    () => Boolean(this.authService.resolveTenantId()) && this.tenantState.loading()
-  );
-
   readonly tenantName = computed(() => {
-    if (this.brandingLoading()) {
-      return '';
-    }
     const profile = this.tenantState.businessProfile();
     return (
       profile?.businessName?.trim() ||
       this.authService.getTenantName()?.trim() ||
-      ''
+      'My workspace'
     );
   });
 
   readonly tenantLogoUrl = computed(() => {
-    if (this.brandingLoading()) {
-      return '';
-    }
     const profile = this.tenantState.businessProfile();
     return getLogoPreviewUrl(profile) || this.authService.getBusinessLogoUrl()?.trim() || '';
   });
 
   readonly tenantInitials = computed(() => {
-    if (this.brandingLoading()) {
-      return '';
-    }
     const name = this.tenantName();
-    if (!name) {
-      return '';
-    }
     return (
       name
         .split(/\s+/)
@@ -80,7 +64,7 @@ export class SidebarComponent {
         .slice(0, 2)
         .map((w) => w[0])
         .join('')
-        .toUpperCase() || ''
+        .toUpperCase() || 'WS'
     );
   });
 

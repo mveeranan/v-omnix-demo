@@ -8,17 +8,17 @@
     Plan: {{ planLabel() }}
   </span>
 
-  <div class="admin-widget-grid" @widgetsStagger>
-    <div class="admin-widget-grid__cell admin-widget-grid__revenue" @widgetEnter>
+  <div class="admin-widget-grid">
+    <div class="admin-widget-grid__cell admin-widget-grid__revenue">
       <app-revenue-widget />
     </div>
-    <div class="admin-widget-grid__cell admin-widget-grid__branding" @widgetEnter>
+    <div class="admin-widget-grid__cell admin-widget-grid__branding">
       <app-branding-widget />
     </div>
-    <div class="admin-widget-grid__cell admin-widget-grid__customers" @widgetEnter>
+    <div class="admin-widget-grid__cell admin-widget-grid__customers">
       <app-customers-widget />
     </div>
-    <div class="admin-widget-grid__cell" @widgetEnter>
+    <div class="admin-widget-grid__cell">
       <app-onboarding-checklist-widget />
     </div>
   </div>
