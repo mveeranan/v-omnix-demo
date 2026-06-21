@@ -338,9 +338,7 @@ export class WebsiteSectionStateService {
     }
 
     const save$ = this.persistSection(id, buffer, partial, tenantId).pipe(
-      switchMap(() =>
-        id === 'hero' || id === 'social' ? of(void 0) : this.portfolioState.syncFromPortfolioApi()
-      ),
+      switchMap(() => this.portfolioState.syncFromPortfolioApi()),
       map(() => void 0)
     );
 
@@ -417,7 +415,6 @@ export class WebsiteSectionStateService {
     if (id === 'hero') {
       const heroBuffer = buffer as PortfolioHero;
       return this.heroSlidesService.upsertFromHeroBuffer(heroBuffer, this.heroPendingUploads()).pipe(
-        switchMap(() => this.portfolioState.reloadFromPortfolioApi()),
         map(() => void 0),
         catchError((err: Error) => {
           this.patchMeta(id, { error: err.message || 'Could not save hero slideshow.' });
@@ -429,7 +426,6 @@ export class WebsiteSectionStateService {
     if (id === 'social') {
       const socialBuffer = buffer as SocialSectionBuffer;
       return this.socialMediaService.upsertFromSocialBuffer(socialBuffer.social).pipe(
-        switchMap(() => this.portfolioState.reloadFromPortfolioApi()),
         map(() => void 0),
         catchError((err: Error) => {
           this.patchMeta(id, { error: err.message || 'Could not save social links.' });

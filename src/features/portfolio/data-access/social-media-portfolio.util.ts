@@ -10,16 +10,19 @@ import { getSocialLinkUrl } from '../shared/utils/social-media-fields.util';
 
 export function mergeSocialMediaIntoPortfolio(
   portfolio: Portfolio,
-  socialMedia: SocialMediaDto | null | undefined
+  socialMedia: SocialMediaDto | null | undefined,
+  options?: { force?: boolean }
 ): Portfolio {
-  if (!socialMedia?.links?.length) {
+  if (!options?.force && !socialMedia?.links?.length) {
     return portfolio;
   }
 
   return {
     ...portfolio,
     social: {
-      links: mapSocialMediaLinksToPortfolioLinks(socialMedia.links)
+      links: socialMedia?.links?.length
+        ? mapSocialMediaLinksToPortfolioLinks(socialMedia.links)
+        : []
     }
   };
 }

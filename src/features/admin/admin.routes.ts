@@ -4,11 +4,13 @@ import { AdminShellComponent } from './layout/admin-shell.component';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard.component';
 import { AdminProfileComponent } from './pages/admin-profile.component';
 import { PortfolioEditorComponent } from '../portfolio/editor/portfolio-editor.component';
+import { adminWorkspaceResolver } from './admin-workspace.resolver';
 
 export const adminRoutes: Routes = [
   {
     path: 'admin',
     canActivate: [authGuard],
+    resolve: { workspace: adminWorkspaceResolver },
     component: AdminShellComponent,
     children: [
       {

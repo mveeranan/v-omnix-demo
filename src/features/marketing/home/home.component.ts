@@ -66,7 +66,7 @@ import {
   mapApiPlan
 } from '../plan-selection/pricing-plan.model';
 import { PlanCheckoutService } from '../plan-selection/plan-checkout.service';
-import { PortfolioTenantStateService } from '@features/portfolio/data-access/portfolio-tenant-state.service';
+import { WorkspaceSessionService } from '@features/portfolio/data-access/workspace-session.service';
 
 interface PricingFeature {
   name: string;
@@ -108,7 +108,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly businessTypesService = inject(BusinessTypesService);
   private readonly planSelectionFlow = inject(PlanSelectionFlowService);
   private readonly planCheckout = inject(PlanCheckoutService);
-  private readonly tenantPortfolioState = inject(PortfolioTenantStateService);
+  private readonly workspaceSession = inject(WorkspaceSessionService);
   @ViewChildren('revealEl') revealElements!: QueryList<ElementRef<HTMLElement>>;
 
   annual = false;
@@ -391,9 +391,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const context = this.availableContexts[0];
       if (context) {
-        this.authService.persistActiveContext(context);
-        this.tenantContext.syncFromAuthStorage();
-        this.tenantPortfolioState.ensureLoaded();
+        try {
+          await firstValueFrom(this.workspaceSession.prepareContext(context));
+        } catch {
+          // Bootstrap timed out or failed — still allow navigation; admin shell retries in background.
+        }
       }
 
       this.authSubmitting = false;
@@ -428,13 +430,21 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.contextSubmitting = true;
     this.contextError = '';
 
-    this.authService.persistActiveContext(selected);
-    this.tenantContext.syncFromAuthStorage();
-    this.tenantPortfolioState.ensureLoaded();
-    this.contextSubmitting = false;
-    this.notificationService.success('Context selected successfully.');
-    this.closeAuthOverlays();
-    this.navigateAfterAuth();
+    void firstValueFrom(this.workspaceSession.prepareContext(selected))
+      .finally(() => {
+        this.contextSubmitting = false;
+      })
+      .then(() => {
+        this.notificationService.success('Context selected successfully.');
+        this.closeAuthOverlays();
+        this.navigateAfterAuth();
+      })
+      .catch(() => {
+        this.contextError = 'Workspace is still loading. You can continue in the dashboard.';
+        this.notificationService.warning(this.contextError);
+        this.closeAuthOverlays();
+        this.navigateAfterAuth();
+      });
   }
 
   cancelContextSelection(): void {

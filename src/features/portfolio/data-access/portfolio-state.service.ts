@@ -42,11 +42,8 @@ export class PortfolioStateService {
     this.themePresets
       .list()
       .pipe(
-        switchMap(() => this.tenantState.ensureLoaded$()),
-        map((aggregate) => {
-          const base = aggregate.portfolio ?? createDefaultWebsitePortfolio();
-          return this.mergeAggregateIntoDraft(base, aggregate);
-        }),
+        switchMap(() => this.tenantState.refresh()),
+        map((aggregate) => this.buildDraftFromAggregate(this.enrichAggregate(aggregate))),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
@@ -69,36 +66,41 @@ export class PortfolioStateService {
   }
 
   /** Re-fetch GET /portfolio/{tenantId} and merge server data into the editor draft. */
-  syncFromPortfolioApi(): Observable<Portfolio | null> {
+  syncFromPortfolioApi(): Observable<Portfolio> {
     return this.themePresets.list().pipe(switchMap(() => this.reloadFromPortfolioApi()));
   }
 
-  /** Portfolio GET only (no theme-presets prefetch). Used after hero-slides upsert. */
-  reloadFromPortfolioApi(): Observable<Portfolio | null> {
+  /** Portfolio GET only (no theme-presets prefetch). Rebuilds editor draft from server data. */
+  reloadFromPortfolioApi(): Observable<Portfolio> {
     return this.tenantState.refresh().pipe(
       map((aggregate) => {
-        const current = this.draft();
-        if (!current) {
-          return null;
-        }
-        const merged = this.mergeAggregateIntoDraft(current, aggregate);
-        this.draft.set(merged);
+        const portfolio = this.buildDraftFromAggregate(this.enrichAggregate(aggregate));
+        this.draft.set(portfolio);
         this.lastSavedAt.set(new Date());
-        return merged;
+        return portfolio;
       }),
-      tap((merged) => {
-        if (merged) {
-          this.portfolioService.saveDraft(merged).subscribe({ error: () => undefined });
-        }
+      tap((portfolio) => {
+        this.portfolioService.saveDraft(portfolio).subscribe({ error: () => undefined });
       })
     );
   }
 
-  private mergeAggregateIntoDraft(
-    portfolio: Portfolio,
-    aggregate: PortfolioLoadResult
-  ): Portfolio {
-    let merged = aggregate.portfolio ?? portfolio;
+  private enrichAggregate(aggregate: PortfolioLoadResult): PortfolioLoadResult {
+    return {
+      ...aggregate,
+      heroSlides: aggregate.heroSlides ?? this.tenantState.heroSlides(),
+      socialMedia: aggregate.socialMedia ?? this.tenantState.socialMedia(),
+      portfolio: aggregate.portfolio ?? this.tenantState.portfolio()
+    };
+  }
+
+  /** Build editor draft from GET /portfolio — server is source of truth, not local draft. */
+  private buildDraftFromAggregate(aggregate: PortfolioLoadResult): Portfolio {
+    return this.mergeAggregateIntoDraft(aggregate);
+  }
+
+  private mergeAggregateIntoDraft(aggregate: PortfolioLoadResult): Portfolio {
+    let merged = aggregate.portfolio ?? createDefaultWebsitePortfolio();
 
     const catalog = this.themePresets.getCatalog();
     const profile = aggregate.businessProfile;
@@ -116,13 +118,9 @@ export class PortfolioStateService {
 
     merged = mergeWithWebsiteDefaults(merged);
 
-    if (aggregate.heroSlides?.length) {
-      merged = mergeHeroSlidesIntoPortfolio(merged, aggregate.heroSlides);
-    }
+    merged = mergeHeroSlidesIntoPortfolio(merged, aggregate.heroSlides ?? [], { force: true });
 
-    if (aggregate.socialMedia) {
-      merged = mergeSocialMediaIntoPortfolio(merged, aggregate.socialMedia);
-    }
+    merged = mergeSocialMediaIntoPortfolio(merged, aggregate.socialMedia, { force: true });
 
     return merged;
   }

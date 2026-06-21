@@ -6,6 +6,11 @@ import { Portfolio } from '../models/portfolio.model';
 import { UserDto } from '../../admin/models/user.model';
 import { PortfolioApiService } from './portfolio-api.service';
 import { PortfolioLoadResult } from '../models/dto/portfolio-load-result.dto';
+import { HeroSlideDto } from '../models/hero-slides.model';
+import { SocialMediaDto } from '../models/social-media.model';
+import { createDefaultWebsitePortfolio } from '../models/portfolio-defaults';
+import { mergeHeroSlidesIntoPortfolio } from './hero-slides-portfolio.util';
+import { mergeSocialMediaIntoPortfolio } from './social-media-portfolio.util';
 
 const EMPTY_RESULT: PortfolioLoadResult = {
   user: null,
@@ -16,7 +21,7 @@ const EMPTY_RESULT: PortfolioLoadResult = {
   portfolio: null
 };
 
-const PORTFOLIO_LOAD_TIMEOUT_MS = 30_000;
+const PORTFOLIO_LOAD_TIMEOUT_MS = 15_000;
 
 @Injectable({ providedIn: 'root' })
 export class PortfolioTenantStateService {
@@ -29,6 +34,8 @@ export class PortfolioTenantStateService {
   readonly user = signal<UserDto | null>(null);
   readonly businessProfile = signal<BusinessProfileDto | null>(null);
   readonly presetId = signal<string | null>(null);
+  readonly heroSlides = signal<HeroSlideDto[]>([]);
+  readonly socialMedia = signal<SocialMediaDto | null>(null);
   readonly portfolio = signal<Portfolio | null>(null);
   readonly loading = signal(false);
   readonly loaded = signal(false);
@@ -40,7 +47,10 @@ export class PortfolioTenantStateService {
       this.reset();
       return;
     }
-    if (this.loaded() && this.activeTenantId === tenantId) {
+    if (this.activeTenantId && this.activeTenantId !== tenantId) {
+      this.reset();
+    }
+    if (this.loaded() && this.activeTenantId === tenantId && !this.loadError()) {
       return;
     }
     this.loadForTenant(tenantId).subscribe({ error: () => undefined });
@@ -52,7 +62,10 @@ export class PortfolioTenantStateService {
       this.reset();
       return of(EMPTY_RESULT);
     }
-    if (this.loaded() && this.activeTenantId === tenantId) {
+    if (this.activeTenantId && this.activeTenantId !== tenantId) {
+      this.reset();
+    }
+    if (this.loaded() && this.activeTenantId === tenantId && !this.loadError()) {
       return of(this.currentResult());
     }
     return this.loadForTenant(tenantId);
@@ -86,7 +99,7 @@ export class PortfolioTenantStateService {
       tap((result) => this.applyResult(result, tenantId)),
       catchError(() => {
         this.loadError.set('Could not load workspace data.');
-        this.applyResult(EMPTY_RESULT, tenantId, { preserveError: true });
+        this.applyResult(EMPTY_RESULT, tenantId, { preserveError: true, failed: true });
         return of(EMPTY_RESULT);
       }),
       finalize(() => {
@@ -102,17 +115,44 @@ export class PortfolioTenantStateService {
   private applyResult(
     result: PortfolioLoadResult,
     tenantId: string,
-    options?: { preserveError?: boolean }
+    options?: { preserveError?: boolean; failed?: boolean }
   ): void {
+    const heroSlides = result.heroSlides ?? [];
+    const socialMedia = result.socialMedia ?? null;
+
     this.user.set(result.user);
     this.businessProfile.set(result.businessProfile);
     this.presetId.set(result.presetId);
-    this.portfolio.set(result.portfolio);
-    this.loaded.set(true);
+    this.heroSlides.set(heroSlides);
+    this.socialMedia.set(socialMedia);
+    this.portfolio.set(this.resolvePortfolio(result.portfolio, heroSlides, socialMedia));
+    this.loaded.set(!options?.failed);
     if (!options?.preserveError) {
       this.loadError.set(null);
     }
     this.auth.setTenantId(tenantId);
+  }
+
+  /** Keep hero slides + social links when website draft is not created yet. */
+  private resolvePortfolio(
+    portfolio: Portfolio | null,
+    heroSlides: HeroSlideDto[],
+    socialMedia: SocialMediaDto | null
+  ): Portfolio | null {
+    let resolved = portfolio;
+    if (!resolved && (heroSlides.length || socialMedia?.links?.length)) {
+      resolved = createDefaultWebsitePortfolio();
+    }
+    if (!resolved) {
+      return null;
+    }
+    if (heroSlides.length) {
+      resolved = mergeHeroSlidesIntoPortfolio(resolved, heroSlides);
+    }
+    if (socialMedia?.links?.length) {
+      resolved = mergeSocialMediaIntoPortfolio(resolved, socialMedia);
+    }
+    return resolved;
   }
 
   private currentResult(): PortfolioLoadResult {
@@ -120,8 +160,8 @@ export class PortfolioTenantStateService {
       user: this.user(),
       businessProfile: this.businessProfile(),
       presetId: this.presetId(),
-      heroSlides: [],
-      socialMedia: null,
+      heroSlides: this.heroSlides(),
+      socialMedia: this.socialMedia(),
       portfolio: this.portfolio()
     };
   }
@@ -130,6 +170,8 @@ export class PortfolioTenantStateService {
     this.user.set(null);
     this.businessProfile.set(null);
     this.presetId.set(null);
+    this.heroSlides.set([]);
+    this.socialMedia.set(null);
     this.portfolio.set(null);
     this.loaded.set(false);
     this.loading.set(false);

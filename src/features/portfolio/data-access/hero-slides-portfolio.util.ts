@@ -13,9 +13,10 @@ export interface HeroSlidePendingUploads {
 
 export function mergeHeroSlidesIntoPortfolio(
   portfolio: Portfolio,
-  slides: HeroSlideDto[]
+  slides: HeroSlideDto[],
+  options?: { force?: boolean }
 ): Portfolio {
-  if (!slides.length) {
+  if (!slides.length && !options?.force) {
     return portfolio;
   }
 

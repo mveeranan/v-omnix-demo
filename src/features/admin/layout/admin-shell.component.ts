@@ -6,8 +6,8 @@ import { SidebarComponent } from './sidebar/sidebar.component';
 import { HeaderComponent } from './header/header.component';
 import { AdminLayoutStateService } from '../services/admin-layout-state.service';
 import { TenantContextService } from '../data-access/tenant-context.service';
-import { PortfolioTenantStateService } from '../../portfolio/data-access/portfolio-tenant-state.service';
 import { AuthService } from '@core/auth/auth.service';
+import { WorkspaceSessionService } from '../../portfolio/data-access/workspace-session.service';
 import { backdropFade, drawerSlide } from '../animations/admin.animations';
 
 @Component({
@@ -21,8 +21,8 @@ import { backdropFade, drawerSlide } from '../animations/admin.animations';
 export class AdminShellComponent implements OnInit {
   private readonly layoutState = inject(AdminLayoutStateService);
   private readonly tenantContext = inject(TenantContextService);
-  private readonly tenantPortfolioState = inject(PortfolioTenantStateService);
   private readonly authService = inject(AuthService);
+  private readonly workspaceSession = inject(WorkspaceSessionService);
   private readonly router = inject(Router);
 
   readonly mobileDrawerOpen = this.layoutState.mobileDrawerOpen;
@@ -33,8 +33,8 @@ export class AdminShellComponent implements OnInit {
   ngOnInit(): void {
     this.tenantContext.syncFromAuthStorage();
     if (this.authService.isLoggedIn()) {
-      // Defer workspace fetch so the shell paints and stays interactive first.
-      setTimeout(() => this.tenantPortfolioState.ensureLoaded(), 0);
+      // Non-blocking: shell stays interactive while workspace data loads (incl. new tenants).
+      setTimeout(() => this.workspaceSession.ensureWorkspaceInBackground(), 0);
     }
     this.updateBreakpoints();
     this.router.events
