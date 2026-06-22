@@ -13,6 +13,8 @@ import {
 } from './models/auth.model';
 import { API_ENDPOINTS } from '@env/api.constants';
 import { ApiResponse } from '@shared/models/api-response.model';
+import { SubscriptionStatus, parseSubscriptionStatus } from '@shared/models/enums/subscription-status.enum';
+import { requiresSubscriptionPayment } from './subscription-access.util';
 
 const STORAGE_KEYS = {
   accessToken: 'access_token',
@@ -28,7 +30,9 @@ const STORAGE_KEYS = {
   businessLogoUrl: 'business_logo_url',
   roleName: 'role_name',
   planName: 'plan_name',
-  multiBranch: 'multi_branch'
+  multiBranch: 'multi_branch',
+  lastPlanId: 'last_plan_id',
+  subscriptionStatus: 'subscription_status'
 } as const;
 
 const LEGACY_STORAGE_KEYS = [
@@ -196,6 +200,23 @@ export class AuthService {
     return null;
   }
 
+  getLastPlanId(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.lastPlanId);
+  }
+
+  getSubscriptionStatus(): SubscriptionStatus | null {
+    const raw = localStorage.getItem(STORAGE_KEYS.subscriptionStatus);
+    return raw ? parseSubscriptionStatus(raw) : null;
+  }
+
+  requiresSubscriptionPayment(): boolean {
+    return requiresSubscriptionPayment(
+      this.getLastPlanId(),
+      this.getSubscriptionStatus(),
+      this.getPlanName()
+    );
+  }
+
   getActiveWorkspace(): ActiveWorkspace | null {
     const tenantId = this.getTenantId();
     if (!tenantId || !this.getAccessToken()) {
@@ -208,7 +229,9 @@ export class AuthService {
       businessLogoUrl: this.getBusinessLogoUrl(),
       roleName: this.getRoleName() ?? '',
       planName: this.getPlanName() ?? '',
-      multiBranch: multiBranch ?? false
+      multiBranch: multiBranch ?? false,
+      lastPlanId: this.getLastPlanId(),
+      subscriptionStatus: this.getSubscriptionStatus()
     };
   }
 
@@ -236,6 +259,8 @@ export class AuthService {
     const contexts = extractLoginContexts(data);
     if (contexts.length === 1 && contexts[0].tenantId) {
       this.persistActiveContext(contexts[0]);
+    } else if (data.tenantId?.trim()) {
+      this.persistActiveContext(normalizeAuthContext(data));
     }
   }
 
@@ -252,6 +277,8 @@ export class AuthService {
     this.setOrRemove(STORAGE_KEYS.roleName, normalized.roleName);
     this.setOrRemove(STORAGE_KEYS.planName, normalized.planName);
     localStorage.setItem(STORAGE_KEYS.multiBranch, normalized.multiBranch ? 'true' : 'false');
+    this.setOrRemove(STORAGE_KEYS.lastPlanId, normalized.lastPlanId ?? null);
+    this.setOrRemove(STORAGE_KEYS.subscriptionStatus, normalized.subscriptionStatus ?? null);
   }
 
   clearActiveContext(): void {
@@ -261,7 +288,9 @@ export class AuthService {
       STORAGE_KEYS.businessLogoUrl,
       STORAGE_KEYS.roleName,
       STORAGE_KEYS.planName,
-      STORAGE_KEYS.multiBranch
+      STORAGE_KEYS.multiBranch,
+      STORAGE_KEYS.lastPlanId,
+      STORAGE_KEYS.subscriptionStatus
     ].forEach((key) => localStorage.removeItem(key));
   }
 

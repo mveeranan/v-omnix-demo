@@ -3,7 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell.component';
 import { AppTableComponent } from '@shared/ui/app-table.component';
-import { PaginationComponent } from '@shared/ui/pagination.component';
+import { AdminDataTablePaginationComponent } from '@shared/ui/admin-data-table-pagination.component';
+import { AdminStatusBadgeComponent, AdminStatusBadgeVariant } from '@shared/ui/admin-status-badge.component';
+import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { OrderService } from './data-access/order.service';
 import { Order, OrderListResult, OrderStatus } from './models/order.model';
@@ -11,7 +13,16 @@ import { Order, OrderListResult, OrderStatus } from './models/order.model';
 @Component({
   selector: 'app-orders-list',
   standalone: true,
-  imports: [FormsModule, RouterLink, AdminPageShellComponent, AppTableComponent, PaginationComponent, LoadingSpinnerComponent],
+  imports: [
+    FormsModule,
+    RouterLink,
+    AdminPageShellComponent,
+    AppTableComponent,
+    AdminDataTablePaginationComponent,
+    AdminStatusBadgeComponent,
+    AdminTableActionComponent,
+    LoadingSpinnerComponent
+  ],
   template: `
     <app-admin-page-shell eyebrow="Operations" title="Orders" description="View and manage customer orders.">
       <div class="mb-4 grid gap-3 sm:grid-cols-4">
@@ -25,50 +36,74 @@ import { Order, OrderListResult, OrderStatus } from './models/order.model';
         </div>
       </div>
 
-      <div class="mb-4 grid gap-3 md:grid-cols-3">
-        <input class="pf-editor-input" placeholder="Search order, customer…" [(ngModel)]="search" (ngModelChange)="load()" />
-        <select class="pf-editor-input" [(ngModel)]="statusFilter" (ngModelChange)="load()">
-          <option value="">All statuses</option>
-          @for (s of statuses; track s) {
-            <option [value]="s">{{ s }}</option>
-          }
-        </select>
+      <div class="admin-data-table-toolbar">
+        <p class="admin-data-table-toolbar__summary">
+          Showing {{ result()?.items?.length ?? 0 }} of {{ result()?.total ?? 0 }} orders
+        </p>
+        <div class="admin-data-table-toolbar__filters">
+          <input class="pf-editor-input" placeholder="Search order, customer…" [(ngModel)]="search" (ngModelChange)="load()" />
+          <select class="pf-editor-input" [(ngModel)]="statusFilter" (ngModelChange)="load()">
+            <option value="">All statuses</option>
+            @for (s of statuses; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+          <select class="pf-editor-input" [(ngModel)]="pageSize" (ngModelChange)="load()">
+            <option [ngValue]="10">10 per page</option>
+            <option [ngValue]="25">25 per page</option>
+            <option [ngValue]="50">50 per page</option>
+          </select>
+        </div>
       </div>
 
       @if (loading()) {
         <app-loading-spinner />
       } @else {
         <app-table>
-          <table class="admin-bookings-table w-full min-w-[640px] text-left text-sm">
+          <table class="admin-data-table">
             <thead>
               <tr>
-                <th class="p-3">Order</th>
-                <th class="p-3">Date</th>
-                <th class="p-3">Customer</th>
-                <th class="p-3">Total</th>
-                <th class="p-3">Status</th>
-                <th class="p-3">Payment</th>
-                <th class="p-3"></th>
+                <th class="admin-data-table__index">#</th>
+                <th>Order</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Total</th>
+                <th class="admin-data-table__col-status">Status</th>
+                <th>Payment</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
-              @for (o of result()?.items ?? []; track o.id) {
-                <tr class="admin-bookings-table__row border-t">
-                  <td class="p-3 font-medium">#{{ o.orderNumber }}</td>
-                  <td class="p-3">{{ formatDate(o.createdAt) }}</td>
-                  <td class="p-3">{{ o.customerName }}</td>
-                  <td class="p-3">{{ format(o.total, o.currency) }}</td>
-                  <td class="p-3"><span class="rounded-full bg-zinc-100 px-2 py-0.5 text-xs capitalize dark:bg-zinc-800">{{ o.status }}</span></td>
-                  <td class="p-3"><span class="rounded-full px-2 py-0.5 text-xs capitalize" [class.bg-emerald-100]="o.paymentStatus === 'paid'" [class.bg-amber-100]="o.paymentStatus === 'pending'">{{ o.paymentStatus }}</span></td>
-                  <td class="p-3"><a [routerLink]="['/admin/orders', o.id]" class="text-indigo-600 hover:underline">View</a></td>
+              @for (o of result()?.items ?? []; track o.id; let i = $index) {
+                <tr class="admin-data-table__row">
+                  <td class="admin-data-table__index">{{ rowNumber(i) }}</td>
+                  <td><span class="admin-data-table__entity-title">#{{ o.orderNumber }}</span></td>
+                  <td>{{ formatDate(o.createdAt) }}</td>
+                  <td>{{ o.customerName }}</td>
+                  <td><span class="admin-data-table__price">{{ format(o.total, o.currency) }}</span></td>
+                  <td class="admin-data-table__col-status">
+                    <app-admin-status-badge [label]="o.status" [variant]="orderStatusVariant(o.status)" />
+                  </td>
+                  <td>
+                    <app-admin-status-badge [label]="o.paymentStatus" [variant]="paymentStatusVariant(o.paymentStatus)" />
+                  </td>
+                  <td class="admin-data-table__col-actions">
+                    <div class="admin-data-table__actions">
+                      <app-admin-table-action label="View" variant="view" [routerLink]="['/admin/orders', o.id]" />
+                    </div>
+                  </td>
                 </tr>
               }
             </tbody>
           </table>
         </app-table>
-        <div class="mt-6">
-          <app-pagination [total]="result()?.total ?? 0" [page]="page()" [pageSize]="25" (pageChange)="onPage($event)" />
-        </div>
+        <app-admin-data-table-pagination
+          [total]="result()?.total ?? 0"
+          [page]="page()"
+          [pageSize]="pageSize"
+          itemLabel="orders"
+          (pageChange)="onPage($event)"
+        />
       }
     </app-admin-page-shell>
   `
@@ -83,6 +118,7 @@ export class OrdersListComponent implements OnInit {
   readonly page = signal(1);
   search = '';
   statusFilter = '';
+  pageSize = 25;
 
   ngOnInit(): void {
     this.load();
@@ -95,7 +131,7 @@ export class OrdersListComponent implements OnInit {
         search: this.search || undefined,
         status: (this.statusFilter as OrderStatus) || undefined,
         page: this.page(),
-        pageSize: 25
+        pageSize: this.pageSize
       })
       .subscribe({
         next: (r) => {
@@ -110,6 +146,39 @@ export class OrdersListComponent implements OnInit {
   onPage(p: number): void {
     this.page.set(p);
     this.load();
+  }
+
+  rowNumber(index: number): number {
+    return (this.page() - 1) * this.pageSize + index + 1;
+  }
+
+  orderStatusVariant(status: OrderStatus): AdminStatusBadgeVariant {
+    switch (status) {
+      case 'delivered':
+      case 'shipped':
+        return 'success';
+      case 'pending':
+      case 'processing':
+        return 'warning';
+      case 'cancelled':
+        return 'danger';
+      default:
+        return 'neutral';
+    }
+  }
+
+  paymentStatusVariant(status: string): AdminStatusBadgeVariant {
+    switch (status) {
+      case 'paid':
+        return 'active';
+      case 'pending':
+        return 'warning';
+      case 'failed':
+      case 'refunded':
+        return 'danger';
+      default:
+        return 'neutral';
+    }
   }
 
   format(value: number, currency = 'USD'): string {

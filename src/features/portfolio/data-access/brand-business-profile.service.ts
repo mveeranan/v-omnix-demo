@@ -60,6 +60,8 @@ export class BrandBusinessProfileService {
     const hasNewStoryImage = Boolean(
       pending.storyImageFile || isDataUrl(buffer.storeDescription.imageUrl)
     );
+    const logoCleared = !buffer.brand.logoUrl?.trim() && !pending.logoFile;
+    const storyCleared = !buffer.storeDescription.imageUrl?.trim() && !pending.storyImageFile;
 
     return from(this.buildAttachments(buffer, pending)).pipe(
       switchMap((attachments) => {
@@ -71,11 +73,12 @@ export class BrandBusinessProfileService {
           phone: existing?.phone ?? null,
           description: buffer.storeDescription.description.trim() || null,
           isActive: true,
-          logoDocumentId: hasNewLogo ? null : pending.logoDocumentId,
-          coverImageDocumentId: hasNewStoryImage ? null : pending.coverDocumentId,
+          logoDocumentId: hasNewLogo || logoCleared ? null : pending.logoDocumentId,
+          coverImageDocumentId: hasNewStoryImage || storyCleared ? null : pending.coverDocumentId,
           websiteUrl: existing?.websiteUrl ?? null,
           timeZone: existing?.timeZone ?? null,
           currency: existing?.currency ?? null,
+          presetId: buffer.presetId?.trim() || existing?.presetId || null,
           ...(attachments.length > 0 ? { attachments } : {})
         };
         return this.businessProfileService.upsert(body);

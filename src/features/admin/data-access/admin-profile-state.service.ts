@@ -1,4 +1,4 @@
-﻿import { computed, effect, Injectable, inject, signal } from '@angular/core';
+﻿import { computed, effect, Injectable, inject, signal, untracked } from '@angular/core';
 import { EMPTY, Observable, map, switchMap, tap } from 'rxjs';
 import { PortfolioTenantStateService } from '../../portfolio/data-access/portfolio-tenant-state.service';
 import { AuthService } from '@core/auth/auth.service';
@@ -66,12 +66,22 @@ export class AdminProfileStateService {
       const loaded = this.tenantState.businessProfile();
       if (loaded && hasBusinessProfileData(loaded)) {
         const next = { ...loaded, tenantId: loaded.tenantId ?? tenantId };
-        this.profile.set(next);
+        const current = untracked(() => this.profile());
+        if (
+          current.tenantId !== next.tenantId ||
+          current.businessName !== next.businessName ||
+          current.businessTypeId !== next.businessTypeId
+        ) {
+          this.profile.set(next);
+        }
         this.syncDashboardFromProfile(next);
         return;
       }
 
-      this.profile.set(createEmptyBusinessProfile(tenantId));
+      const current = untracked(() => this.profile());
+      if (current.tenantId !== tenantId || hasBusinessProfileData(current)) {
+        this.profile.set(createEmptyBusinessProfile(tenantId));
+      }
     });
   }
 
@@ -125,20 +135,36 @@ export class AdminProfileStateService {
   }
 
   private syncDashboardFromProfile(profile: BusinessProfileDto): void {
-    if (profile.businessName?.trim()) {
-      const initials = profile.businessName
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((w) => w[0])
-        .join('')
-        .toUpperCase();
-      this.dashboardData.updateTenantBranding({
-        businessName: profile.businessName,
-        logoInitials: initials || 'WB',
-        logoUrl: getLogoPreviewUrl(profile) || undefined,
-        tagline: profile.description?.slice(0, 80) ?? this.dashboardData.dashboardData().tenant.tagline
-      });
+    if (!profile.businessName?.trim()) {
+      return;
     }
+
+    const initials = profile.businessName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join('')
+      .toUpperCase();
+    const logoUrl = getLogoPreviewUrl(profile) || undefined;
+    const tagline =
+      profile.description?.slice(0, 80) ?? this.dashboardData.dashboardData().tenant.tagline;
+    const current = this.dashboardData.dashboardData().tenant;
+
+    if (
+      current.businessName === profile.businessName &&
+      current.logoInitials === (initials || 'WB') &&
+      current.logoUrl === logoUrl &&
+      current.tagline === tagline
+    ) {
+      return;
+    }
+
+    this.dashboardData.updateTenantBranding({
+      businessName: profile.businessName,
+      logoInitials: initials || 'WB',
+      logoUrl,
+      tagline
+    });
   }
 }

@@ -37,8 +37,15 @@ export const API_ENDPOINTS = {
     getByTenant: (tenantId: string) => `${base}/business-profiles/${tenantId}`,
     upsert: `${base}/business-profiles`
   },
+  heroSlides: {
+    upsert: `${base}/hero-slides`
+  },
+  socialMedia: {
+    upsert: `${base}/social-media`
+  },
   documents: {
-    upload: `${base}/documents/upload`
+    upload: `${base}/documents/upload`,
+    delete: (documentId: string) => `${base}/documents/${encodeURIComponent(documentId)}`
   },
   tenant: {
     current: `${base}/tenant`
@@ -47,31 +54,55 @@ export const API_ENDPOINTS = {
     update: `${base}/User`
   },
   store: {
-    productsBySlug: (storeSlug: string) => `${base}/stores/${encodeURIComponent(storeSlug)}/products`,
-    productBySlug: (storeSlug: string, productSlug: string) =>
-      `${base}/stores/${encodeURIComponent(storeSlug)}/products/${encodeURIComponent(productSlug)}`,
     getBySlug: (slug: string) => `${base}/stores/${encodeURIComponent(slug)}`,
     createOrder: `${base}/orders`
   },
-  // TODO: wire when backend ready
-  categories: {
-    list: `${base}/categories`,
-    create: `${base}/categories`,
-    update: (id: string) => `${base}/categories/${id}`,
-    delete: (id: string) => `${base}/categories/${id}`
+  productCategories: {
+    list: (tenantId: string) => `${base}/product-categories?tenantId=${encodeURIComponent(tenantId)}`,
+    create: `${base}/product-categories`,
+    update: (id: string) => `${base}/product-categories/${encodeURIComponent(id)}`,
+    delete: (id: string, tenantId: string) =>
+      `${base}/product-categories/${encodeURIComponent(id)}?tenantId=${encodeURIComponent(tenantId)}`
   },
   brands: {
-    list: `${base}/brands`,
+    list: (tenantId: string) => `${base}/brands?tenantId=${encodeURIComponent(tenantId)}`,
     create: `${base}/brands`,
-    update: (id: string) => `${base}/brands/${id}`,
-    delete: (id: string) => `${base}/brands/${id}`
+    update: (id: string) => `${base}/brands/${encodeURIComponent(id)}`,
+    delete: (id: string, tenantId: string) =>
+      `${base}/brands/${encodeURIComponent(id)}?tenantId=${encodeURIComponent(tenantId)}`
+  },
+  productTags: {
+    list: (tenantId: string) => `${base}/product-tags?tenantId=${encodeURIComponent(tenantId)}`,
+    create: `${base}/product-tags`
+  },
+  productAttributes: {
+    list: (tenantId: string) => `${base}/product-attributes?tenantId=${encodeURIComponent(tenantId)}`,
+    upsert: `${base}/product-attributes`
   },
   products: {
     list: `${base}/products`,
-    get: (id: string) => `${base}/products/${id}`,
+    get: (id: string, tenantId: string) =>
+      `${base}/products/${encodeURIComponent(id)}?tenantId=${encodeURIComponent(tenantId)}`,
     create: `${base}/products`,
-    update: (id: string) => `${base}/products/${id}`,
-    delete: (id: string) => `${base}/products/${id}`
+    update: (id: string) => `${base}/products/${encodeURIComponent(id)}`,
+    delete: (id: string, tenantId: string) =>
+      `${base}/products/${encodeURIComponent(id)}?tenantId=${encodeURIComponent(tenantId)}`,
+    patchStatus: (id: string) => `${base}/products/${encodeURIComponent(id)}/status`,
+    variants: (id: string) => `${base}/products/${encodeURIComponent(id)}/variants`,
+    images: (id: string) => `${base}/products/${encodeURIComponent(id)}/images`,
+    inventory: (id: string, tenantId: string) =>
+      `${base}/products/${encodeURIComponent(id)}/inventory?tenantId=${encodeURIComponent(tenantId)}`,
+    tags: (id: string) => `${base}/products/${encodeURIComponent(id)}/tags`
+  },
+  inventory: {
+    adjust: (inventoryId: string) => `${base}/inventory/${encodeURIComponent(inventoryId)}/adjust`
+  },
+  catalog: {
+    products: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/products`,
+    product: (tenantSlug: string, slug: string) =>
+      `${base}/catalog/${encodeURIComponent(tenantSlug)}/products/${encodeURIComponent(slug)}`,
+    categories: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/categories`,
+    brands: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/brands`
   },
   orders: {
     list: `${base}/orders`,

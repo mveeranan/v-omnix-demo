@@ -5,7 +5,7 @@ import {
   HttpInterceptorFn,
   HttpRequest
 } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, Injector } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, catchError, filter, switchMap, take, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
@@ -14,14 +14,15 @@ import { PortfolioTenantStateService } from '@features/portfolio/data-access/por
 import { API_ENDPOINTS } from '@env/api.constants';
 
 const authEndpoints = [API_ENDPOINTS.auth.login, API_ENDPOINTS.auth.refresh];
+/** Marks a request that already went through one refresh-and-retry cycle. */
+const AUTH_RETRY_HEADER = 'X-Auth-Retry';
 let isRefreshing = false;
-const refreshTokenSubject = new BehaviorSubject<string | null>(null);
-
+const refreshTokenSubject = new BehaviorSubject<string | null | 'failed'>(null);
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const logger = inject(LoggerService);
-  const tenantState = inject(PortfolioTenantStateService);
+  const injector = inject(Injector);
 
   if (isAuthEndpoint(req.url)) {
     return next(req);
@@ -36,10 +37,28 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
-      return handleUnauthorized(req, next, authService, router, logger, tenantState);
+      // Workspace bootstrap for brand-new tenants may legitimately 401 before data exists.
+      // Do not enter the refresh loop for portfolio reads — let callers degrade gracefully.
+      if (isPortfolioRequest(req.url)) {
+        return throwError(() => error);
+      }
+
+      if (req.headers.has(AUTH_RETRY_HEADER)) {
+        logger.warn('Unauthorized after token refresh; not retrying again.', {
+          url: req.url,
+          status: error.status
+        });
+        return throwError(() => error);
+      }
+
+      return handleUnauthorized(req, next, authService, router, logger, injector);
     })
   );
 };
+
+function isPortfolioRequest(url: string): boolean {
+  return /\/portfolio\//i.test(url);
+}
 
 function handleUnauthorized(
   req: HttpRequest<unknown>,
@@ -47,7 +66,7 @@ function handleUnauthorized(
   authService: AuthService,
   router: Router,
   logger: LoggerService,
-  tenantState: PortfolioTenantStateService
+  injector: Injector
 ): Observable<HttpEvent<unknown>> {
   if (!isRefreshing) {
     isRefreshing = true;
@@ -57,13 +76,14 @@ function handleUnauthorized(
       switchMap((accessToken) => {
         isRefreshing = false;
         refreshTokenSubject.next(accessToken);
-        return next(addAuthorizationHeader(req, accessToken));
+        return next(markAuthRetried(addAuthorizationHeader(req, accessToken)));
       }),
       catchError((refreshError) => {
         isRefreshing = false;
+        refreshTokenSubject.next('failed');
         logger.warn('Token refresh failed. Redirecting to home.', refreshError);
         authService.logout();
-        tenantState.clearSession();
+        injector.get(PortfolioTenantStateService).clearSession();
         void router.navigate(['/home']);
         return throwError(() => refreshError);
       })
@@ -71,9 +91,9 @@ function handleUnauthorized(
   }
 
   return refreshTokenSubject.pipe(
-    filter((token): token is string => token !== null),
+    filter((token): token is string => typeof token === 'string' && token.length > 0),
     take(1),
-    switchMap((token) => next(addAuthorizationHeader(req, token)))
+    switchMap((token) => next(markAuthRetried(addAuthorizationHeader(req, token))))
   );
 }
 
@@ -81,6 +101,14 @@ function addAuthorizationHeader(req: HttpRequest<unknown>, token: string): HttpR
   return req.clone({
     setHeaders: {
       Authorization: `Bearer ${token}`
+    }
+  });
+}
+
+function markAuthRetried(req: HttpRequest<unknown>): HttpRequest<unknown> {
+  return req.clone({
+    setHeaders: {
+      [AUTH_RETRY_HEADER]: '1'
     }
   });
 }

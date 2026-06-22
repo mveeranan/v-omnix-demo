@@ -1,7 +1,7 @@
+import { SocialMediaType } from '@shared/models/enums/social-media-type.enum';
 import {
   Portfolio,
   PortfolioGalleryItem,
-  PortfolioHeroSlide,
   PortfolioReview,
   createEmptyPortfolio
 } from './portfolio.model';
@@ -12,25 +12,6 @@ const PLACEHOLDER_LOGO =
   'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&q=80';
 const PLACEHOLDER_STORY =
   'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80';
-
-const DEFAULT_HERO_SLIDES: PortfolioHeroSlide[] = [
-  {
-    id: 'hero-slide-1',
-    imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&q=80',
-    headline: 'New season collection',
-    subheadline: 'Discover quality products curated for everyday life',
-    ctaLabel: 'Shop now',
-    ctaTarget: ''
-  },
-  {
-    id: 'hero-slide-2',
-    imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1600&q=80',
-    headline: 'Free shipping over $50',
-    subheadline: 'Browse apparel, home, accessories, and more',
-    ctaLabel: 'Browse catalog',
-    ctaTarget: ''
-  }
-];
 
 const DEFAULT_GALLERY: PortfolioGalleryItem[] = [
   {
@@ -122,12 +103,12 @@ export function createDefaultWebsitePortfolio(): Portfolio {
     },
     hero: {
       enabled: true,
-      eyebrow: 'Welcome',
-      headline: 'My Store',
-      subheadline: 'Quality products, delivered with care',
+      eyebrow: '',
+      headline: '',
+      subheadline: '',
       secondaryCtaLabel: 'Contact us',
       showTrustStrip: false,
-      slides: DEFAULT_HERO_SLIDES.map((s) => ({ ...s }))
+      slides: []
     },
     categoryShowcase: {
       enabled: true,
@@ -217,11 +198,10 @@ export function createDefaultWebsitePortfolio(): Portfolio {
     },
     socialSection: { enabled: true },
     social: {
-      instagram: 'https://instagram.com',
-      facebook: 'https://facebook.com',
-      tiktok: '',
-      whatsapp: '',
-      youtube: ''
+      links: [
+        { id: 'default-instagram', type: SocialMediaType.Instagram, url: 'https://instagram.com' },
+        { id: 'default-facebook', type: SocialMediaType.Facebook, url: 'https://facebook.com' }
+      ]
     },
     cta: {
       type: 'internal',
@@ -247,7 +227,7 @@ export function mergeWithWebsiteDefaults(portfolio: Portfolio): Portfolio {
     hero: {
       ...defaults.hero,
       ...portfolio.hero,
-      slides: portfolio.hero.slides?.length ? portfolio.hero.slides : defaults.hero.slides
+      slides: portfolio.hero.slides ?? []
     },
     storeDescription: {
       ...defaults.storeDescription,
@@ -318,10 +298,7 @@ export function mergeWithWebsiteDefaults(portfolio: Portfolio): Portfolio {
       text: portfolio.promoStrip.text?.trim() || defaults.promoStrip.text
     },
     social: {
-      ...defaults.social,
-      ...portfolio.social,
-      instagram: portfolio.social.instagram?.trim() || defaults.social.instagram,
-      facebook: portfolio.social.facebook?.trim() || defaults.social.facebook
+      links: portfolio.social.links?.length ? portfolio.social.links : defaults.social.links
     }
   };
 

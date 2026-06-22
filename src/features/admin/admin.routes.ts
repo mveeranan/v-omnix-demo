@@ -4,11 +4,13 @@ import { AdminShellComponent } from './layout/admin-shell.component';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard.component';
 import { AdminProfileComponent } from './pages/admin-profile.component';
 import { PortfolioEditorComponent } from '../portfolio/editor/portfolio-editor.component';
+import { adminWorkspaceResolver } from './admin-workspace.resolver';
 
 export const adminRoutes: Routes = [
   {
     path: 'admin',
     canActivate: [authGuard],
+    resolve: { workspace: adminWorkspaceResolver },
     component: AdminShellComponent,
     children: [
       {
@@ -87,6 +89,16 @@ export const adminRoutes: Routes = [
         path: 'brands',
         loadComponent: () =>
           import('./brands/brands-list.component').then((m) => m.BrandsListComponent)
+      },
+      {
+        path: 'product-tags',
+        loadComponent: () =>
+          import('./product-tags/product-tags-list.component').then((m) => m.ProductTagsListComponent)
+      },
+      {
+        path: 'product-attributes',
+        loadComponent: () =>
+          import('./product-attributes/product-attributes-list.component').then((m) => m.ProductAttributesListComponent)
       },
       {
         path: 'billing',

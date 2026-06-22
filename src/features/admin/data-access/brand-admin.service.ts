@@ -1,34 +1,48 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, delay, throwError } from 'rxjs';
-import { brandStore } from './brand.store';
-import { BrandDto, createEmptyBrand } from '../models/brand.model';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { AuthService } from '@core/auth/auth.service';
+import { BrandApiService } from '@features/catalog/data-access/brand-api.service';
+import {
+  BrandDto,
+  SaveBrandRequest,
+  createEmptyBrand
+} from '@features/catalog/models/brand.model';
+import { requireTenantId } from '@features/catalog/data-access/catalog-api.util';
 
 @Injectable({ providedIn: 'root' })
 export class BrandAdminService {
+  private readonly api = inject(BrandApiService);
+  private readonly auth = inject(AuthService);
+
   list(): Observable<BrandDto[]> {
-    return of(brandStore.getAll()).pipe(delay(150));
+    return this.api.list();
   }
 
   getById(id: string): Observable<BrandDto | null> {
-    return of(brandStore.getById(id) ?? null).pipe(delay(100));
+    return new Observable((subscriber) => {
+      this.api.list().subscribe({
+        next: (items) => {
+          subscriber.next(items.find((b) => b.id === id) ?? null);
+          subscriber.complete();
+        },
+        error: (err) => subscriber.error(err)
+      });
+    });
   }
 
-  create(input: Omit<BrandDto, 'id'>): Observable<BrandDto> {
-    return of(brandStore.create(input)).pipe(delay(200));
+  create(input: SaveBrandRequest): Observable<BrandDto> {
+    return this.api.create(input);
   }
 
-  update(id: string, patch: Partial<BrandDto>): Observable<BrandDto> {
-    const updated = brandStore.update(id, patch);
-    if (!updated) return throwError(() => new Error('NOT_FOUND'));
-    return of(updated).pipe(delay(200));
+  update(id: string, patch: SaveBrandRequest): Observable<BrandDto> {
+    return this.api.update(id, patch);
   }
 
   delete(id: string): Observable<void> {
-    brandStore.delete(id);
-    return of(undefined).pipe(delay(200));
+    return this.api.delete(id);
   }
 
-  createEmpty(tenantId = 'default'): Omit<BrandDto, 'id'> {
-    return createEmptyBrand(tenantId);
+  createEmpty(): SaveBrandRequest {
+    return createEmptyBrand(requireTenantId(this.auth));
   }
 }

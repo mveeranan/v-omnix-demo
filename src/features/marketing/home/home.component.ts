@@ -58,39 +58,19 @@ import { EMPTY_PHONE_NUMBER } from '@shared/models/phone-number.model';
 import { formatPhoneWithDialCode } from '@shared/utils/phone.util';
 import { BusinessTypesService } from '@features/admin/data-access/business-types.service';
 import { BusinessTypeDto } from '@features/admin/models/business-type.model';
-import { PortfolioTenantStateService } from '@features/portfolio/data-access/portfolio-tenant-state.service';
+import { PlanSelectionFlowService } from '../plan-selection/plan-selection-flow.service';
+import {
+  PlanApiDto,
+  PricingPlan,
+  PlanPrice,
+  mapApiPlan
+} from '../plan-selection/pricing-plan.model';
+import { PlanCheckoutService } from '../plan-selection/plan-checkout.service';
+import { WorkspaceSessionService } from '@features/portfolio/data-access/workspace-session.service';
 
 interface PricingFeature {
   name: string;
   included: boolean;
-}
-
-interface PlanPrice {
-  planPriceId: string;
-  billingCycle: 'Monthly' | 'Yearly' | string;
-  amount: number;
-  currency: string;
-  stripePriceId: string;
-}
-
-interface PricingPlan {
-  id: string;
-  name: string;
-  monthlyPrice?: PlanPrice;
-  annualPrice?: PlanPrice;
-  description: string;
-  popular?: boolean;
-  features: PricingFeature[];
-}
-
-interface PlanApiDto {
-  planId: string;
-  name: string;
-  prices: PlanPrice[];
-  features: Array<{
-    id: string;
-    name: string;
-  }>;
 }
 
 interface ApiResponse<T> {
@@ -102,6 +82,7 @@ interface ApiResponse<T> {
 
 interface RegisterData {
   tenantId: string;
+  lastPlanId?: string | null;
 }
 
 interface CheckoutSessionResponse {
@@ -125,7 +106,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly themeService = inject(ThemeService);
   private readonly businessTypesService = inject(BusinessTypesService);
-  private readonly tenantPortfolioState = inject(PortfolioTenantStateService);
+  private readonly planSelectionFlow = inject(PlanSelectionFlowService);
+  private readonly planCheckout = inject(PlanCheckoutService);
+  private readonly workspaceSession = inject(WorkspaceSessionService);
   @ViewChildren('revealEl') revealElements!: QueryList<ElementRef<HTMLElement>>;
 
   annual = false;
@@ -136,6 +119,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   showAuthChoiceModal = false;
   showLoginPanel = false;
   showRegisterPanel = false;
+  planChosenFromPricing = false;
   readonly registerTotalSteps = 4;
   readonly registerSteps = [1, 2, 3, 4];
   selectedPlanId = '';
@@ -222,6 +206,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.postLoginRedirectUrl = returnUrl;
       this.openLoginPanel();
     }
+    this.restoreRegistrationIfRequested();
     this.loadPricingPlans();
     this.loadBusinessTypes();
   }
@@ -236,6 +221,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.statsObserver?.disconnect();
     if (this.revealFallbackTimer) {
       clearTimeout(this.revealFallbackTimer);
+    }
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = '';
     }
   }
 
@@ -256,11 +244,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openAuthChoice(plan: PricingPlan): void {
-    this.selectedPlanId = plan.id;
-    this.selectedPlanName = plan.name;
-    const selectedPrice = this.getPlanPrice(plan);
-    this.selectedPlanPriceId = selectedPrice?.planPriceId ?? '';
-    this.selectedStripePriceId = selectedPrice?.stripePriceId ?? '';
+    this.planChosenFromPricing = true;
+    this.applySelectedPlan(plan);
     this.showAuthChoiceModal = true;
     this.showLoginPanel = false;
     this.showRegisterPanel = false;
@@ -271,6 +256,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   openLoginPanel(): void {
     this.showAuthChoiceModal = false;
     this.showRegisterPanel = false;
+    this.planChosenFromPricing = false;
+    this.clearSelectedPlan();
     this.showLoginPanel = true;
     this.authError = '';
     this.syncBodyScrollLock();
@@ -280,6 +267,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showAuthChoiceModal = false;
     this.showLoginPanel = false;
     this.showRegisterPanel = true;
+    if (!this.planChosenFromPricing) {
+      this.clearSelectedPlan();
+    }
     this.registerStep = 1;
     this.authError = '';
     this.syncBodyScrollLock();
@@ -401,14 +391,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const context = this.availableContexts[0];
       if (context) {
-        this.authService.persistActiveContext(context);
-        this.tenantContext.syncFromAuthStorage();
-        this.tenantPortfolioState.ensureLoaded();
+        try {
+          await firstValueFrom(this.workspaceSession.prepareContext(context));
+        } catch {
+          // Bootstrap timed out or failed — still allow navigation; admin shell retries in background.
+        }
       }
 
       this.authSubmitting = false;
       this.notificationService.success('Login successful.');
-      this.navigateToDashboard(false);
+      this.navigateAfterAuth();
     } catch (error) {
       this.authSubmitting = false;
       this.authError = this.extractErrorMessage(error) || 'Login failed. Please try again.';
@@ -438,13 +430,21 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.contextSubmitting = true;
     this.contextError = '';
 
-    this.authService.persistActiveContext(selected);
-    this.tenantContext.syncFromAuthStorage();
-    this.tenantPortfolioState.ensureLoaded();
-    this.contextSubmitting = false;
-    this.notificationService.success('Context selected successfully.');
-    this.closeAuthOverlays();
-    this.navigateToDashboard(false);
+    void firstValueFrom(this.workspaceSession.prepareContext(selected))
+      .finally(() => {
+        this.contextSubmitting = false;
+      })
+      .then(() => {
+        this.notificationService.success('Context selected successfully.');
+        this.closeAuthOverlays();
+        this.navigateAfterAuth();
+      })
+      .catch(() => {
+        this.contextError = 'Workspace is still loading. You can continue in the dashboard.';
+        this.notificationService.warning(this.contextError);
+        this.closeAuthOverlays();
+        this.navigateAfterAuth();
+      });
   }
 
   cancelContextSelection(): void {
@@ -469,6 +469,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async submitRegisterForm(): Promise<void> {
     if (this.authSubmitting) {
+      return;
+    }
+
+    this.registerForm.markAllAsTouched();
+    if (!this.canProceedRegisterStep(4) || this.registerForm.invalid) {
+      this.notificationService.warning('Please complete all required fields.');
+      return;
+    }
+
+    if (!this.hasSelectedPlan()) {
+      this.navigateToPlanSelectionPage();
       return;
     }
 
@@ -709,11 +720,21 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.selectedPlanId) {
       sessionStorage.setItem('work-orbit.tenant.planId', this.selectedPlanId);
     }
-    const queryParams: Record<string, string> = {
-      planId: this.selectedPlanId,
-      planPriceId: this.selectedPlanPriceId,
-      stripePriceId: this.selectedStripePriceId
+    const queryParams: Record<string, string | null> = {
+      setupIncomplete: null,
+      planId: null,
+      planPriceId: null,
+      stripePriceId: null
     };
+    if (this.selectedPlanId) {
+      queryParams['planId'] = this.selectedPlanId;
+    }
+    if (this.selectedPlanPriceId) {
+      queryParams['planPriceId'] = this.selectedPlanPriceId;
+    }
+    if (this.selectedStripePriceId) {
+      queryParams['stripePriceId'] = this.selectedStripePriceId;
+    }
     if (includeSetupState) {
       queryParams['setupIncomplete'] = this.onboardingRequired ? '1' : '0';
     }
@@ -747,8 +768,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       if (description) {
         payload['description'] = description;
       }
-      if (this.selectedPlanName) {
-        payload['planName'] = this.selectedPlanName;
+      if (this.selectedPlanId) {
+        payload['planId'] = this.selectedPlanId;
+        payload['lastPlanId'] = this.selectedPlanId;
       }
 
       const response = await firstValueFrom(
@@ -774,11 +796,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this.notificationService.success(response.message || 'Account created successfully.');
 
-      if (this.selectedPlanPriceId) {
+      if (this.planChosenFromPricing && this.selectedPlanPriceId) {
         await this.initiateStripeCheckout(tenantId, this.selectedPlanPriceId);
       } else {
         this.authSubmitting = false;
-        this.navigateToDashboard(false);
+        this.closeAuthOverlays();
+        void this.router.navigate(['/select-plan'], { queryParams: { flow: 'register' } });
       }
     } catch (error) {
       this.authSubmitting = false;
@@ -790,26 +813,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private async initiateStripeCheckout(tenantId: string, planPriceId: string): Promise<void> {
     try {
       this.notificationService.info('Redirecting to payment...');
-
-      const checkoutResponse = await firstValueFrom(
-        this.http.post<ApiResponse<CheckoutSessionResponse>>(API_ENDPOINTS.stripe.checkout, {
-          planPriceId,
-          tenantId
-        })
-      );
-
-      if (!checkoutResponse.success || !checkoutResponse.data?.checkoutUrl) {
-        this.authSubmitting = false;
-        this.authError =
-          checkoutResponse.message ||
-          this.getFirstError(checkoutResponse.errors) ||
-          'Unable to create checkout session. Please try again.';
-        this.notificationService.error(this.authError);
-        return;
-      }
-
+      const checkoutUrl = await this.planCheckout.initiateStripeCheckout(tenantId, planPriceId);
       this.authSubmitting = false;
-      window.location.href = checkoutResponse.data.checkoutUrl;
+      window.location.href = checkoutUrl;
     } catch (error) {
       this.authSubmitting = false;
       this.authError =
@@ -861,6 +867,96 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return price?.currency ?? 'USD';
   }
 
+  hasSelectedPlan(): boolean {
+    return Boolean(this.selectedPlanId.trim() && this.selectedPlanPriceId.trim());
+  }
+
+  private applySelectedPlan(plan: PricingPlan): void {
+    this.selectedPlanId = plan.id;
+    this.selectedPlanName = plan.name;
+    const selectedPrice = this.getPlanPrice(plan);
+    this.selectedPlanPriceId = selectedPrice?.planPriceId ?? '';
+    this.selectedStripePriceId = selectedPrice?.stripePriceId ?? '';
+  }
+
+  private clearSelectedPlan(): void {
+    this.selectedPlanId = '';
+    this.selectedPlanName = '';
+    this.selectedPlanPriceId = '';
+    this.selectedStripePriceId = '';
+  }
+
+  private navigateToPlanSelectionPage(): void {
+    const raw = this.registerForm.getRawValue();
+    this.planSelectionFlow.setPendingRegistration(
+      {
+        firstName: raw.firstName,
+        lastName: raw.lastName,
+        phone: raw.phone,
+        email: raw.email,
+        password: raw.password,
+        businessName: raw.businessName,
+        businessTypeId: raw.businessTypeId,
+        description: raw.description ?? '',
+        acceptTerms: raw.acceptTerms,
+        logoPreviewUrl: this.businessLogoPreview
+      },
+      this.businessLogoFile
+    );
+    this.showAuthChoiceModal = false;
+    this.showLoginPanel = false;
+    this.showRegisterPanel = false;
+    this.syncBodyScrollLock();
+    void this.router.navigate(['/select-plan'], { queryParams: { flow: 'register' } });
+  }
+
+  private restoreRegistrationIfRequested(): void {
+    if (this.route.snapshot.queryParamMap.get('register') !== '1') {
+      return;
+    }
+
+    const pending = this.planSelectionFlow.getPendingRegistration();
+    if (!pending) {
+      return;
+    }
+
+    this.registerForm.patchValue({
+      firstName: pending.firstName,
+      lastName: pending.lastName,
+      phone: pending.phone,
+      email: pending.email,
+      password: pending.password,
+      businessName: pending.businessName,
+      businessTypeId: pending.businessTypeId,
+      description: pending.description,
+      acceptTerms: pending.acceptTerms
+    });
+    if (pending.businessTypeId) {
+      this.registerForm.controls.businessTypeId.enable({ emitEvent: false });
+      this.registerForm.controls.businessTypeId.setValue(pending.businessTypeId);
+    }
+    this.businessLogoPreview = pending.logoPreviewUrl;
+    this.businessLogoFile = this.planSelectionFlow.getBusinessLogoFile();
+    this.registerStep = 4;
+    this.showAuthChoiceModal = false;
+    this.showLoginPanel = false;
+    this.showRegisterPanel = true;
+    this.syncBodyScrollLock();
+  }
+
+  private navigateAfterAuth(): void {
+    if (this.authService.requiresSubscriptionPayment()) {
+      void this.router.navigate(['/select-plan'], {
+        queryParams: {
+          flow: 'renew',
+          returnUrl: this.postLoginRedirectUrl
+        }
+      });
+      return;
+    }
+    this.navigateToDashboard(false);
+  }
+
   private loadPricingPlans(): void {
     this.pricingLoading = true;
     this.pricingError = '';
@@ -873,18 +969,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           return;
         }
 
-        const mappedPlans = response.data.map((plan, index) => this.mapApiPlan(plan, index));
-        if (mappedPlans.length > 0) {
-          this.pricingPlans = mappedPlans;
-          const defaultPlan = mappedPlans[0];
-          this.selectedPlanId = defaultPlan.id;
-          this.selectedPlanName = defaultPlan.name;
-          const selectedPrice = this.getPlanPrice(defaultPlan);
-          this.selectedPlanPriceId = selectedPrice?.planPriceId ?? '';
-          this.selectedStripePriceId = selectedPrice?.stripePriceId ?? '';
-        } else {
-          this.pricingPlans = [];
-        }
+        const mappedPlans = response.data.map((plan, index) => mapApiPlan(plan, index));
+        this.pricingPlans = mappedPlans.length > 0 ? mappedPlans : [];
         this.pricingLoading = false;
       },
       error: () => {
@@ -894,37 +980,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private mapApiPlan(plan: PlanApiDto, index: number): PricingPlan {
-    const monthlyPrice = plan.prices.find((price) => price.billingCycle === 'Monthly');
-    const annualPrice = plan.prices.find((price) => price.billingCycle === 'Yearly');
-
-    return {
-      id: plan.planId,
-      name: plan.name,
-      description: this.buildPlanDescription(plan.name),
-      popular: index === 1,
-      monthlyPrice,
-      annualPrice,
-      features: plan.features.map((feature) => ({
-        name: feature.name,
-        included: true
-      }))
-    };
-  }
-
-  private buildPlanDescription(planName: string): string {
-    const normalized = planName.toLowerCase();
-    if (normalized.includes('starter')) {
-      return 'For early-stage teams launching their first online store.';
-    }
-    if (normalized.includes('silver') || normalized.includes('growth')) {
-      return 'For growing teams scaling operations across locations.';
-    }
-    if (normalized.includes('gold') || normalized.includes('pro') || normalized.includes('enterprise')) {
-      return 'For high-volume operators that need enterprise-grade controls.';
-    }
-    return 'A scalable plan designed for e-commerce growth.';
-  }
 
   private getFirstError(errors?: string[]): string {
     return Array.isArray(errors) && errors.length > 0 ? errors[0] : '';

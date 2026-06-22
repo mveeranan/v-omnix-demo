@@ -1,18 +1,14 @@
 import { Component, input } from '@angular/core';
-import {
-  LucideAngularModule,
-  Instagram,
-  Facebook,
-  Youtube,
-  Music2,
-  Phone
-} from 'lucide-angular';
+import { LucideAngularModule, LucideIconData } from 'lucide-angular';
+import { SocialMediaType } from '@shared/models/enums/social-media-type.enum';
 import { PortfolioSocial } from '../../models/portfolio.model';
+import { SOCIAL_MEDIA_ICON_BY_TYPE } from '../../shared/utils/social-media-fields.util';
+import { SOCIAL_MEDIA_TYPE_LABELS } from '@shared/models/enums/social-media-type.enum';
 
 export interface SocialLinkItem {
   url: string;
   label: string;
-  icon: typeof Instagram;
+  icon: LucideIconData;
   key: string;
 }
 
@@ -81,31 +77,13 @@ export class SocialLinksComponent {
   readonly variant = input<'hero' | 'footer'>('footer');
 
   links(): SocialLinkItem[] {
-    const s = this.social();
-    const items: SocialLinkItem[] = [];
-    if (s.instagram?.trim()) {
-      items.push({ key: 'instagram', url: s.instagram, label: 'Instagram', icon: Instagram });
-    }
-    if (s.facebook?.trim()) {
-      items.push({ key: 'facebook', url: s.facebook, label: 'Facebook', icon: Facebook });
-    }
-    if (s.tiktok?.trim()) {
-      items.push({ key: 'tiktok', url: s.tiktok, label: 'TikTok', icon: Music2 });
-    }
-    if (s.youtube?.trim()) {
-      items.push({ key: 'youtube', url: s.youtube, label: 'YouTube', icon: Youtube });
-    }
-    if (s.whatsapp?.trim()) {
-      const phone = s.whatsapp.replace(/\D/g, '');
-      if (phone) {
-        items.push({
-          key: 'whatsapp',
-          url: `https://wa.me/${phone}`,
-          label: 'WhatsApp',
-          icon: Phone
-        });
-      }
-    }
-    return items;
+    return (this.social().links ?? [])
+      .filter((link) => !!link.url?.trim())
+      .map((link) => ({
+        key: `${link.type}-${link.id}`,
+        url: link.url.trim(),
+        label: SOCIAL_MEDIA_TYPE_LABELS[link.type] ?? 'Social link',
+        icon: SOCIAL_MEDIA_ICON_BY_TYPE[link.type]
+      }));
   }
 }

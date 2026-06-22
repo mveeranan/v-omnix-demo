@@ -9,7 +9,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const PHONE_RE = /^\d{10}$/;
 
-export function validateBrand(brand: Portfolio['brand'], primaryColor: string): ValidationResult {
+export function validateBrand(brand: Portfolio['brand'], presetId: string): ValidationResult {
   const errors: string[] = [];
   const name = brand.businessName?.trim() ?? '';
   if (brand.enabled) {
@@ -19,8 +19,8 @@ export function validateBrand(brand: Portfolio['brand'], primaryColor: string): 
     if (!brand.logoUrl?.trim()) {
       errors.push('Logo must be uploaded when the brand section is enabled.');
     }
-    if (!primaryColor?.trim()) {
-      errors.push('Primary color is required.');
+    if (!presetId?.trim()) {
+      errors.push('Theme preset is required.');
     }
   }
   return { valid: errors.length === 0, errors };

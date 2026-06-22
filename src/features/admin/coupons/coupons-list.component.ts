@@ -1,12 +1,16 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell.component';
+import { AppTableComponent } from '@shared/ui/app-table.component';
+import { AdminStatusBadgeComponent } from '@shared/ui/admin-status-badge.component';
+import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { CouponAdminService } from '../data-access/coupon-admin.service';
 import { Coupon } from '../models/coupon.model';
 import { DiscountType } from '@shared/models/backend-enums';
 import { NotificationService } from '@core/notifications/notification.service';
+import { LucideAngularModule, Ticket } from 'lucide-angular';
 
 @Component({
   selector: 'app-coupons-list',
@@ -14,13 +18,17 @@ import { NotificationService } from '@core/notifications/notification.service';
   imports: [
     ReactiveFormsModule,
     AdminPageShellComponent,
+    AppTableComponent,
+    AdminStatusBadgeComponent,
+    AdminTableActionComponent,
     LoadingSpinnerComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    LucideAngularModule
   ],
   template: `
     <app-admin-page-shell eyebrow="Business" title="Coupons" description="Discount codes for checkout.">
       <div class="mb-4 flex justify-end">
-        <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Add coupon</button>
+        <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add coupon</button>
       </div>
 
       @if (loading()) {
@@ -31,33 +39,49 @@ import { NotificationService } from '@core/notifications/notification.service';
           <button type="button" class="admin-section-action-btn mt-4 rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Create coupon</button>
         </div>
       } @else {
-        <div class="admin-glass-card overflow-hidden rounded-xl">
-          <table class="w-full text-left text-sm">
-            <thead class="border-b border-[var(--border)] bg-black/[0.02] dark:bg-white/[0.02]">
+        <app-table>
+          <table class="admin-data-table">
+            <thead>
               <tr>
-                <th class="p-3">Code</th>
-                <th class="p-3">Discount</th>
-                <th class="p-3">Uses</th>
-                <th class="p-3">Active</th>
-                <th class="p-3">Actions</th>
+                <th class="admin-data-table__index">#</th>
+                <th>Code</th>
+                <th>Discount</th>
+                <th>Uses</th>
+                <th class="admin-data-table__col-status">Status</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
-              @for (c of coupons(); track c.id) {
-                <tr class="border-t border-[var(--border)]">
-                  <td class="p-3 font-mono font-medium">{{ c.code }}</td>
-                  <td class="p-3">{{ formatDiscount(c) }}</td>
-                  <td class="p-3">{{ c.useCount }}{{ c.maxUses ? ' / ' + c.maxUses : '' }}</td>
-                  <td class="p-3">{{ c.isActive ? 'Yes' : 'No' }}</td>
-                  <td class="p-3">
-                    <button type="button" class="mr-3 text-indigo-600 hover:underline" (click)="openEdit(c)">Edit</button>
-                    <button type="button" class="text-rose-600 hover:underline" (click)="confirmDelete(c)">Delete</button>
+              @for (c of coupons(); track c.id; let i = $index) {
+                <tr class="admin-data-table__row">
+                  <td class="admin-data-table__index">{{ i + 1 }}</td>
+                  <td>
+                    <div class="admin-data-table__entity">
+                      <span class="admin-data-table__entity-icon"><lucide-icon [img]="couponIcon" /></span>
+                      <div class="admin-data-table__entity-text">
+                        <div class="admin-data-table__entity-title font-mono">{{ c.code }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ formatDiscount(c) }}</td>
+                  <td>{{ c.useCount }}{{ c.maxUses ? ' / ' + c.maxUses : '' }}</td>
+                  <td class="admin-data-table__col-status">
+                    <app-admin-status-badge
+                      [label]="c.isActive ? 'Active' : 'Inactive'"
+                      [variant]="c.isActive ? 'active' : 'inactive'"
+                    />
+                  </td>
+                  <td class="admin-data-table__col-actions">
+                    <div class="admin-data-table__actions">
+                      <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(c)" />
+                      <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(c)" />
+                    </div>
                   </td>
                 </tr>
               }
             </tbody>
           </table>
-        </div>
+        </app-table>
       }
     </app-admin-page-shell>
 
@@ -124,6 +148,7 @@ export class CouponsListComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly notifications = inject(NotificationService);
 
+  readonly couponIcon = Ticket;
   readonly loading = signal(true);
   readonly coupons = signal<Coupon[]>([]);
   readonly modalOpen = signal(false);

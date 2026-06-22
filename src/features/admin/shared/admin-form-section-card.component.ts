@@ -25,9 +25,11 @@ import {
           [attr.aria-expanded]="expanded()"
         >
           @if (icon()) {
-            <lucide-icon [img]="icon()!" class="pf-editor-card__icon h-5 w-5 shrink-0" />
+            <span class="admin-form-section-card__icon-wrap">
+              <lucide-icon [img]="icon()!" class="admin-form-section-card__icon h-4 w-4 shrink-0" />
+            </span>
           }
-          <span class="pf-editor-card__title">{{ title() }}</span>
+          <span class="pf-editor-card__title admin-form-section-card__title">{{ title() }}</span>
           @if (subtitle()) {
             <span class="admin-form-section-card__subtitle">{{ subtitle() }}</span>
           }
@@ -116,13 +118,36 @@ import {
       flex: 1;
       align-items: center;
       gap: 0.75rem;
-      padding: 0.75rem 0.5rem 0.75rem 1rem;
+      padding: 0.875rem 0.5rem 0.875rem 1rem;
       text-align: left;
       color: inherit;
       background: transparent;
       border: none;
       cursor: pointer;
       min-width: 0;
+    }
+
+    .admin-form-section-card__icon-wrap {
+      display: inline-flex;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgb(226 232 240);
+      background: rgb(248 250 252);
+      color: rgb(100 116 139);
+    }
+
+    :host-context(.dark) .admin-form-section-card__icon-wrap {
+      border-color: rgb(63 63 70);
+      background: rgb(39 39 42);
+      color: rgb(161 161 170);
+    }
+
+    .admin-form-section-card__title {
+      font-weight: 600;
     }
 
     .admin-form-section-card__toggle:hover {
@@ -207,7 +232,7 @@ export class AdminFormSectionCardComponent {
   readonly subtitle = input('');
   readonly icon = input<LucideIconData | null>(null);
   readonly complete = input(false);
-  readonly expanded = model(true);
+  readonly expanded = model(false);
   readonly editing = input(false);
   readonly saving = input(false);
   readonly canSave = input(true);

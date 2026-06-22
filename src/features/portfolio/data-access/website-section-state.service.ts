@@ -31,7 +31,12 @@ import {
   BrandBusinessProfileService,
   BrandPendingUploads
 } from './brand-business-profile.service';
+import { ThemePresetsService } from './theme-presets.service';
+import { HeroSlidesService } from './hero-slides.service';
+import { SocialMediaService } from './social-media.service';
+import { DocumentUploadService } from '../../admin/data-access/document-upload.service';
 import { applyBusinessProfileToPortfolioPartial } from './business-profile-portfolio.util';
+import { HeroSlidePendingUploads } from './hero-slides-portfolio.util';
 import {
   validateBrand,
   validateContactSupport,
@@ -51,7 +56,7 @@ export interface SectionMeta {
 
 export interface BrandSectionBuffer {
   brand: PortfolioBrand;
-  primaryColor: string;
+  presetId: string;
   storeDescription: PortfolioStoreDescription;
 }
 
@@ -109,6 +114,10 @@ export class WebsiteSectionStateService {
   private readonly authService = inject(AuthService);
   private readonly notifications = inject(NotificationService);
   private readonly brandBusinessProfile = inject(BrandBusinessProfileService);
+  private readonly themePresets = inject(ThemePresetsService);
+  private readonly heroSlidesService = inject(HeroSlidesService);
+  private readonly socialMediaService = inject(SocialMediaService);
+  private readonly documentUpload = inject(DocumentUploadService);
 
   private readonly brandPendingUploads = signal<BrandPendingUploads>({
     logoFile: null,
@@ -117,20 +126,21 @@ export class WebsiteSectionStateService {
     coverDocumentId: null
   });
 
+  private readonly heroPendingUploads = signal<HeroSlidePendingUploads>({ slideFiles: {} });
+
   private readonly meta = signal<Record<WebsiteSectionId, SectionMeta>>(this.createInitialMeta());
   private readonly buffers = signal<Partial<Record<WebsiteSectionId, SectionBuffer>>>({});
 
   readonly anyDirty = computed(
     () =>
       WEBSITE_CONTENT_SECTIONS.some((id) => this.meta()[id]?.dirty) ||
-      this.meta().theme?.dirty ||
       this.meta().publish?.dirty
   );
 
   readonly dirtyCount = computed(() => {
     const m = this.meta();
     return (WEBSITE_CONTENT_SECTIONS as WebsiteSectionId[])
-      .concat(['theme', 'publish'])
+      .concat(['publish'])
       .filter((id) => m[id]?.dirty).length;
   });
 
@@ -179,6 +189,69 @@ export class WebsiteSectionStateService {
         });
       }
     }
+
+    if (id === 'hero') {
+      this.resetHeroPendingUploads();
+    }
+  }
+
+  setHeroPendingSlideFile(slideId: string, file: File | null): void {
+    this.heroPendingUploads.update((pending) => {
+      const slideFiles = { ...pending.slideFiles };
+      if (file) {
+        slideFiles[slideId] = file;
+      } else {
+        delete slideFiles[slideId];
+      }
+      return { slideFiles };
+    });
+  }
+
+  clearHeroPendingSlide(slideId: string): void {
+    this.setHeroPendingSlideFile(slideId, null);
+  }
+
+  clearHeroSlideImage(slideId: string): void {
+    const hero = this.buffer<PortfolioHero>('hero');
+    const slide = hero?.slides?.find((item) => item.id === slideId);
+    this.deleteDocumentIfExists(slide?.imageDocumentId);
+    this.clearHeroPendingSlide(slideId);
+    this.patchBuffer<PortfolioHero>('hero', (b) => ({
+      ...b,
+      slides: (b.slides ?? []).map((item) =>
+        item.id === slideId ? { ...item, imageUrl: '', imageDocumentId: undefined } : item
+      )
+    }));
+  }
+
+  removeHeroSlide(slideId: string): void {
+    const hero = this.buffer<PortfolioHero>('hero');
+    const slide = hero?.slides?.find((item) => item.id === slideId);
+    this.deleteDocumentIfExists(slide?.imageDocumentId);
+    this.clearHeroPendingSlide(slideId);
+    this.patchBuffer<PortfolioHero>('hero', (b) => ({
+      ...b,
+      slides: (b.slides ?? [])
+        .filter((item) => item.id !== slideId)
+        .map((item, index) => ({ ...item, sortOrder: index }))
+    }));
+  }
+
+  private deleteDocumentIfExists(documentId: string | null | undefined): void {
+    const id = documentId?.trim();
+    if (!id) {
+      return;
+    }
+    this.documentUpload.delete(id).subscribe({
+      error: (err: unknown) => {
+        const message = err instanceof Error ? err.message : 'Could not delete file.';
+        this.notifications.warning(message);
+      }
+    });
+  }
+
+  private resetHeroPendingUploads(): void {
+    this.heroPendingUploads.set({ slideFiles: {} });
   }
 
   setBrandPendingLogo(file: File | null): void {
@@ -190,6 +263,7 @@ export class WebsiteSectionStateService {
   }
 
   clearBrandPendingLogo(): void {
+    this.deleteDocumentIfExists(this.brandPendingUploads().logoDocumentId);
     this.brandPendingUploads.update((p) => ({
       ...p,
       logoFile: null,
@@ -198,6 +272,7 @@ export class WebsiteSectionStateService {
   }
 
   clearBrandPendingStoryImage(): void {
+    this.deleteDocumentIfExists(this.brandPendingUploads().coverDocumentId);
     this.brandPendingUploads.update((p) => ({
       ...p,
       storyImageFile: null,
@@ -282,6 +357,9 @@ export class WebsiteSectionStateService {
           if (id === 'brand') {
             this.resetBrandPendingUploads();
           }
+          if (id === 'hero') {
+            this.resetHeroPendingUploads();
+          }
           this.patchMeta(id, {
             editing: false,
             dirty: false,
@@ -308,19 +386,49 @@ export class WebsiteSectionStateService {
     tenantId: string
   ): Observable<void> {
     if (id === 'brand') {
-      return this.brandBusinessProfile.getExistingProfile(tenantId).pipe(
+      const brandBuffer = buffer as BrandSectionBuffer;
+      return this.themePresets.list().pipe(
+        switchMap(() => this.brandBusinessProfile.getExistingProfile(tenantId)),
         switchMap((existing) =>
           this.brandBusinessProfile
-            .upsertFromBrandBuffer(buffer as BrandSectionBuffer, this.brandPendingUploads(), existing)
+            .upsertFromBrandBuffer(brandBuffer, this.brandPendingUploads(), existing)
             .pipe(
               map((profile) => {
-                const merged = applyBusinessProfileToPortfolioPartial(partial, profile);
+                const presetId = profile.presetId?.trim() || brandBuffer.presetId?.trim();
+                const profileWithPreset = presetId ? { ...profile, presetId } : profile;
+                const merged = applyBusinessProfileToPortfolioPartial(
+                  partial,
+                  profileWithPreset,
+                  this.themePresets.getCatalog()
+                );
                 this.portfolioState.applyDraftPartial(merged);
               })
             )
         ),
         catchError((err: Error) => {
           this.patchMeta(id, { error: err.message || 'Could not save brand.' });
+          return throwError(() => err);
+        })
+      );
+    }
+
+    if (id === 'hero') {
+      const heroBuffer = buffer as PortfolioHero;
+      return this.heroSlidesService.upsertFromHeroBuffer(heroBuffer, this.heroPendingUploads()).pipe(
+        map(() => void 0),
+        catchError((err: Error) => {
+          this.patchMeta(id, { error: err.message || 'Could not save hero slideshow.' });
+          return throwError(() => err);
+        })
+      );
+    }
+
+    if (id === 'social') {
+      const socialBuffer = buffer as SocialSectionBuffer;
+      return this.socialMediaService.upsertFromSocialBuffer(socialBuffer.social).pipe(
+        map(() => void 0),
+        catchError((err: Error) => {
+          this.patchMeta(id, { error: err.message || 'Could not save social links.' });
           return throwError(() => err);
         })
       );
@@ -334,7 +442,7 @@ export class WebsiteSectionStateService {
       );
     }
 
-    if (id === 'theme' || WEBSITE_CONTENT_SECTIONS.includes(id)) {
+    if (WEBSITE_CONTENT_SECTIONS.includes(id)) {
       return this.websiteApi.saveSection(
         buildWebsiteSectionSaveRequest(tenantId, id, partial)
       );
@@ -347,7 +455,7 @@ export class WebsiteSectionStateService {
     switch (id) {
       case 'brand': {
         const b = buffer as BrandSectionBuffer;
-        const brandValidation = validateBrand(b.brand, b.primaryColor);
+        const brandValidation = validateBrand(b.brand, b.presetId);
         if (!brandValidation.valid) {
           return brandValidation;
         }
@@ -370,7 +478,6 @@ export class WebsiteSectionStateService {
       case 'stats':
       case 'newsletter':
       case 'social':
-      case 'theme':
         return { valid: true, errors: [] };
       case 'publish':
         return validatePublish((buffer as PublishSectionBuffer).slug);
@@ -384,7 +491,7 @@ export class WebsiteSectionStateService {
       case 'brand':
         return {
           brand: structuredClone(draft.brand),
-          primaryColor: draft.theme.primaryColor,
+          presetId: draft.theme.presetId,
           storeDescription: structuredClone(draft.storeDescription)
         };
       case 'hero': {
@@ -442,7 +549,6 @@ export class WebsiteSectionStateService {
         const sd = b.storeDescription;
         return {
           brand: b.brand,
-          theme: { ...draft.theme, primaryColor: b.primaryColor },
           storeDescription: sd,
           about: { ...draft.about, enabled: sd.enabled, description: sd.description }
         };

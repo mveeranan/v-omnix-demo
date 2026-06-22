@@ -2,7 +2,9 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell.component';
 import { AppTableComponent } from '@shared/ui/app-table.component';
-import { PaginationComponent } from '@shared/ui/pagination.component';
+import { AdminDataTablePaginationComponent } from '@shared/ui/admin-data-table-pagination.component';
+import { AdminStatusBadgeComponent, AdminStatusBadgeVariant } from '@shared/ui/admin-status-badge.component';
+import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { PaymentService } from './data-access/payment.service';
 import { PaymentListResult } from './models/payment.model';
@@ -10,7 +12,15 @@ import { PaymentListResult } from './models/payment.model';
 @Component({
   selector: 'app-payments-list',
   standalone: true,
-  imports: [FormsModule, AdminPageShellComponent, AppTableComponent, PaginationComponent, LoadingSpinnerComponent],
+  imports: [
+    FormsModule,
+    AdminPageShellComponent,
+    AppTableComponent,
+    AdminDataTablePaginationComponent,
+    AdminStatusBadgeComponent,
+    AdminTableActionComponent,
+    LoadingSpinnerComponent
+  ],
   template: `
     <app-admin-page-shell eyebrow="Finance" title="Payments" description="View payment transactions and refunds.">
       <div class="mb-4 grid gap-3 sm:grid-cols-4">
@@ -28,36 +38,54 @@ import { PaymentListResult } from './models/payment.model';
         </div>
       </div>
 
-      <input class="pf-editor-input mb-4 max-w-md" placeholder="Search transactions…" [(ngModel)]="search" (ngModelChange)="load()" />
+      <div class="admin-data-table-toolbar">
+        <p class="admin-data-table-toolbar__summary">
+          Showing {{ result()?.items?.length ?? 0 }} of {{ result()?.total ?? 0 }} payments
+        </p>
+        <div class="admin-data-table-toolbar__filters">
+          <input class="pf-editor-input" placeholder="Search transactions…" [(ngModel)]="search" (ngModelChange)="load()" />
+          <select class="pf-editor-input" [(ngModel)]="pageSize" (ngModelChange)="load()">
+            <option [ngValue]="10">10 per page</option>
+            <option [ngValue]="25">25 per page</option>
+            <option [ngValue]="50">50 per page</option>
+          </select>
+        </div>
+      </div>
 
       @if (loading()) {
         <app-loading-spinner />
       } @else {
         <app-table>
-          <table class="admin-bookings-table w-full text-left text-sm">
+          <table class="admin-data-table">
             <thead>
               <tr>
-                <th class="p-3">Date</th>
-                <th class="p-3">Order</th>
-                <th class="p-3">Customer</th>
-                <th class="p-3">Amount</th>
-                <th class="p-3">Method</th>
-                <th class="p-3">Status</th>
-                <th class="p-3"></th>
+                <th class="admin-data-table__index">#</th>
+                <th>Date</th>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th class="admin-data-table__col-status">Status</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
-              @for (t of result()?.items ?? []; track t.id) {
-                <tr class="admin-bookings-table__row border-t">
-                  <td class="p-3">{{ formatDate(t.createdAt) }}</td>
-                  <td class="p-3">#{{ t.orderNumber }}</td>
-                  <td class="p-3">{{ t.customerName }}</td>
-                  <td class="p-3">{{ format(t.amount, t.currency) }}</td>
-                  <td class="p-3 capitalize">{{ t.method }}</td>
-                  <td class="p-3 capitalize">{{ t.status }}</td>
-                  <td class="p-3">
+              @for (t of result()?.items ?? []; track t.id; let i = $index) {
+                <tr class="admin-data-table__row">
+                  <td class="admin-data-table__index">{{ rowNumber(i) }}</td>
+                  <td>{{ formatDate(t.createdAt) }}</td>
+                  <td><span class="admin-data-table__entity-title">#{{ t.orderNumber }}</span></td>
+                  <td>{{ t.customerName }}</td>
+                  <td><span class="admin-data-table__price">{{ format(t.amount, t.currency) }}</span></td>
+                  <td class="capitalize">{{ t.method }}</td>
+                  <td class="admin-data-table__col-status">
+                    <app-admin-status-badge [label]="t.status" [variant]="statusVariant(t.status)" />
+                  </td>
+                  <td class="admin-data-table__col-actions">
                     @if (t.status === 'paid') {
-                      <button type="button" class="text-rose-600 hover:underline" (click)="refund(t.id, t.amount)">Refund</button>
+                      <div class="admin-data-table__actions">
+                        <app-admin-table-action label="Refund" variant="delete" (action)="refund(t.id, t.amount)" />
+                      </div>
                     }
                   </td>
                 </tr>
@@ -65,7 +93,13 @@ import { PaymentListResult } from './models/payment.model';
             </tbody>
           </table>
         </app-table>
-        <div class="mt-6"><app-pagination [total]="result()?.total ?? 0" [page]="page()" [pageSize]="25" (pageChange)="onPage($event)" /></div>
+        <app-admin-data-table-pagination
+          [total]="result()?.total ?? 0"
+          [page]="page()"
+          [pageSize]="pageSize"
+          itemLabel="payments"
+          (pageChange)="onPage($event)"
+        />
       }
     </app-admin-page-shell>
   `
@@ -77,6 +111,7 @@ export class PaymentsListComponent implements OnInit {
   readonly metrics = signal<PaymentListResult | null>(null);
   readonly page = signal(1);
   search = '';
+  pageSize = 25;
 
   ngOnInit(): void {
     this.load();
@@ -84,7 +119,7 @@ export class PaymentsListComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
-    this.api.list({ search: this.search || undefined, page: this.page(), pageSize: 25 }).subscribe({
+    this.api.list({ search: this.search || undefined, page: this.page(), pageSize: this.pageSize }).subscribe({
       next: (r) => {
         this.result.set(r);
         this.metrics.set(r);
@@ -97,6 +132,24 @@ export class PaymentsListComponent implements OnInit {
   onPage(p: number): void {
     this.page.set(p);
     this.load();
+  }
+
+  rowNumber(index: number): number {
+    return (this.page() - 1) * this.pageSize + index + 1;
+  }
+
+  statusVariant(status: string): AdminStatusBadgeVariant {
+    switch (status) {
+      case 'paid':
+        return 'active';
+      case 'pending':
+        return 'warning';
+      case 'failed':
+      case 'refunded':
+        return 'danger';
+      default:
+        return 'neutral';
+    }
   }
 
   refund(id: string, amount: number): void {

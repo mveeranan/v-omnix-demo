@@ -1,20 +1,24 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Package } from 'lucide-angular';
-import { AdminDetailFieldComponent } from '../../../admin/shared/admin-detail-field.component';
+import { Hash, Package, Pin } from 'lucide-angular';
+import { AdminDetailCardComponent } from '@features/admin/shared/admin-detail-card.component';
+import { AdminDetailItemComponent } from '@features/admin/shared/admin-detail-item.component';
+import { AdminDetailMediaComponent } from '@features/admin/shared/admin-detail-media.component';
 import { SectionToggleComponent } from '@features/portfolio/shared/ui/section-toggle.component';
 import { WebsiteSectionShellComponent } from '@features/portfolio/editor/shared/website-section-shell.component';
 import { PortfolioStateService } from '../../data-access/portfolio-state.service';
 import { WebsiteSectionStateService } from '../../data-access/website-section-state.service';
 import { PortfolioFeaturedProducts } from '../../models/portfolio.model';
 import { ProductApiService } from '../../../store/data-access/product-api.service';
-import { StoreProduct } from '../../../store/models/product.model';
+import { CatalogProductListItemDto, catalogPrimaryImage } from '@features/catalog/models/catalog-storefront.model';
 
 @Component({
   selector: 'app-featured-products-editor-section',
   standalone: true,
-  imports: [CommonModule, FormsModule, WebsiteSectionShellComponent, SectionToggleComponent, AdminDetailFieldComponent],
+  imports: [CommonModule, FormsModule, WebsiteSectionShellComponent, SectionToggleComponent, AdminDetailCardComponent,
+    AdminDetailItemComponent,
+    AdminDetailMediaComponent],
   template: `
     <app-website-section-shell
       sectionId="featuredProducts"
@@ -22,9 +26,15 @@ import { StoreProduct } from '../../../store/models/product.model';
       [icon]="icon"
       [complete]="pinnedCount() > 0"
     >
-      <div view class="admin-detail-view">
-        <app-admin-detail-field label="Max products to show" [value]="draft()?.featuredProducts?.maxCount" />
-        <app-admin-detail-field label="Pinned products" [value]="pinnedCount() + ' selected'" />
+      <div view class="admin-detail-view admin-detail-view--rich">
+        <div class="admin-detail-view__grid admin-detail-view__grid--2">
+          <app-admin-detail-card>
+            <app-admin-detail-item [icon]="maxCountIcon" label="Max products to show" [value]="draft()?.featuredProducts?.maxCount" />
+          </app-admin-detail-card>
+          <app-admin-detail-card>
+            <app-admin-detail-item [icon]="pinnedIcon" label="Pinned products" [value]="pinnedCount() + ' selected'" />
+          </app-admin-detail-card>
+        </div>
       </div>
 
       <div edit class="pf-editor-fields">
@@ -62,9 +72,9 @@ import { StoreProduct } from '../../../store/models/product.model';
                     [checked]="isPinned(product.id)"
                     (change)="togglePin(product.id, $any($event.target).checked)"
                   />
-                  <img [src]="product.imageUrl" alt="" class="pf-product-pin-item__img" />
+                  <img [src]="productImage(product)" alt="" class="pf-product-pin-item__img" />
                   <span class="pf-product-pin-item__name">{{ product.name }}</span>
-                  <span class="pf-product-pin-item__price">{{ product.price | currency: product.currency }}</span>
+                  <span class="pf-product-pin-item__price">{{ product.price | currency: 'USD' }}</span>
                 </label>
               }
             </div>
@@ -116,11 +126,17 @@ export class FeaturedProductsEditorSectionComponent implements OnInit {
 
   readonly draft = this.state.draft;
   readonly icon = Package;
-  readonly catalog = signal<StoreProduct[]>([]);
+  readonly maxCountIcon = Hash;
+  readonly pinnedIcon = Pin;
+  readonly catalog = signal<CatalogProductListItemDto[]>([]);
   readonly loading = signal(true);
 
   readonly buffer = computed(() => this.sectionState.buffer<PortfolioFeaturedProducts>('featuredProducts'));
   readonly pinnedCount = computed(() => this.draft()?.featuredProducts.productIds.length ?? 0);
+
+  productImage(product: CatalogProductListItemDto): string {
+    return catalogPrimaryImage(product);
+  }
 
   ngOnInit(): void {
     const slug = this.draft()?.slug || 'demo';

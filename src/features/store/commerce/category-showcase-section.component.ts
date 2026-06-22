@@ -1,11 +1,12 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Portfolio } from '../../portfolio/models/portfolio.model';
-import { productCatalogStore } from '../data-access/product-catalog.store';
-import { StoreProduct } from '../models/product.model';
+import { CatalogStorefrontApiService } from '@features/catalog/data-access/catalog-storefront-api.service';
+import { CatalogProductListItemDto, catalogPrimaryImage } from '@features/catalog/models/catalog-storefront.model';
 
 interface CategoryCard {
   name: string;
+  slug: string;
   imageUrl: string;
   count: number;
 }
@@ -25,11 +26,11 @@ interface CategoryCard {
             }
           </header>
           <div class="mox-category-grid">
-            @for (cat of categories(); track cat.name) {
+            @for (cat of categories(); track cat.slug) {
               <a
                 class="mox-category-card"
-                [routerLink]="categoryLink(cat.name)"
-                [queryParams]="{ category: cat.name }"
+                [routerLink]="categoryLink()"
+                [queryParams]="{ category: cat.slug }"
               >
                 <img class="mox-category-card__img" [src]="cat.imageUrl" [alt]="cat.name" loading="lazy" />
                 <p class="mox-category-card__label">{{ cat.name }}</p>
@@ -41,40 +42,63 @@ interface CategoryCard {
     }
   `
 })
-export class CategoryShowcaseSectionComponent {
+export class CategoryShowcaseSectionComponent implements OnInit {
   readonly portfolio = input.required<Portfolio>();
   readonly storeSlug = input.required<string>();
   readonly enabled = input(true);
 
+  private readonly catalogApi = inject(CatalogStorefrontApiService);
+  private readonly products = signal<CatalogProductListItemDto[]>([]);
+  private readonly catalogCategories = signal<{ name: string; slug: string }[]>([]);
+
+  ngOnInit(): void {
+    if (!this.enabled() || !this.portfolio().categoryShowcase.enabled) return;
+    this.catalogApi.listProducts(this.storeSlug(), { pageSize: 100 }).subscribe({
+      next: (r) => this.products.set(r.items)
+    });
+    this.catalogApi.listCategories(this.storeSlug()).subscribe({
+      next: (cats) => {
+        const flat: { name: string; slug: string }[] = [];
+        const walk = (items: typeof cats) => {
+          for (const c of items) {
+            flat.push({ name: c.name, slug: c.slug });
+            if (c.children?.length) walk(c.children);
+          }
+        };
+        walk(cats);
+        this.catalogCategories.set(flat);
+      }
+    });
+  }
+
   readonly categories = computed((): CategoryCard[] => {
     if (!this.enabled() || !this.portfolio().categoryShowcase.enabled) return [];
 
-    const products = productCatalogStore.getAll().filter((p) => p.status === 'active');
-    const byCategory = new Map<string, StoreProduct[]>();
-    for (const product of products) {
-      const list = byCategory.get(product.category) ?? [];
-      list.push(product);
-      byCategory.set(product.category, list);
-    }
-
-    const allNames = [...byCategory.keys()].sort();
     const configured = this.portfolio().categoryShowcase.categoryNames.filter(Boolean);
-    const names = configured.length > 0 ? configured : allNames;
+    const available = this.catalogCategories();
+    const names =
+      configured.length > 0
+        ? configured
+        : available.map((c) => c.name);
     const max = this.portfolio().categoryShowcase.maxCount || 4;
 
     return names.slice(0, max).map((name) => {
-      const categoryProducts = byCategory.get(name) ?? [];
+      const catMeta = available.find((c) => c.name === name);
+      const slug = catMeta?.slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const categoryProducts = this.products().filter(
+        (p) => p.tags.includes(name) || false
+      );
+      const imageProduct = this.products()[0];
       return {
         name,
-        imageUrl:
-          categoryProducts[0]?.imageUrl ??
-          'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80',
+        slug,
+        imageUrl: imageProduct ? catalogPrimaryImage(imageProduct) : 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80',
         count: categoryProducts.length
       };
     });
   });
 
-  categoryLink(_name: string): string[] {
+  categoryLink(): string[] {
     return ['/store', this.storeSlug(), 'products'];
   }
 }

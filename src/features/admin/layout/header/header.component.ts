@@ -49,9 +49,6 @@ export class HeaderComponent {
   readonly notificationCount = this.dataService.unreadNotificationCount;
 
   readonly displayName = computed(() => {
-    if (!this.tenantState.loaded() && this.tenantState.loading()) {
-      return '';
-    }
     const user = this.tenantState.user();
     const first = user?.firstName?.trim() || this.authService.getFirstName()?.trim() || '';
     const last = user?.lastName?.trim() || this.authService.getLastName()?.trim() || '';
@@ -60,23 +57,13 @@ export class HeaderComponent {
   });
 
   readonly profileImageUrl = computed(() => {
-    if (!this.tenantState.loaded() && this.tenantState.loading()) {
-      return '';
-    }
     const fromUser = this.tenantState.user()?.profileImageUrl?.trim();
     return fromUser || this.authService.getProfileImageUrl()?.trim() || '';
   });
 
   readonly roleName = computed(() => this.authService.getRoleName()?.trim() || '');
 
-  readonly profileLoading = computed(
-    () => Boolean(this.authService.resolveTenantId()) && this.tenantState.loading()
-  );
-
   readonly profileInitials = computed(() => {
-    if (!this.tenantState.loaded() && this.tenantState.loading()) {
-      return '';
-    }
     const user = this.tenantState.user();
     const first = user?.firstName?.trim() || this.authService.getFirstName()?.trim() || '';
     const last = user?.lastName?.trim() || this.authService.getLastName()?.trim() || '';

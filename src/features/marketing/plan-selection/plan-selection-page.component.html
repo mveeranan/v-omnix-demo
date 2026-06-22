@@ -1,0 +1,116 @@
+<div class="plan-page">
+  <div class="plan-page__shell">
+    <article class="plan-page__panel">
+      <header class="plan-page-header">
+        <div class="plan-page-header__inner">
+          <span class="plan-page-badge">
+            <lucide-icon [img]="sparklesIcon" class="h-3.5 w-3.5"></lucide-icon>
+            Subscription
+          </span>
+          <h1 class="plan-page-title">{{ pageTitle }}</h1>
+          <p class="plan-page-subtitle">{{ pageSubtitle }}</p>
+
+          <div class="plan-page-toggle">
+            <button
+              (click)="setAnnual(false)"
+              [class.is-active]="!annual"
+              class="plan-page-toggle__btn"
+              type="button"
+            >
+              Monthly
+            </button>
+            <button
+              (click)="setAnnual(true)"
+              [class.is-active]="annual"
+              class="plan-page-toggle__btn"
+              type="button"
+            >
+              Annual
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="plan-page-body">
+        @if (pageError) {
+          <p class="plan-page-alert" role="alert">{{ pageError }}</p>
+        }
+
+        @if (showPreviousPlanCallout && previousPlanName) {
+          <p class="plan-page-callout">
+            Your previous plan was <strong>{{ previousPlanName }}</strong>. It is pre-selected below — you can continue with it or choose a different plan.
+          </p>
+        }
+
+        @if (pricingLoading) {
+          <p class="plan-page-status">Loading plans...</p>
+        } @else if (pricingError) {
+          <p class="plan-page-status plan-page-status--error">{{ pricingError }}</p>
+        } @else {
+          <div class="plan-page-grid">
+            @for (plan of pricingPlans; track plan.id) {
+              <button
+                type="button"
+                class="plan-page-card"
+                [class.plan-page-card--selected]="selectedPlanId === plan.id"
+                [class.plan-page-card--popular]="plan.popular"
+                (click)="selectPlan(plan.id)"
+              >
+                @if (selectedPlanId === plan.id) {
+                  <span class="plan-page-card__selected plan-page-card__selected--top">
+                    <lucide-icon [img]="checkIcon" class="h-3.5 w-3.5"></lucide-icon>
+                    Selected
+                  </span>
+                }
+                @if (plan.popular) {
+                  <span class="plan-page-card__badge">Popular</span>
+                } @else if (plan.id === previousPlanId) {
+                  <span class="plan-page-card__badge">Previous plan</span>
+                }
+                <h2 class="plan-page-card__name">{{ plan.name }}</h2>
+                <p class="plan-page-card__desc">{{ plan.description }}</p>
+                <p class="plan-page-card__price">{{ getDisplayCurrency(plan) }} ${{ getDisplayPrice(plan) }}</p>
+                <p class="plan-page-card__cycle">/month {{ annual ? '(billed annually)' : '' }}</p>
+                <ul class="plan-page-card__features">
+                  @for (feature of plan.features | slice:0:4; track feature.name) {
+                    <li>
+                      <lucide-icon [img]="checkIcon" class="h-3.5 w-3.5 shrink-0"></lucide-icon>
+                      <span>{{ feature.name }}</span>
+                    </li>
+                  }
+                </ul>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <footer class="plan-page-footer">
+        <div class="plan-page-footer__actions">
+          <button
+            type="button"
+            class="plan-page-btn plan-page-btn--secondary"
+            [disabled]="submitting"
+            (click)="goBack()"
+          >
+            {{ backLabel }}
+          </button>
+          <button
+            type="button"
+            class="plan-page-btn plan-page-btn--primary"
+            [disabled]="submitting || !selectedPlanId"
+            (click)="continueWithPlan()"
+          >
+            @if (submitting) {
+              {{ continueLoadingLabel }}
+            } @else if (selectedPlanLabel) {
+              Continue with {{ selectedPlanLabel }}
+            } @else {
+              Select a plan to continue
+            }
+          </button>
+        </div>
+      </footer>
+    </article>
+  </div>
+</div>

@@ -58,15 +58,11 @@ import { NewsletterEditorSectionComponent } from './sections/newsletter-editor-s
 
 import { SocialSectionComponent } from './sections/social-section.component';
 
-import { ThemeEditorPanelComponent } from './sections/theme-editor-panel.component';
-
 import { PublishEditorPanelComponent } from './sections/publish-editor-panel.component';
 
 import { ScrollRevealService } from '@features/portfolio/shared/services/scroll-reveal.service';
 
-
-
-type EditorTab = 'content' | 'theme' | 'publish';
+type EditorTab = 'content' | 'publish';
 
 
 
@@ -111,8 +107,6 @@ type EditorTab = 'content' | 'theme' | 'publish';
     NewsletterEditorSectionComponent,
 
     SocialSectionComponent,
-
-    ThemeEditorPanelComponent,
 
     PublishEditorPanelComponent
 

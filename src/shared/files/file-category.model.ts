@@ -22,6 +22,7 @@ export const FILE_CATEGORY_MODELS: FileCategoryModel[] = [
   new FileCategoryModel(FileCategory.ServiceMediaImage, 'ServiceMediaImage'),
   new FileCategoryModel(FileCategory.ServiceMediaVideo, 'ServiceMediaVideo'),
   new FileCategoryModel(FileCategory.ProductImage, 'ProductImage'),
-  new FileCategoryModel(FileCategory.BrandLogo, 'BrandLogo')
+  new FileCategoryModel(FileCategory.BrandLogo, 'BrandLogo'),
+  new FileCategoryModel(FileCategory.HeroSlide, 'HeroSlide')
 ];
 

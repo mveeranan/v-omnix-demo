@@ -10,3 +10,4 @@ export * from './portfolio-type.enum';
 export * from './website-page-type.enum';
 export * from './website-section-type.enum';
 export * from './file-category.enum';
+export * from './social-media-type.enum';

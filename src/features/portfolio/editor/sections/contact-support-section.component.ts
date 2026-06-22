@@ -1,7 +1,9 @@
 import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Headphones } from 'lucide-angular';
-import { AdminDetailFieldComponent } from '../../../admin/shared/admin-detail-field.component';
+import { Clock, Headphones, Mail, Phone } from 'lucide-angular';
+import { AdminDetailCardComponent } from '@features/admin/shared/admin-detail-card.component';
+import { AdminDetailItemComponent } from '@features/admin/shared/admin-detail-item.component';
+import { AdminDetailMediaComponent } from '@features/admin/shared/admin-detail-media.component';
 import { SectionToggleComponent } from '@features/portfolio/shared/ui/section-toggle.component';
 import { WebsiteSectionShellComponent } from '@features/portfolio/editor/shared/website-section-shell.component';
 import { PortfolioStateService } from '../../data-access/portfolio-state.service';
@@ -11,7 +13,9 @@ import { PortfolioContactSupport } from '../../models/portfolio.model';
 @Component({
   selector: 'app-contact-support-section',
   standalone: true,
-  imports: [FormsModule, WebsiteSectionShellComponent, SectionToggleComponent, AdminDetailFieldComponent],
+  imports: [FormsModule, WebsiteSectionShellComponent, SectionToggleComponent, AdminDetailCardComponent,
+    AdminDetailItemComponent,
+    AdminDetailMediaComponent],
   template: `
     <app-website-section-shell
       sectionId="contactSupport"
@@ -19,12 +23,22 @@ import { PortfolioContactSupport } from '../../models/portfolio.model';
       [icon]="icon"
       [complete]="!!draft()?.contactSupport?.email || !!draft()?.contactSupport?.phone"
     >
-      <div view class="admin-detail-view">
+      <div view class="admin-detail-view admin-detail-view--rich">
         <div class="admin-detail-view__grid admin-detail-view__grid--2">
-          <app-admin-detail-field label="Phone" [value]="draft()?.contactSupport?.phone" />
-          <app-admin-detail-field label="Email" [value]="draft()?.contactSupport?.email" />
+          <app-admin-detail-card>
+            <app-admin-detail-item [icon]="phoneIcon" label="Phone" [value]="draft()?.contactSupport?.phone" />
+          </app-admin-detail-card>
+          <app-admin-detail-card>
+            <app-admin-detail-item [icon]="emailIcon" label="Email" [value]="draft()?.contactSupport?.email" />
+          </app-admin-detail-card>
         </div>
-        <app-admin-detail-field label="Support hours" [value]="draft()?.contactSupport?.supportHours" />
+        <app-admin-detail-card [full]="true">
+          <app-admin-detail-item
+            [icon]="hoursIcon"
+            label="Support Hours"
+            [value]="draft()?.contactSupport?.supportHours"
+          />
+        </app-admin-detail-card>
       </div>
 
       <div edit class="pf-editor-fields">
@@ -59,6 +73,9 @@ export class ContactSupportSectionComponent {
 
   readonly draft = this.state.draft;
   readonly icon = Headphones;
+  readonly phoneIcon = Phone;
+  readonly emailIcon = Mail;
+  readonly hoursIcon = Clock;
   readonly buffer = computed(() => this.sectionState.buffer<PortfolioContactSupport>('contactSupport'));
 
   patch(partial: Partial<PortfolioContactSupport>): void {

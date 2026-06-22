@@ -13,5 +13,6 @@ export enum FileCategory {
   ServiceMediaImage = 11,
   ServiceMediaVideo = 12,
   ProductImage = 13,
-  BrandLogo = 14
+  BrandLogo = 14,
+  HeroSlide = 15
 }

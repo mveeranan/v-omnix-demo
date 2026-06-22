@@ -1,4 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { StoreContextService } from '../data-access/store-context.service';
 import { ProductApiService } from '../data-access/product-api.service';
 import { ProductListFilters, ProductListResult, ProductSortOption } from '../models/product.model';
@@ -105,6 +106,7 @@ import { Package } from 'lucide-angular';
 })
 export class ProductListPageComponent implements OnInit {
   readonly ctx = inject(StoreContextService);
+  private readonly route = inject(ActivatedRoute);
   private readonly productApi = inject(ProductApiService);
   readonly packageIcon = Package;
 
@@ -142,6 +144,10 @@ export class ProductListPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    const category = this.route.snapshot.queryParamMap.get('category');
+    if (category) {
+      this.filters.update((f) => ({ ...f, category }));
+    }
     this.load();
   }
 

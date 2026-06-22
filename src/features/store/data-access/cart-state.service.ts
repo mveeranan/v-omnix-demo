@@ -1,6 +1,10 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { CartLineItem, CartSummary, CheckoutOrderResult, CheckoutPayload } from '../models/cart.model';
-import { StoreProduct } from '../models/product.model';
+import {
+  CatalogProductDetailDto,
+  CatalogProductListItemDto
+} from '@features/catalog/models/catalog-storefront.model';
+import { catalogPrimaryImage, variantLabel } from '../models/product.model';
 import { Observable, of, delay } from 'rxjs';
 
 const STORAGE_KEY = 'work-orbit.cart';
@@ -24,34 +28,34 @@ export class CartStateService {
     this.storeSlug.set(slug);
   }
 
-  addProduct(product: StoreProduct, quantity = 1, variantId?: string): void {
-    const variant = variantId ? product.variants.find((v) => v.id === variantId) : undefined;
-    const unitPrice = variant?.price ?? product.price;
-    const existing = this.items().find(
-      (line) =>
-        line.productId === product.id &&
-        (line.variantId ?? '') === (variantId ?? '')
-    );
-
-    if (existing) {
-      this.updateQuantity(existing.productId, existing.quantity + quantity, existing.variantId);
-      return;
-    }
-
-    const line: CartLineItem = {
+  addListItem(product: CatalogProductListItemDto, quantity = 1): void {
+    this.addLine({
       productId: product.id,
       productSlug: product.slug,
       productName: product.name,
-      imageUrl: product.imageUrl,
+      imageUrl: catalogPrimaryImage(product),
+      unitPrice: product.price,
+      currency: 'USD',
+      quantity,
+      variantId: undefined,
+      variantName: undefined
+    });
+  }
+
+  addProduct(product: CatalogProductDetailDto, quantity = 1, variantId?: string): void {
+    const variant = variantId ? product.variants.find((v) => v.id === variantId) : undefined;
+    const unitPrice = variant?.price ?? product.price;
+    this.addLine({
+      productId: product.id,
+      productSlug: product.slug,
+      productName: product.name,
+      imageUrl: catalogPrimaryImage(product),
       unitPrice,
-      currency: product.currency,
+      currency: 'USD',
       quantity,
       variantId: variant?.id,
-      variantName: variant?.name
-    };
-
-    this.items.update((lines) => [...lines, line]);
-    this.persist();
+      variantName: variant ? variantLabel(variant) : undefined
+    });
   }
 
   updateQuantity(productId: string, quantity: number, variantId?: string): void {
@@ -90,6 +94,22 @@ export class CartStateService {
       orderNumber: `WO-${Math.floor(100000 + Math.random() * 900000)}`,
       status: 'pending'
     }).pipe(delay(600));
+  }
+
+  private addLine(line: CartLineItem): void {
+    const existing = this.items().find(
+      (l) =>
+        l.productId === line.productId &&
+        (l.variantId ?? '') === (line.variantId ?? '')
+    );
+
+    if (existing) {
+      this.updateQuantity(existing.productId, existing.quantity + line.quantity, existing.variantId);
+      return;
+    }
+
+    this.items.update((lines) => [...lines, line]);
+    this.persist();
   }
 
   private persist(): void {

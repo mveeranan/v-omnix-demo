@@ -3,7 +3,14 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { StoreContextService } from '../data-access/store-context.service';
 import { ProductApiService } from '../data-access/product-api.service';
 import { CartStateService } from '../data-access/cart-state.service';
-import { StoreProduct, productDiscountPercent, productInStock } from '../models/product.model';
+import {
+  CatalogProductDetailDto,
+  CatalogProductListItemDto,
+  catalogDiscountPercent,
+  catalogInStock,
+  catalogPrimaryImage
+} from '@features/catalog/models/catalog-storefront.model';
+import { variantLabel } from '../models/product.model';
 import { ProductCardComponent } from '../commerce/product-card.component';
 import { StarsRatingComponent } from '@shared/ui/stars-rating.component';
 import { ProductReviewsSectionComponent } from '../commerce/product-reviews-section.component';
@@ -29,7 +36,7 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
           <span class="mx-2">/</span>
           <a [routerLink]="['/store', ctx.slug(), 'products']" class="hover:underline">Shop</a>
           <span class="mx-2">/</span>
-          <span>{{ p.category }}</span>
+          <span>{{ p.categoryName }}</span>
           <span class="mx-2">/</span>
           <span class="text-[var(--text-primary)]">{{ p.name }}</span>
         </nav>
@@ -37,24 +44,19 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
         <div class="container mx-auto grid gap-10 px-6 py-10 lg:grid-cols-2">
           <div class="space-y-4">
             <img [src]="activeImage()" [alt]="p.name" class="pf-glass-card w-full cursor-zoom-in rounded-xl object-cover transition hover:scale-[1.02]" />
-            @if (p.galleryUrls.length) {
+            @if (p.images.length) {
               <div class="flex gap-3 overflow-x-auto">
-                @for (img of p.galleryUrls; track img) {
-                  <button type="button" class="shrink-0" (click)="activeImage.set(img)">
-                    <img [src]="img" alt="" class="h-16 w-16 rounded-lg object-cover ring-2 ring-transparent hover:ring-[var(--pf-accent)]" />
+                @for (img of p.images; track img.url) {
+                  <button type="button" class="shrink-0" (click)="activeImage.set(img.url)">
+                    <img [src]="img.url" alt="" class="h-16 w-16 rounded-lg object-cover ring-2 ring-transparent hover:ring-[var(--pf-accent)]" />
                   </button>
                 }
               </div>
             }
           </div>
           <div>
-            <p class="pf-text-muted text-sm">{{ p.brand }} · {{ p.category }}</p>
+            <p class="pf-text-muted text-sm">{{ p.brandName }} · {{ p.categoryName }}</p>
             <h1 class="pf-display pf-heading mt-2 text-3xl font-semibold">{{ p.name }}</h1>
-            @if (p.rating) {
-              <a href="#reviews" class="mt-2 inline-block">
-                <app-stars-rating [rating]="p.rating" [reviewCount]="p.reviewCount ?? 0" />
-              </a>
-            }
             <div class="mt-4 flex items-baseline gap-3">
               <span class="text-2xl font-bold">{{ formatPrice(p.price) }}</span>
               @if (p.compareAtPrice && p.compareAtPrice > p.price) {
@@ -78,10 +80,10 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
                       class="pf-btn-secondary text-sm"
                       [class.ring-2]="selectedVariantId() === v.id"
                       [class.ring-[var(--pf-accent)]]="selectedVariantId() === v.id"
-                      [disabled]="v.stockQuantity < 1"
+                      [disabled]="v.stockAvailable < 1"
                       (click)="selectedVariantId.set(v.id)"
                     >
-                      {{ v.name }}
+                      {{ variantLabel(v) }}
                     </button>
                   }
                 </div>
@@ -116,9 +118,11 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
             } @else if (detailTab() === 'specs') {
               <dl class="mt-4 grid gap-2 text-sm sm:grid-cols-2">
                 <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">SKU</dt><dd class="font-medium">{{ p.sku || '—' }}</dd></div>
-                <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">Brand</dt><dd class="font-medium">{{ p.brand }}</dd></div>
-                <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">Category</dt><dd class="font-medium">{{ p.category }}</dd></div>
-                <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">Weight</dt><dd class="font-medium">{{ formatWeight(p) }}</dd></div>
+                <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">Brand</dt><dd class="font-medium">{{ p.brandName }}</dd></div>
+                <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">Category</dt><dd class="font-medium">{{ p.categoryName }}</dd></div>
+                @if (p.tags.length) {
+                  <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">Tags</dt><dd class="font-medium">{{ p.tags.join(', ') }}</dd></div>
+                }
               </dl>
             }
 
@@ -160,9 +164,10 @@ export class ProductDetailPageComponent implements OnInit {
   private readonly productApi = inject(ProductApiService);
   private readonly cart = inject(CartStateService);
   readonly Math = Math;
+  readonly variantLabel = variantLabel;
 
-  readonly product = signal<StoreProduct | null>(null);
-  readonly related = signal<StoreProduct[]>([]);
+  readonly product = signal<CatalogProductDetailDto | null>(null);
+  readonly related = signal<CatalogProductListItemDto[]>([]);
   readonly loading = signal(true);
   readonly activeImage = signal('');
   readonly selectedVariantId = signal<string | undefined>(undefined);
@@ -181,8 +186,8 @@ export class ProductDetailPageComponent implements OnInit {
         this.product.set(p);
         this.loading.set(false);
         if (p) {
-          this.activeImage.set(p.imageUrl);
-          this.selectedVariantId.set(p.variants.find((v) => v.stockQuantity > 0)?.id);
+          this.activeImage.set(catalogPrimaryImage(p));
+          this.selectedVariantId.set(p.variants.find((v) => v.stockAvailable > 0)?.id);
           this.productApi.getRelated(this.ctx.slug(), p).subscribe((items) => this.related.set(items));
         }
       },
@@ -192,7 +197,7 @@ export class ProductDetailPageComponent implements OnInit {
 
   discount = () => {
     const p = this.product();
-    return p ? productDiscountPercent(p) : null;
+    return p ? catalogDiscountPercent(p) : null;
   };
 
   inStock = () => {
@@ -200,21 +205,15 @@ export class ProductDetailPageComponent implements OnInit {
     if (!p) return false;
     if (p.variants.length) {
       const v = p.variants.find((x) => x.id === this.selectedVariantId());
-      return (v?.stockQuantity ?? 0) > 0;
+      return (v?.stockAvailable ?? 0) > 0;
     }
-    return productInStock(p);
+    return catalogInStock(p);
   };
 
-  formatWeight(product: StoreProduct): string {
-    const weight = product.dimensions?.weight;
-    return weight != null ? `${weight}g` : '—';
-  }
-
   formatPrice(value: number): string {
-    const p = this.product();
     return new Intl.NumberFormat(undefined, {
       style: 'currency',
-      currency: p?.currency || 'USD'
+      currency: 'USD'
     }).format(value);
   }
 

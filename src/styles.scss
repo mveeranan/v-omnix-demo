@@ -14,7 +14,10 @@
 @use "styles/features/portfolio-editor";
 @use "styles/features/auth-marketing";
 @use "styles/features/admin-pages";
+@use "styles/features/admin-detail-rich";
 @use "styles/features/store-commerce";
 @use "styles/features/mox-ecommerce";
+
+@import "styles/features/admin-data-table";
 
 @custom-variant dark (&:where(.dark, .dark *));

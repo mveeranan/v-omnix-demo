@@ -1,3 +1,5 @@
+import { SubscriptionStatus, parseSubscriptionStatus } from '@shared/models/enums/subscription-status.enum';
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -16,6 +18,8 @@ export interface AuthContext {
   roleName: string;
   planName: string;
   multiBranch: boolean;
+  lastPlanId?: string | null;
+  subscriptionStatus?: SubscriptionStatus | null;
 }
 
 /** Workspace fields persisted in localStorage (excluding access token). */
@@ -26,6 +30,8 @@ export interface ActiveWorkspace {
   roleName: string;
   planName: string;
   multiBranch: boolean;
+  lastPlanId: string | null;
+  subscriptionStatus: SubscriptionStatus | null;
 }
 
 export interface LoginData {
@@ -40,13 +46,14 @@ export interface LoginData {
   profileImageDocumentId?: string | null;
   profileImageUrl?: string | null;
   contexts?: AuthContext[];
-  /** Optional flat tenant fields when API returns a single account without contexts[]. */
   tenantId?: string;
   tenantName?: string;
   businessLogoUrl?: string | null;
   roleName?: string;
   planName?: string;
   multiBranch?: boolean;
+  lastPlanId?: string | null;
+  subscriptionStatus?: SubscriptionStatus | null;
 }
 
 export interface RefreshTokenResponseData {
@@ -56,7 +63,9 @@ export interface RefreshTokenResponseData {
 }
 
 export function extractLoginContexts(data: LoginData): AuthContext[] {
-  const fromArray = (data.contexts ?? []).map((item) => normalizeAuthContext(item));
+  const fromArray = (data.contexts ?? []).map((item) =>
+    normalizeAuthContext(withParentAuthFields(item, data))
+  );
   if (fromArray.length > 0) {
     return fromArray;
   }
@@ -64,6 +73,42 @@ export function extractLoginContexts(data: LoginData): AuthContext[] {
     return [normalizeAuthContext(data)];
   }
   return [];
+}
+
+function withParentAuthFields(item: unknown, parent: LoginData): unknown {
+  const record = { ...((item ?? {}) as Record<string, unknown>) };
+  const parentRaw = parent as LoginData & Record<string, unknown>;
+
+  if (!pickOptionalString(record['lastPlanId'], record['LastPlanId'])) {
+    const parentLastPlanId = pickOptionalString(
+      parent.lastPlanId,
+      parentRaw['LastPlanId'],
+      parentRaw['lastPlanId']
+    );
+    if (parentLastPlanId) {
+      record['lastPlanId'] = parentLastPlanId;
+    }
+  }
+
+  const hasStatus =
+    parseSubscriptionStatus(record['subscriptionStatus']) ??
+    parseSubscriptionStatus(record['SubscriptionStatus']) ??
+    parseSubscriptionStatus(record['susu']) ??
+    parseSubscriptionStatus(record['Susu']);
+
+  if (!hasStatus) {
+    const parentStatus =
+      parseSubscriptionStatus(parent.subscriptionStatus) ??
+      parseSubscriptionStatus(parentRaw['SubscriptionStatus']) ??
+      parseSubscriptionStatus(parentRaw['subscriptionStatus']) ??
+      parseSubscriptionStatus(parentRaw['susu']) ??
+      parseSubscriptionStatus(parentRaw['Susu']);
+    if (parentStatus) {
+      record['subscriptionStatus'] = parentStatus;
+    }
+  }
+
+  return record;
 }
 
 export function normalizeAuthContext(raw: unknown): AuthContext {
@@ -74,7 +119,14 @@ export function normalizeAuthContext(raw: unknown): AuthContext {
     businessLogoUrl: pickOptionalString(item['businessLogoUrl'], item['BusinessLogoUrl']) ?? null,
     roleName: pickString(item['roleName'], item['RoleName']),
     planName: pickString(item['planName'], item['PlanName']),
-    multiBranch: pickBoolean(item['multiBranch'], item['MultiBranch']) ?? false
+    multiBranch: pickBoolean(item['multiBranch'], item['MultiBranch']) ?? false,
+    lastPlanId: pickOptionalString(item['lastPlanId'], item['LastPlanId']) ?? null,
+    subscriptionStatus:
+      parseSubscriptionStatus(item['subscriptionStatus']) ??
+      parseSubscriptionStatus(item['SubscriptionStatus']) ??
+      parseSubscriptionStatus(item['susu']) ??
+      parseSubscriptionStatus(item['Susu']) ??
+      null
   };
 }
 

@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, switchMap } from 'rxjs';
 import { AuthService } from '@core/auth/auth.service';
+import { WorkspaceSessionService } from '@features/portfolio/data-access/workspace-session.service';
 
 @Component({
   selector: 'app-login',
@@ -15,6 +16,7 @@ import { AuthService } from '@core/auth/auth.service';
 export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly workspaceSession = inject(WorkspaceSessionService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -37,11 +39,14 @@ export class LoginComponent {
 
     this.authService
       .login(this.loginForm.getRawValue())
-      .pipe(finalize(() => (this.isSubmitting = false)))
+      .pipe(
+        switchMap(() => this.workspaceSession.loadActiveWorkspace()),
+        finalize(() => (this.isSubmitting = false))
+      )
       .subscribe({
         next: () => {
           const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/admin/dashboard';
-          this.router.navigateByUrl(returnUrl);
+          void this.router.navigateByUrl(returnUrl);
         },
         error: () => {
           this.errorMessage = 'Login failed. Please check your credentials and try again.';

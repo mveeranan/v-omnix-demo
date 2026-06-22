@@ -9,12 +9,14 @@
   Globe,
   FolderTree,
   Tag,
+  Tags,
   RotateCcw,
   Star,
   Ticket,
   Mail,
   Receipt,
-  Percent
+  Percent,
+  SlidersHorizontal
 } from 'lucide-angular';
 
 export type AdminNavSection = 'overview' | 'operations' | 'business' | 'settings';
@@ -124,6 +126,22 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     description: 'Optional product brands.',
     section: 'business',
     featureKey: 'brands'
+  },
+  {
+    id: 'product-tags',
+    label: 'Product tags',
+    path: 'product-tags',
+    icon: Tags,
+    description: 'Tags for products and storefront filters.',
+    section: 'business'
+  },
+  {
+    id: 'product-attributes',
+    label: 'Attributes',
+    path: 'product-attributes',
+    icon: SlidersHorizontal,
+    description: 'Variant attributes like Size and Color.',
+    section: 'business'
   },
   {
     id: 'website',

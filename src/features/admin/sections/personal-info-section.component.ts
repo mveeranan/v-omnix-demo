@@ -1,7 +1,7 @@
 import { Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { UserRound } from 'lucide-angular';
+import { Mail, Phone, UserRound } from 'lucide-angular';
 import { NotificationService } from '@core/notifications/notification.service';
 import { CountriesService } from '@shared/data-access/countries.service';
 import { PhoneNumberFieldComponent } from '@shared/ui/phone-number-field.component';
@@ -12,16 +12,14 @@ import {
   formatPhoneWithDialCode,
   parsePhoneNumberValue
 } from '@shared/utils/phone.util';
-
-import { AdminDetailFieldComponent } from '@features/admin/shared/admin-detail-field.component';
-
+import { AdminDetailCardComponent } from '@features/admin/shared/admin-detail-card.component';
+import { AdminDetailItemComponent } from '@features/admin/shared/admin-detail-item.component';
 import { AdminDetailMediaComponent } from '@features/admin/shared/admin-detail-media.component';
-
 import { AdminFormSectionCardComponent } from '@features/admin/shared/admin-form-section-card.component';
-
 import { MediaUploadZoneComponent } from '@shared/ui/media-upload-zone.component';
 
 import { AdminUserStateService } from '../data-access/admin-user-state.service';
+import { DocumentUploadService } from '../data-access/document-upload.service';
 
 import {
 
@@ -49,8 +47,8 @@ import { isDataUrl } from '@shared/files/upload-document.model';
 
     AdminFormSectionCardComponent,
 
-    AdminDetailFieldComponent,
-
+    AdminDetailCardComponent,
+    AdminDetailItemComponent,
     AdminDetailMediaComponent,
     MediaUploadZoneComponent,
     PhoneNumberFieldComponent
@@ -95,20 +93,51 @@ import { isDataUrl } from '@shared/files/upload-document.model';
         <p class="personal-error">{{ state.loadError() }}</p>
 
       } @else if (!editing()) {
-        <div class="personal-grid personal-grid--view">
-          <div class="personal-media personal-media--view">
-            <div class="personal-media__frame">
-              <app-admin-detail-media label="Profile image" [url]="profileImageUrl()" />
+        <div class="admin-detail-view admin-detail-view--rich personal-info-detail">
+          <div class="personal-info-detail__layout">
+            <div class="personal-info-detail__media">
+              <app-admin-detail-media
+                label="Profile Image"
+                variant="card"
+                fit="cover"
+                [url]="profileImageUrl()"
+              />
             </div>
-          </div>
-          <div class="personal-details">
-            <div class="personal-details__names">
-              <app-admin-detail-field label="First name" [value]="firstName()" />
-              <app-admin-detail-field label="Last name" [value]="lastName()" />
-            </div>
-            <div class="personal-details__contact">
-              <app-admin-detail-field label="Mobile number" [value]="displayMobile()" />
-              <app-admin-detail-field label="Email" [value]="email()" />
+
+            <div class="personal-info-detail__fields">
+              <div class="admin-detail-view__grid admin-detail-view__grid--2">
+                <app-admin-detail-card>
+                  <app-admin-detail-item
+                    [icon]="firstNameIcon"
+                    label="First Name"
+                    [value]="firstName()"
+                  />
+                </app-admin-detail-card>
+                <app-admin-detail-card>
+                  <app-admin-detail-item
+                    [icon]="lastNameIcon"
+                    label="Last Name"
+                    [value]="lastName()"
+                  />
+                </app-admin-detail-card>
+              </div>
+
+              <div class="admin-detail-view__grid admin-detail-view__grid--2">
+                <app-admin-detail-card>
+                  <app-admin-detail-item
+                    [icon]="emailIcon"
+                    label="Email"
+                    [value]="email()"
+                  />
+                </app-admin-detail-card>
+                <app-admin-detail-card>
+                  <app-admin-detail-item
+                    [icon]="phoneIcon"
+                    label="Mobile Number"
+                    [value]="displayMobile()"
+                  />
+                </app-admin-detail-card>
+              </div>
             </div>
           </div>
         </div>
@@ -176,7 +205,74 @@ import { isDataUrl } from '@shared/files/upload-document.model';
 
     }
 
+    .personal-info-detail.admin-detail-view--rich {
+      gap: 0;
+    }
 
+    .personal-info-detail__layout {
+      display: grid;
+      grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+      gap: 0.75rem;
+      align-items: start;
+    }
+
+    .personal-info-detail__media {
+      width: 100%;
+      max-width: 11rem;
+    }
+
+    .personal-info-detail__media ::ng-deep .admin-detail-media__frame,
+    .personal-info-detail__media ::ng-deep .admin-detail-media__empty {
+      height: 10.5rem;
+    }
+
+    .personal-info-detail__media ::ng-deep .admin-detail-media__frame > img {
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .personal-info-detail__fields {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 0;
+    }
+
+    .personal-info-detail__fields > .admin-detail-view__grid {
+      gap: 0.75rem;
+    }
+
+    .personal-info-detail__fields ::ng-deep .admin-detail-card {
+      gap: 0;
+    }
+
+    .personal-info-detail__fields ::ng-deep .admin-detail-item {
+      align-items: flex-start;
+    }
+
+    .personal-info-detail__fields ::ng-deep .admin-detail-item__content {
+      padding-top: 0.125rem;
+    }
+
+    @media (max-width: 639px) {
+      .personal-info-detail__layout {
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: center;
+      }
+
+      .personal-info-detail__media {
+        max-width: 9rem;
+      }
+
+      .personal-info-detail__media ::ng-deep .admin-detail-media__frame,
+      .personal-info-detail__media ::ng-deep .admin-detail-media__empty {
+        height: 9rem;
+      }
+
+      .personal-info-detail__fields {
+        width: 100%;
+      }
+    }
 
     .personal-form.pf-editor-fields {
       gap: 0;
@@ -355,14 +451,19 @@ import { isDataUrl } from '@shared/files/upload-document.model';
 
 export class PersonalInfoSectionComponent implements OnInit {
   readonly state = inject(AdminUserStateService);
+  private readonly documentUpload = inject(DocumentUploadService);
   private readonly notifications = inject(NotificationService);
   private readonly fb = inject(FormBuilder);
   private readonly countriesService = inject(CountriesService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly sectionIcon = UserRound;
+  readonly firstNameIcon = UserRound;
+  readonly lastNameIcon = UserRound;
+  readonly phoneIcon = Phone;
+  readonly emailIcon = Mail;
 
-  readonly expanded = signal(true);
+  readonly expanded = signal(false);
 
   readonly editing = signal(false);
 
@@ -534,11 +635,19 @@ export class PersonalInfoSectionComponent implements OnInit {
 
 
   onProfileImageCleared(): void {
-
+    this.deleteStoredDocument(this.state.user()?.profileImageDocumentId);
     this.pendingProfileImageFile = null;
-
     this.profileImageDraft.set('');
+  }
 
+  private deleteStoredDocument(documentId: string | null | undefined): void {
+    const id = documentId?.trim();
+    if (!id) {
+      return;
+    }
+    this.documentUpload.delete(id).subscribe({
+      error: () => this.notifications.warning('Could not delete profile image file.')
+    });
   }
 
 

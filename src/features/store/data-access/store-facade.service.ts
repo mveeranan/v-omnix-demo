@@ -1,11 +1,12 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, switchMap } from 'rxjs';
 import { Portfolio, PortfolioStats } from '@features/portfolio/models/portfolio.model';
 import { PortfolioApiService } from '@features/portfolio/data-access/portfolio-api.service';
 import { BusinessProfileDto } from '@features/admin/models/business-profile.model';
 import { mergeBusinessProfileIntoPortfolio } from '@features/portfolio/data-access/business-profile-portfolio.util';
+import { ThemePresetsService } from '@features/portfolio/data-access/theme-presets.service';
 import { ProductApiService } from './product-api.service';
-import { StoreProduct } from '../models/product.model';
+import { CatalogProductListItemDto } from '@features/catalog/models/catalog-storefront.model';
 import { AuthService } from '@core/auth/auth.service';
 
 export interface StoreViewModel {
@@ -18,14 +19,28 @@ export class StoreFacadeService {
   private readonly portfolioApiService = inject(PortfolioApiService);
   private readonly productApi = inject(ProductApiService);
   private readonly authService = inject(AuthService);
+  private readonly themePresets = inject(ThemePresetsService);
 
   loadStoreBySlug(slug: string): Observable<StoreViewModel> {
-    return this.portfolioApiService.getPublishedBySlug(slug).pipe(
-      map((portfolio) => this.mergeBusinessProfile(portfolio, null))
+    return this.themePresets.list().pipe(
+      switchMap(() =>
+        this.portfolioApiService.getBySlug(slug).pipe(
+          map((result) => {
+            if (!result.portfolio?.published) {
+              throw new Error('NOT_FOUND');
+            }
+            return this.mergeBusinessProfile(result.portfolio, result.businessProfile);
+          })
+        )
+      )
     );
   }
 
   loadStoreWithProfile(slug: string): Observable<StoreViewModel> {
+    return this.themePresets.list().pipe(switchMap(() => this.loadStoreWithProfileInner(slug)));
+  }
+
+  private loadStoreWithProfileInner(slug: string): Observable<StoreViewModel> {
     const tenantId = this.authService.resolveTenantId();
 
     if (tenantId) {
@@ -49,7 +64,7 @@ export class StoreFacadeService {
     );
   }
 
-  getFeaturedProducts(storeSlug: string, limit = 6): Observable<StoreProduct[]> {
+  getFeaturedProducts(storeSlug: string, limit = 6): Observable<CatalogProductListItemDto[]> {
     return this.productApi.getFeatured(storeSlug, limit);
   }
 
@@ -73,7 +88,9 @@ export class StoreFacadeService {
     }
 
     return {
-      portfolio: this.applyCommerceDefaults(mergeBusinessProfileIntoPortfolio(portfolio, profile)),
+      portfolio: this.applyCommerceDefaults(
+        mergeBusinessProfileIntoPortfolio(portfolio, profile, this.themePresets.getCatalog())
+      ),
       businessProfile: profile
     };
   }

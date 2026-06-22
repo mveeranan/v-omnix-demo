@@ -1,11 +1,15 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell.component';
+import { AppTableComponent } from '@shared/ui/app-table.component';
+import { AdminStatusBadgeComponent } from '@shared/ui/admin-status-badge.component';
+import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { NewsletterAdminService } from '../data-access/newsletter-admin.service';
 import { NewsletterSubscriber } from '../models/newsletter-subscriber.model';
 import { NotificationService } from '@core/notifications/notification.service';
+import { LucideAngularModule, Mail } from 'lucide-angular';
 
 @Component({
   selector: 'app-newsletter-list',
@@ -13,13 +17,17 @@ import { NotificationService } from '@core/notifications/notification.service';
   imports: [
     ReactiveFormsModule,
     AdminPageShellComponent,
+    AppTableComponent,
+    AdminStatusBadgeComponent,
+    AdminTableActionComponent,
     LoadingSpinnerComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    LucideAngularModule
   ],
   template: `
     <app-admin-page-shell eyebrow="Business" title="Newsletter" description="Newsletter subscribers from your store.">
       <div class="mb-4 flex justify-end">
-        <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Add subscriber</button>
+        <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add subscriber</button>
       </div>
 
       @if (loading()) {
@@ -30,35 +38,51 @@ import { NotificationService } from '@core/notifications/notification.service';
           <button type="button" class="admin-section-action-btn mt-4 rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Add subscriber</button>
         </div>
       } @else {
-        <div class="admin-glass-card overflow-hidden rounded-xl">
-          <table class="w-full text-left text-sm">
-            <thead class="border-b border-[var(--border)] bg-black/[0.02] dark:bg-white/[0.02]">
+        <app-table>
+          <table class="admin-data-table">
+            <thead>
               <tr>
-                <th class="p-3">Email</th>
-                <th class="p-3">Name</th>
-                <th class="p-3">Source</th>
-                <th class="p-3">Subscribed</th>
-                <th class="p-3">Active</th>
-                <th class="p-3">Actions</th>
+                <th class="admin-data-table__index">#</th>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Source</th>
+                <th>Subscribed</th>
+                <th class="admin-data-table__col-status">Status</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
-              @for (s of subscribers(); track s.id) {
-                <tr class="border-t border-[var(--border)]">
-                  <td class="p-3 font-medium">{{ s.email }}</td>
-                  <td class="p-3 text-[var(--text-muted)]">{{ s.name || '—' }}</td>
-                  <td class="p-3 capitalize">{{ s.source || '—' }}</td>
-                  <td class="p-3">{{ formatDate(s.subscribedAt) }}</td>
-                  <td class="p-3">{{ s.isActive ? 'Yes' : 'No' }}</td>
-                  <td class="p-3">
-                    <button type="button" class="mr-3 text-indigo-600 hover:underline" (click)="openEdit(s)">Edit</button>
-                    <button type="button" class="text-rose-600 hover:underline" (click)="confirmDelete(s)">Delete</button>
+              @for (s of subscribers(); track s.id; let i = $index) {
+                <tr class="admin-data-table__row">
+                  <td class="admin-data-table__index">{{ i + 1 }}</td>
+                  <td>
+                    <div class="admin-data-table__entity">
+                      <span class="admin-data-table__entity-icon"><lucide-icon [img]="mailIcon" /></span>
+                      <div class="admin-data-table__entity-text">
+                        <div class="admin-data-table__entity-title">{{ s.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-[var(--text-secondary)]">{{ s.name || '—' }}</td>
+                  <td class="capitalize">{{ s.source || '—' }}</td>
+                  <td>{{ formatDate(s.subscribedAt) }}</td>
+                  <td class="admin-data-table__col-status">
+                    <app-admin-status-badge
+                      [label]="s.isActive ? 'Active' : 'Inactive'"
+                      [variant]="s.isActive ? 'active' : 'inactive'"
+                    />
+                  </td>
+                  <td class="admin-data-table__col-actions">
+                    <div class="admin-data-table__actions">
+                      <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(s)" />
+                      <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(s)" />
+                    </div>
                   </td>
                 </tr>
               }
             </tbody>
           </table>
-        </div>
+        </app-table>
       }
     </app-admin-page-shell>
 
@@ -111,6 +135,7 @@ export class NewsletterListComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly notifications = inject(NotificationService);
 
+  readonly mailIcon = Mail;
   readonly loading = signal(true);
   readonly subscribers = signal<NewsletterSubscriber[]>([]);
   readonly modalOpen = signal(false);
