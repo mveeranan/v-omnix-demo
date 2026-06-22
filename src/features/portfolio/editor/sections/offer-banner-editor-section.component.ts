@@ -11,7 +11,7 @@ import { PortfolioStateService } from '../../data-access/portfolio-state.service
 import { WebsiteSectionStateService } from '../../data-access/website-section-state.service';
 import { PortfolioOfferBanner } from '../../models/portfolio.model';
 import { ProductApiService } from '../../../store/data-access/product-api.service';
-import { StoreProduct } from '../../../store/models/product.model';
+import { CatalogProductListItemDto, catalogPrimaryImage } from '@features/catalog/models/catalog-storefront.model';
 
 @Component({
   selector: 'app-offer-banner-editor-section',
@@ -43,7 +43,7 @@ import { StoreProduct } from '../../../store/models/product.model';
                     [disabled]="!isPinned(product.id) && pinnedCount() >= 2"
                     (change)="togglePin(product.id, $any($event.target).checked)"
                   />
-                  <img [src]="product.imageUrl" alt="" class="pf-product-pin-item__img" />
+                  <img [src]="productImage(product)" alt="" class="pf-product-pin-item__img" />
                   <span class="pf-product-pin-item__name">{{ product.name }}</span>
                 </label>
               }
@@ -68,10 +68,14 @@ export class OfferBannerEditorSectionComponent implements OnInit {
   readonly icon = Image;
   readonly pinnedIcon = Pin;
   readonly buffer = computed(() => this.sectionState.buffer<PortfolioOfferBanner>('offerBanner'));
-  readonly catalog = signal<StoreProduct[]>([]);
+  readonly catalog = signal<CatalogProductListItemDto[]>([]);
   readonly loading = signal(true);
 
   pinnedCount = computed(() => this.buffer()?.productIds?.length ?? 0);
+
+  productImage(product: CatalogProductListItemDto): string {
+    return catalogPrimaryImage(product);
+  }
 
   ngOnInit(): void {
     const slug = this.draft()?.slug;

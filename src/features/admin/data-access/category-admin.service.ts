@@ -1,39 +1,61 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, delay, throwError } from 'rxjs';
-import { categoryStore } from './category.store';
-import { ProductCategoryDto, createEmptyProductCategory } from '../models/product-category.model';
-import { productCatalogStore } from '../../store/data-access/product-catalog.store';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { AuthService } from '@core/auth/auth.service';
+import { ProductCategoryApiService } from '@features/catalog/data-access/product-category-api.service';
+import {
+  ProductCategoryDto,
+  SaveProductCategoryRequest,
+  createEmptyProductCategory,
+  flattenCategories
+} from '@features/catalog/models/product-category.model';
+import { requireTenantId } from '@features/catalog/data-access/catalog-api.util';
 
 @Injectable({ providedIn: 'root' })
 export class CategoryAdminService {
+  private readonly api = inject(ProductCategoryApiService);
+  private readonly auth = inject(AuthService);
+
   list(): Observable<ProductCategoryDto[]> {
-    return of(categoryStore.getAll()).pipe(delay(150));
+    return this.api.list();
+  }
+
+  listFlat(): Observable<ProductCategoryDto[]> {
+    return new Observable((subscriber) => {
+      this.api.list().subscribe({
+        next: (items) => {
+          subscriber.next(flattenCategories(items));
+          subscriber.complete();
+        },
+        error: (err) => subscriber.error(err)
+      });
+    });
   }
 
   getById(id: string): Observable<ProductCategoryDto | null> {
-    return of(categoryStore.getById(id) ?? null).pipe(delay(100));
+    return new Observable((subscriber) => {
+      this.listFlat().subscribe({
+        next: (items) => {
+          subscriber.next(items.find((c) => c.id === id) ?? null);
+          subscriber.complete();
+        },
+        error: (err) => subscriber.error(err)
+      });
+    });
   }
 
-  create(input: Omit<ProductCategoryDto, 'id'>): Observable<ProductCategoryDto> {
-    return of(categoryStore.create(input)).pipe(delay(200));
+  create(input: SaveProductCategoryRequest): Observable<ProductCategoryDto> {
+    return this.api.create(input);
   }
 
-  update(id: string, patch: Partial<ProductCategoryDto>): Observable<ProductCategoryDto> {
-    const updated = categoryStore.update(id, patch);
-    if (!updated) return throwError(() => new Error('NOT_FOUND'));
-    return of(updated).pipe(delay(200));
+  update(id: string, patch: SaveProductCategoryRequest): Observable<ProductCategoryDto> {
+    return this.api.update(id, patch);
   }
 
   delete(id: string): Observable<void> {
-    const productsUsing = productCatalogStore.getAll().filter((p) => p.categoryId === id);
-    if (productsUsing.length > 0) {
-      return throwError(() => new Error('HAS_PRODUCTS'));
-    }
-    categoryStore.delete(id);
-    return of(undefined).pipe(delay(200));
+    return this.api.delete(id);
   }
 
-  createEmpty(tenantId = 'default'): Omit<ProductCategoryDto, 'id'> {
-    return createEmptyProductCategory(tenantId);
+  createEmpty(): SaveProductCategoryRequest {
+    return createEmptyProductCategory(requireTenantId(this.auth));
   }
 }

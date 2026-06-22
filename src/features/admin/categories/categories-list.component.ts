@@ -1,12 +1,18 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell.component';
+import { AppTableComponent } from '@shared/ui/app-table.component';
+import { AdminStatusBadgeComponent } from '@shared/ui/admin-status-badge.component';
+import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { CategoryAdminService } from '../data-access/category-admin.service';
-import { ProductCategoryDto } from '../models/product-category.model';
+import { ProductCategoryDto } from '@features/catalog/models/product-category.model';
 import { NotificationService } from '@core/notifications/notification.service';
 import { OnboardingService } from '../services/onboarding.service';
+import { AuthService } from '@core/auth/auth.service';
+import { requireTenantId } from '@features/catalog/data-access/catalog-api.util';
+import { LucideAngularModule, FolderTree } from 'lucide-angular';
 
 @Component({
   selector: 'app-categories-list',
@@ -14,14 +20,16 @@ import { OnboardingService } from '../services/onboarding.service';
   imports: [
     ReactiveFormsModule,
     AdminPageShellComponent,
+    AppTableComponent,
+    AdminStatusBadgeComponent,
+    AdminTableActionComponent,
     LoadingSpinnerComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    LucideAngularModule
   ],
   template: `
     <app-admin-page-shell eyebrow="Catalog" title="Categories" description="Organize products — create at least one category before adding products.">
-      <div class="mb-4 flex justify-end">
-        <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Add category</button>
-      </div>
+      <button admin-page-actions type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add category</button>
 
       @if (loading()) {
         <app-loading-spinner label="Loading categories…" />
@@ -32,33 +40,47 @@ import { OnboardingService } from '../services/onboarding.service';
           <button type="button" class="admin-section-action-btn mt-4 rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Create category</button>
         </div>
       } @else {
-        <div class="admin-glass-card overflow-hidden rounded-xl">
-          <table class="w-full text-left text-sm">
-            <thead class="border-b border-[var(--border)] bg-black/[0.02] dark:bg-white/[0.02]">
+        <app-table>
+          <table class="admin-data-table">
+            <thead>
               <tr>
-                <th class="p-3">Name</th>
-                <th class="p-3">Slug</th>
-                <th class="p-3">Order</th>
-                <th class="p-3">Active</th>
-                <th class="p-3">Actions</th>
+                <th class="admin-data-table__index">#</th>
+                <th>Category name</th>
+                <th>Order</th>
+                <th class="admin-data-table__col-status">Status</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
-              @for (cat of categories(); track cat.id) {
-                <tr class="border-t border-[var(--border)]">
-                  <td class="p-3 font-medium">{{ cat.name }}</td>
-                  <td class="p-3 text-[var(--text-muted)]">{{ cat.slug }}</td>
-                  <td class="p-3">{{ cat.displayOrder }}</td>
-                  <td class="p-3">{{ cat.isActive ? 'Yes' : 'No' }}</td>
-                  <td class="p-3">
-                    <button type="button" class="mr-3 text-indigo-600 hover:underline" (click)="openEdit(cat)">Edit</button>
-                    <button type="button" class="text-rose-600 hover:underline" (click)="confirmDelete(cat)">Delete</button>
+              @for (cat of categories(); track cat.id; let i = $index) {
+                <tr class="admin-data-table__row">
+                  <td class="admin-data-table__index">{{ i + 1 }}</td>
+                  <td>
+                    <div class="admin-data-table__entity">
+                      <span class="admin-data-table__entity-icon"><lucide-icon [img]="categoryIcon" [size]="16" [strokeWidth]="2" /></span>
+                      <div class="admin-data-table__entity-text">
+                        <div class="admin-data-table__entity-title">{{ cat.name }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ cat.displayOrder }}</td>
+                  <td class="admin-data-table__col-status">
+                    <app-admin-status-badge
+                      [label]="cat.isActive ? 'Active' : 'Inactive'"
+                      [variant]="cat.isActive ? 'active' : 'inactive'"
+                    />
+                  </td>
+                  <td class="admin-data-table__col-actions">
+                    <div class="admin-data-table__actions">
+                      <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(cat)" />
+                      <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(cat)" />
+                    </div>
                   </td>
                 </tr>
               }
             </tbody>
           </table>
-        </div>
+        </app-table>
       }
     </app-admin-page-shell>
 
@@ -70,10 +92,6 @@ import { OnboardingService } from '../services/onboarding.service';
           <label class="block space-y-1">
             <span class="text-sm font-medium">Name</span>
             <input class="pf-editor-input w-full" formControlName="name" />
-          </label>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Slug</span>
-            <input class="pf-editor-input w-full" formControlName="slug" placeholder="auto-generated" />
           </label>
           <label class="block space-y-1">
             <span class="text-sm font-medium">Description</span>
@@ -110,7 +128,9 @@ export class CategoriesListComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly notifications = inject(NotificationService);
   private readonly onboarding = inject(OnboardingService);
+  private readonly auth = inject(AuthService);
 
+  readonly categoryIcon = FolderTree;
   readonly loading = signal(true);
   readonly categories = signal<ProductCategoryDto[]>([]);
   readonly modalOpen = signal(false);
@@ -119,7 +139,6 @@ export class CategoriesListComponent implements OnInit {
 
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
-    slug: [''],
     description: [''],
     displayOrder: [0],
     isActive: [true]
@@ -131,7 +150,7 @@ export class CategoriesListComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
-    this.api.list().subscribe({
+    this.api.listFlat().subscribe({
       next: (items) => {
         this.categories.set(items);
         this.loading.set(false);
@@ -143,13 +162,18 @@ export class CategoriesListComponent implements OnInit {
 
   openCreate(): void {
     this.editingId.set(null);
-    this.form.reset({ name: '', slug: '', description: '', displayOrder: this.categories().length, isActive: true });
+    this.form.reset({ name: '', description: '', displayOrder: this.categories().length, isActive: true });
     this.modalOpen.set(true);
   }
 
   openEdit(cat: ProductCategoryDto): void {
     this.editingId.set(cat.id);
-    this.form.patchValue(cat);
+    this.form.patchValue({
+      name: cat.name,
+      description: cat.description ?? '',
+      displayOrder: cat.displayOrder,
+      isActive: cat.isActive
+    });
     this.modalOpen.set(true);
   }
 
@@ -161,10 +185,9 @@ export class CategoriesListComponent implements OnInit {
     if (this.form.invalid) return;
     const v = this.form.getRawValue();
     const payload = {
-      tenantId: 'default',
+      tenantId: requireTenantId(this.auth),
       name: v.name.trim(),
-      slug: v.slug.trim() || v.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      description: v.description,
+      description: v.description || null,
       parentCategoryId: null,
       displayOrder: v.displayOrder,
       isActive: v.isActive

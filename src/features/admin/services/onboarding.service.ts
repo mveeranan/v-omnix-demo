@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 import { AdminProfileStateService } from '../data-access/admin-profile-state.service';
 import { BusinessProfileExtensionService } from '../data-access/business-profile-extension.service';
 import { AuthService } from '@core/auth/auth.service';
-import { productCatalogStore } from '../../store/data-access/product-catalog.store';
-import { categoryStore } from '../data-access/category.store';
+import { CategoryAdminService } from '../data-access/category-admin.service';
+import { ProductAdminService } from '../products/data-access/product-admin.service';
 import { ecommerceConfigStore } from '../data-access/ecommerce-config.store';
 
 export interface OnboardingStep {
@@ -20,8 +20,12 @@ export class OnboardingService {
   private readonly extService = inject(BusinessProfileExtensionService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly categoryApi = inject(CategoryAdminService);
+  private readonly productApi = inject(ProductAdminService);
 
   private readonly refreshTick = signal(0);
+  private readonly categoryCount = signal(0);
+  private readonly productCount = signal(0);
 
   readonly steps = computed((): OnboardingStep[] => {
     this.refreshTick();
@@ -52,13 +56,13 @@ export class OnboardingService {
       {
         id: 'category',
         label: 'Add a category',
-        done: categoryStore.getAll().length > 0,
+        done: this.categoryCount() > 0,
         route: '/admin/categories'
       },
       {
         id: 'product',
         label: 'Add first product',
-        done: productCatalogStore.getAll().length > 0,
+        done: this.productCount() > 0,
         route: '/admin/products/new'
       },
       {
@@ -84,6 +88,14 @@ export class OnboardingService {
 
   refresh(): void {
     this.refreshTick.update((n) => n + 1);
+    this.categoryApi.list().subscribe({
+      next: (cats) => this.categoryCount.set(cats.length),
+      error: () => this.categoryCount.set(0)
+    });
+    this.productApi.list({ pageSize: 1 }).subscribe({
+      next: (r) => this.productCount.set(r.totalCount),
+      error: () => this.productCount.set(0)
+    });
   }
 
   navigate(step: OnboardingStep): void {

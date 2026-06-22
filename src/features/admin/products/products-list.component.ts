@@ -4,12 +4,16 @@ import { RouterLink } from '@angular/router';
 import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell.component';
 import { AppTableComponent } from '@shared/ui/app-table.component';
 import { AppEmptyStateComponent } from '@shared/ui/app-empty-state.component';
-import { PaginationComponent } from '@shared/ui/pagination.component';
+import { AdminDataTablePaginationComponent } from '@shared/ui/admin-data-table-pagination.component';
+import { AdminStatusBadgeComponent } from '@shared/ui/admin-status-badge.component';
+import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { ProductAdminService } from './data-access/product-admin.service';
 import { CategoryAdminService } from '../data-access/category-admin.service';
-import { ProductListFilters, StoreProduct, productStockQuantity } from '../../store/models/product.model';
+import { ProductListItemDto, ProductListFilters } from '@features/catalog/models/product-admin.model';
+import { parseProductStatus, productStatusLabel, ProductStatus } from '@features/catalog/models/product-status.enum';
+import { AdminStatusBadgeVariant } from '@shared/ui/admin-status-badge.component';
 import { Package } from 'lucide-angular';
 
 @Component({
@@ -21,16 +25,15 @@ import { Package } from 'lucide-angular';
     AdminPageShellComponent,
     AppTableComponent,
     AppEmptyStateComponent,
-    PaginationComponent,
+    AdminDataTablePaginationComponent,
+    AdminStatusBadgeComponent,
+    AdminTableActionComponent,
     LoadingSpinnerComponent,
     ConfirmDialogComponent
   ],
   template: `
     <app-admin-page-shell eyebrow="Catalog" title="Products" description="Manage your product catalog, pricing, and inventory.">
-      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <p class="text-sm text-[var(--text-muted)]">Showing {{ result()?.items?.length ?? 0 }} of {{ result()?.total ?? 0 }} products</p>
-        <a routerLink="/admin/products/new" class="admin-section-action-btn inline-flex rounded-lg px-4 py-2 text-sm">Add product</a>
-      </div>
+      <a admin-page-actions routerLink="/admin/products/new" class="admin-section-action-btn inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm">+ Add product</a>
 
       @if (!hasCategories()) {
         <div class="mb-4 rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
@@ -39,20 +42,25 @@ import { Package } from 'lucide-angular';
         </div>
       }
 
-      <div class="mb-4 grid gap-3 md:grid-cols-4">
-        <input class="pf-editor-input md:col-span-2" placeholder="Search name or SKU" [(ngModel)]="search" (ngModelChange)="load()" />
-        <select class="pf-editor-input" [(ngModel)]="statusFilter" (ngModelChange)="load()">
-          <option value="">All statuses</option>
-          <option value="active">Active</option>
-          <option value="draft">Draft</option>
-          <option value="inactive">Inactive</option>
-          <option value="archived">Archived</option>
-        </select>
-        <select class="pf-editor-input" [(ngModel)]="pageSize" (ngModelChange)="load()">
-          <option [ngValue]="10">10 per page</option>
-          <option [ngValue]="25">25 per page</option>
-          <option [ngValue]="50">50 per page</option>
-        </select>
+      <div class="admin-data-table-toolbar">
+        <p class="admin-data-table-toolbar__summary">
+          Showing {{ result()?.items?.length ?? 0 }} of {{ result()?.totalCount ?? 0 }} products
+        </p>
+        <div class="admin-data-table-toolbar__filters">
+          <input class="pf-editor-input" placeholder="Search by name" [(ngModel)]="search" (ngModelChange)="load()" />
+          <select class="pf-editor-input" [(ngModel)]="statusFilter" (ngModelChange)="load()">
+            <option value="">All statuses</option>
+            <option value="2">Active</option>
+            <option value="1">Draft</option>
+            <option value="3">Inactive</option>
+            <option value="4">Archived</option>
+          </select>
+          <select class="pf-editor-input" [(ngModel)]="pageSize" (ngModelChange)="load()">
+            <option [ngValue]="10">10 per page</option>
+            <option [ngValue]="25">25 per page</option>
+            <option [ngValue]="50">50 per page</option>
+          </select>
+        </div>
       </div>
 
       @if (loading()) {
@@ -63,39 +71,42 @@ import { Package } from 'lucide-angular';
         </app-empty-state>
       } @else {
         <app-table>
-          <table class="admin-bookings-table w-full min-w-[640px] text-left text-sm">
+          <table class="admin-data-table">
             <thead>
               <tr>
-                <th class="p-3"><input type="checkbox" [checked]="allSelected()" (change)="toggleAll($event)" /></th>
-                <th class="p-3">Product</th>
-                <th class="p-3">SKU</th>
-                <th class="p-3">Category</th>
-                <th class="p-3">Price</th>
-                <th class="p-3">Stock</th>
-                <th class="p-3">Status</th>
-                <th class="p-3">Actions</th>
+                <th class="admin-data-table__checkbox"><input type="checkbox" [checked]="allSelected()" (change)="toggleAll($event)" /></th>
+                <th class="admin-data-table__col-product">Product</th>
+                <th class="admin-data-table__col-category">Category</th>
+                <th class="admin-data-table__col-price">Price</th>
+                <th class="admin-data-table__col-variants">Variants</th>
+                <th class="admin-data-table__col-status">Status</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
-              @for (p of result()!.items; track p.id) {
-                <tr class="admin-bookings-table__row border-t">
-                  <td class="p-3"><input type="checkbox" [checked]="selected().has(p.id)" (change)="toggleOne(p.id)" /></td>
-                  <td class="p-3">
-                    <div class="flex items-center gap-3">
-                      <img [src]="p.imageUrl" alt="" class="h-10 w-10 rounded object-cover" />
-                      <span class="font-medium">{{ p.name }}</span>
+              @for (p of result()!.items; track p.id; let i = $index) {
+                <tr class="admin-data-table__row">
+                  <td class="admin-data-table__checkbox"><input type="checkbox" [checked]="selected().has(p.id)" (change)="toggleOne(p.id)" /></td>
+                  <td class="admin-data-table__col-product">
+                    <div class="admin-data-table__entity">
+                      <img [src]="p.primaryImageUrl || placeholderImage" alt="" width="40" height="40" class="admin-data-table__entity-thumb" />
+                      <div class="admin-data-table__entity-text">
+                        <div class="admin-data-table__entity-title">{{ p.name }}</div>
+                        <div class="admin-data-table__entity-subtitle">ID: #{{ rowNumber(i) }}</div>
+                      </div>
                     </div>
                   </td>
-                  <td class="p-3 text-[var(--text-muted)]">{{ p.sku || '—' }}</td>
-                  <td class="p-3">{{ p.category }}</td>
-                  <td class="p-3">{{ format(p.price, p.currency) }}</td>
-                  <td class="p-3">{{ stockLabel(p) }}</td>
-                  <td class="p-3"><span class="rounded-full bg-zinc-100 px-2 py-0.5 text-xs capitalize dark:bg-zinc-800">{{ p.status }}</span></td>
-                  <td class="p-3">
-                    <div class="flex flex-wrap gap-2">
-                      <a [routerLink]="['/admin/products', p.id, 'edit']" class="text-indigo-600 hover:underline">Edit</a>
-                      <button type="button" class="text-[var(--text-muted)] hover:underline" (click)="duplicate(p.id)">Duplicate</button>
-                      <button type="button" class="text-rose-600 hover:underline" (click)="confirmDelete(p)">Delete</button>
+                  <td class="admin-data-table__col-category">{{ p.categoryName }}</td>
+                  <td class="admin-data-table__col-price"><span class="admin-data-table__price">{{ format(p.price) }}</span></td>
+                  <td class="admin-data-table__col-variants">{{ p.variantCount }}</td>
+                  <td class="admin-data-table__col-status">
+                    <app-admin-status-badge [label]="statusLabel(p.status)" [variant]="statusVariant(p.status)" />
+                  </td>
+                  <td class="admin-data-table__col-actions">
+                    <div class="admin-data-table__actions">
+                      <app-admin-table-action label="Edit" variant="edit" [routerLink]="['/admin/products', p.id, 'edit']" />
+                      <app-admin-table-action label="Duplicate" variant="duplicate" (action)="duplicate(p.id)" />
+                      <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(p)" />
                     </div>
                   </td>
                 </tr>
@@ -103,9 +114,13 @@ import { Package } from 'lucide-angular';
             </tbody>
           </table>
         </app-table>
-        <div class="mt-6">
-          <app-pagination [total]="result()!.total" [page]="page()" [pageSize]="pageSize" (pageChange)="onPage($event)" />
-        </div>
+        <app-admin-data-table-pagination
+          [total]="result()!.totalCount"
+          [page]="page()"
+          [pageSize]="pageSize"
+          itemLabel="products"
+          (pageChange)="onPage($event)"
+        />
       }
     </app-admin-page-shell>
 
@@ -124,13 +139,14 @@ export class ProductsListComponent implements OnInit {
   private readonly api = inject(ProductAdminService);
   private readonly categoryApi = inject(CategoryAdminService);
   readonly packageIcon = Package;
+  readonly placeholderImage = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600';
 
   readonly loading = signal(true);
   readonly hasCategories = signal(true);
-  readonly result = signal<{ items: StoreProduct[]; total: number } | null>(null);
+  readonly result = signal<{ items: ProductListItemDto[]; totalCount: number; page: number; pageSize: number } | null>(null);
   readonly page = signal(1);
   readonly selected = signal(new Set<string>());
-  readonly deleteTarget = signal<StoreProduct | null>(null);
+  readonly deleteTarget = signal<ProductListItemDto | null>(null);
 
   search = '';
   statusFilter = '';
@@ -147,7 +163,7 @@ export class ProductsListComponent implements OnInit {
     this.loading.set(true);
     const filters: ProductListFilters = {
       search: this.search || undefined,
-      status: (this.statusFilter as ProductListFilters['status']) || undefined,
+      status: parseProductStatus(this.statusFilter),
       page: this.page(),
       pageSize: this.pageSize
     };
@@ -165,13 +181,31 @@ export class ProductsListComponent implements OnInit {
     this.load();
   }
 
-  format(value: number, currency: string): string {
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(value);
+  rowNumber(index: number): number {
+    return (this.page() - 1) * this.pageSize + index + 1;
   }
 
-  stockLabel(p: StoreProduct): string {
-    const qty = productStockQuantity(p);
-    return qty > 0 ? String(qty) : 'Out of stock';
+  format(value: number): string {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(value);
+  }
+
+  statusLabel(status: ProductListItemDto['status']): string {
+    return productStatusLabel(status);
+  }
+
+  statusVariant(status: ProductListItemDto['status']): AdminStatusBadgeVariant {
+    switch (status) {
+      case ProductStatus.Active:
+        return 'active';
+      case ProductStatus.Draft:
+        return 'draft';
+      case ProductStatus.Inactive:
+        return 'inactive';
+      case ProductStatus.Archived:
+        return 'archived';
+      default:
+        return 'neutral';
+    }
   }
 
   allSelected(): boolean {
@@ -197,7 +231,7 @@ export class ProductsListComponent implements OnInit {
     this.api.duplicate(id).subscribe(() => this.load());
   }
 
-  confirmDelete(p: StoreProduct): void {
+  confirmDelete(p: ProductListItemDto): void {
     this.deleteTarget.set(p);
   }
 

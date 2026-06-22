@@ -11,7 +11,7 @@ import { PortfolioStateService } from '../../data-access/portfolio-state.service
 import { WebsiteSectionStateService } from '../../data-access/website-section-state.service';
 import { PortfolioFeaturedProducts } from '../../models/portfolio.model';
 import { ProductApiService } from '../../../store/data-access/product-api.service';
-import { StoreProduct } from '../../../store/models/product.model';
+import { CatalogProductListItemDto, catalogPrimaryImage } from '@features/catalog/models/catalog-storefront.model';
 
 @Component({
   selector: 'app-featured-products-editor-section',
@@ -72,9 +72,9 @@ import { StoreProduct } from '../../../store/models/product.model';
                     [checked]="isPinned(product.id)"
                     (change)="togglePin(product.id, $any($event.target).checked)"
                   />
-                  <img [src]="product.imageUrl" alt="" class="pf-product-pin-item__img" />
+                  <img [src]="productImage(product)" alt="" class="pf-product-pin-item__img" />
                   <span class="pf-product-pin-item__name">{{ product.name }}</span>
-                  <span class="pf-product-pin-item__price">{{ product.price | currency: product.currency }}</span>
+                  <span class="pf-product-pin-item__price">{{ product.price | currency: 'USD' }}</span>
                 </label>
               }
             </div>
@@ -128,11 +128,15 @@ export class FeaturedProductsEditorSectionComponent implements OnInit {
   readonly icon = Package;
   readonly maxCountIcon = Hash;
   readonly pinnedIcon = Pin;
-  readonly catalog = signal<StoreProduct[]>([]);
+  readonly catalog = signal<CatalogProductListItemDto[]>([]);
   readonly loading = signal(true);
 
   readonly buffer = computed(() => this.sectionState.buffer<PortfolioFeaturedProducts>('featuredProducts'));
   readonly pinnedCount = computed(() => this.draft()?.featuredProducts.productIds.length ?? 0);
+
+  productImage(product: CatalogProductListItemDto): string {
+    return catalogPrimaryImage(product);
+  }
 
   ngOnInit(): void {
     const slug = this.draft()?.slug || 'demo';

@@ -6,7 +6,7 @@ import { BusinessProfileDto } from '@features/admin/models/business-profile.mode
 import { mergeBusinessProfileIntoPortfolio } from '@features/portfolio/data-access/business-profile-portfolio.util';
 import { ThemePresetsService } from '@features/portfolio/data-access/theme-presets.service';
 import { ProductApiService } from './product-api.service';
-import { StoreProduct } from '../models/product.model';
+import { CatalogProductListItemDto } from '@features/catalog/models/catalog-storefront.model';
 import { AuthService } from '@core/auth/auth.service';
 
 export interface StoreViewModel {
@@ -64,7 +64,7 @@ export class StoreFacadeService {
     );
   }
 
-  getFeaturedProducts(storeSlug: string, limit = 6): Observable<StoreProduct[]> {
+  getFeaturedProducts(storeSlug: string, limit = 6): Observable<CatalogProductListItemDto[]> {
     return this.productApi.getFeatured(storeSlug, limit);
   }
 

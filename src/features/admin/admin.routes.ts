@@ -91,6 +91,16 @@ export const adminRoutes: Routes = [
           import('./brands/brands-list.component').then((m) => m.BrandsListComponent)
       },
       {
+        path: 'product-tags',
+        loadComponent: () =>
+          import('./product-tags/product-tags-list.component').then((m) => m.ProductTagsListComponent)
+      },
+      {
+        path: 'product-attributes',
+        loadComponent: () =>
+          import('./product-attributes/product-attributes-list.component').then((m) => m.ProductAttributesListComponent)
+      },
+      {
         path: 'billing',
         loadComponent: () =>
           import('./billing/billing.component').then((m) => m.BillingComponent)

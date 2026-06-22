@@ -1,23 +1,48 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell.component';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { ProductAdminService } from './data-access/product-admin.service';
 import { CategoryAdminService } from '../data-access/category-admin.service';
 import { BrandAdminService } from '../data-access/brand-admin.service';
-import { ProductCategoryDto } from '../models/product-category.model';
-import { BrandDto } from '../models/brand.model';
-import { StoreProduct, ProductVariant } from '../../store/models/product.model';
+import { ProductTagApiService } from '@features/catalog/data-access/product-tag-api.service';
+import { ProductAttributeApiService } from '@features/catalog/data-access/product-attribute-api.service';
+import { ProductCategoryDto, flattenCategories } from '@features/catalog/models/product-category.model';
+import { BrandDto } from '@features/catalog/models/brand.model';
+import { ProductTagDto } from '@features/catalog/models/product-tag.model';
+import { ProductAttributeDto } from '@features/catalog/models/product-attribute.model';
+import {
+  PendingImageUpload,
+  ProductDetailDto,
+  ProductSavePayload,
+  SaveProductImageItem,
+  SaveProductVariantItem
+} from '@features/catalog/models/product-admin.model';
+import { ProductStatus } from '@features/catalog/models/product-status.enum';
 import { NotificationService } from '@core/notifications/notification.service';
-import { categoryStore } from '../data-access/category.store';
+import { AuthService } from '@core/auth/auth.service';
+import { requireTenantId } from '@features/catalog/data-access/catalog-api.util';
 
 type FormTab = 'basic' | 'pricing' | 'images' | 'variants' | 'inventory' | 'seo';
+
+interface VariantRow {
+  id: string | null;
+  sku: string;
+  price: number;
+  compareAtPrice: number | null;
+  barcode: string;
+  weight: number | null;
+  isActive: boolean;
+  attributeSelections: Record<string, string>;
+  quantityAvailable: number;
+  lowStockThreshold: number;
+}
 
 @Component({
   selector: 'app-product-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AdminPageShellComponent, LoadingSpinnerComponent],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink, AdminPageShellComponent, LoadingSpinnerComponent],
   template: `
     <app-admin-page-shell [eyebrow]="isNew() ? 'New' : 'Edit'" [title]="isNew() ? 'Add product' : 'Edit product'" description="Product aggregate — category, pricing, images, variants, inventory, SEO.">
       @if (loading()) {
@@ -39,8 +64,6 @@ type FormTab = 'basic' | 'pricing' | 'images' | 'variants' | 'inventory' | 'seo'
           @if (activeTab() === 'basic') {
             <section class="admin-glass-card space-y-4 rounded-xl p-6">
               <label class="block space-y-1"><span class="text-sm font-medium">Product name *</span><input class="pf-editor-input w-full" formControlName="name" /></label>
-              <label class="block space-y-1"><span class="text-sm font-medium">Slug</span><input class="pf-editor-input w-full" formControlName="slug" /></label>
-              <label class="block space-y-1"><span class="text-sm font-medium">SKU</span><input class="pf-editor-input w-full" formControlName="sku" /></label>
               <label class="block space-y-1"><span class="text-sm font-medium">Category *</span>
                 <select class="pf-editor-input w-full" formControlName="categoryId">
                   <option value="">Select category</option>
@@ -57,11 +80,27 @@ type FormTab = 'basic' | 'pricing' | 'images' | 'variants' | 'inventory' | 'seo'
               <label class="block space-y-1"><span class="text-sm font-medium">Description</span><textarea class="pf-editor-input w-full min-h-[100px]" formControlName="description"></textarea></label>
               <label class="block space-y-1"><span class="text-sm font-medium">Status</span>
                 <select class="pf-editor-input w-full" formControlName="status">
-                  <option value="Draft">Draft</option><option value="Active">Active</option><option value="Inactive">Inactive</option><option value="Archived">Archived</option>
+                  <option [ngValue]="1">Draft</option>
+                  <option [ngValue]="2">Active</option>
+                  <option [ngValue]="3">Inactive</option>
+                  <option [ngValue]="4">Archived</option>
                 </select>
               </label>
-              <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="isPublished" /> Published</label>
-              <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="isFeatured" /> Featured on homepage</label>
+              <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="publishOnSave" /> Publish (set Active) on save</label>
+              <div class="space-y-2">
+                <span class="text-sm font-medium">Tags</span>
+                <div class="flex flex-wrap gap-2">
+                  @for (tag of tags(); track tag.id) {
+                    <label class="flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm">
+                      <input type="checkbox" [checked]="selectedTagIds().has(tag.id)" (change)="toggleTag(tag.id)" />
+                      {{ tag.name }}
+                    </label>
+                  }
+                  @if (!tags().length) {
+                    <p class="text-sm text-[var(--text-muted)]">No tags yet. <a routerLink="/admin/product-tags" class="underline">Create tags</a></p>
+                  }
+                </div>
+              </div>
             </section>
           }
 
@@ -79,35 +118,104 @@ type FormTab = 'basic' | 'pricing' | 'images' | 'variants' | 'inventory' | 'seo'
 
           @if (activeTab() === 'images') {
             <section class="admin-glass-card space-y-4 rounded-xl p-6">
-              <label class="block space-y-1"><span class="text-sm font-medium">Primary image URL</span><input class="pf-editor-input w-full" formControlName="imageUrl" /></label>
-              <label class="block space-y-1"><span class="text-sm font-medium">Gallery URLs (one per line)</span><textarea class="pf-editor-input w-full" formControlName="galleryText" rows="4"></textarea></label>
+              <label class="block space-y-1">
+                <span class="text-sm font-medium">Upload images</span>
+                <input type="file" accept="image/*" multiple class="pf-editor-input w-full" (change)="onFilesSelected($event)" />
+              </label>
+              @if (existingImages().length) {
+                <div class="space-y-2">
+                  <p class="text-sm font-medium">Existing images</p>
+                  @for (img of existingImages(); track img.id ?? img.documentId) {
+                    <div class="flex items-center gap-3 rounded-lg border border-[var(--border)] p-2">
+                      <img [src]="img.url || ''" alt="" class="h-12 w-12 rounded object-cover" />
+                      <span class="flex-1 text-sm">{{ img.altText || 'Image' }}</span>
+                      <label class="text-xs"><input type="radio" name="primary" [checked]="img.isPrimary" (change)="setPrimaryExisting(img)" /> Primary</label>
+                    </div>
+                  }
+                </div>
+              }
+              @if (pendingImages().length) {
+                <div class="space-y-2">
+                  <p class="text-sm font-medium">Pending uploads</p>
+                  @for (img of pendingImages(); track $index) {
+                    <div class="flex items-center gap-3 rounded-lg border border-[var(--border)] p-2">
+                      <span class="flex-1 truncate text-sm">{{ img.file.name }}</span>
+                      <label class="text-xs"><input type="radio" name="primaryPending" [checked]="img.isPrimary" (change)="setPrimaryPending($index)" /> Primary</label>
+                      <button type="button" class="text-rose-600 text-xs" (click)="removePending($index)">Remove</button>
+                    </div>
+                  }
+                </div>
+              }
             </section>
           }
 
           @if (activeTab() === 'variants') {
             <section class="admin-glass-card space-y-4 rounded-xl p-6">
-              <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="hasVariants" /> This product has variants</label>
+              <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="hasVariants" (change)="onVariantsToggle()" /> This product has variants</label>
               @if (form.value.hasVariants) {
-                <p class="text-sm text-[var(--text-secondary)]">Define size options (comma-separated):</p>
-                <input class="pf-editor-input w-full" formControlName="variantSizes" placeholder="S, M, L, XL" />
+                @if (!attributes().length) {
+                  <p class="text-sm text-[var(--text-muted)]">Define attributes first. <a routerLink="/admin/product-attributes" class="underline">Manage attributes</a></p>
+                } @else {
+                  <div class="space-y-3">
+                    <p class="text-sm font-medium">Select attributes for variants</p>
+                    @for (attr of attributes(); track attr.id) {
+                      <label class="flex items-center gap-2 text-sm">
+                        <input type="checkbox" [checked]="selectedAttributeIds().has(attr.id)" (change)="toggleAttribute(attr.id)" />
+                        {{ attr.name }} ({{ attr.values.length }} values)
+                      </label>
+                    }
+                    <button type="button" class="admin-action-secondary rounded-lg px-3 py-1.5 text-sm" (click)="generateVariants()">Generate variant combinations</button>
+                  </div>
+                  @if (variantRows().length) {
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-left text-sm">
+                        <thead>
+                          <tr class="border-b">
+                            <th class="p-2">SKU</th>
+                            <th class="p-2">Price</th>
+                            <th class="p-2">Attributes</th>
+                            <th class="p-2">Active</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (row of variantRows(); track $index) {
+                            <tr class="border-b">
+                              <td class="p-2"><input class="pf-editor-input w-full text-xs" [(ngModel)]="row.sku" [ngModelOptions]="{standalone: true}" /></td>
+                              <td class="p-2"><input class="pf-editor-input w-20 text-xs" type="number" [(ngModel)]="row.price" [ngModelOptions]="{standalone: true}" /></td>
+                              <td class="p-2 text-xs">{{ variantLabel(row) }}</td>
+                              <td class="p-2"><input type="checkbox" [(ngModel)]="row.isActive" [ngModelOptions]="{standalone: true}" /></td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  }
+                }
               }
             </section>
           }
 
           @if (activeTab() === 'inventory') {
             <section class="admin-glass-card space-y-4 rounded-xl p-6">
-              @if (!form.value.hasVariants) {
+              @if (!form.value.trackInventory) {
+                <p class="text-sm text-[var(--text-muted)]">Inventory tracking is disabled for this product.</p>
+              } @else if (!form.value.hasVariants) {
                 <label class="block space-y-1"><span class="text-sm font-medium">Quantity available</span><input class="pf-editor-input w-full" type="number" formControlName="stockQuantity" /></label>
                 <label class="block space-y-1"><span class="text-sm font-medium">Low stock threshold</span><input class="pf-editor-input w-full" type="number" formControlName="lowStockThreshold" /></label>
               } @else {
-                <p class="text-sm text-[var(--text-secondary)]">Stock is managed per variant (generated on save).</p>
+                @for (row of variantRows(); track $index) {
+                  <div class="grid gap-3 sm:grid-cols-3 rounded-lg border border-[var(--border)] p-3">
+                    <span class="text-sm font-medium sm:col-span-3">{{ variantLabel(row) }}</span>
+                    <label class="block space-y-1"><span class="text-xs">Qty</span><input class="pf-editor-input w-full" type="number" [(ngModel)]="row.quantityAvailable" [ngModelOptions]="{standalone: true}" /></label>
+                    <label class="block space-y-1"><span class="text-xs">Low stock</span><input class="pf-editor-input w-full" type="number" [(ngModel)]="row.lowStockThreshold" [ngModelOptions]="{standalone: true}" /></label>
+                  </div>
+                }
               }
             </section>
           }
 
           @if (activeTab() === 'seo') {
             <section class="admin-glass-card space-y-4 rounded-xl p-6">
-              <p class="text-sm text-[var(--text-secondary)]">Preview: /store/my-store/products/{{ form.value.slug || 'product-slug' }}</p>
               <label class="block space-y-1"><span class="text-sm font-medium">Meta title</span><input class="pf-editor-input w-full" formControlName="metaTitle" /></label>
               <label class="block space-y-1"><span class="text-sm font-medium">Meta description</span><textarea class="pf-editor-input w-full" formControlName="metaDescription" rows="2"></textarea></label>
             </section>
@@ -129,13 +237,23 @@ export class ProductFormComponent implements OnInit {
   private readonly api = inject(ProductAdminService);
   private readonly categoryApi = inject(CategoryAdminService);
   private readonly brandApi = inject(BrandAdminService);
+  private readonly tagApi = inject(ProductTagApiService);
+  private readonly attributeApi = inject(ProductAttributeApiService);
   private readonly notifications = inject(NotificationService);
+  private readonly auth = inject(AuthService);
 
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly isNew = signal(true);
   readonly categories = signal<ProductCategoryDto[]>([]);
   readonly brands = signal<BrandDto[]>([]);
+  readonly tags = signal<ProductTagDto[]>([]);
+  readonly attributes = signal<ProductAttributeDto[]>([]);
+  readonly selectedTagIds = signal(new Set<string>());
+  readonly selectedAttributeIds = signal(new Set<string>());
+  readonly existingImages = signal<(SaveProductImageItem & { url?: string })[]>([]);
+  readonly pendingImages = signal<PendingImageUpload[]>([]);
+  readonly variantRows = signal<VariantRow[]>([]);
   readonly activeTab = signal<FormTab>('basic');
   readonly tabs = [
     { id: 'basic' as const, label: 'Basic' },
@@ -149,24 +267,18 @@ export class ProductFormComponent implements OnInit {
 
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
-    slug: [''],
-    sku: [''],
     categoryId: ['', Validators.required],
     brandId: [''],
     shortDescription: [''],
-    description: ['', Validators.minLength(10)],
-    status: ['Draft' as 'Draft' | 'Active' | 'Inactive' | 'Archived'],
-    isPublished: [false],
-    isFeatured: [false],
+    description: [''],
+    status: [ProductStatus.Draft as ProductStatus],
+    publishOnSave: [false],
     price: [0, [Validators.required, Validators.min(0)]],
     compareAtPrice: [null as number | null],
     costPrice: [null as number | null],
     weight: [null as number | null],
     trackInventory: [true],
-    imageUrl: [''],
-    galleryText: [''],
     hasVariants: [false],
-    variantSizes: [''],
     stockQuantity: [0, Validators.min(0)],
     lowStockThreshold: [5],
     metaTitle: [''],
@@ -174,8 +286,11 @@ export class ProductFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.categoryApi.list().subscribe((c) => this.categories.set(c));
+    this.categoryApi.listFlat().subscribe((c) => this.categories.set(c));
     this.brandApi.list().subscribe((b) => this.brands.set(b));
+    this.tagApi.list().subscribe((t) => this.tags.set(t));
+    this.attributeApi.list().subscribe((a) => this.attributes.set(a));
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.isNew.set(false);
@@ -191,45 +306,156 @@ export class ProductFormComponent implements OnInit {
     }
   }
 
-  private patchForm(p: StoreProduct): void {
+  private patchForm(p: ProductDetailDto): void {
     this.form.patchValue({
       name: p.name,
-      slug: p.slug,
-      sku: p.sku ?? '',
-      categoryId: p.categoryId ?? categoryStore.getBySlug(p.category.toLowerCase())?.id ?? '',
+      categoryId: p.categoryId,
       brandId: p.brandId ?? '',
-      description: p.description,
-      status: this.mapStatus(p.status),
-      isPublished: p.status === 'active',
-      isFeatured: p.featured,
+      shortDescription: p.shortDescription ?? '',
+      description: p.description ?? '',
+      status: p.status,
+      publishOnSave: p.status === ProductStatus.Active,
       price: p.price,
-      compareAtPrice: p.compareAtPrice ?? null,
-      costPrice: p.costPrice ?? null,
-      weight: p.dimensions?.weight ?? null,
-      trackInventory: p.trackInventory ?? true,
-      imageUrl: p.imageUrl,
-      galleryText: p.galleryUrls.join('\n'),
+      compareAtPrice: p.compareAtPrice,
+      costPrice: p.costPrice,
+      weight: p.weight,
+      trackInventory: p.trackInventory,
       hasVariants: p.variants.length > 0,
-      variantSizes: p.variants.map((v) => v.name).join(', '),
-      stockQuantity: p.stockQuantity,
-      lowStockThreshold: p.lowStockThreshold ?? 5,
-      metaTitle: p.seo?.metaTitle ?? '',
-      metaDescription: p.seo?.metaDescription ?? ''
+      stockQuantity: p.inventory.find((i) => !i.variantId)?.quantityAvailable ?? 0,
+      lowStockThreshold: p.inventory.find((i) => !i.variantId)?.lowStockThreshold ?? 5,
+      metaTitle: p.metaTitle ?? '',
+      metaDescription: p.metaDescription ?? ''
     });
+    this.selectedTagIds.set(new Set(p.tagIds));
+    this.existingImages.set(
+      p.images.map((img) => ({
+        id: img.id,
+        documentId: img.documentId,
+        altText: img.altText,
+        sortOrder: img.sortOrder,
+        isPrimary: img.isPrimary,
+        url: img.url
+      }))
+    );
+    if (p.variants.length) {
+      const attrIds = new Set<string>();
+      p.variants.forEach((v) => v.attributes.forEach((a) => attrIds.add(a.attributeId)));
+      this.selectedAttributeIds.set(attrIds);
+      this.variantRows.set(
+        p.variants.map((v) => ({
+          id: v.id,
+          sku: v.sku,
+          price: v.price,
+          compareAtPrice: v.compareAtPrice,
+          barcode: v.barcode ?? '',
+          weight: v.weight,
+          isActive: v.isActive,
+          attributeSelections: Object.fromEntries(
+            v.attributes.map((a) => [a.attributeId, a.valueId])
+          ),
+          quantityAvailable:
+            p.inventory.find((i) => i.variantId === v.id)?.quantityAvailable ?? 0,
+          lowStockThreshold:
+            p.inventory.find((i) => i.variantId === v.id)?.lowStockThreshold ?? 5
+        }))
+      );
+    }
   }
 
-  private mapStatus(s: StoreProduct['status']): 'Draft' | 'Active' | 'Inactive' | 'Archived' {
-    const map: Record<string, 'Draft' | 'Active' | 'Inactive' | 'Archived'> = {
-      draft: 'Draft',
-      active: 'Active',
-      inactive: 'Inactive',
-      archived: 'Archived'
-    };
-    return map[s] ?? 'Draft';
+  toggleTag(id: string): void {
+    const next = new Set(this.selectedTagIds());
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    this.selectedTagIds.set(next);
   }
 
-  private toStoreStatus(s: string): StoreProduct['status'] {
-    return s.toLowerCase() as StoreProduct['status'];
+  toggleAttribute(id: string): void {
+    const next = new Set(this.selectedAttributeIds());
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    this.selectedAttributeIds.set(next);
+  }
+
+  onVariantsToggle(): void {
+    if (!this.form.value.hasVariants) {
+      this.variantRows.set([]);
+      this.selectedAttributeIds.set(new Set());
+    }
+  }
+
+  generateVariants(): void {
+    const selected = this.attributes().filter((a) => this.selectedAttributeIds().has(a.id));
+    if (!selected.length) return;
+
+    const combos: Record<string, string>[] = [{}];
+    for (const attr of selected) {
+      const next: Record<string, string>[] = [];
+      for (const combo of combos) {
+        for (const val of attr.values) {
+          next.push({ ...combo, [attr.id]: val.id });
+        }
+      }
+      combos.splice(0, combos.length, ...next);
+    }
+
+    const v = this.form.getRawValue();
+    this.variantRows.set(
+      combos.map((combo, i) => ({
+        id: null,
+        sku: `variant-${i + 1}`,
+        price: v.price,
+        compareAtPrice: v.compareAtPrice,
+        barcode: '',
+        weight: v.weight,
+        isActive: true,
+        attributeSelections: combo,
+        quantityAvailable: 0,
+        lowStockThreshold: 5
+      }))
+    );
+  }
+
+  variantLabel(row: VariantRow): string {
+    return Object.entries(row.attributeSelections)
+      .map(([attrId, valId]) => {
+        const attr = this.attributes().find((a) => a.id === attrId);
+        const val = attr?.values.find((v) => v.id === valId);
+        return val ? `${attr?.name}: ${val.value}` : '';
+      })
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files ? Array.from(input.files) : [];
+    const startOrder = this.existingImages().length + this.pendingImages().length;
+    const newPending: PendingImageUpload[] = files.map((file, i) => ({
+      file,
+      altText: file.name,
+      sortOrder: startOrder + i,
+      isPrimary: this.existingImages().length === 0 && this.pendingImages().length === 0 && i === 0
+    }));
+    this.pendingImages.update((prev) => [...prev, ...newPending]);
+    input.value = '';
+  }
+
+  setPrimaryExisting(img: SaveProductImageItem & { url?: string }): void {
+    this.existingImages.update((items) =>
+      items.map((i) => ({ ...i, isPrimary: i.documentId === img.documentId }))
+    );
+    this.pendingImages.update((items) => items.map((i) => ({ ...i, isPrimary: false })));
+  }
+
+  setPrimaryPending(index: number): void {
+    this.pendingImages.update((items) =>
+      items.map((i, idx) => ({ ...i, isPrimary: idx === index }))
+    );
+    this.existingImages.update((items) => items.map((i) => ({ ...i, isPrimary: false })));
+  }
+
+  removePending(index: number): void {
+    this.pendingImages.update((items) => items.filter((_, i) => i !== index));
   }
 
   save(): void {
@@ -239,62 +465,87 @@ export class ProductFormComponent implements OnInit {
     }
     this.saving.set(true);
     const v = this.form.getRawValue();
-    const cat = categoryStore.getById(v.categoryId);
-    const brand = v.brandId ? this.brands().find((b) => b.id === v.brandId) : null;
-    const slug = v.slug.trim() || v.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `product-${Date.now()}`;
+    const tenantId = requireTenantId(this.auth);
 
-    let variants: ProductVariant[] = [];
-    if (v.hasVariants && v.variantSizes.trim()) {
-      variants = v.variantSizes.split(',').map((size, i) => ({
-        id: `v-${i}`,
-        name: size.trim(),
-        sku: `${v.sku || slug}-${size.trim()}`.replace(/\s+/g, ''),
-        price: v.price,
-        compareAtPrice: v.compareAtPrice,
-        stockQuantity: Math.floor(v.stockQuantity / Math.max(1, v.variantSizes.split(',').length))
-      })).filter((x) => x.name);
+    const variants: SaveProductVariantItem[] = this.variantRows().map((row) => ({
+      id: row.id,
+      sku: row.sku,
+      price: row.price,
+      compareAtPrice: row.compareAtPrice,
+      barcode: row.barcode || null,
+      weight: row.weight,
+      isActive: row.isActive,
+      attributes: Object.entries(row.attributeSelections).map(([attributeId, valueId]) => ({
+        attributeId,
+        valueId
+      }))
+    }));
+
+    let inventory: ProductSavePayload['inventory'] = [];
+    if (v.trackInventory) {
+      if (v.hasVariants && this.variantRows().length) {
+        inventory = this.variantRows().map((row) => ({
+          variantId: row.id,
+          quantityAvailable: row.quantityAvailable,
+          lowStockThreshold: row.lowStockThreshold
+        }));
+      } else {
+        inventory = [
+          {
+            variantId: null,
+            quantityAvailable: v.stockQuantity,
+            lowStockThreshold: v.lowStockThreshold
+          }
+        ];
+      }
     }
 
-    const product: StoreProduct = {
-      id: this.productId || `p-${Date.now()}`,
-      slug,
-      name: v.name,
-      sku: v.sku,
-      description: v.description || v.shortDescription,
-      category: cat?.name ?? '',
-      categoryId: v.categoryId,
-      brand: brand?.name ?? 'House Brand',
-      brandId: v.brandId || null,
-      price: v.price,
-      compareAtPrice: v.compareAtPrice,
-      costPrice: v.costPrice ?? undefined,
-      currency: 'USD',
-      imageUrl: v.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600',
-      galleryUrls: v.galleryText.split('\n').map((u) => u.trim()).filter(Boolean),
-      stockQuantity: v.hasVariants ? variants.reduce((s, x) => s + x.stockQuantity, 0) : v.stockQuantity,
-      status: v.isPublished ? 'active' : this.toStoreStatus(v.status),
-      featured: v.isFeatured,
-      trackInventory: v.trackInventory,
-      lowStockThreshold: v.lowStockThreshold,
-      variants,
-      rating: 4.5,
-      reviewCount: 0,
-      dimensions: v.weight ? { weight: v.weight } : undefined,
-      seo: {
-        slug,
-        metaTitle: v.metaTitle || v.name,
-        metaDescription: v.metaDescription || v.shortDescription,
-        keywords: []
-      }
+    const payload: ProductSavePayload = {
+      productId: this.productId || undefined,
+      core: {
+        tenantId,
+        categoryId: v.categoryId,
+        brandId: v.brandId || null,
+        name: v.name,
+        shortDescription: v.shortDescription || null,
+        description: v.description || null,
+        metaTitle: v.metaTitle || null,
+        metaDescription: v.metaDescription || null,
+        price: v.price,
+        compareAtPrice: v.compareAtPrice,
+        costPrice: v.costPrice,
+        weight: v.weight,
+        trackInventory: v.trackInventory,
+        status: v.publishOnSave ? ProductStatus.Draft : v.status
+      },
+      selectedAttributeIds: [...this.selectedAttributeIds()],
+      variants: v.hasVariants ? variants : [],
+      existingImages: this.existingImages().map(({ id, documentId, altText, sortOrder, isPrimary }) => ({
+        id,
+        documentId,
+        altText,
+        sortOrder,
+        isPrimary
+      })),
+      pendingImages: this.pendingImages(),
+      inventory,
+      tagIds: [...this.selectedTagIds()],
+      publish: v.publishOnSave
     };
 
-    this.api.save(product).subscribe({
-      next: () => {
+    this.api.save(payload).subscribe({
+      next: (saved) => {
         this.saving.set(false);
+        this.productId = saved.id;
+        this.isNew.set(false);
+        this.pendingImages.set([]);
         this.notifications.success('Product saved');
         void this.router.navigate(['/admin/products']);
       },
-      error: () => this.saving.set(false)
+      error: (err) => {
+        this.saving.set(false);
+        this.notifications.error(err?.message ?? 'Could not save product');
+      }
     });
   }
 }

@@ -1,7 +1,7 @@
 import { Component, inject, input, OnInit, signal } from '@angular/core';
 import { Portfolio } from '../../portfolio/models/portfolio.model';
 import { ProductApiService } from '../data-access/product-api.service';
-import { StoreProduct } from '../models/product.model';
+import { CatalogProductListItemDto } from '@features/catalog/models/catalog-storefront.model';
 import { ProductCardComponent } from './product-card.component';
 
 @Component({
@@ -37,7 +37,7 @@ export class SaleCollectionSectionComponent implements OnInit {
   readonly portfolio = input.required<Portfolio>();
   readonly storeSlug = input.required<string>();
   private readonly productApi = inject(ProductApiService);
-  readonly products = signal<StoreProduct[]>([]);
+  readonly products = signal<CatalogProductListItemDto[]>([]);
 
   ngOnInit(): void {
     if (!this.portfolio().saleCollection.enabled) return;
@@ -49,7 +49,7 @@ export class SaleCollectionSectionComponent implements OnInit {
         const items = ids.length
           ? ids
               .map((id) => result.items.find((p) => p.id === id))
-              .filter((p): p is StoreProduct => !!p)
+              .filter((p): p is CatalogProductListItemDto => !!p)
               .slice(0, sc.maxCount)
           : result.items.slice(0, sc.maxCount);
         this.products.set(items);

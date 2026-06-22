@@ -1,72 +1,97 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
-import { productCatalogStore } from '../../../store/data-access/product-catalog.store';
-import { ProductListFilters, ProductListResult, StoreProduct } from '../../../store/models/product.model';
+import { Injectable, inject } from '@angular/core';
+import { Observable, forkJoin, map, switchMap } from 'rxjs';
+import { AuthService } from '@core/auth/auth.service';
+import { ProductAdminApiService } from '@features/catalog/data-access/product-admin-api.service';
+import { ProductSaveOrchestrator } from '@features/catalog/data-access/product-save.orchestrator';
+import { requireTenantId } from '@features/catalog/data-access/catalog-api.util';
+import {
+  ProductDetailDto,
+  ProductListFilters,
+  ProductListResponse,
+  ProductSavePayload
+} from '@features/catalog/models/product-admin.model';
+import { ProductStatus } from '@features/catalog/models/product-status.enum';
+import { SaveProductRequest } from '@features/catalog/models/product-admin.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProductAdminService {
-  list(filters: ProductListFilters = {}): Observable<ProductListResult> {
-    let items = productCatalogStore.getAll();
+  private readonly api = inject(ProductAdminApiService);
+  private readonly orchestrator = inject(ProductSaveOrchestrator);
+  private readonly auth = inject(AuthService);
 
-    if (filters.search?.trim()) {
-      const q = filters.search.trim().toLowerCase();
-      items = items.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          (p.sku?.toLowerCase().includes(q) ?? false)
-      );
-    }
-    if (filters.category) items = items.filter((p) => p.category === filters.category);
-    if (filters.status) items = items.filter((p) => p.status === filters.status);
-    if (filters.minPrice != null) items = items.filter((p) => p.price >= filters.minPrice!);
-    if (filters.maxPrice != null) items = items.filter((p) => p.price <= filters.maxPrice!);
-
-    items.sort((a, b) => a.name.localeCompare(b.name));
-
-    const categories = [...new Set(productCatalogStore.getAll().map((p) => p.category))].sort();
-    const page = filters.page ?? 1;
-    const pageSize = filters.pageSize ?? 25;
-    const start = (page - 1) * pageSize;
-
-    return of({
-      items: items.slice(start, start + pageSize),
-      total: items.length,
-      page,
-      pageSize,
-      categories,
-      brands: [...new Set(items.map((p) => p.brand))].sort()
-    }).pipe(delay(200));
+  list(filters: ProductListFilters = {}): Observable<ProductListResponse> {
+    return this.api.list(filters);
   }
 
-  getById(id: string): Observable<StoreProduct | null> {
-    return of(productCatalogStore.getById(id) ?? null).pipe(delay(100));
+  getById(id: string): Observable<ProductDetailDto | null> {
+    return this.api.get(id).pipe(map((p) => p ?? null));
   }
 
-  save(product: StoreProduct): Observable<StoreProduct> {
-    const saved = productCatalogStore.upsert({
-      ...product,
-      createdAt: product.createdAt ?? new Date().toISOString()
-    });
-    return of(saved).pipe(delay(250));
+  save(payload: ProductSavePayload): Observable<ProductDetailDto> {
+    return this.orchestrator.save(payload);
   }
 
-  delete(id: string): Observable<boolean> {
-    return of(productCatalogStore.delete(id)).pipe(delay(200));
+  delete(id: string): Observable<void> {
+    return this.api.delete(id);
   }
 
-  duplicate(id: string): Observable<StoreProduct | null> {
-    return of(productCatalogStore.duplicate(id)).pipe(delay(200));
+  duplicate(id: string): Observable<ProductDetailDto | null> {
+    const tenantId = requireTenantId(this.auth);
+    return this.api.get(id, tenantId).pipe(
+      switchMap((source) => {
+        const core: SaveProductRequest = {
+          tenantId,
+          categoryId: source.categoryId,
+          brandId: source.brandId,
+          name: `${source.name} (Copy)`,
+          shortDescription: source.shortDescription,
+          description: source.description,
+          metaTitle: source.metaTitle,
+          metaDescription: source.metaDescription,
+          price: source.price,
+          compareAtPrice: source.compareAtPrice,
+          costPrice: source.costPrice,
+          weight: source.weight,
+          trackInventory: source.trackInventory,
+          status: ProductStatus.Draft
+        };
+        const payload: ProductSavePayload = {
+          core,
+          selectedAttributeIds: [],
+          variants: source.variants.map((v) => ({
+            id: null,
+            sku: `${v.sku}-COPY`,
+            price: v.price,
+            compareAtPrice: v.compareAtPrice,
+            barcode: v.barcode,
+            weight: v.weight,
+            isActive: v.isActive,
+            attributes: v.attributes.map((a) => ({
+              attributeId: a.attributeId,
+              valueId: a.valueId
+            }))
+          })),
+          existingImages: [],
+          pendingImages: [],
+          inventory: source.inventory.map((i) => ({
+            variantId: i.variantId,
+            quantityAvailable: i.quantityAvailable,
+            lowStockThreshold: i.lowStockThreshold
+          })),
+          tagIds: [...source.tagIds],
+          publish: false
+        };
+        return this.orchestrator.save(payload);
+      }),
+      map((p) => p ?? null)
+    );
   }
 
-  bulkUpdateStatus(ids: string[], status: StoreProduct['status']): Observable<number> {
-    let count = 0;
-    for (const id of ids) {
-      const p = productCatalogStore.getById(id);
-      if (p) {
-        productCatalogStore.upsert({ ...p, status });
-        count++;
-      }
-    }
-    return of(count).pipe(delay(200));
+  bulkUpdateStatus(ids: string[], status: ProductStatus): Observable<number> {
+    const tenantId = requireTenantId(this.auth);
+    if (ids.length === 0) return new Observable((s) => { s.next(0); s.complete(); });
+    return forkJoin(
+      ids.map((id) => this.api.patchStatus(id, { tenantId, status }))
+    ).pipe(map((results) => results.length));
   }
 }

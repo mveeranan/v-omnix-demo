@@ -1,11 +1,17 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell.component';
+import { AppTableComponent } from '@shared/ui/app-table.component';
+import { AdminStatusBadgeComponent } from '@shared/ui/admin-status-badge.component';
+import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { BrandAdminService } from '../data-access/brand-admin.service';
-import { BrandDto } from '../models/brand.model';
+import { BrandDto } from '@features/catalog/models/brand.model';
 import { NotificationService } from '@core/notifications/notification.service';
+import { AuthService } from '@core/auth/auth.service';
+import { requireTenantId } from '@features/catalog/data-access/catalog-api.util';
+import { LucideAngularModule, Award } from 'lucide-angular';
 
 @Component({
   selector: 'app-brands-list',
@@ -13,14 +19,16 @@ import { NotificationService } from '@core/notifications/notification.service';
   imports: [
     ReactiveFormsModule,
     AdminPageShellComponent,
+    AppTableComponent,
+    AdminStatusBadgeComponent,
+    AdminTableActionComponent,
     LoadingSpinnerComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    LucideAngularModule
   ],
   template: `
     <app-admin-page-shell eyebrow="Catalog" title="Brands" description="Optional product brands for your catalog.">
-      <div class="mb-4 flex justify-end">
-        <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Add brand</button>
-      </div>
+      <button admin-page-actions type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add brand</button>
 
       @if (loading()) {
         <app-loading-spinner label="Loading brands…" />
@@ -30,31 +38,45 @@ import { NotificationService } from '@core/notifications/notification.service';
           <button type="button" class="admin-section-action-btn mt-4 rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Create brand</button>
         </div>
       } @else {
-        <div class="admin-glass-card overflow-hidden rounded-xl">
-          <table class="w-full text-left text-sm">
-            <thead class="border-b border-[var(--border)]">
+        <app-table>
+          <table class="admin-data-table">
+            <thead>
               <tr>
-                <th class="p-3">Name</th>
-                <th class="p-3">Slug</th>
-                <th class="p-3">Active</th>
-                <th class="p-3">Actions</th>
+                <th class="admin-data-table__index">#</th>
+                <th>Brand name</th>
+                <th class="admin-data-table__col-status">Status</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
-              @for (b of brands(); track b.id) {
-                <tr class="border-t border-[var(--border)]">
-                  <td class="p-3 font-medium">{{ b.name }}</td>
-                  <td class="p-3 text-[var(--text-muted)]">{{ b.slug }}</td>
-                  <td class="p-3">{{ b.isActive ? 'Yes' : 'No' }}</td>
-                  <td class="p-3">
-                    <button type="button" class="mr-3 text-indigo-600 hover:underline" (click)="openEdit(b)">Edit</button>
-                    <button type="button" class="text-rose-600 hover:underline" (click)="confirmDelete(b)">Delete</button>
+              @for (b of brands(); track b.id; let i = $index) {
+                <tr class="admin-data-table__row">
+                  <td class="admin-data-table__index">{{ i + 1 }}</td>
+                  <td>
+                    <div class="admin-data-table__entity">
+                      <span class="admin-data-table__entity-icon"><lucide-icon [img]="brandIcon" [size]="16" [strokeWidth]="2" /></span>
+                      <div class="admin-data-table__entity-text">
+                        <div class="admin-data-table__entity-title">{{ b.name }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="admin-data-table__col-status">
+                    <app-admin-status-badge
+                      [label]="b.isActive ? 'Active' : 'Inactive'"
+                      [variant]="b.isActive ? 'active' : 'inactive'"
+                    />
+                  </td>
+                  <td class="admin-data-table__col-actions">
+                    <div class="admin-data-table__actions">
+                      <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(b)" />
+                      <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(b)" />
+                    </div>
                   </td>
                 </tr>
               }
             </tbody>
           </table>
-        </div>
+        </app-table>
       }
     </app-admin-page-shell>
 
@@ -66,10 +88,6 @@ import { NotificationService } from '@core/notifications/notification.service';
           <label class="block space-y-1">
             <span class="text-sm font-medium">Name</span>
             <input class="pf-editor-input w-full" formControlName="name" />
-          </label>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Slug</span>
-            <input class="pf-editor-input w-full" formControlName="slug" />
           </label>
           <label class="block space-y-1">
             <span class="text-sm font-medium">Description</span>
@@ -101,7 +119,9 @@ export class BrandsListComponent implements OnInit {
   private readonly api = inject(BrandAdminService);
   private readonly fb = inject(FormBuilder);
   private readonly notifications = inject(NotificationService);
+  private readonly auth = inject(AuthService);
 
+  readonly brandIcon = Award;
   readonly loading = signal(true);
   readonly brands = signal<BrandDto[]>([]);
   readonly modalOpen = signal(false);
@@ -110,7 +130,6 @@ export class BrandsListComponent implements OnInit {
 
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
-    slug: [''],
     description: [''],
     isActive: [true]
   });
@@ -132,13 +151,17 @@ export class BrandsListComponent implements OnInit {
 
   openCreate(): void {
     this.editingId.set(null);
-    this.form.reset({ name: '', slug: '', description: '', isActive: true });
+    this.form.reset({ name: '', description: '', isActive: true });
     this.modalOpen.set(true);
   }
 
   openEdit(b: BrandDto): void {
     this.editingId.set(b.id);
-    this.form.patchValue(b);
+    this.form.patchValue({
+      name: b.name,
+      description: b.description ?? '',
+      isActive: b.isActive
+    });
     this.modalOpen.set(true);
   }
 
@@ -150,12 +173,9 @@ export class BrandsListComponent implements OnInit {
     if (this.form.invalid) return;
     const v = this.form.getRawValue();
     const payload = {
-      tenantId: 'default',
+      tenantId: requireTenantId(this.auth),
       name: v.name.trim(),
-      slug: v.slug.trim() || v.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      description: v.description,
-      logoDocumentId: null,
-      logoUrl: '',
+      description: v.description || null,
       isActive: v.isActive
     };
     const id = this.editingId();

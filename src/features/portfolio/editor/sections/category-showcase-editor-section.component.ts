@@ -18,7 +18,7 @@ import { WebsiteSectionStateService } from '../../data-access/website-section-st
 
 import { PortfolioCategoryShowcase } from '../../models/portfolio.model';
 
-import { productCatalogStore } from '../../../store/data-access/product-catalog.store';
+import { CategoryAdminService } from '@features/admin/data-access/category-admin.service';
 
 
 
@@ -135,6 +135,7 @@ import { productCatalogStore } from '../../../store/data-access/product-catalog.
 export class CategoryShowcaseEditorSectionComponent implements OnInit {
 
   private readonly sectionState = inject(WebsiteSectionStateService);
+  private readonly categoryApi = inject(CategoryAdminService);
 
   readonly icon = Grid3x3;
 
@@ -150,13 +151,12 @@ export class CategoryShowcaseEditorSectionComponent implements OnInit {
 
   ngOnInit(): void {
 
-    const names = [
-
-      ...new Set(productCatalogStore.getAll().filter((p) => p.status === 'active').map((p) => p.category))
-
-    ].sort();
-
-    this.catalogCategories.set(names);
+    this.categoryApi.listFlat().subscribe({
+      next: (cats) => {
+        this.catalogCategories.set(cats.map((c) => c.name).sort());
+      },
+      error: () => this.catalogCategories.set([])
+    });
 
   }
 

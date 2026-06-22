@@ -2,6 +2,9 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell.component';
+import { AppTableComponent } from '@shared/ui/app-table.component';
+import { AdminStatusBadgeComponent, AdminStatusBadgeVariant } from '@shared/ui/admin-status-badge.component';
+import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { ReturnAdminService } from '../data-access/return-admin.service';
@@ -16,19 +19,25 @@ import { NotificationService } from '@core/notifications/notification.service';
     ReactiveFormsModule,
     FormsModule,
     AdminPageShellComponent,
+    AppTableComponent,
+    AdminStatusBadgeComponent,
+    AdminTableActionComponent,
     LoadingSpinnerComponent,
     ConfirmDialogComponent
   ],
   template: `
     <app-admin-page-shell eyebrow="Operations" title="Returns" description="Manage return requests and refund status.">
-      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <select class="pf-editor-input max-w-xs" [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()">
-          <option value="">All statuses</option>
-          @for (s of statuses; track s) {
-            <option [value]="s">{{ s }}</option>
-          }
-        </select>
-        <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">New return</button>
+      <div class="admin-data-table-toolbar">
+        <p class="admin-data-table-toolbar__summary">Showing {{ filtered().length }} of {{ returns().length }} returns</p>
+        <div class="admin-data-table-toolbar__filters">
+          <select class="pf-editor-input" [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()">
+            <option value="">All statuses</option>
+            @for (s of statuses; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+          <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ New return</button>
+        </div>
       </div>
 
       @if (loading()) {
@@ -38,37 +47,41 @@ import { NotificationService } from '@core/notifications/notification.service';
           <p class="font-medium">No returns found</p>
         </div>
       } @else {
-        <div class="admin-glass-card overflow-hidden rounded-xl">
-          <table class="w-full text-left text-sm">
-            <thead class="border-b border-[var(--border)] bg-black/[0.02] dark:bg-white/[0.02]">
+        <app-table>
+          <table class="admin-data-table">
+            <thead>
               <tr>
-                <th class="p-3">Order</th>
-                <th class="p-3">Customer</th>
-                <th class="p-3">Reason</th>
-                <th class="p-3">Refund</th>
-                <th class="p-3">Status</th>
-                <th class="p-3">Actions</th>
+                <th class="admin-data-table__index">#</th>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Reason</th>
+                <th>Refund</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              @for (r of filtered(); track r.id) {
-                <tr class="border-t border-[var(--border)]">
-                  <td class="p-3 font-medium">#{{ r.orderNumber }}</td>
-                  <td class="p-3">{{ r.customerName }}</td>
-                  <td class="p-3 text-[var(--text-muted)]">{{ r.reason }}</td>
-                  <td class="p-3">{{ format(r.refundAmount, r.currency) }}</td>
-                  <td class="p-3">
-                    <span class="rounded-full bg-zinc-100 px-2 py-0.5 text-xs capitalize dark:bg-zinc-800">{{ r.status }}</span>
+              @for (r of filtered(); track r.id; let i = $index) {
+                <tr class="admin-data-table__row">
+                  <td class="admin-data-table__index">{{ i + 1 }}</td>
+                  <td><span class="admin-data-table__entity-title">#{{ r.orderNumber }}</span></td>
+                  <td>{{ r.customerName }}</td>
+                  <td class="text-[var(--text-secondary)]">{{ r.reason }}</td>
+                  <td><span class="admin-data-table__price">{{ format(r.refundAmount, r.currency) }}</span></td>
+                  <td>
+                    <app-admin-status-badge [label]="r.status" [variant]="statusVariant(r.status)" />
                   </td>
-                  <td class="p-3">
-                    <button type="button" class="mr-3 text-indigo-600 hover:underline" (click)="openEdit(r)">Edit</button>
-                    <button type="button" class="text-rose-600 hover:underline" (click)="confirmDelete(r)">Delete</button>
+                  <td>
+                    <div class="admin-data-table__actions">
+                      <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(r)" />
+                      <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(r)" />
+                    </div>
                   </td>
                 </tr>
               }
             </tbody>
           </table>
-        </div>
+        </app-table>
       }
     </app-admin-page-shell>
 
@@ -173,6 +186,22 @@ export class ReturnsListComponent implements OnInit {
   applyFilter(): void {
     const all = this.returns();
     this.filtered.set(this.statusFilter ? all.filter((r) => r.status === this.statusFilter) : all);
+  }
+
+  statusVariant(status: ReturnStatus): AdminStatusBadgeVariant {
+    switch (status) {
+      case 'Approved':
+      case 'Completed':
+      case 'Received':
+        return 'success';
+      case 'Pending':
+      case 'Shipped':
+        return 'warning';
+      case 'Rejected':
+        return 'danger';
+      default:
+        return 'neutral';
+    }
   }
 
   openCreate(): void {

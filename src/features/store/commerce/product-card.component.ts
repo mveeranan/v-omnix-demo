@@ -1,8 +1,12 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideAngularModule, Star } from 'lucide-angular';
-import { StoreProduct, productDiscountPercent, productInStock } from '../models/product.model';
+import { CatalogProductListItemDto } from '@features/catalog/models/catalog-storefront.model';
+import {
+  productDiscountPercent,
+  catalogPrimaryImage
+} from '../models/product.model';
 import { CartStateService } from '../data-access/cart-state.service';
 
 @Component({
@@ -12,10 +16,7 @@ import { CartStateService } from '../data-access/cart-state.service';
   template: `
     <article class="mox-product-card">
       <a [routerLink]="productLink()" class="mox-product-card__media block">
-        <img [src]="product().imageUrl" [alt]="product().name" loading="lazy" />
-        @if (variantCount() > 1) {
-          <span class="mox-product-card__variant-badge">+{{ variantCount() - 1 }}</span>
-        }
+        <img [src]="imageUrl()" [alt]="product().name" loading="lazy" />
       </a>
       <div class="mox-product-card__body">
         <div class="mox-product-card__rating">
@@ -24,9 +25,9 @@ import { CartStateService } from '../data-access/cart-state.service';
         </div>
         <a [routerLink]="productLink()" class="mox-product-card__title">{{ product().name }}</a>
         <div class="mox-product-card__price-row">
-          <span class="mox-product-card__price">{{ product().price | currency: product().currency }}</span>
+          <span class="mox-product-card__price">{{ product().price | currency: 'USD' }}</span>
           @if (product().compareAtPrice && product().compareAtPrice! > product().price) {
-            <span class="mox-product-card__compare">{{ product().compareAtPrice | currency: product().currency }}</span>
+            <span class="mox-product-card__compare">{{ product().compareAtPrice | currency: 'USD' }}</span>
             @if (discount(); as d) {
               <span class="mox-product-card__off">{{ d }}% Off</span>
             }
@@ -47,14 +48,14 @@ import { CartStateService } from '../data-access/cart-state.service';
         <div class="mox-product-card__qty">
           <button type="button" class="mox-product-card__qty-btn" (click)="decrement()" [disabled]="qty() <= 1">−</button>
           <span class="mox-product-card__qty-val">{{ qty() }}</span>
-          <button type="button" class="mox-product-card__qty-btn" (click)="increment()" [disabled]="!inStock()">+</button>
+          <button type="button" class="mox-product-card__qty-btn" (click)="increment()">+</button>
         </div>
       }
     </article>
   `
 })
 export class ProductCardComponent {
-  readonly product = input.required<StoreProduct>();
+  readonly product = input.required<CatalogProductListItemDto>();
   readonly storeSlug = input.required<string>();
   readonly promoMarquee = input('');
   readonly showQtyControls = input(true);
@@ -63,18 +64,16 @@ export class ProductCardComponent {
   private readonly cart = inject(CartStateService);
   readonly qty = signal(1);
 
-  variantCount = () => Math.max(1, this.product().variants.length || 1);
+  readonly imageUrl = computed(() => catalogPrimaryImage(this.product()));
   discount = () => productDiscountPercent(this.product());
-  inStock = () => productInStock(this.product());
 
   productLink(): string[] {
     return ['/store', this.storeSlug(), 'products', this.product().slug];
   }
 
   increment(): void {
-    if (!this.inStock()) return;
     this.qty.update((q) => q + 1);
-    this.cart.addProduct(this.product());
+    this.cart.addListItem(this.product(), this.qty());
   }
 
   decrement(): void {

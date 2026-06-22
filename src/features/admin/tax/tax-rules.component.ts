@@ -1,11 +1,15 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell.component';
+import { AppTableComponent } from '@shared/ui/app-table.component';
+import { AdminStatusBadgeComponent } from '@shared/ui/admin-status-badge.component';
+import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { TaxRuleAdminService } from '../data-access/tax-rule-admin.service';
 import { TaxRule } from '../models/tax-rule.model';
 import { NotificationService } from '@core/notifications/notification.service';
+import { LucideAngularModule, Receipt } from 'lucide-angular';
 
 @Component({
   selector: 'app-tax-rules',
@@ -13,13 +17,17 @@ import { NotificationService } from '@core/notifications/notification.service';
   imports: [
     ReactiveFormsModule,
     AdminPageShellComponent,
+    AppTableComponent,
+    AdminStatusBadgeComponent,
+    AdminTableActionComponent,
     LoadingSpinnerComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    LucideAngularModule
   ],
   template: `
     <app-admin-page-shell eyebrow="Configuration" title="Tax Rules" description="Tax rules by country and region.">
       <div class="mb-4 flex justify-end">
-        <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Add tax rule</button>
+        <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add tax rule</button>
       </div>
 
       @if (loading()) {
@@ -30,37 +38,53 @@ import { NotificationService } from '@core/notifications/notification.service';
           <button type="button" class="admin-section-action-btn mt-4 rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Create tax rule</button>
         </div>
       } @else {
-        <div class="admin-glass-card overflow-hidden rounded-xl">
-          <table class="w-full text-left text-sm">
-            <thead class="border-b border-[var(--border)] bg-black/[0.02] dark:bg-white/[0.02]">
+        <app-table>
+          <table class="admin-data-table">
+            <thead>
               <tr>
-                <th class="p-3">Name</th>
-                <th class="p-3">Country</th>
-                <th class="p-3">Region</th>
-                <th class="p-3">Type</th>
-                <th class="p-3">Rate</th>
-                <th class="p-3">Active</th>
-                <th class="p-3">Actions</th>
+                <th class="admin-data-table__index">#</th>
+                <th>Name</th>
+                <th>Country</th>
+                <th>Region</th>
+                <th>Type</th>
+                <th>Rate</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              @for (r of rules(); track r.id) {
-                <tr class="border-t border-[var(--border)]">
-                  <td class="p-3 font-medium">{{ r.name }}</td>
-                  <td class="p-3">{{ r.country }}</td>
-                  <td class="p-3 text-[var(--text-muted)]">{{ r.region || '—' }}</td>
-                  <td class="p-3">{{ r.taxType }}</td>
-                  <td class="p-3">{{ r.rate }}%</td>
-                  <td class="p-3">{{ r.isActive ? 'Yes' : 'No' }}</td>
-                  <td class="p-3">
-                    <button type="button" class="mr-3 text-indigo-600 hover:underline" (click)="openEdit(r)">Edit</button>
-                    <button type="button" class="text-rose-600 hover:underline" (click)="confirmDelete(r)">Delete</button>
+              @for (r of rules(); track r.id; let i = $index) {
+                <tr class="admin-data-table__row">
+                  <td class="admin-data-table__index">{{ i + 1 }}</td>
+                  <td>
+                    <div class="admin-data-table__entity">
+                      <span class="admin-data-table__entity-icon"><lucide-icon [img]="taxIcon" /></span>
+                      <div class="admin-data-table__entity-text">
+                        <div class="admin-data-table__entity-title">{{ r.name }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ r.country }}</td>
+                  <td class="text-[var(--text-secondary)]">{{ r.region || '—' }}</td>
+                  <td>{{ r.taxType }}</td>
+                  <td><span class="admin-data-table__price">{{ r.rate }}%</span></td>
+                  <td>
+                    <app-admin-status-badge
+                      [label]="r.isActive ? 'Active' : 'Inactive'"
+                      [variant]="r.isActive ? 'active' : 'inactive'"
+                    />
+                  </td>
+                  <td>
+                    <div class="admin-data-table__actions">
+                      <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(r)" />
+                      <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(r)" />
+                    </div>
                   </td>
                 </tr>
               }
             </tbody>
           </table>
-        </div>
+        </app-table>
       }
     </app-admin-page-shell>
 
@@ -125,6 +149,7 @@ export class TaxRulesComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly notifications = inject(NotificationService);
 
+  readonly taxIcon = Receipt;
   readonly loading = signal(true);
   readonly rules = signal<TaxRule[]>([]);
   readonly modalOpen = signal(false);

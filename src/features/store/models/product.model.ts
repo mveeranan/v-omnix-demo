@@ -1,4 +1,9 @@
-export type ProductStatus = 'active' | 'draft' | 'archived' | 'inactive';
+import {
+  CatalogProductListFilters,
+  CatalogProductListItemDto,
+  CatalogProductListResult,
+  CatalogProductDetailDto
+} from '@features/catalog/models/catalog-storefront.model';
 
 export type ProductSortOption =
   | 'popular'
@@ -8,102 +13,55 @@ export type ProductSortOption =
   | 'rating'
   | 'reviews';
 
-export interface ProductSeo {
-  metaTitle: string;
-  metaDescription: string;
-  slug: string;
-  keywords: string[];
-}
-
-export interface ProductDimensions {
-  weight?: number;
-  length?: number;
-  width?: number;
-  height?: number;
-}
-
-export interface ProductVariant {
-  id: string;
-  name: string;
-  sku: string;
-  price: number;
-  compareAtPrice?: number | null;
-  stockQuantity: number;
-}
-
-export interface StoreProduct {
-  id: string;
-  slug: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-  galleryUrls: string[];
-  price: number;
-  compareAtPrice?: number | null;
-  costPrice?: number;
-  currency: string;
-  category: string;
-  categoryId?: string;
-  brand: string;
-  brandId?: string | null;
-  sku?: string;
-  featured: boolean;
-  status: ProductStatus;
-  stockQuantity: number;
-  variants: ProductVariant[];
-  rating?: number;
-  reviewCount?: number;
-  trackInventory?: boolean;
-  lowStockThreshold?: number;
-  tags?: string[];
-  seo?: ProductSeo;
-  dimensions?: ProductDimensions;
-  taxable?: boolean;
-  requiresShipping?: boolean;
-  createdAt?: string;
-}
-
-export interface ProductListFilters {
+export interface ProductListFilters extends CatalogProductListFilters {
   search?: string;
   category?: string;
   brand?: string;
   minPrice?: number;
   maxPrice?: number;
-  page?: number;
-  pageSize?: number;
   sort?: ProductSortOption;
   inStock?: boolean;
   onSale?: boolean;
   minRating?: number;
-  status?: ProductStatus;
 }
 
-export interface ProductListResult {
-  items: StoreProduct[];
-  total: number;
-  page: number;
-  pageSize: number;
+export interface ProductListResult extends CatalogProductListResult {
   categories: string[];
   brands: string[];
 }
 
-export function productDiscountPercent(product: StoreProduct): number | null {
+export type StoreProduct = CatalogProductListItemDto;
+export type StoreProductDetail = CatalogProductDetailDto;
+
+export type {
+  CatalogProductListItemDto,
+  CatalogProductDetailDto
+} from '@features/catalog/models/catalog-storefront.model';
+
+export {
+  catalogDiscountPercent,
+  catalogInStock,
+  catalogPrimaryImage
+} from '@features/catalog/models/catalog-storefront.model';
+
+export function productDiscountPercent(product: {
+  price: number;
+  compareAtPrice: number | null;
+}): number | null {
   if (!product.compareAtPrice || product.compareAtPrice <= product.price) {
     return null;
   }
   return Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100);
 }
 
-export function productInStock(product: StoreProduct): boolean {
+export function productInStock(product: CatalogProductDetailDto): boolean {
+  if (!product.trackInventory) return true;
   if (product.variants.length > 0) {
-    return product.variants.some((v) => v.stockQuantity > 0);
+    return product.variants.some((v) => v.stockAvailable > 0);
   }
-  return product.stockQuantity > 0;
+  return product.stockAvailable > 0;
 }
 
-export function productStockQuantity(product: StoreProduct): number {
-  if (product.variants.length > 0) {
-    return product.variants.reduce((sum, v) => sum + v.stockQuantity, 0);
-  }
-  return product.stockQuantity;
+export function variantLabel(variant: CatalogProductDetailDto['variants'][number]): string {
+  return variant.attributes.map((a) => a.value).join(' / ') || variant.sku;
 }

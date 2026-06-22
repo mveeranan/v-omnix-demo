@@ -11,7 +11,7 @@ import { PortfolioStateService } from '../../data-access/portfolio-state.service
 import { WebsiteSectionStateService } from '../../data-access/website-section-state.service';
 import { PortfolioSaleCollection } from '../../models/portfolio.model';
 import { ProductApiService } from '../../../store/data-access/product-api.service';
-import { StoreProduct } from '../../../store/models/product.model';
+import { CatalogProductListItemDto, catalogPrimaryImage } from '@features/catalog/models/catalog-storefront.model';
 
 @Component({
   selector: 'app-sale-collection-editor-section',
@@ -54,7 +54,7 @@ import { StoreProduct } from '../../../store/models/product.model';
               @for (product of catalog(); track product.id) {
                 <label class="pf-product-pin-item">
                   <input type="checkbox" [checked]="isPinned(product.id)" (change)="togglePin(product.id, $any($event.target).checked)" />
-                  <img [src]="product.imageUrl" alt="" class="pf-product-pin-item__img" />
+                  <img [src]="productImage(product)" alt="" class="pf-product-pin-item__img" />
                   <span class="pf-product-pin-item__name">{{ product.name }}</span>
                 </label>
               }
@@ -80,10 +80,14 @@ export class SaleCollectionEditorSectionComponent implements OnInit {
   readonly titleIcon = Type;
   readonly productsIcon = Package;
   readonly buffer = computed(() => this.sectionState.buffer<PortfolioSaleCollection>('saleCollection'));
-  readonly catalog = signal<StoreProduct[]>([]);
+  readonly catalog = signal<CatalogProductListItemDto[]>([]);
   readonly loading = signal(true);
 
   pinnedCount = computed(() => this.buffer()?.productIds?.length ?? 0);
+
+  productImage(product: CatalogProductListItemDto): string {
+    return catalogPrimaryImage(product);
+  }
 
   ngOnInit(): void {
     const slug = this.draft()?.slug;

@@ -1,11 +1,15 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell.component';
+import { AppTableComponent } from '@shared/ui/app-table.component';
+import { AdminStatusBadgeComponent } from '@shared/ui/admin-status-badge.component';
+import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { ReviewAdminService } from '../data-access/review-admin.service';
 import { Review } from '../models/review.model';
 import { NotificationService } from '@core/notifications/notification.service';
+import { LucideAngularModule, Star } from 'lucide-angular';
 
 @Component({
   selector: 'app-reviews-list',
@@ -13,13 +17,17 @@ import { NotificationService } from '@core/notifications/notification.service';
   imports: [
     ReactiveFormsModule,
     AdminPageShellComponent,
+    AppTableComponent,
+    AdminStatusBadgeComponent,
+    AdminTableActionComponent,
     LoadingSpinnerComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    LucideAngularModule
   ],
   template: `
     <app-admin-page-shell eyebrow="Business" title="Reviews" description="Customer testimonials and product reviews.">
       <div class="mb-4 flex justify-end">
-        <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Add review</button>
+        <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add review</button>
       </div>
 
       @if (loading()) {
@@ -30,35 +38,51 @@ import { NotificationService } from '@core/notifications/notification.service';
           <button type="button" class="admin-section-action-btn mt-4 rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Add review</button>
         </div>
       } @else {
-        <div class="admin-glass-card overflow-hidden rounded-xl">
-          <table class="w-full text-left text-sm">
-            <thead class="border-b border-[var(--border)] bg-black/[0.02] dark:bg-white/[0.02]">
+        <app-table>
+          <table class="admin-data-table">
+            <thead>
               <tr>
-                <th class="p-3">Author</th>
-                <th class="p-3">Product</th>
-                <th class="p-3">Rating</th>
-                <th class="p-3">Published</th>
-                <th class="p-3">Date</th>
-                <th class="p-3">Actions</th>
+                <th class="admin-data-table__index">#</th>
+                <th>Author</th>
+                <th>Product</th>
+                <th>Rating</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              @for (r of reviews(); track r.id) {
-                <tr class="border-t border-[var(--border)]">
-                  <td class="p-3 font-medium">{{ r.author }}</td>
-                  <td class="p-3 text-[var(--text-muted)]">{{ r.productName || '—' }}</td>
-                  <td class="p-3">{{ r.rating }} / 5</td>
-                  <td class="p-3">{{ r.isPublished ? 'Yes' : 'No' }}</td>
-                  <td class="p-3">{{ formatDate(r.createdAt) }}</td>
-                  <td class="p-3">
-                    <button type="button" class="mr-3 text-indigo-600 hover:underline" (click)="openEdit(r)">Edit</button>
-                    <button type="button" class="text-rose-600 hover:underline" (click)="confirmDelete(r)">Delete</button>
+              @for (r of reviews(); track r.id; let i = $index) {
+                <tr class="admin-data-table__row">
+                  <td class="admin-data-table__index">{{ i + 1 }}</td>
+                  <td>
+                    <div class="admin-data-table__entity">
+                      <span class="admin-data-table__entity-icon"><lucide-icon [img]="reviewIcon" /></span>
+                      <div class="admin-data-table__entity-text">
+                        <div class="admin-data-table__entity-title">{{ r.author }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-[var(--text-secondary)]">{{ r.productName || '—' }}</td>
+                  <td>{{ r.rating }} / 5</td>
+                  <td>
+                    <app-admin-status-badge
+                      [label]="r.isPublished ? 'Published' : 'Draft'"
+                      [variant]="r.isPublished ? 'active' : 'draft'"
+                    />
+                  </td>
+                  <td>{{ formatDate(r.createdAt) }}</td>
+                  <td>
+                    <div class="admin-data-table__actions">
+                      <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(r)" />
+                      <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(r)" />
+                    </div>
                   </td>
                 </tr>
               }
             </tbody>
           </table>
-        </div>
+        </app-table>
       }
     </app-admin-page-shell>
 
@@ -117,6 +141,7 @@ export class ReviewsListComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly notifications = inject(NotificationService);
 
+  readonly reviewIcon = Star;
   readonly loading = signal(true);
   readonly reviews = signal<Review[]>([]);
   readonly modalOpen = signal(false);

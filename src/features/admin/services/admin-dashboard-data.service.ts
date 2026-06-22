@@ -1,7 +1,7 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { productCatalogStore } from '@features/store/data-access/product-catalog.store';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { orderStore } from '../orders/data-access/order.store';
 import { subscriptionStore } from '../data-access/subscription.store';
+import { ProductAdminService } from '../products/data-access/product-admin.service';
 import { DashboardStats } from '../models/dashboard-stats.model';
 import {
   DashboardData,
@@ -11,8 +11,10 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class AdminDashboardDataService {
+  private readonly productApi = inject(ProductAdminService);
   private readonly loading = signal(false);
-  private readonly data = signal<DashboardData>(this.buildData());
+  private readonly data = signal<DashboardData>(this.buildData(0));
+  private readonly productCount = signal(0);
 
   readonly isLoading = this.loading.asReadonly();
   readonly dashboardData = this.data.asReadonly();
@@ -31,8 +33,18 @@ export class AdminDashboardDataService {
   });
 
   refreshFromStores(): void {
-    this.data.set(this.buildData());
-    this.loading.set(false);
+    this.loading.set(true);
+    this.productApi.list({ pageSize: 1 }).subscribe({
+      next: (r) => {
+        this.productCount.set(r.totalCount);
+        this.data.set(this.buildData(r.totalCount));
+        this.loading.set(false);
+      },
+      error: () => {
+        this.data.set(this.buildData(0));
+        this.loading.set(false);
+      }
+    });
   }
 
   markNotificationRead(id: string): void {
@@ -65,9 +77,8 @@ export class AdminDashboardDataService {
     }));
   }
 
-  private buildData(): DashboardData {
+  private buildData(totalProducts: number): DashboardData {
     const orders = orderStore.getAll();
-    const products = productCatalogStore.getAll();
     const sub = subscriptionStore.refreshFromSession();
     const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
     const pendingOrders = orders.filter((o) => o.status === 'pending').length;
@@ -76,7 +87,7 @@ export class AdminDashboardDataService {
       totalOrders: orders.length,
       totalRevenue,
       totalCustomers: new Set(orders.map((o) => o.customerEmail)).size,
-      totalProducts: products.length,
+      totalProducts,
       pendingOrders,
       subscriptionStatus: sub.status,
       planName: sub.planType

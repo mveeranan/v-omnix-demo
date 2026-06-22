@@ -3,7 +3,10 @@ import { Component, inject, input, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Portfolio } from '../../portfolio/models/portfolio.model';
 import { ProductApiService } from '../data-access/product-api.service';
-import { StoreProduct } from '../models/product.model';
+import {
+  CatalogProductListItemDto,
+  catalogPrimaryImage
+} from '@features/catalog/models/catalog-storefront.model';
 
 @Component({
   selector: 'app-offer-banner-section',
@@ -16,10 +19,10 @@ import { StoreProduct } from '../models/product.model';
           <div class="mox-offer-tiles">
             @for (product of products(); track product.id) {
               <a [routerLink]="productLink(product)" class="mox-offer-tile">
-                <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
+                <img [src]="imageUrl(product)" [alt]="product.name" loading="lazy" />
                 <div class="mox-offer-tile__overlay">
                   <span class="mox-offer-tile__title">{{ product.name }}</span>
-                  <span class="mox-offer-tile__price">{{ product.price | currency: product.currency }}</span>
+                  <span class="mox-offer-tile__price">{{ product.price | currency: 'USD' }}</span>
                 </div>
               </a>
             }
@@ -33,7 +36,7 @@ export class OfferBannerSectionComponent implements OnInit {
   readonly portfolio = input.required<Portfolio>();
   readonly storeSlug = input.required<string>();
   private readonly productApi = inject(ProductApiService);
-  readonly products = signal<StoreProduct[]>([]);
+  readonly products = signal<CatalogProductListItemDto[]>([]);
 
   ngOnInit(): void {
     const ids = this.portfolio().offerBanner.productIds;
@@ -44,7 +47,7 @@ export class OfferBannerSectionComponent implements OnInit {
         const items = ids.length
           ? ids
               .map((id) => result.items.find((p) => p.id === id))
-              .filter((p): p is StoreProduct => !!p)
+              .filter((p): p is CatalogProductListItemDto => !!p)
               .slice(0, 2)
           : result.items.slice(0, 2);
         this.products.set(items);
@@ -52,7 +55,11 @@ export class OfferBannerSectionComponent implements OnInit {
     });
   }
 
-  productLink(product: StoreProduct): string[] {
+  imageUrl(product: CatalogProductListItemDto): string {
+    return catalogPrimaryImage(product);
+  }
+
+  productLink(product: CatalogProductListItemDto): string[] {
     return ['/store', this.storeSlug(), 'products', product.slug];
   }
 }

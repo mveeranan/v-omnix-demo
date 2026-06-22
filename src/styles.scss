@@ -18,4 +18,6 @@
 @use "styles/features/store-commerce";
 @use "styles/features/mox-ecommerce";
 
+@import "styles/features/admin-data-table";
+
 @custom-variant dark (&:where(.dark, .dark *));
