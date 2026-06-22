@@ -5,19 +5,27 @@ import { ProductAdminApiService } from '@features/catalog/data-access/product-ad
 import { ProductSaveOrchestrator } from '@features/catalog/data-access/product-save.orchestrator';
 import { requireTenantId } from '@features/catalog/data-access/catalog-api.util';
 import {
+  PendingImageUpload,
   ProductDetailDto,
   ProductListFilters,
   ProductListResponse,
-  ProductSavePayload
+  ProductSavePayload,
+  SaveInventoryItem,
+  SaveProductImageItem,
+  SaveProductRequest,
+  SaveProductVariantItem
 } from '@features/catalog/models/product-admin.model';
 import { ProductStatus } from '@features/catalog/models/product-status.enum';
-import { SaveProductRequest } from '@features/catalog/models/product-admin.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProductAdminService {
   private readonly api = inject(ProductAdminApiService);
   private readonly orchestrator = inject(ProductSaveOrchestrator);
   private readonly auth = inject(AuthService);
+
+  private tenantId(): string {
+    return requireTenantId(this.auth);
+  }
 
   list(filters: ProductListFilters = {}): Observable<ProductListResponse> {
     return this.api.list(filters);
@@ -27,6 +35,35 @@ export class ProductAdminService {
     return this.api.get(id).pipe(map((p) => p ?? null));
   }
 
+  saveCore(productId: string | undefined, core: SaveProductRequest): Observable<ProductDetailDto> {
+    return this.orchestrator.saveCore(productId, core);
+  }
+
+  saveTags(productId: string, tagIds: string[]): Observable<ProductDetailDto> {
+    return this.orchestrator.saveTags(productId, this.tenantId(), tagIds);
+  }
+
+  saveImages(
+    productId: string,
+    existingImages: SaveProductImageItem[],
+    pendingImages: PendingImageUpload[]
+  ): Observable<ProductDetailDto> {
+    return this.orchestrator.saveImages(productId, this.tenantId(), existingImages, pendingImages);
+  }
+
+  saveVariants(
+    productId: string,
+    selectedAttributeIds: string[],
+    variants: SaveProductVariantItem[]
+  ): Observable<ProductDetailDto> {
+    return this.orchestrator.saveVariants(productId, this.tenantId(), selectedAttributeIds, variants);
+  }
+
+  saveInventory(productId: string, items: SaveInventoryItem[]): Observable<ProductDetailDto> {
+    return this.orchestrator.saveInventory(productId, this.tenantId(), items);
+  }
+
+  /** @deprecated Use section-specific save methods in the product form. Kept for duplicate flow. */
   save(payload: ProductSavePayload): Observable<ProductDetailDto> {
     return this.orchestrator.save(payload);
   }
@@ -60,7 +97,6 @@ export class ProductAdminService {
           selectedAttributeIds: [],
           variants: source.variants.map((v) => ({
             id: null,
-            sku: `${v.sku}-COPY`,
             price: v.price,
             compareAtPrice: v.compareAtPrice,
             barcode: v.barcode,
@@ -88,7 +124,7 @@ export class ProductAdminService {
   }
 
   bulkUpdateStatus(ids: string[], status: ProductStatus): Observable<number> {
-    const tenantId = requireTenantId(this.auth);
+    const tenantId = this.tenantId();
     if (ids.length === 0) return new Observable((s) => { s.next(0); s.complete(); });
     return forkJoin(
       ids.map((id) => this.api.patchStatus(id, { tenantId, status }))

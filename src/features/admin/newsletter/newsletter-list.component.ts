@@ -47,8 +47,8 @@ import { LucideAngularModule, Mail } from 'lucide-angular';
                 <th>Name</th>
                 <th>Source</th>
                 <th>Subscribed</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th class="admin-data-table__col-status">Status</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -66,13 +66,13 @@ import { LucideAngularModule, Mail } from 'lucide-angular';
                   <td class="text-[var(--text-secondary)]">{{ s.name || '—' }}</td>
                   <td class="capitalize">{{ s.source || '—' }}</td>
                   <td>{{ formatDate(s.subscribedAt) }}</td>
-                  <td>
+                  <td class="admin-data-table__col-status">
                     <app-admin-status-badge
                       [label]="s.isActive ? 'Active' : 'Inactive'"
                       [variant]="s.isActive ? 'active' : 'inactive'"
                     />
                   </td>
-                  <td>
+                  <td class="admin-data-table__col-actions">
                     <div class="admin-data-table__actions">
                       <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(s)" />
                       <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(s)" />

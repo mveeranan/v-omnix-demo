@@ -56,8 +56,8 @@ import { NotificationService } from '@core/notifications/notification.service';
                 <th>Customer</th>
                 <th>Reason</th>
                 <th>Refund</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th class="admin-data-table__col-status">Status</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -68,10 +68,10 @@ import { NotificationService } from '@core/notifications/notification.service';
                   <td>{{ r.customerName }}</td>
                   <td class="text-[var(--text-secondary)]">{{ r.reason }}</td>
                   <td><span class="admin-data-table__price">{{ format(r.refundAmount, r.currency) }}</span></td>
-                  <td>
+                  <td class="admin-data-table__col-status">
                     <app-admin-status-badge [label]="r.status" [variant]="statusVariant(r.status)" />
                   </td>
-                  <td>
+                  <td class="admin-data-table__col-actions">
                     <div class="admin-data-table__actions">
                       <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(r)" />
                       <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(r)" />

@@ -65,8 +65,8 @@ import { PaymentListResult } from './models/payment.model';
                 <th>Customer</th>
                 <th>Amount</th>
                 <th>Method</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th class="admin-data-table__col-status">Status</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -78,10 +78,10 @@ import { PaymentListResult } from './models/payment.model';
                   <td>{{ t.customerName }}</td>
                   <td><span class="admin-data-table__price">{{ format(t.amount, t.currency) }}</span></td>
                   <td class="capitalize">{{ t.method }}</td>
-                  <td>
+                  <td class="admin-data-table__col-status">
                     <app-admin-status-badge [label]="t.status" [variant]="statusVariant(t.status)" />
                   </td>
-                  <td>
+                  <td class="admin-data-table__col-actions">
                     @if (t.status === 'paid') {
                       <div class="admin-data-table__actions">
                         <app-admin-table-action label="Refund" variant="delete" (action)="refund(t.id, t.amount)" />

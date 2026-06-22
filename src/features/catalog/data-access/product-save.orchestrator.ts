@@ -5,9 +5,13 @@ import { FileCategory } from '@shared/models/enums/file-category.enum';
 import { documentIdFromUpload } from '@shared/models/dto/uploaded-document.dto';
 import { ProductStatus } from '../models/product-status.enum';
 import {
+  PendingImageUpload,
   ProductDetailDto,
   ProductSavePayload,
-  SaveProductImageItem
+  SaveInventoryItem,
+  SaveProductImageItem,
+  SaveProductRequest,
+  SaveProductVariantItem
 } from '../models/product-admin.model';
 import { ProductAdminApiService } from './product-admin-api.service';
 
@@ -16,6 +20,56 @@ export class ProductSaveOrchestrator {
   private readonly productApi = inject(ProductAdminApiService);
   private readonly documentUpload = inject(DocumentUploadService);
 
+  saveCore(productId: string | undefined, core: SaveProductRequest): Observable<ProductDetailDto> {
+    return productId
+      ? this.productApi.update(productId, core)
+      : this.productApi.create(core);
+  }
+
+  saveTags(productId: string, tenantId: string, tagIds: string[]): Observable<ProductDetailDto> {
+    return this.productApi.saveTags(productId, { tenantId, tagIds });
+  }
+
+  saveImages(
+    productId: string,
+    tenantId: string,
+    existingImages: SaveProductImageItem[],
+    pendingImages: PendingImageUpload[]
+  ): Observable<ProductDetailDto> {
+    if (pendingImages.length > 0) {
+      return this.uploadAndSaveImages(productId, tenantId, existingImages, pendingImages).pipe(
+        switchMap(() => this.productApi.get(productId, tenantId))
+      );
+    }
+    return this.productApi.saveImages(productId, { tenantId, images: existingImages }).pipe(
+      switchMap(() => this.productApi.get(productId, tenantId))
+    );
+  }
+
+  saveVariants(
+    productId: string,
+    tenantId: string,
+    selectedAttributeIds: string[],
+    variants: SaveProductVariantItem[]
+  ): Observable<ProductDetailDto> {
+    return this.productApi.saveVariants(productId, {
+      tenantId,
+      selectedAttributeIds,
+      variants: variants.map(({ sku: _sku, ...rest }) => rest)
+    });
+  }
+
+  saveInventory(
+    productId: string,
+    tenantId: string,
+    items: SaveInventoryItem[]
+  ): Observable<ProductDetailDto> {
+    return this.productApi
+      .saveInventory(productId, { tenantId, items })
+      .pipe(switchMap(() => this.productApi.get(productId, tenantId)));
+  }
+
+  /** Used only for duplicate-product flow. */
   save(payload: ProductSavePayload): Observable<ProductDetailDto> {
     const tenantId = payload.core.tenantId;
     const isUpdate = !!payload.productId;
@@ -35,7 +89,7 @@ export class ProductSaveOrchestrator {
               this.productApi.saveVariants(productId, {
                 tenantId,
                 selectedAttributeIds: payload.selectedAttributeIds,
-                variants: payload.variants
+                variants: payload.variants.map(({ sku: _sku, ...rest }) => rest)
               })
             )
           );
@@ -43,8 +97,8 @@ export class ProductSaveOrchestrator {
 
         if (payload.pendingImages.length > 0) {
           chain$ = chain$.pipe(
-            switchMap((current) =>
-              this.uploadAndSaveImages(productId, tenantId, payload, current).pipe(
+            switchMap(() =>
+              this.uploadAndSaveImages(productId, tenantId, payload.existingImages, payload.pendingImages).pipe(
                 switchMap(() => this.productApi.get(productId, tenantId))
               )
             )
@@ -63,10 +117,12 @@ export class ProductSaveOrchestrator {
         if (payload.core.trackInventory && payload.inventory.length > 0) {
           chain$ = chain$.pipe(
             switchMap(() =>
-              this.productApi.saveInventory(productId, {
-                tenantId,
-                items: payload.inventory
-              }).pipe(switchMap(() => this.productApi.get(productId, tenantId)))
+              this.productApi
+                .saveInventory(productId, {
+                  tenantId,
+                  items: payload.inventory
+                })
+                .pipe(switchMap(() => this.productApi.get(productId, tenantId)))
             )
           );
         }
@@ -99,14 +155,14 @@ export class ProductSaveOrchestrator {
   private uploadAndSaveImages(
     productId: string,
     tenantId: string,
-    payload: ProductSavePayload,
-    current: ProductDetailDto
+    existingImages: SaveProductImageItem[],
+    pendingImages: PendingImageUpload[]
   ): Observable<ProductDetailDto> {
-    const files = payload.pendingImages.map((p) => p.file);
+    const files = pendingImages.map((p) => p.file);
     return this.documentUpload.uploadMany(files, FileCategory.ProductImage, tenantId).pipe(
       switchMap((uploaded) => {
         const newImages: SaveProductImageItem[] = uploaded.map((doc, index) => {
-          const pending = payload.pendingImages[index];
+          const pending = pendingImages[index];
           return {
             id: null,
             documentId: documentIdFromUpload(doc),
@@ -115,7 +171,7 @@ export class ProductSaveOrchestrator {
             isPrimary: pending.isPrimary
           };
         });
-        const images = [...payload.existingImages, ...newImages];
+        const images = [...existingImages, ...newImages];
         if (!images.some((i) => i.isPrimary) && images.length > 0) {
           images[0] = { ...images[0], isPrimary: true };
         }

@@ -49,7 +49,7 @@ import { LucideAngularModule, User } from 'lucide-angular';
                 <th>Orders</th>
                 <th>Spent</th>
                 <th>Last order</th>
-                <th>Actions</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -68,7 +68,7 @@ import { LucideAngularModule, User } from 'lucide-angular';
                   <td>{{ c.totalOrders }}</td>
                   <td><span class="admin-data-table__price">{{ format(c.totalSpent, c.currency) }}</span></td>
                   <td>{{ formatDate(c.lastOrderDate) }}</td>
-                  <td>
+                  <td class="admin-data-table__col-actions">
                     <div class="admin-data-table__actions">
                       <app-admin-table-action label="View" variant="view" [routerLink]="['/admin/customers', c.id]" />
                     </div>

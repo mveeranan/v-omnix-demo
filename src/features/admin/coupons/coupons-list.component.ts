@@ -47,8 +47,8 @@ import { LucideAngularModule, Ticket } from 'lucide-angular';
                 <th>Code</th>
                 <th>Discount</th>
                 <th>Uses</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th class="admin-data-table__col-status">Status</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -65,13 +65,13 @@ import { LucideAngularModule, Ticket } from 'lucide-angular';
                   </td>
                   <td>{{ formatDiscount(c) }}</td>
                   <td>{{ c.useCount }}{{ c.maxUses ? ' / ' + c.maxUses : '' }}</td>
-                  <td>
+                  <td class="admin-data-table__col-status">
                     <app-admin-status-badge
                       [label]="c.isActive ? 'Active' : 'Inactive'"
                       [variant]="c.isActive ? 'active' : 'inactive'"
                     />
                   </td>
-                  <td>
+                  <td class="admin-data-table__col-actions">
                     <div class="admin-data-table__actions">
                       <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(c)" />
                       <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(c)" />

@@ -48,8 +48,8 @@ import { LucideAngularModule, Receipt } from 'lucide-angular';
                 <th>Region</th>
                 <th>Type</th>
                 <th>Rate</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th class="admin-data-table__col-status">Status</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -68,13 +68,13 @@ import { LucideAngularModule, Receipt } from 'lucide-angular';
                   <td class="text-[var(--text-secondary)]">{{ r.region || '—' }}</td>
                   <td>{{ r.taxType }}</td>
                   <td><span class="admin-data-table__price">{{ r.rate }}%</span></td>
-                  <td>
+                  <td class="admin-data-table__col-status">
                     <app-admin-status-badge
                       [label]="r.isActive ? 'Active' : 'Inactive'"
                       [variant]="r.isActive ? 'active' : 'inactive'"
                     />
                   </td>
-                  <td>
+                  <td class="admin-data-table__col-actions">
                     <div class="admin-data-table__actions">
                       <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(r)" />
                       <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(r)" />

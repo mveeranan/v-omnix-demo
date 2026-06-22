@@ -68,9 +68,9 @@ import { Order, OrderListResult, OrderStatus } from './models/order.model';
                 <th>Date</th>
                 <th>Customer</th>
                 <th>Total</th>
-                <th>Status</th>
+                <th class="admin-data-table__col-status">Status</th>
                 <th>Payment</th>
-                <th>Actions</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -81,13 +81,13 @@ import { Order, OrderListResult, OrderStatus } from './models/order.model';
                   <td>{{ formatDate(o.createdAt) }}</td>
                   <td>{{ o.customerName }}</td>
                   <td><span class="admin-data-table__price">{{ format(o.total, o.currency) }}</span></td>
-                  <td>
+                  <td class="admin-data-table__col-status">
                     <app-admin-status-badge [label]="o.status" [variant]="orderStatusVariant(o.status)" />
                   </td>
                   <td>
                     <app-admin-status-badge [label]="o.paymentStatus" [variant]="paymentStatusVariant(o.paymentStatus)" />
                   </td>
-                  <td>
+                  <td class="admin-data-table__col-actions">
                     <div class="admin-data-table__actions">
                       <app-admin-table-action label="View" variant="view" [routerLink]="['/admin/orders', o.id]" />
                     </div>

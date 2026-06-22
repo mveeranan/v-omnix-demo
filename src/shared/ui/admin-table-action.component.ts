@@ -11,12 +11,12 @@ export type AdminTableActionVariant = 'edit' | 'duplicate' | 'delete' | 'view';
   imports: [RouterLink, LucideAngularModule],
   template: `
     @if (routerLink(); as link) {
-      <a [routerLink]="link" class="admin-table-action" [class]="actionClass()">
+      <a [routerLink]="link" class="admin-table-action" [class]="actionClass()" [attr.aria-label]="label()">
         <lucide-icon [img]="icon()" [size]="14" [strokeWidth]="2" />
         <span class="admin-table-action__label">{{ label() }}</span>
       </a>
     } @else {
-      <button type="button" class="admin-table-action" [class]="actionClass()" (click)="action.emit()">
+      <button type="button" class="admin-table-action" [class]="actionClass()" [attr.aria-label]="label()" (click)="action.emit()">
         <lucide-icon [img]="icon()" [size]="14" [strokeWidth]="2" />
         <span class="admin-table-action__label">{{ label() }}</span>
       </button>

@@ -46,9 +46,9 @@ import { LucideAngularModule, Star } from 'lucide-angular';
                 <th>Author</th>
                 <th>Product</th>
                 <th>Rating</th>
-                <th>Status</th>
+                <th class="admin-data-table__col-status">Status</th>
                 <th>Date</th>
-                <th>Actions</th>
+                <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -65,14 +65,14 @@ import { LucideAngularModule, Star } from 'lucide-angular';
                   </td>
                   <td class="text-[var(--text-secondary)]">{{ r.productName || '—' }}</td>
                   <td>{{ r.rating }} / 5</td>
-                  <td>
+                  <td class="admin-data-table__col-status">
                     <app-admin-status-badge
                       [label]="r.isPublished ? 'Published' : 'Draft'"
                       [variant]="r.isPublished ? 'active' : 'draft'"
                     />
                   </td>
                   <td>{{ formatDate(r.createdAt) }}</td>
-                  <td>
+                  <td class="admin-data-table__col-actions">
                     <div class="admin-data-table__actions">
                       <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(r)" />
                       <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(r)" />

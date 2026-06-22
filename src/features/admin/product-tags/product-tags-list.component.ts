@@ -42,7 +42,7 @@ import { LucideAngularModule, Tag } from 'lucide-angular';
               <tr>
                 <th class="admin-data-table__index">#</th>
                 <th>Tag name</th>
-                <th>Status</th>
+                <th class="admin-data-table__col-status">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -57,7 +57,7 @@ import { LucideAngularModule, Tag } from 'lucide-angular';
                       </div>
                     </div>
                   </td>
-                  <td>
+                  <td class="admin-data-table__col-status">
                     <app-admin-status-badge
                       [label]="t.isActive ? 'Active' : 'Inactive'"
                       [variant]="t.isActive ? 'active' : 'inactive'"

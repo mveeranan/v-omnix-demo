@@ -120,7 +120,8 @@ export interface PatchProductStatusRequest {
 
 export interface SaveProductVariantItem {
   id: string | null;
-  sku: string;
+  /** Server-generated on create; omit from upsert requests. */
+  sku?: string;
   price: number;
   compareAtPrice: number | null;
   barcode: string | null;
