@@ -118,6 +118,23 @@ export interface PatchProductStatusRequest {
   status: ProductStatus;
 }
 
+export interface BulkUpdateProductStatusRequest {
+  tenantId: string;
+  productIds: string[];
+  status: ProductStatus;
+}
+
+export interface BulkProductStatusFailure {
+  productId: string;
+  error: string;
+}
+
+export interface BulkUpdateProductStatusResult {
+  successCount: number;
+  failureCount: number;
+  failures: BulkProductStatusFailure[];
+}
+
 export interface SaveProductVariantItem {
   id: string | null;
   /** Server-generated on create; omit from upsert requests. */

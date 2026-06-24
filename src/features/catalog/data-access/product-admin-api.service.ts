@@ -6,6 +6,8 @@ import { ApiResponse } from '@shared/models/api-response.model';
 import { AuthService } from '@core/auth/auth.service';
 import {
   AdjustInventoryRequest,
+  BulkUpdateProductStatusRequest,
+  BulkUpdateProductStatusResult,
   InventoryItemDto,
   PatchProductStatusRequest,
   ProductDetailDto,
@@ -71,6 +73,12 @@ export class ProductAdminApiService {
   patchStatus(id: string, body: PatchProductStatusRequest): Observable<ProductDetailDto> {
     return this.http
       .patch<ApiResponse<ProductDetailDto>>(API_ENDPOINTS.products.patchStatus(id), body)
+      .pipe(map(unwrapApiResponse));
+  }
+
+  bulkUpdateStatus(body: BulkUpdateProductStatusRequest): Observable<BulkUpdateProductStatusResult> {
+    return this.http
+      .put<ApiResponse<BulkUpdateProductStatusResult>>(API_ENDPOINTS.products.bulkStatus, body)
       .pipe(map(unwrapApiResponse));
   }
 

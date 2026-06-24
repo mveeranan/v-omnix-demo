@@ -40,6 +40,53 @@ export function selectedAttributeIdsFromProduct(p: ProductDetailDto): Set<string
   return ids;
 }
 
+export function attributeIdsFromRows(rows: VariantRow[]): Set<string> {
+  const ids = new Set<string>();
+  rows.forEach((row) => Object.keys(row.attributeSelections).forEach((id) => ids.add(id)));
+  return ids;
+}
+
+export function variantSelectionsKey(selections: Record<string, string>): string {
+  return Object.entries(selections)
+    .filter(([, valueId]) => !!valueId)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([attributeId, valueId]) => `${attributeId}:${valueId}`)
+    .join('|');
+}
+
+export function addVariantRow(
+  rows: VariantRow[],
+  attributeSelections: Record<string, string>,
+  defaults: { price: number; compareAtPrice: number | null; weight: number | null }
+): VariantRow[] {
+  const selections = Object.fromEntries(
+    Object.entries(attributeSelections).filter(([, valueId]) => !!valueId)
+  );
+  if (!Object.keys(selections).length) return rows;
+
+  const key = variantSelectionsKey(selections);
+  const isDuplicate = rows.some((row) => variantSelectionsKey(row.attributeSelections) === key);
+  if (isDuplicate) return rows;
+
+  return [
+    ...rows,
+    {
+      id: null,
+      sku: '',
+      price: defaults.price,
+      compareAtPrice: defaults.compareAtPrice,
+      barcode: '',
+      weight: defaults.weight,
+      isActive: true,
+      attributeSelections: selections
+    }
+  ];
+}
+
+export function removeVariantRow(rows: VariantRow[], index: number): VariantRow[] {
+  return rows.filter((_, i) => i !== index);
+}
+
 export function generateVariantRows(
   attributes: ProductAttributeDto[],
   selectedAttributeIds: Set<string>,

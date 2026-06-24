@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, map, switchMap } from 'rxjs';
+import { Observable, map, of, switchMap } from 'rxjs';
 import { AuthService } from '@core/auth/auth.service';
 import { ProductAdminApiService } from '@features/catalog/data-access/product-admin-api.service';
 import { ProductSaveOrchestrator } from '@features/catalog/data-access/product-save.orchestrator';
@@ -13,7 +13,8 @@ import {
   SaveInventoryItem,
   SaveProductImageItem,
   SaveProductRequest,
-  SaveProductVariantItem
+  SaveProductVariantItem,
+  BulkUpdateProductStatusResult
 } from '@features/catalog/models/product-admin.model';
 import { ProductStatus } from '@features/catalog/models/product-status.enum';
 
@@ -123,11 +124,14 @@ export class ProductAdminService {
     );
   }
 
-  bulkUpdateStatus(ids: string[], status: ProductStatus): Observable<number> {
-    const tenantId = this.tenantId();
-    if (ids.length === 0) return new Observable((s) => { s.next(0); s.complete(); });
-    return forkJoin(
-      ids.map((id) => this.api.patchStatus(id, { tenantId, status }))
-    ).pipe(map((results) => results.length));
+  bulkUpdateStatus(productIds: string[], status: ProductStatus): Observable<BulkUpdateProductStatusResult> {
+    if (productIds.length === 0) {
+      return of({ successCount: 0, failureCount: 0, failures: [] });
+    }
+    return this.api.bulkUpdateStatus({
+      tenantId: this.tenantId(),
+      productIds,
+      status
+    });
   }
 }

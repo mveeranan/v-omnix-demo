@@ -88,6 +88,7 @@ export const API_ENDPOINTS = {
     delete: (id: string, tenantId: string) =>
       `${base}/products/${encodeURIComponent(id)}?tenantId=${encodeURIComponent(tenantId)}`,
     patchStatus: (id: string) => `${base}/products/${encodeURIComponent(id)}/status`,
+    bulkStatus: `${base}/products/status`,
     variants: (id: string) => `${base}/products/${encodeURIComponent(id)}/variants`,
     images: (id: string) => `${base}/products/${encodeURIComponent(id)}/images`,
     inventory: (id: string, tenantId: string) =>

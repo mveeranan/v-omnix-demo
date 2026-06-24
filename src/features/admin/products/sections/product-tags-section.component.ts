@@ -11,52 +11,45 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
   standalone: true,
   imports: [RouterLink, AdminFormSectionCardComponent],
   template: `
-    @if (!state.sectionsEnabled()) {
-      <div class="pf-editor-card rounded-xl p-4">
-        <p class="text-sm font-semibold">Tags</p>
-        <p class="mt-1 text-sm text-[var(--text-muted)]">Save product details first to enable this section.</p>
-      </div>
-    } @else {
-      <app-admin-form-section-card
-        title="Tags"
-        subtitle="Product labels for filtering and discovery"
-        [icon]="sectionIcon"
-        [complete]="isComplete()"
-        [(expanded)]="expanded"
-        [editing]="editing()"
-        [saving]="state.isSectionSaving('tags')"
-        [canSave]="!!state.productId()"
-        [lastSavedAt]="state.sectionLastSaved('tags')"
-        (edit)="startEdit()"
-        (save)="save()"
-        (cancel)="cancelEdit()"
-      >
-        @if (!editing() && state.product()) {
-          <div class="flex flex-wrap gap-2">
-            @for (tag of selectedTags(); track tag.id) {
-              <span class="rounded-lg border border-[var(--border)] px-2 py-1 text-sm">{{ tag.name }}</span>
-            }
-            @if (!selectedTags().length) {
-              <p class="text-sm text-[var(--text-muted)]">No tags assigned.</p>
-            }
-          </div>
-        } @else {
-          <div class="flex flex-wrap gap-2">
-            @for (tag of state.tags(); track tag.id) {
-              <label class="flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm">
-                <input type="checkbox" [checked]="selectedTagIds().has(tag.id)" (change)="toggleTag(tag.id)" />
-                {{ tag.name }}
-              </label>
-            }
-            @if (!state.tags().length) {
-              <p class="text-sm text-[var(--text-muted)]">
-                No tags yet. <a routerLink="/admin/product-tags" class="underline">Create tags</a>
-              </p>
-            }
-          </div>
-        }
-      </app-admin-form-section-card>
-    }
+    <app-admin-form-section-card
+      title="Tags"
+      [icon]="sectionIcon"
+      [disabled]="!state.sectionsEnabled()"
+      [complete]="isComplete()"
+      [(expanded)]="expanded"
+      [editing]="editing()"
+      [saving]="state.isSectionSaving('tags')"
+      [canSave]="!!state.productId()"
+      [lastSavedAt]="state.sectionLastSaved('tags')"
+      (edit)="startEdit()"
+      (save)="save()"
+      (cancel)="cancelEdit()"
+    >
+      @if (!editing() && state.product()) {
+        <div class="flex flex-wrap gap-2">
+          @for (tag of selectedTags(); track tag.id) {
+            <span class="rounded-lg border border-[var(--border)] px-2 py-1 text-sm">{{ tag.name }}</span>
+          }
+          @if (!selectedTags().length) {
+            <p class="text-sm text-[var(--text-muted)]">No tags assigned.</p>
+          }
+        </div>
+      } @else {
+        <div class="flex flex-wrap gap-2">
+          @for (tag of state.tags(); track tag.id) {
+            <label class="flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm">
+              <input type="checkbox" [checked]="selectedTagIds().has(tag.id)" (change)="toggleTag(tag.id)" />
+              {{ tag.name }}
+            </label>
+          }
+          @if (!state.tags().length) {
+            <p class="text-sm text-[var(--text-muted)]">
+              No tags yet. <a routerLink="/admin/product-tags" class="underline">Create tags</a>
+            </p>
+          }
+        </div>
+      }
+    </app-admin-form-section-card>
   `
 })
 export class ProductTagsSectionComponent {

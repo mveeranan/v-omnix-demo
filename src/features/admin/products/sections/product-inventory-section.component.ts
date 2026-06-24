@@ -1,4 +1,4 @@
-import { afterNextRender, Component, effect, inject, Injector, signal } from '@angular/core';
+import { afterNextRender, Component, computed, effect, inject, Injector, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Warehouse } from 'lucide-angular';
 import { AdminFormSectionCardComponent } from '@features/admin/shared/admin-form-section-card.component';
@@ -13,88 +13,80 @@ import { stockRowsFromProduct, VariantStockRow } from './product-variant.util';
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, AdminFormSectionCardComponent],
   template: `
-    @if (!state.sectionsEnabled()) {
-      <div class="pf-editor-card rounded-xl p-4">
-        <p class="text-sm font-semibold">Inventory</p>
-        <p class="mt-1 text-sm text-[var(--text-muted)]">Save product details first to enable this section.</p>
-      </div>
-    } @else {
-      <app-admin-form-section-card
-        title="Inventory"
-        subtitle="Stock levels and low-stock alerts"
-        [icon]="sectionIcon"
-        [complete]="isComplete()"
-        [(expanded)]="expanded"
-        [editing]="editing()"
-        [saving]="state.isSectionSaving('inventory')"
-        [canSave]="canSave()"
-        [lastSavedAt]="state.sectionLastSaved('inventory')"
-        (edit)="startEdit()"
-        (save)="save()"
-        (cancel)="cancelEdit()"
-      >
-        @if (!trackInventory()) {
-          <p class="text-sm text-[var(--text-muted)]">Inventory tracking is disabled for this product.</p>
-        } @else if (!editing() && state.product()) {
-          @if (hasActiveVariants()) {
-            <ul class="space-y-2 text-sm">
-              @for (row of stockRows(); track row.variantId) {
-                <li class="rounded-lg border border-[var(--border)] px-3 py-2">
-                  <span class="font-medium">{{ row.sku }}</span>
-                  <span class="text-[var(--text-muted)]"> ({{ row.label }})</span>
-                  <span class="text-[var(--text-muted)]">
-                    — Qty {{ row.quantityAvailable }}, low stock {{ row.lowStockThreshold }}
-                  </span>
-                </li>
-              }
-            </ul>
-          } @else {
-            <dl class="grid gap-2 text-sm sm:grid-cols-2">
-              <div>
-                <dt class="text-[var(--text-muted)]">Quantity available</dt>
-                <dd class="font-medium">{{ simpleQty() }}</dd>
-              </div>
-              <div>
-                <dt class="text-[var(--text-muted)]">Low stock threshold</dt>
-                <dd class="font-medium">{{ simpleLowStock() }}</dd>
-              </div>
-            </dl>
-          }
-        } @else if (trackInventory()) {
-          @if (hasActiveVariants()) {
-            @if (!stockRows().length) {
-              <p class="text-sm text-amber-700 dark:text-amber-200">
-                Save variants first to set per-variant inventory.
-              </p>
-            }
+    <app-admin-form-section-card
+      title="Inventory"
+      [icon]="sectionIcon"
+      [disabled]="!state.sectionsEnabled()"
+      [complete]="isComplete()"
+      [(expanded)]="expanded"
+      [editing]="editing()"
+      [saving]="state.isSectionSaving('inventory')"
+      [canSave]="canSave()"
+      [lastSavedAt]="state.sectionLastSaved('inventory')"
+      (edit)="startEdit()"
+      (save)="save()"
+      (cancel)="cancelEdit()"
+    >
+      @if (!trackInventory()) {
+        <p class="text-sm text-[var(--text-muted)]">Inventory tracking is disabled for this product.</p>
+      } @else if (!editing() && state.product()) {
+        @if (hasActiveVariants()) {
+          <ul class="space-y-2 text-sm">
             @for (row of stockRows(); track row.variantId) {
-              <div class="mb-3 grid gap-3 rounded-lg border border-[var(--border)] p-3 sm:grid-cols-3">
-                <span class="text-sm font-medium sm:col-span-3">{{ row.sku }} — {{ row.label }}</span>
-                <label class="block space-y-1">
-                  <span class="text-xs">Qty</span>
-                  <input class="pf-editor-input w-full" type="number" [(ngModel)]="row.quantityAvailable" />
-                </label>
-                <label class="block space-y-1">
-                  <span class="text-xs">Low stock</span>
-                  <input class="pf-editor-input w-full" type="number" [(ngModel)]="row.lowStockThreshold" />
-                </label>
-              </div>
+              <li class="rounded-lg border border-[var(--border)] px-3 py-2">
+                <span class="font-medium">{{ productName() }} — {{ row.label }}</span>
+                <span class="text-[var(--text-muted)]">
+                  — Qty {{ row.quantityAvailable }}, low stock {{ row.lowStockThreshold }}
+                </span>
+              </li>
             }
-          } @else {
-            <form [formGroup]="simpleForm" class="space-y-4">
-              <label class="block space-y-1">
-                <span class="text-sm font-medium">Quantity available</span>
-                <input class="pf-editor-input w-full" type="number" formControlName="stockQuantity" />
-              </label>
-              <label class="block space-y-1">
-                <span class="text-sm font-medium">Low stock threshold</span>
-                <input class="pf-editor-input w-full" type="number" formControlName="lowStockThreshold" />
-              </label>
-            </form>
-          }
+          </ul>
+        } @else {
+          <dl class="grid gap-2 text-sm sm:grid-cols-2">
+            <div>
+              <dt class="text-[var(--text-muted)]">Quantity available</dt>
+              <dd class="font-medium">{{ simpleQty() }}</dd>
+            </div>
+            <div>
+              <dt class="text-[var(--text-muted)]">Low stock threshold</dt>
+              <dd class="font-medium">{{ simpleLowStock() }}</dd>
+            </div>
+          </dl>
         }
-      </app-admin-form-section-card>
-    }
+      } @else if (trackInventory()) {
+        @if (hasActiveVariants()) {
+          @if (!stockRows().length) {
+            <p class="text-sm text-amber-700 dark:text-amber-200">
+              Save variants first to set per-variant inventory.
+            </p>
+          }
+          @for (row of stockRows(); track row.variantId) {
+            <div class="mb-3 grid gap-3 rounded-lg border border-[var(--border)] p-3 sm:grid-cols-3">
+              <span class="text-sm font-medium sm:col-span-3">{{ productName() }} — {{ row.label }}</span>
+              <label class="block space-y-1">
+                <span class="text-xs">Qty</span>
+                <input class="pf-editor-input w-full" type="number" [(ngModel)]="row.quantityAvailable" />
+              </label>
+              <label class="block space-y-1">
+                <span class="text-xs">Low stock</span>
+                <input class="pf-editor-input w-full" type="number" [(ngModel)]="row.lowStockThreshold" />
+              </label>
+            </div>
+          }
+        } @else {
+          <form [formGroup]="simpleForm" class="space-y-4">
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Quantity available</span>
+              <input class="pf-editor-input w-full" type="number" formControlName="stockQuantity" />
+            </label>
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Low stock threshold</span>
+              <input class="pf-editor-input w-full" type="number" formControlName="lowStockThreshold" />
+            </label>
+          </form>
+        }
+      }
+    </app-admin-form-section-card>
   `
 })
 export class ProductInventorySectionComponent {
@@ -108,6 +100,7 @@ export class ProductInventorySectionComponent {
   readonly expanded = signal(false);
   readonly editing = signal(false);
   readonly stockRows = signal<VariantStockRow[]>([]);
+  readonly productName = computed(() => this.state.product()?.name ?? 'Product');
 
   readonly simpleForm = this.fb.nonNullable.group({
     stockQuantity: [0, Validators.min(0)],
