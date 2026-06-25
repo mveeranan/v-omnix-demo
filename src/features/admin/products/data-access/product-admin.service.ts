@@ -1,31 +1,41 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, of, switchMap } from 'rxjs';
 import { AuthService } from '@core/auth/auth.service';
-import { ProductAdminApiService } from '@features/catalog/data-access/product-admin-api.service';
+import {
+  InventoryApiService,
+  ProductAdminApiService
+} from '@features/catalog/data-access/product-admin-api.service';
 import { ProductSaveOrchestrator } from '@features/catalog/data-access/product-save.orchestrator';
 import { requireTenantId } from '@features/catalog/data-access/catalog-api.util';
 import {
+  AdjustInventoryRequest,
+  BulkUpdateProductStatusResult,
+  CreateInventoryRequest,
   PendingImageUpload,
   ProductDetailDto,
   ProductListFilters,
   ProductListResponse,
   ProductSavePayload,
-  SaveInventoryItem,
   SaveProductImageItem,
   SaveProductRequest,
-  SaveProductVariantItem,
-  BulkUpdateProductStatusResult
+  SaveProductVariantRequest,
+  UpdateInventoryRequest
 } from '@features/catalog/models/product-admin.model';
 import { ProductStatus } from '@features/catalog/models/product-status.enum';
 
 @Injectable({ providedIn: 'root' })
 export class ProductAdminService {
   private readonly api = inject(ProductAdminApiService);
+  private readonly inventoryApi = inject(InventoryApiService);
   private readonly orchestrator = inject(ProductSaveOrchestrator);
   private readonly auth = inject(AuthService);
 
   private tenantId(): string {
     return requireTenantId(this.auth);
+  }
+
+  private refreshProduct(productId: string): Observable<ProductDetailDto> {
+    return this.api.get(productId, this.tenantId());
   }
 
   list(filters: ProductListFilters = {}): Observable<ProductListResponse> {
@@ -52,16 +62,61 @@ export class ProductAdminService {
     return this.orchestrator.saveImages(productId, this.tenantId(), existingImages, pendingImages);
   }
 
-  saveVariants(
-    productId: string,
-    selectedAttributeIds: string[],
-    variants: SaveProductVariantItem[]
-  ): Observable<ProductDetailDto> {
-    return this.orchestrator.saveVariants(productId, this.tenantId(), selectedAttributeIds, variants);
+  createVariant(productId: string, body: Omit<SaveProductVariantRequest, 'tenantId'>): Observable<ProductDetailDto> {
+    return this.api
+      .createVariant(productId, { ...body, tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
   }
 
-  saveInventory(productId: string, items: SaveInventoryItem[]): Observable<ProductDetailDto> {
-    return this.orchestrator.saveInventory(productId, this.tenantId(), items);
+  updateVariant(
+    productId: string,
+    variantId: string,
+    body: Omit<SaveProductVariantRequest, 'tenantId'>
+  ): Observable<ProductDetailDto> {
+    return this.api
+      .updateVariant(productId, variantId, { ...body, tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
+  }
+
+  deleteVariant(productId: string, variantId: string): Observable<ProductDetailDto> {
+    return this.api
+      .deleteVariant(productId, variantId, { tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
+  }
+
+  createInventory(
+    productId: string,
+    body: Omit<CreateInventoryRequest, 'tenantId'>
+  ): Observable<ProductDetailDto> {
+    return this.api
+      .createInventory(productId, { ...body, tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
+  }
+
+  updateInventory(
+    productId: string,
+    inventoryId: string,
+    body: Omit<UpdateInventoryRequest, 'tenantId'>
+  ): Observable<ProductDetailDto> {
+    return this.api
+      .updateInventory(productId, inventoryId, { ...body, tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
+  }
+
+  deleteInventory(productId: string, inventoryId: string): Observable<ProductDetailDto> {
+    return this.api
+      .deleteInventory(productId, inventoryId, { tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
+  }
+
+  adjustInventory(
+    productId: string,
+    inventoryId: string,
+    body: Omit<AdjustInventoryRequest, 'tenantId'>
+  ): Observable<ProductDetailDto> {
+    return this.inventoryApi
+      .adjust(inventoryId, { ...body, tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
   }
 
   /** @deprecated Use section-specific save methods in the product form. Kept for duplicate flow. */
@@ -95,9 +150,8 @@ export class ProductAdminService {
         };
         const payload: ProductSavePayload = {
           core,
-          selectedAttributeIds: [],
           variants: source.variants.map((v) => ({
-            id: null,
+            sourceVariantId: v.id,
             price: v.price,
             compareAtPrice: v.compareAtPrice,
             barcode: v.barcode,
@@ -111,7 +165,7 @@ export class ProductAdminService {
           existingImages: [],
           pendingImages: [],
           inventory: source.inventory.map((i) => ({
-            variantId: i.variantId,
+            sourceVariantId: i.variantId ?? null,
             quantityAvailable: i.quantityAvailable,
             lowStockThreshold: i.lowStockThreshold
           })),

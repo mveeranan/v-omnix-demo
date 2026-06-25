@@ -90,10 +90,21 @@ export const API_ENDPOINTS = {
       `${base}/products/${encodeURIComponent(id)}?tenantId=${encodeURIComponent(tenantId)}`,
     patchStatus: (id: string) => `${base}/products/${encodeURIComponent(id)}/status`,
     bulkStatus: `${base}/products/status`,
-    variants: (id: string) => `${base}/products/${encodeURIComponent(id)}/variants`,
+    createVariant: (productId: string) =>
+      `${base}/products/${encodeURIComponent(productId)}/variants`,
+    updateVariant: (productId: string, variantId: string) =>
+      `${base}/products/${encodeURIComponent(productId)}/variants/${encodeURIComponent(variantId)}`,
+    deleteVariant: (productId: string, variantId: string) =>
+      `${base}/products/${encodeURIComponent(productId)}/variants/${encodeURIComponent(variantId)}`,
     images: (id: string) => `${base}/products/${encodeURIComponent(id)}/images`,
     inventory: (id: string, tenantId: string) =>
       `${base}/products/${encodeURIComponent(id)}/inventory?tenantId=${encodeURIComponent(tenantId)}`,
+    createInventory: (productId: string) =>
+      `${base}/products/${encodeURIComponent(productId)}/inventory`,
+    updateInventory: (productId: string, inventoryId: string) =>
+      `${base}/products/${encodeURIComponent(productId)}/inventory/${encodeURIComponent(inventoryId)}`,
+    deleteInventory: (productId: string, inventoryId: string) =>
+      `${base}/products/${encodeURIComponent(productId)}/inventory/${encodeURIComponent(inventoryId)}`,
     tags: (id: string) => `${base}/products/${encodeURIComponent(id)}/tags`
   },
   inventory: {

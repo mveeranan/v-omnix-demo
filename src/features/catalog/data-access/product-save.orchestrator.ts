@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, switchMap } from 'rxjs';
+import { Observable, concatMap, from, of, switchMap, toArray } from 'rxjs';
 import { DocumentUploadService } from '@features/admin/data-access/document-upload.service';
 import { FileCategory } from '@shared/models/enums/file-category.enum';
 import { documentIdFromUpload } from '@shared/models/dto/uploaded-document.dto';
@@ -8,10 +8,8 @@ import {
   PendingImageUpload,
   ProductDetailDto,
   ProductSavePayload,
-  SaveInventoryItem,
   SaveProductImageItem,
-  SaveProductRequest,
-  SaveProductVariantItem
+  SaveProductRequest
 } from '../models/product-admin.model';
 import { ProductAdminApiService } from './product-admin-api.service';
 
@@ -46,29 +44,6 @@ export class ProductSaveOrchestrator {
     );
   }
 
-  saveVariants(
-    productId: string,
-    tenantId: string,
-    selectedAttributeIds: string[],
-    variants: SaveProductVariantItem[]
-  ): Observable<ProductDetailDto> {
-    return this.productApi.saveVariants(productId, {
-      tenantId,
-      selectedAttributeIds,
-      variants: variants.map(({ sku: _sku, ...rest }) => rest)
-    });
-  }
-
-  saveInventory(
-    productId: string,
-    tenantId: string,
-    items: SaveInventoryItem[]
-  ): Observable<ProductDetailDto> {
-    return this.productApi
-      .saveInventory(productId, { tenantId, items })
-      .pipe(switchMap(() => this.productApi.get(productId, tenantId)));
-  }
-
   /** Used only for duplicate-product flow. */
   save(payload: ProductSavePayload): Observable<ProductDetailDto> {
     const tenantId = payload.core.tenantId;
@@ -83,14 +58,65 @@ export class ProductSaveOrchestrator {
         const productId = product.id;
         let chain$: Observable<ProductDetailDto> = of(product);
 
-        if (payload.variants.length > 0 || payload.selectedAttributeIds.length > 0) {
+        if (payload.variants.length > 0) {
           chain$ = chain$.pipe(
             switchMap(() =>
-              this.productApi.saveVariants(productId, {
-                tenantId,
-                selectedAttributeIds: payload.selectedAttributeIds,
-                variants: payload.variants.map(({ sku: _sku, ...rest }) => rest)
-              })
+              from(payload.variants).pipe(
+                concatMap((variant) =>
+                  this.productApi.createVariant(productId, {
+                    tenantId,
+                    price: variant.price,
+                    compareAtPrice: variant.compareAtPrice,
+                    barcode: variant.barcode,
+                    weight: variant.weight,
+                    isActive: variant.isActive,
+                    attributes: variant.attributes
+                  })
+                ),
+                toArray(),
+                switchMap((createdVariants) => {
+                  const variantIdMap = new Map<string, string>();
+                  payload.variants.forEach((source, index) => {
+                    variantIdMap.set(source.sourceVariantId, createdVariants[index].id);
+                  });
+
+                  if (!payload.core.trackInventory || payload.inventory.length === 0) {
+                    return this.productApi.get(productId, tenantId);
+                  }
+
+                  return from(payload.inventory).pipe(
+                    concatMap((item) =>
+                      this.productApi.createInventory(productId, {
+                        tenantId,
+                        variantId: item.sourceVariantId
+                          ? (variantIdMap.get(item.sourceVariantId) ?? null)
+                          : null,
+                        quantityAvailable: item.quantityAvailable,
+                        lowStockThreshold: item.lowStockThreshold
+                      })
+                    ),
+                    toArray(),
+                    switchMap(() => this.productApi.get(productId, tenantId))
+                  );
+                })
+              )
+            )
+          );
+        } else if (payload.core.trackInventory && payload.inventory.length > 0) {
+          chain$ = chain$.pipe(
+            switchMap(() =>
+              from(payload.inventory).pipe(
+                concatMap((item) =>
+                  this.productApi.createInventory(productId, {
+                    tenantId,
+                    variantId: null,
+                    quantityAvailable: item.quantityAvailable,
+                    lowStockThreshold: item.lowStockThreshold
+                  })
+                ),
+                toArray(),
+                switchMap(() => this.productApi.get(productId, tenantId))
+              )
             )
           );
         }
@@ -106,22 +132,8 @@ export class ProductSaveOrchestrator {
         } else if (payload.existingImages.length > 0) {
           chain$ = chain$.pipe(
             switchMap(() =>
-              this.productApi.saveImages(productId, {
-                tenantId,
-                images: payload.existingImages
-              })
-            )
-          );
-        }
-
-        if (payload.core.trackInventory && payload.inventory.length > 0) {
-          chain$ = chain$.pipe(
-            switchMap(() =>
               this.productApi
-                .saveInventory(productId, {
-                  tenantId,
-                  items: payload.inventory
-                })
+                .saveImages(productId, { tenantId, images: payload.existingImages })
                 .pipe(switchMap(() => this.productApi.get(productId, tenantId)))
             )
           );
@@ -129,20 +141,18 @@ export class ProductSaveOrchestrator {
 
         chain$ = chain$.pipe(
           switchMap(() =>
-            this.productApi.saveTags(productId, {
-              tenantId,
-              tagIds: payload.tagIds
-            })
+            this.productApi
+              .saveTags(productId, { tenantId, tagIds: payload.tagIds })
+              .pipe(switchMap(() => this.productApi.get(productId, tenantId)))
           )
         );
 
         if (payload.publish) {
           chain$ = chain$.pipe(
             switchMap(() =>
-              this.productApi.patchStatus(productId, {
-                tenantId,
-                status: ProductStatus.Active
-              })
+              this.productApi
+                .patchStatus(productId, { tenantId, status: ProductStatus.Active })
+                .pipe(switchMap(() => this.productApi.get(productId, tenantId)))
             )
           );
         }

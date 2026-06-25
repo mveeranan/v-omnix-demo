@@ -1,5 +1,5 @@
 import { ProductAttributeDto } from '@features/catalog/models/product-attribute.model';
-import { ProductDetailDto } from '@features/catalog/models/product-admin.model';
+import { InventoryItemDto, ProductDetailDto } from '@features/catalog/models/product-admin.model';
 
 export interface VariantRow {
   id: string | null;
@@ -13,10 +13,12 @@ export interface VariantRow {
 }
 
 export interface VariantStockRow {
-  variantId: string;
+  variantId: string | null;
   sku: string;
   label: string;
+  inventoryId: string | null;
   quantityAvailable: number;
+  quantityReserved: number;
   lowStockThreshold: number;
 }
 
@@ -135,27 +137,55 @@ export function variantLabel(row: VariantRow, attributes: ProductAttributeDto[])
     .join(', ');
 }
 
+export function simpleInventoryRow(p: ProductDetailDto): InventoryItemDto | undefined {
+  return p.inventory.find((i) => !i.variantId);
+}
+
+export function inventoryRowForVariant(
+  p: ProductDetailDto,
+  variantId: string
+): InventoryItemDto | undefined {
+  return p.inventory.find((i) => i.variantId === variantId);
+}
+
 export function stockRowsFromProduct(p: ProductDetailDto, attributes: ProductAttributeDto[]): VariantStockRow[] {
-  return p.variants
-    .filter((v) => v.isActive)
-    .map((v) => {
-      const row: VariantRow = {
-        id: v.id,
-        sku: v.sku,
-        price: v.price,
-        compareAtPrice: v.compareAtPrice,
-        barcode: v.barcode ?? '',
-        weight: v.weight,
-        isActive: v.isActive,
-        attributeSelections: Object.fromEntries(v.attributes.map((a) => [a.attributeId, a.valueId]))
-      };
-      const inv = p.inventory.find((i) => i.variantId === v.id);
-      return {
-        variantId: v.id,
-        sku: v.sku,
-        label: variantLabel(row, attributes),
+  const activeVariants = p.variants.filter((v) => v.isActive);
+
+  if (activeVariants.length === 0) {
+    const inv = simpleInventoryRow(p);
+    return [
+      {
+        variantId: null,
+        sku: p.sku,
+        label: 'Product',
+        inventoryId: inv?.id ?? null,
         quantityAvailable: inv?.quantityAvailable ?? 0,
+        quantityReserved: inv?.quantityReserved ?? 0,
         lowStockThreshold: inv?.lowStockThreshold ?? 5
-      };
-    });
+      }
+    ];
+  }
+
+  return activeVariants.map((v) => {
+    const row: VariantRow = {
+      id: v.id,
+      sku: v.sku,
+      price: v.price,
+      compareAtPrice: v.compareAtPrice,
+      barcode: v.barcode ?? '',
+      weight: v.weight,
+      isActive: v.isActive,
+      attributeSelections: Object.fromEntries(v.attributes.map((a) => [a.attributeId, a.valueId]))
+    };
+    const inv = inventoryRowForVariant(p, v.id);
+    return {
+      variantId: v.id,
+      sku: v.sku,
+      label: variantLabel(row, attributes),
+      inventoryId: inv?.id ?? null,
+      quantityAvailable: inv?.quantityAvailable ?? 0,
+      quantityReserved: inv?.quantityReserved ?? 0,
+      lowStockThreshold: inv?.lowStockThreshold ?? 5
+    };
+  });
 }
