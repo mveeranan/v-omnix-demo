@@ -77,7 +77,8 @@ export const API_ENDPOINTS = {
   },
   productAttributes: {
     list: (tenantId: string) => `${base}/product-attributes?tenantId=${encodeURIComponent(tenantId)}`,
-    upsert: `${base}/product-attributes`
+    create: `${base}/product-attributes`,
+    update: (id: string) => `${base}/product-attributes/${encodeURIComponent(id)}`
   },
   products: {
     list: `${base}/products`,
