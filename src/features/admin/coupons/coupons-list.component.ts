@@ -234,7 +234,8 @@ export class CouponsListComponent implements OnInit {
         this.closeForm();
         this.load();
         this.notifications.success('Coupon saved');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not save coupon')
     });
   }
 
@@ -250,7 +251,8 @@ export class CouponsListComponent implements OnInit {
         this.deleteTarget.set(null);
         this.load();
         this.notifications.success('Coupon deleted');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not delete coupon')
     });
   }
 }

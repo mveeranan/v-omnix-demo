@@ -188,7 +188,8 @@ export class BrandsListComponent implements OnInit {
         this.closeForm();
         this.load();
         this.notifications.success('Brand saved');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not save brand')
     });
   }
 
@@ -203,7 +204,8 @@ export class BrandsListComponent implements OnInit {
       next: () => {
         this.deleteTarget.set(null);
         this.load();
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not delete brand')
     });
   }
 }

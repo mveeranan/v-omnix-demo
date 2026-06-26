@@ -222,7 +222,8 @@ export class ReviewsListComponent implements OnInit {
         this.closeForm();
         this.load();
         this.notifications.success('Review saved');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not save review')
     });
   }
 
@@ -238,7 +239,8 @@ export class ReviewsListComponent implements OnInit {
         this.deleteTarget.set(null);
         this.load();
         this.notifications.success('Review deleted');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not delete review')
     });
   }
 

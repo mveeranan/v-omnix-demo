@@ -120,9 +120,9 @@ export class AdminProfileStateService {
           this.syncDashboardFromProfile(saved);
           this.notifications.success('Business profile saved');
         },
-        error: () => {
+        error: (err) => {
           this.profileSaving.set(false);
-          this.notifications.error('Could not save business profile');
+          this.notifications.errorFromApi(err, 'Could not save business profile');
         }
       })
     );

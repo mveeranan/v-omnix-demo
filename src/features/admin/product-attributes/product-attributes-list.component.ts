@@ -235,7 +235,7 @@ export class ProductAttributesListComponent implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.notifications.error(err?.message ?? 'Could not save attribute');
+        this.notifications.errorFromApi(err, 'Could not save attribute');
       }
     });
   }

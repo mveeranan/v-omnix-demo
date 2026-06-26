@@ -395,7 +395,7 @@ export class ProductDetailsSectionComponent {
       },
       error: (err) => {
         this.state.setSectionSaving('details', false);
-        this.notifications.error(err?.message ?? 'Could not save product details');
+        this.notifications.errorFromApi(err, 'Could not save product details');
       }
     });
   }

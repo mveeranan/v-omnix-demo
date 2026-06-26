@@ -289,7 +289,7 @@ export class ProductInventorySectionComponent {
         },
         error: (err) => {
           this.savingSet.set(false);
-          this.notifications.error(err?.message ?? 'Could not create inventory');
+          this.notifications.errorFromApi(err, 'Could not create inventory');
         }
       });
   }
@@ -318,7 +318,7 @@ export class ProductInventorySectionComponent {
         },
         error: (err) => {
           this.savingSet.set(false);
-          this.notifications.error(err?.message ?? 'Could not update inventory');
+          this.notifications.errorFromApi(err, 'Could not update inventory');
         }
       });
   }
@@ -357,7 +357,7 @@ export class ProductInventorySectionComponent {
       error: (err) => {
         this.savingDelete.set(false);
         this.deleteTarget.set(null);
-        this.notifications.error(err?.message ?? 'Could not delete inventory');
+        this.notifications.errorFromApi(err, 'Could not delete inventory');
       }
     });
   }

@@ -388,7 +388,7 @@ export class ProductTagsListComponent implements OnInit {
 
       },
 
-      error: (err) => this.notifications.error(err?.message ?? 'Could not save tag')
+      error: (err) => this.notifications.errorFromApi(err, 'Could not save tag')
 
     });
 
@@ -428,7 +428,7 @@ export class ProductTagsListComponent implements OnInit {
 
         this.deleteTarget.set(null);
 
-        this.notifications.error(err?.message ?? 'Could not delete tag');
+        this.notifications.errorFromApi(err, 'Could not delete tag');
 
       }
 

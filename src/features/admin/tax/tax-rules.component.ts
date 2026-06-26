@@ -222,7 +222,8 @@ export class TaxRulesComponent implements OnInit {
         this.closeForm();
         this.load();
         this.notifications.success('Tax rule saved');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not save tax rule')
     });
   }
 
@@ -238,7 +239,8 @@ export class TaxRulesComponent implements OnInit {
         this.deleteTarget.set(null);
         this.load();
         this.notifications.success('Tax rule deleted');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not delete tax rule')
     });
   }
 }

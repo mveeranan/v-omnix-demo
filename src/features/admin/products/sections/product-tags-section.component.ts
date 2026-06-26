@@ -121,7 +121,7 @@ export class ProductTagsSectionComponent {
       },
       error: (err) => {
         this.state.setSectionSaving('tags', false);
-        this.notifications.error(err?.message ?? 'Could not save tags');
+        this.notifications.errorFromApi(err, 'Could not save tags');
       }
     });
   }

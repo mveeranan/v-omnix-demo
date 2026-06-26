@@ -199,7 +199,8 @@ export class NewsletterListComponent implements OnInit {
         this.closeForm();
         this.load();
         this.notifications.success('Subscriber saved');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not save subscriber')
     });
   }
 
@@ -215,7 +216,8 @@ export class NewsletterListComponent implements OnInit {
         this.deleteTarget.set(null);
         this.load();
         this.notifications.success('Subscriber removed');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not remove subscriber')
     });
   }
 

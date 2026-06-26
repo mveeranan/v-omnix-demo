@@ -260,7 +260,8 @@ export class ReturnsListComponent implements OnInit {
         this.closeForm();
         this.load();
         this.notifications.success('Return saved');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not save return')
     });
   }
 
@@ -276,7 +277,8 @@ export class ReturnsListComponent implements OnInit {
         this.deleteTarget.set(null);
         this.load();
         this.notifications.success('Return deleted');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not delete return')
     });
   }
 

@@ -426,7 +426,7 @@ export class ProductVariantsSectionComponent {
       },
       error: (err) => {
         this.saving.set(false);
-        this.notifications.error(err?.message ?? 'Could not save variant');
+        this.notifications.errorFromApi(err, 'Could not save variant');
       }
     });
   }
@@ -451,7 +451,7 @@ export class ProductVariantsSectionComponent {
       error: (err) => {
         this.saving.set(false);
         this.deleteTarget.set(null);
-        this.notifications.error(err?.message ?? 'Could not delete variant. Reserved inventory may block deletion.');
+        this.notifications.errorFromApi(err, 'Could not delete variant');
       }
     });
   }

@@ -140,7 +140,7 @@ export class ProductImagesSectionComponent {
       },
       error: (err) => {
         this.state.setSectionSaving('images', false);
-        this.notifications.error(err?.message ?? 'Could not save media');
+        this.notifications.errorFromApi(err, 'Could not save media');
       }
     });
   }

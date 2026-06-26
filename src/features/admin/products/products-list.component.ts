@@ -332,7 +332,7 @@ export class ProductsListComponent implements OnInit {
       },
       error: (err) => {
         this.bulkApplying.set(false);
-        this.notifications.error(err?.message ?? 'Could not update product status');
+        this.notifications.errorFromApi(err, 'Could not update product status');
       }
     });
   }

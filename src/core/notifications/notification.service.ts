@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { toast } from 'ngx-sonner';
+import { GENERIC_API_ERROR_MESSAGE, getApiErrorMessage } from '@shared/utils/api-error.util';
 
 @Injectable({
   providedIn: 'root'
@@ -19,5 +20,9 @@ export class NotificationService {
 
   error(message: string, description?: string): void {
     toast.error(message, { description });
+  }
+
+  errorFromApi(error: unknown, fallback: string = GENERIC_API_ERROR_MESSAGE): void {
+    this.error(getApiErrorMessage(error, fallback));
   }
 }

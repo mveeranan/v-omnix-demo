@@ -204,7 +204,7 @@ export class CategoriesListComponent implements OnInit {
         this.notifications.success('Category saved');
       },
       error: (err) => {
-        this.notifications.error(err?.message === 'HAS_PRODUCTS' ? 'Cannot delete category with products' : 'Could not save category');
+        this.notifications.errorFromApi(err, 'Could not save category');
       }
     });
   }
@@ -222,8 +222,8 @@ export class CategoriesListComponent implements OnInit {
         this.load();
         this.notifications.success('Category deleted');
       },
-      error: () => {
-        this.notifications.error('Cannot delete — products use this category');
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Cannot delete — products use this category');
         this.deleteTarget.set(null);
       }
     });
