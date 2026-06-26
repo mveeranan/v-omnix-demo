@@ -12,14 +12,43 @@ export interface VariantRow {
   attributeSelections: Record<string, string>;
 }
 
+export interface VariantAttributeDisplay {
+  name: string;
+  value: string;
+}
+
 export interface VariantStockRow {
   variantId: string | null;
   sku: string;
   label: string;
+  attributes: VariantAttributeDisplay[];
   inventoryId: string | null;
   quantityAvailable: number;
   quantityReserved: number;
   lowStockThreshold: number;
+}
+
+export function variantAttributesFromProductVariant(
+  attributes: { attributeName: string; value: string }[]
+): VariantAttributeDisplay[] {
+  return attributes.map((a) => ({
+    name: a.attributeName,
+    value: a.value
+  }));
+}
+
+export function previewVariantAttributes(
+  attributes: VariantAttributeDisplay[],
+  maxVisible = 2
+): { visible: VariantAttributeDisplay[]; extraCount: number } {
+  return {
+    visible: attributes.slice(0, maxVisible),
+    extraCount: Math.max(0, attributes.length - maxVisible)
+  };
+}
+
+export function formatVariantAttributes(attributes: VariantAttributeDisplay[]): string {
+  return attributes.map((a) => `${a.name}: ${a.value}`).join(', ');
 }
 
 export function variantRowsFromProduct(p: ProductDetailDto): VariantRow[] {
@@ -158,6 +187,7 @@ export function stockRowsFromProduct(p: ProductDetailDto, attributes: ProductAtt
         variantId: null,
         sku: p.sku,
         label: 'Product',
+        attributes: [],
         inventoryId: inv?.id ?? null,
         quantityAvailable: inv?.quantityAvailable ?? 0,
         quantityReserved: inv?.quantityReserved ?? 0,
@@ -178,10 +208,12 @@ export function stockRowsFromProduct(p: ProductDetailDto, attributes: ProductAtt
       attributeSelections: Object.fromEntries(v.attributes.map((a) => [a.attributeId, a.valueId]))
     };
     const inv = inventoryRowForVariant(p, v.id);
+    const attributeItems = variantAttributesFromProductVariant(v.attributes);
     return {
       variantId: v.id,
       sku: v.sku,
-      label: variantLabel(row, attributes),
+      label: formatVariantAttributes(attributeItems) || variantLabel(row, attributes),
+      attributes: attributeItems,
       inventoryId: inv?.id ?? null,
       quantityAvailable: inv?.quantityAvailable ?? 0,
       quantityReserved: inv?.quantityReserved ?? 0,

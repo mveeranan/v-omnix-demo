@@ -8,7 +8,13 @@ import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { NotificationService } from '@core/notifications/notification.service';
 import { ProductAdminService } from '../data-access/product-admin.service';
 import { ProductFormStateService } from '../data-access/product-form-state.service';
-import { stockRowsFromProduct, VariantStockRow } from './product-variant.util';
+import {
+  formatVariantAttributes,
+  previewVariantAttributes,
+  stockRowsFromProduct,
+  VariantAttributeDisplay,
+  VariantStockRow
+} from './product-variant.util';
 
 type InventoryFormMode = 'create' | 'edit' | null;
 
@@ -43,7 +49,28 @@ type InventoryFormMode = 'create' | 'edit' | null;
         @if (formMode() && activeRow(); as row) {
           <div class="admin-glass-card mb-4 space-y-4 rounded-xl p-4">
             <h4 class="text-sm font-semibold">{{ formMode() === 'create' ? 'Add inventory' : 'Edit inventory' }}</h4>
-            <p class="text-sm text-[var(--text-muted)]">{{ productName() }} — {{ row.label }}</p>
+            <div class="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3 space-y-3">
+              <div>
+                <div class="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Product</div>
+                <div class="mt-1 text-sm font-semibold text-[var(--text-primary)]">{{ productName() }}</div>
+                @if (row.sku) {
+                  <div class="mt-0.5 text-xs text-[var(--text-muted)]">{{ row.sku }}</div>
+                }
+              </div>
+              @if (row.attributes.length) {
+                <div>
+                  <div class="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Attributes</div>
+                  <dl class="mt-2 grid gap-2 sm:grid-cols-2">
+                    @for (attr of row.attributes; track attr.name + attr.value) {
+                      <div class="rounded-md border border-[var(--border-subtle)] bg-white px-3 py-2 dark:bg-zinc-900">
+                        <dt class="text-xs text-[var(--text-muted)]">{{ attr.name }}</dt>
+                        <dd class="text-sm font-medium text-[var(--text-primary)]">{{ attr.value }}</dd>
+                      </div>
+                    }
+                  </dl>
+                </div>
+              }
+            </div>
             <form
               class="space-y-4"
               [formGroup]="setForm"
@@ -83,7 +110,8 @@ type InventoryFormMode = 'create' | 'edit' | null;
               <thead>
                 <tr>
                   <th class="admin-data-table__index">#</th>
-                  <th>Item</th>
+                  <th>Product</th>
+                  <th>Attributes</th>
                   <th>Available</th>
                   <th>Reserved</th>
                   <th>Low stock</th>
@@ -95,9 +123,27 @@ type InventoryFormMode = 'create' | 'edit' | null;
                   <tr class="admin-data-table__row">
                     <td class="admin-data-table__index">{{ i + 1 }}</td>
                     <td>
-                      <div class="text-sm font-medium">{{ productName() }} — {{ row.label }}</div>
+                      <div class="text-sm font-medium">{{ productName() }}</div>
                       @if (row.sku) {
                         <div class="text-xs text-[var(--text-muted)]">{{ row.sku }}</div>
+                      }
+                    </td>
+                    <td class="text-sm text-[var(--text-secondary)]">
+                      @if (row.attributes.length) {
+                        <div class="flex flex-wrap items-center gap-1">
+                          @for (attr of attributePreview(row.attributes).visible; track attr.name + attr.value) {
+                            <span class="rounded-md bg-[var(--surface-muted)] px-2 py-0.5 text-xs text-[var(--text-primary)]">
+                              {{ attr.name }}: {{ attr.value }}
+                            </span>
+                          }
+                          @if (attributePreview(row.attributes).extraCount > 0) {
+                            <span class="text-xs font-medium text-[var(--accent)]">
+                              +{{ attributePreview(row.attributes).extraCount }} more
+                            </span>
+                          }
+                        </div>
+                      } @else {
+                        —
                       }
                     </td>
                     <td>{{ row.inventoryId ? row.quantityAvailable : '—' }}</td>
@@ -203,7 +249,14 @@ export class ProductInventorySectionComponent {
     if (row.quantityReserved > 0) {
       return 'Cannot delete inventory while quantity is reserved.';
     }
-    return `Delete inventory for ${row.label}?`;
+    const attrs = row.attributes.length ? formatVariantAttributes(row.attributes) : '';
+    return attrs
+      ? `Delete inventory for ${this.productName()} (${attrs})?`
+      : `Delete inventory for ${this.productName()}?`;
+  }
+
+  attributePreview(attributes: VariantAttributeDisplay[]) {
+    return previewVariantAttributes(attributes, 2);
   }
 
   onExpandedChange(next: boolean): void {
