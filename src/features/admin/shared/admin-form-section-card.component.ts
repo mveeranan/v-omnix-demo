@@ -241,6 +241,7 @@ export class AdminFormSectionCardComponent {
   readonly saving = input(false);
   readonly canSave = input(true);
   readonly disabled = input(false);
+  readonly expandOnEdit = input(true);
   readonly showClear = input(false);
   readonly lastSavedAt = input<Date | null>(null);
 
@@ -257,7 +258,9 @@ export class AdminFormSectionCardComponent {
   readonly clearIcon = RotateCcw;
 
   onEdit(): void {
-    this.expanded.set(true);
+    if (this.expandOnEdit()) {
+      this.expanded.set(true);
+    }
     this.edit.emit();
   }
 }

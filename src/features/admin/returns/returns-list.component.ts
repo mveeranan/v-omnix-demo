@@ -40,6 +40,50 @@ import { NotificationService } from '@core/notifications/notification.service';
         </div>
       </div>
 
+      @if (formOpen()) {
+        <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
+          <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit return' : 'New return' }}</h3>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Order number</span>
+              <input class="pf-editor-input w-full" formControlName="orderNumber" />
+            </label>
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Status</span>
+              <select class="pf-editor-input w-full" formControlName="status">
+                @for (s of statuses; track s) {
+                  <option [value]="s">{{ s }}</option>
+                }
+              </select>
+            </label>
+          </div>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Customer name</span>
+            <input class="pf-editor-input w-full" formControlName="customerName" />
+          </label>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Customer email</span>
+            <input class="pf-editor-input w-full" type="email" formControlName="customerEmail" />
+          </label>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Reason</span>
+            <textarea class="pf-editor-input w-full" formControlName="reason" rows="2"></textarea>
+          </label>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Refund amount</span>
+            <input class="pf-editor-input w-full" type="number" formControlName="refundAmount" />
+          </label>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Notes</span>
+            <textarea class="pf-editor-input w-full" formControlName="notes" rows="2"></textarea>
+          </label>
+          <div class="flex justify-end gap-2">
+            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeForm()">Cancel</button>
+            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid">Save</button>
+          </div>
+        </form>
+      }
+
       @if (loading()) {
         <app-loading-spinner label="Loading returns…" />
       } @else if (!filtered().length) {
@@ -85,53 +129,6 @@ import { NotificationService } from '@core/notifications/notification.service';
       }
     </app-admin-page-shell>
 
-    @if (modalOpen()) {
-      <div class="fixed inset-0 z-50 grid place-items-center p-4">
-        <div class="admin-modal-backdrop absolute inset-0" (click)="closeModal()"></div>
-        <form class="admin-glass-card relative w-full max-w-lg space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
-          <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit return' : 'New return' }}</h3>
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Order number</span>
-              <input class="pf-editor-input w-full" formControlName="orderNumber" />
-            </label>
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Status</span>
-              <select class="pf-editor-input w-full" formControlName="status">
-                @for (s of statuses; track s) {
-                  <option [value]="s">{{ s }}</option>
-                }
-              </select>
-            </label>
-          </div>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Customer name</span>
-            <input class="pf-editor-input w-full" formControlName="customerName" />
-          </label>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Customer email</span>
-            <input class="pf-editor-input w-full" type="email" formControlName="customerEmail" />
-          </label>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Reason</span>
-            <textarea class="pf-editor-input w-full" formControlName="reason" rows="2"></textarea>
-          </label>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Refund amount</span>
-            <input class="pf-editor-input w-full" type="number" formControlName="refundAmount" />
-          </label>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Notes</span>
-            <textarea class="pf-editor-input w-full" formControlName="notes" rows="2"></textarea>
-          </label>
-          <div class="flex justify-end gap-2">
-            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeModal()">Cancel</button>
-            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid">Save</button>
-          </div>
-        </form>
-      </div>
-    }
-
     <app-confirm-dialog
       [open]="!!deleteTarget()"
       title="Delete return"
@@ -152,7 +149,7 @@ export class ReturnsListComponent implements OnInit {
   readonly loading = signal(true);
   readonly returns = signal<ReturnDto[]>([]);
   readonly filtered = signal<ReturnDto[]>([]);
-  readonly modalOpen = signal(false);
+  readonly formOpen = signal(false);
   readonly editingId = signal<string | null>(null);
   readonly deleteTarget = signal<ReturnDto | null>(null);
   statusFilter = '';
@@ -215,7 +212,7 @@ export class ReturnsListComponent implements OnInit {
       refundAmount: 0,
       notes: ''
     });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
   openEdit(r: ReturnDto): void {
@@ -229,11 +226,11 @@ export class ReturnsListComponent implements OnInit {
       refundAmount: r.refundAmount,
       notes: r.notes ?? ''
     });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
-  closeModal(): void {
-    this.modalOpen.set(false);
+  closeForm(): void {
+    this.formOpen.set(false);
   }
 
   save(): void {
@@ -258,7 +255,7 @@ export class ReturnsListComponent implements OnInit {
     const req$ = id ? this.api.update(id, payload) : this.api.create(payload);
     req$.subscribe({
       next: () => {
-        this.closeModal();
+        this.closeForm();
         this.load();
         this.notifications.success('Return saved');
       }

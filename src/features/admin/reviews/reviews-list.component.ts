@@ -30,6 +30,42 @@ import { LucideAngularModule, Star } from 'lucide-angular';
         <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add review</button>
       </div>
 
+      @if (formOpen()) {
+        <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
+          <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit review' : 'New review' }}</h3>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Author</span>
+              <input class="pf-editor-input w-full" formControlName="author" />
+            </label>
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Product name</span>
+              <input class="pf-editor-input w-full" formControlName="productName" />
+            </label>
+          </div>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Title</span>
+            <input class="pf-editor-input w-full" formControlName="title" />
+          </label>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Review</span>
+            <textarea class="pf-editor-input w-full" formControlName="body" rows="3"></textarea>
+          </label>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Rating (1–5)</span>
+            <input class="pf-editor-input w-full" type="number" min="1" max="5" formControlName="rating" />
+          </label>
+          <div class="flex flex-wrap gap-4 text-sm">
+            <label class="flex items-center gap-2"><input type="checkbox" formControlName="isPublished" /> Published</label>
+            <label class="flex items-center gap-2"><input type="checkbox" formControlName="isVerifiedPurchase" /> Verified purchase</label>
+          </div>
+          <div class="flex justify-end gap-2">
+            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeForm()">Cancel</button>
+            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid">Save</button>
+          </div>
+        </form>
+      }
+
       @if (loading()) {
         <app-loading-spinner label="Loading reviews…" />
       } @else if (!reviews().length) {
@@ -86,45 +122,6 @@ import { LucideAngularModule, Star } from 'lucide-angular';
       }
     </app-admin-page-shell>
 
-    @if (modalOpen()) {
-      <div class="fixed inset-0 z-50 grid place-items-center p-4">
-        <div class="admin-modal-backdrop absolute inset-0" (click)="closeModal()"></div>
-        <form class="admin-glass-card relative w-full max-w-lg space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
-          <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit review' : 'New review' }}</h3>
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Author</span>
-              <input class="pf-editor-input w-full" formControlName="author" />
-            </label>
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Product name</span>
-              <input class="pf-editor-input w-full" formControlName="productName" />
-            </label>
-          </div>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Title</span>
-            <input class="pf-editor-input w-full" formControlName="title" />
-          </label>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Review</span>
-            <textarea class="pf-editor-input w-full" formControlName="body" rows="3"></textarea>
-          </label>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Rating (1–5)</span>
-            <input class="pf-editor-input w-full" type="number" min="1" max="5" formControlName="rating" />
-          </label>
-          <div class="flex flex-wrap gap-4 text-sm">
-            <label class="flex items-center gap-2"><input type="checkbox" formControlName="isPublished" /> Published</label>
-            <label class="flex items-center gap-2"><input type="checkbox" formControlName="isVerifiedPurchase" /> Verified purchase</label>
-          </div>
-          <div class="flex justify-end gap-2">
-            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeModal()">Cancel</button>
-            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid">Save</button>
-          </div>
-        </form>
-      </div>
-    }
-
     <app-confirm-dialog
       [open]="!!deleteTarget()"
       title="Delete review"
@@ -144,7 +141,7 @@ export class ReviewsListComponent implements OnInit {
   readonly reviewIcon = Star;
   readonly loading = signal(true);
   readonly reviews = signal<Review[]>([]);
-  readonly modalOpen = signal(false);
+  readonly formOpen = signal(false);
   readonly editingId = signal<string | null>(null);
   readonly deleteTarget = signal<Review | null>(null);
 
@@ -184,7 +181,7 @@ export class ReviewsListComponent implements OnInit {
       isPublished: true,
       isVerifiedPurchase: false
     });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
   openEdit(r: Review): void {
@@ -198,11 +195,11 @@ export class ReviewsListComponent implements OnInit {
       isPublished: r.isPublished,
       isVerifiedPurchase: r.isVerifiedPurchase
     });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
-  closeModal(): void {
-    this.modalOpen.set(false);
+  closeForm(): void {
+    this.formOpen.set(false);
   }
 
   save(): void {
@@ -222,7 +219,7 @@ export class ReviewsListComponent implements OnInit {
     const req$ = id ? this.api.update(id, payload) : this.api.create(payload);
     req$.subscribe({
       next: () => {
-        this.closeModal();
+        this.closeForm();
         this.load();
         this.notifications.success('Review saved');
       }

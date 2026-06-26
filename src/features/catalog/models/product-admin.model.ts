@@ -137,7 +137,9 @@ export interface BulkUpdateProductStatusResult {
 
 export interface ProductVariantAttributeInput {
   attributeId: string;
+  attributeName: string;
   valueId: string;
+  value: string;
 }
 
 export interface SaveProductVariantRequest {
@@ -187,12 +189,6 @@ export interface DeleteInventoryRequest {
 export interface SaveProductTagsRequest {
   tenantId: string;
   tagIds: string[];
-}
-
-export interface AdjustInventoryRequest {
-  tenantId: string;
-  quantityChange: number;
-  notes?: string;
 }
 
 export interface PendingImageUpload {

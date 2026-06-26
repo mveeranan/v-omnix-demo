@@ -28,6 +28,23 @@ import { LucideAngularModule, Tag } from 'lucide-angular';
         <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add tag</button>
       </div>
 
+      @if (formOpen()) {
+        <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
+          <h3 class="text-lg font-semibold">New tag</h3>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Name</span>
+            <input class="pf-editor-input w-full" formControlName="name" />
+          </label>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" formControlName="isActive" /> Active
+          </label>
+          <div class="flex justify-end gap-2">
+            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeForm()">Cancel</button>
+            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid">Save</button>
+          </div>
+        </form>
+      }
+
       @if (loading()) {
         <app-loading-spinner label="Loading tags…" />
       } @else if (!tags().length) {
@@ -70,26 +87,6 @@ import { LucideAngularModule, Tag } from 'lucide-angular';
         </app-table>
       }
     </app-admin-page-shell>
-
-    @if (modalOpen()) {
-      <div class="fixed inset-0 z-50 grid place-items-center p-4">
-        <div class="admin-modal-backdrop absolute inset-0" (click)="closeModal()"></div>
-        <form class="admin-glass-card relative w-full max-w-md space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
-          <h3 class="text-lg font-semibold">New tag</h3>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Name</span>
-            <input class="pf-editor-input w-full" formControlName="name" />
-          </label>
-          <label class="flex items-center gap-2 text-sm">
-            <input type="checkbox" formControlName="isActive" /> Active
-          </label>
-          <div class="flex justify-end gap-2">
-            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeModal()">Cancel</button>
-            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid">Save</button>
-          </div>
-        </form>
-      </div>
-    }
   `
 })
 export class ProductTagsListComponent implements OnInit {
@@ -101,7 +98,7 @@ export class ProductTagsListComponent implements OnInit {
   readonly tagIcon = Tag;
   readonly loading = signal(true);
   readonly tags = signal<ProductTagDto[]>([]);
-  readonly modalOpen = signal(false);
+  readonly formOpen = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -125,11 +122,11 @@ export class ProductTagsListComponent implements OnInit {
 
   openCreate(): void {
     this.form.reset({ name: '', isActive: true });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
-  closeModal(): void {
-    this.modalOpen.set(false);
+  closeForm(): void {
+    this.formOpen.set(false);
   }
 
   save(): void {
@@ -143,7 +140,7 @@ export class ProductTagsListComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.closeModal();
+          this.closeForm();
           this.load();
           this.notifications.success('Tag created');
         },

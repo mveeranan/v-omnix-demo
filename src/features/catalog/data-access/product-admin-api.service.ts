@@ -5,7 +5,6 @@ import { API_ENDPOINTS } from '@env/api.constants';
 import { ApiResponse } from '@shared/models/api-response.model';
 import { AuthService } from '@core/auth/auth.service';
 import {
-  AdjustInventoryRequest,
   BulkUpdateProductStatusRequest,
   BulkUpdateProductStatusResult,
   CreateInventoryRequest,
@@ -164,17 +163,6 @@ export class ProductAdminApiService {
   saveTags(id: string, body: SaveProductTagsRequest): Observable<ProductDetailDto> {
     return this.http
       .put<ApiResponse<ProductDetailDto>>(API_ENDPOINTS.products.tags(id), body)
-      .pipe(map(unwrapApiResponse));
-  }
-}
-
-@Injectable({ providedIn: 'root' })
-export class InventoryApiService {
-  private readonly http = inject(HttpClient);
-
-  adjust(inventoryId: string, body: AdjustInventoryRequest): Observable<InventoryItemDto> {
-    return this.http
-      .post<ApiResponse<InventoryItemDto>>(API_ENDPOINTS.inventory.adjust(inventoryId), body)
       .pipe(map(unwrapApiResponse));
   }
 }

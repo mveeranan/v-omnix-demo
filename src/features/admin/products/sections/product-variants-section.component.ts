@@ -8,7 +8,7 @@ import { AdminStatusBadgeComponent } from '@shared/ui/admin-status-badge.compone
 import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { NotificationService } from '@core/notifications/notification.service';
-import { ProductVariantDto } from '@features/catalog/models/product-admin.model';
+import { ProductVariantAttributeInput, ProductVariantDto } from '@features/catalog/models/product-admin.model';
 import { ProductAdminService } from '../data-access/product-admin.service';
 import { ProductFormStateService } from '../data-access/product-form-state.service';
 
@@ -34,6 +34,7 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
       [(expanded)]="expanded"
       [editing]="false"
       [canSave]="false"
+      (edit)="onSectionEdit()"
     >
       @if (!state.attributes().length && !(state.product()?.variants?.length ?? 0)) {
         <p class="text-sm text-[var(--text-muted)]">
@@ -61,6 +62,118 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
           }
         </div>
 
+        @if (formOpen()) {
+          <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-4" [formGroup]="form" (ngSubmit)="saveForm()">
+            <h4 class="text-sm font-semibold">{{ editingVariantId() ? 'Edit variant' : 'New variant' }}</h4>
+
+            @if (editingVariantId() && editingSku()) {
+              <label class="block space-y-1">
+                <span class="text-sm font-medium">SKU</span>
+                <input class="pf-editor-input w-full bg-[var(--surface-muted)]" [value]="editingSku()" readonly />
+              </label>
+            }
+
+            <div class="space-y-3 rounded-lg border border-[var(--border)] p-3">
+              <p class="text-sm font-medium">Attributes</p>
+              @if (attributesAvailableForAdd().length) {
+                <div class="flex flex-wrap items-end gap-3">
+                  <label class="block min-w-[10rem] flex-1 space-y-1">
+                    <span class="text-sm font-medium">Feature type</span>
+                    <select
+                      class="pf-editor-input w-full"
+                      [(ngModel)]="featureTypeId"
+                      [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="featureValueId = ''"
+                    >
+                      <option value="">Select feature type</option>
+                      @for (attr of attributesAvailableForAdd(); track attr.id) {
+                        <option [value]="attr.id">{{ attr.name }}</option>
+                      }
+                    </select>
+                  </label>
+                  <label class="block min-w-[10rem] flex-1 space-y-1">
+                    <span class="text-sm font-medium">Value</span>
+                    <select
+                      class="pf-editor-input w-full"
+                      [(ngModel)]="featureValueId"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="!featureTypeId"
+                    >
+                      <option value="">Select value</option>
+                      @for (val of valuesForFeatureType(); track val.id) {
+                        <option [value]="val.id">{{ val.value }}</option>
+                      }
+                    </select>
+                  </label>
+                  <button
+                    type="button"
+                    class="admin-action-secondary rounded-lg px-3 py-1.5 text-sm"
+                    [disabled]="!featureTypeId || !featureValueId"
+                    (click)="addDraftFeature()"
+                  >
+                    Add feature
+                  </button>
+                </div>
+              }
+              @if (draftFeatureChips().length) {
+                <div class="flex flex-wrap gap-2">
+                  @for (chip of draftFeatureChips(); track chip.attributeId) {
+                    <span class="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm">
+                      {{ chip.label }}
+                      <button
+                        type="button"
+                        class="text-[var(--text-muted)] hover:text-rose-600"
+                        (click)="removeDraftFeature(chip.attributeId)"
+                        aria-label="Remove feature"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  }
+                </div>
+              } @else {
+                <p class="text-sm text-[var(--text-muted)]">No attributes selected.</p>
+              }
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="block space-y-1">
+                <span class="text-sm font-medium">Price</span>
+                <input class="pf-editor-input w-full" type="number" formControlName="price" />
+              </label>
+              <label class="block space-y-1">
+                <span class="text-sm font-medium">Compare at price</span>
+                <input class="pf-editor-input w-full" type="number" formControlName="compareAtPrice" />
+              </label>
+              <label class="block space-y-1">
+                <span class="text-sm font-medium">Barcode</span>
+                <input class="pf-editor-input w-full" formControlName="barcode" />
+              </label>
+              <label class="block space-y-1">
+                <span class="text-sm font-medium">Weight</span>
+                <input class="pf-editor-input w-full" type="number" formControlName="weight" />
+              </label>
+            </div>
+
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" formControlName="isActive" /> Active
+            </label>
+
+            <div class="flex justify-end gap-2">
+              <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeForm()">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="admin-section-action-btn rounded-lg px-4 py-2 text-sm"
+                [disabled]="form.invalid || saving() || !hasDraftSelections()"
+              >
+                {{ saving() ? 'Saving…' : editingVariantId() ? 'Update' : 'Create' }}
+              </button>
+            </div>
+          </form>
+        }
+
         @if (!variants().length) {
           <p class="text-sm text-[var(--text-muted)]">No variants yet.</p>
         } @else {
@@ -77,7 +190,7 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
                 </tr>
               </thead>
               <tbody>
-                @for (v of variants(); track v.id; let i = $index) {
+                @for (v of visibleVariants(); track v.id; let i = $index) {
                   <tr class="admin-data-table__row">
                     <td class="admin-data-table__index">{{ i + 1 }}</td>
                     <td class="text-sm text-[var(--text-secondary)]">{{ v.sku }}</td>
@@ -104,127 +217,6 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
       }
     </app-admin-form-section-card>
 
-    @if (modalOpen()) {
-      <div class="fixed inset-0 z-50 grid place-items-center p-4">
-        <div class="admin-modal-backdrop absolute inset-0" (click)="closeModal()"></div>
-        <form
-          class="admin-glass-card relative max-h-[90vh] w-full max-w-lg space-y-4 overflow-y-auto rounded-xl p-6"
-          [formGroup]="form"
-          (ngSubmit)="saveModal()"
-        >
-          <h3 class="text-lg font-semibold">{{ editingVariantId() ? 'Edit variant' : 'New variant' }}</h3>
-
-          @if (editingVariantId() && editingSku()) {
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">SKU</span>
-              <input class="pf-editor-input w-full bg-[var(--surface-muted)]" [value]="editingSku()" readonly />
-            </label>
-          }
-
-          <div class="space-y-3 rounded-lg border border-[var(--border)] p-3">
-            <p class="text-sm font-medium">Attributes</p>
-            @if (!editingVariantId()) {
-              <div class="flex flex-wrap items-end gap-3">
-                <label class="block min-w-[10rem] flex-1 space-y-1">
-                  <span class="text-sm font-medium">Feature type</span>
-                  <select
-                    class="pf-editor-input w-full"
-                    [(ngModel)]="featureTypeId"
-                    [ngModelOptions]="{ standalone: true }"
-                    (ngModelChange)="featureValueId = ''"
-                  >
-                    <option value="">Select feature type</option>
-                    @for (attr of state.attributes(); track attr.id) {
-                      <option [value]="attr.id">{{ attr.name }}</option>
-                    }
-                  </select>
-                </label>
-                <label class="block min-w-[10rem] flex-1 space-y-1">
-                  <span class="text-sm font-medium">Value</span>
-                  <select
-                    class="pf-editor-input w-full"
-                    [(ngModel)]="featureValueId"
-                    [ngModelOptions]="{ standalone: true }"
-                    [disabled]="!featureTypeId"
-                  >
-                    <option value="">Select value</option>
-                    @for (val of valuesForFeatureType(); track val.id) {
-                      <option [value]="val.id">{{ val.value }}</option>
-                    }
-                  </select>
-                </label>
-                <button
-                  type="button"
-                  class="admin-action-secondary rounded-lg px-3 py-1.5 text-sm"
-                  [disabled]="!featureTypeId || !featureValueId"
-                  (click)="addDraftFeature()"
-                >
-                  Add feature
-                </button>
-              </div>
-            }
-            @if (draftFeatureChips().length) {
-              <div class="flex flex-wrap gap-2">
-                @for (chip of draftFeatureChips(); track chip.attributeId) {
-                  <span class="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm">
-                    {{ chip.label }}
-                    @if (!editingVariantId()) {
-                      <button
-                        type="button"
-                        class="text-[var(--text-muted)] hover:text-rose-600"
-                        (click)="removeDraftFeature(chip.attributeId)"
-                        aria-label="Remove feature"
-                      >
-                        ×
-                      </button>
-                    }
-                  </span>
-                }
-              </div>
-            } @else if (editingVariantId()) {
-              <p class="text-sm text-[var(--text-muted)]">No attributes selected.</p>
-            }
-          </div>
-
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Price</span>
-              <input class="pf-editor-input w-full" type="number" formControlName="price" />
-            </label>
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Compare at price</span>
-              <input class="pf-editor-input w-full" type="number" formControlName="compareAtPrice" />
-            </label>
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Barcode</span>
-              <input class="pf-editor-input w-full" formControlName="barcode" />
-            </label>
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Weight</span>
-              <input class="pf-editor-input w-full" type="number" formControlName="weight" />
-            </label>
-          </div>
-
-          <label class="flex items-center gap-2 text-sm">
-            <input type="checkbox" formControlName="isActive" /> Active
-          </label>
-
-          <div class="flex justify-end gap-2">
-            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeModal()">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="admin-section-action-btn rounded-lg px-4 py-2 text-sm"
-              [disabled]="form.invalid || saving() || !hasDraftSelections()"
-            >
-              {{ saving() ? 'Saving…' : editingVariantId() ? 'Update' : 'Create' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    }
-
     <app-confirm-dialog
       [open]="!!deleteTarget()"
       title="Delete variant"
@@ -244,14 +236,22 @@ export class ProductVariantsSectionComponent {
 
   readonly sectionIcon = Layers;
   readonly expanded = signal(false);
+  readonly sectionActive = signal(false);
   readonly saving = signal(false);
-  readonly modalOpen = signal(false);
+  readonly formOpen = signal(false);
   readonly editingVariantId = signal<string | null>(null);
   readonly editingSku = signal('');
   readonly deleteTarget = signal<ProductVariantDto | null>(null);
   readonly draftSelections = signal<Record<string, string>>({});
 
   readonly variants = computed(() => this.state.product()?.variants ?? []);
+  readonly visibleVariants = computed(() => {
+    const editingId = this.editingVariantId();
+    if (!this.formOpen() || !editingId) {
+      return this.variants();
+    }
+    return this.variants().filter((v) => v.id !== editingId);
+  });
   readonly hasVariants = computed(() => this.variants().length > 0);
   readonly productName = computed(() => this.state.product()?.name ?? 'Product');
 
@@ -271,6 +271,13 @@ export class ProductVariantsSectionComponent {
       this.state.product();
       this.state.attributes();
     });
+
+    effect(() => {
+      if (!this.expanded()) {
+        this.sectionActive.set(false);
+        this.closeForm();
+      }
+    });
   }
 
   valuesForFeatureType() {
@@ -278,13 +285,29 @@ export class ProductVariantsSectionComponent {
     return attr?.values ?? [];
   }
 
+  attributesAvailableForAdd() {
+    const selected = new Set(Object.keys(this.draftSelections()));
+    return this.state.attributes().filter((attr) => !selected.has(attr.id));
+  }
+
   draftFeatureChips(): { attributeId: string; label: string }[] {
+    const editingVariant = this.editingVariantId()
+      ? this.variants().find((v) => v.id === this.editingVariantId())
+      : null;
+
     return Object.entries(this.draftSelections()).map(([attributeId, valueId]) => {
       const attr = this.state.attributes().find((a) => a.id === attributeId);
       const val = attr?.values.find((v) => v.id === valueId);
+      const variantAttr = editingVariant?.attributes.find((a) => a.attributeId === attributeId);
+
       return {
         attributeId,
-        label: val ? `${attr?.name}: ${val.value}` : attributeId
+        label:
+          attr && val
+            ? `${attr.name}: ${val.value}`
+            : variantAttr
+              ? `${variantAttr.attributeName}: ${variantAttr.value}`
+              : attributeId
       };
     });
   }
@@ -298,6 +321,8 @@ export class ProductVariantsSectionComponent {
   }
 
   openCreate(): void {
+    this.expanded.set(true);
+    this.sectionActive.set(true);
     const p = this.state.product();
     this.editingVariantId.set(null);
     this.editingSku.set('');
@@ -310,15 +335,23 @@ export class ProductVariantsSectionComponent {
       weight: p?.weight ?? null,
       isActive: true
     });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
   openEdit(v: ProductVariantDto): void {
+    if (this.formOpen() && this.editingVariantId() === v.id) {
+      this.closeForm();
+      return;
+    }
+
+    this.expanded.set(true);
+    this.sectionActive.set(true);
     this.editingVariantId.set(v.id);
     this.editingSku.set(v.sku);
     this.draftSelections.set(
       Object.fromEntries(v.attributes.map((a) => [a.attributeId, a.valueId]))
     );
+    this.resetDraftInputs();
     this.form.patchValue({
       price: v.price,
       compareAtPrice: v.compareAtPrice,
@@ -326,14 +359,24 @@ export class ProductVariantsSectionComponent {
       weight: v.weight,
       isActive: v.isActive
     });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
-  closeModal(): void {
-    this.modalOpen.set(false);
+  closeForm(): void {
+    this.formOpen.set(false);
     this.editingVariantId.set(null);
     this.draftSelections.set({});
     this.resetDraftInputs();
+  }
+
+  onSectionEdit(): void {
+    if (this.sectionActive()) {
+      this.sectionActive.set(false);
+      this.expanded.set(false);
+      this.closeForm();
+      return;
+    }
+    this.sectionActive.set(true);
   }
 
   addDraftFeature(): void {
@@ -357,17 +400,14 @@ export class ProductVariantsSectionComponent {
     return Object.keys(this.draftSelections()).length > 0;
   }
 
-  saveModal(): void {
+  saveForm(): void {
     if (this.form.invalid || this.saving() || !this.hasDraftSelections()) return;
 
     const productId = this.state.productId();
     if (!productId) return;
 
     const v = this.form.getRawValue();
-    const attributes = Object.entries(this.draftSelections()).map(([attributeId, valueId]) => ({
-      attributeId,
-      valueId
-    }));
+    const attributes = this.buildVariantAttributes();
 
     const payload = {
       price: v.price,
@@ -388,7 +428,7 @@ export class ProductVariantsSectionComponent {
       next: (saved) => {
         this.saving.set(false);
         this.state.mergeProduct(saved);
-        this.closeModal();
+        this.closeForm();
         this.notifications.success(variantId ? 'Variant updated' : 'Variant created');
       },
       error: (err) => {
@@ -426,5 +466,26 @@ export class ProductVariantsSectionComponent {
   private resetDraftInputs(): void {
     this.featureTypeId = '';
     this.featureValueId = '';
+  }
+
+  private buildVariantAttributes(): ProductVariantAttributeInput[] {
+    const editingVariant = this.editingVariantId()
+      ? this.variants().find((v) => v.id === this.editingVariantId())
+      : null;
+
+    return Object.entries(this.draftSelections())
+      .filter(([, valueId]) => !!valueId)
+      .map(([attributeId, valueId]) => {
+        const attr = this.state.attributes().find((a) => a.id === attributeId);
+        const val = attr?.values.find((v) => v.id === valueId);
+        const variantAttr = editingVariant?.attributes.find((a) => a.attributeId === attributeId);
+
+        return {
+          attributeId,
+          attributeName: attr?.name ?? variantAttr?.attributeName ?? '',
+          valueId,
+          value: val?.value ?? variantAttr?.value ?? ''
+        };
+      });
   }
 }

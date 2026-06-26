@@ -1,14 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, of, switchMap } from 'rxjs';
 import { AuthService } from '@core/auth/auth.service';
-import {
-  InventoryApiService,
-  ProductAdminApiService
-} from '@features/catalog/data-access/product-admin-api.service';
+import { ProductAdminApiService } from '@features/catalog/data-access/product-admin-api.service';
 import { ProductSaveOrchestrator } from '@features/catalog/data-access/product-save.orchestrator';
 import { requireTenantId } from '@features/catalog/data-access/catalog-api.util';
 import {
-  AdjustInventoryRequest,
   BulkUpdateProductStatusResult,
   CreateInventoryRequest,
   PendingImageUpload,
@@ -26,7 +22,6 @@ import { ProductStatus } from '@features/catalog/models/product-status.enum';
 @Injectable({ providedIn: 'root' })
 export class ProductAdminService {
   private readonly api = inject(ProductAdminApiService);
-  private readonly inventoryApi = inject(InventoryApiService);
   private readonly orchestrator = inject(ProductSaveOrchestrator);
   private readonly auth = inject(AuthService);
 
@@ -109,16 +104,6 @@ export class ProductAdminService {
       .pipe(switchMap(() => this.refreshProduct(productId)));
   }
 
-  adjustInventory(
-    productId: string,
-    inventoryId: string,
-    body: Omit<AdjustInventoryRequest, 'tenantId'>
-  ): Observable<ProductDetailDto> {
-    return this.inventoryApi
-      .adjust(inventoryId, { ...body, tenantId: this.tenantId() })
-      .pipe(switchMap(() => this.refreshProduct(productId)));
-  }
-
   /** @deprecated Use section-specific save methods in the product form. Kept for duplicate flow. */
   save(payload: ProductSavePayload): Observable<ProductDetailDto> {
     return this.orchestrator.save(payload);
@@ -159,7 +144,9 @@ export class ProductAdminService {
             isActive: v.isActive,
             attributes: v.attributes.map((a) => ({
               attributeId: a.attributeId,
-              valueId: a.valueId
+              attributeName: a.attributeName,
+              valueId: a.valueId,
+              value: a.value
             }))
           })),
           existingImages: [],

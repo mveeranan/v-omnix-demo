@@ -32,6 +32,45 @@ import { LucideAngularModule, Plus, SlidersHorizontal, Trash2 } from 'lucide-ang
     <app-admin-page-shell eyebrow="Catalog" title="Product attributes" description="Define variant attributes like Size and Color.">
       <button admin-page-actions type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add attribute</button>
 
+      @if (formOpen()) {
+        <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
+          <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit attribute' : 'New attribute' }}</h3>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Attribute name</span>
+            <input class="pf-editor-input w-full" formControlName="name" placeholder="Size" />
+          </label>
+          <div class="space-y-2" formArrayName="values">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-medium">Values</span>
+              <button type="button" class="admin-action-secondary inline-flex items-center gap-1 rounded-lg px-3 py-1 text-sm" (click)="addValue()">
+                <lucide-icon [img]="plusIcon" class="h-3.5 w-3.5" />
+                Add value
+              </button>
+            </div>
+            @for (ctrl of valuesArray.controls; track $index; let i = $index) {
+              <div class="flex items-center gap-2">
+                <input class="pf-editor-input min-w-0 flex-1" [formControlName]="i" [placeholder]="'Value ' + (i + 1)" />
+                <button
+                  type="button"
+                  class="shrink-0 rounded-lg p-2 text-[var(--text-muted)] hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40"
+                  [disabled]="valuesArray.length <= 1"
+                  (click)="removeValue(i)"
+                  [attr.aria-label]="'Remove value ' + (i + 1)"
+                >
+                  <lucide-icon [img]="trashIcon" class="h-4 w-4" />
+                </button>
+              </div>
+            }
+          </div>
+          <div class="flex justify-end gap-2">
+            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeForm()">Cancel</button>
+            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid || saving()">
+              {{ saving() ? 'Saving…' : 'Save' }}
+            </button>
+          </div>
+        </form>
+      }
+
       @if (loading()) {
         <app-loading-spinner label="Loading attributes…" />
       } @else if (!attributes().length) {
@@ -84,54 +123,6 @@ import { LucideAngularModule, Plus, SlidersHorizontal, Trash2 } from 'lucide-ang
         </app-table>
       }
     </app-admin-page-shell>
-
-    @if (modalOpen()) {
-      <div class="fixed inset-0 z-50 grid place-items-center p-4">
-        <div class="admin-modal-backdrop absolute inset-0" (click)="closeModal()"></div>
-        <form class="admin-glass-card relative w-full max-w-md space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
-          <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit attribute' : 'New attribute' }}</h3>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Attribute name</span>
-            <input class="pf-editor-input w-full" formControlName="name" placeholder="Size" />
-          </label>
-
-          <div class="space-y-2" formArrayName="values">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-sm font-medium">Values</span>
-              <button type="button" class="admin-action-secondary inline-flex items-center gap-1 rounded-lg px-3 py-1 text-sm" (click)="addValue()">
-                <lucide-icon [img]="plusIcon" class="h-3.5 w-3.5" />
-                Add value
-              </button>
-            </div>
-            @for (ctrl of valuesArray.controls; track $index; let i = $index) {
-              <div class="flex items-center gap-2">
-                <input
-                  class="pf-editor-input min-w-0 flex-1"
-                  [formControlName]="i"
-                  [placeholder]="'Value ' + (i + 1)"
-                />
-                <button
-                  type="button"
-                  class="shrink-0 rounded-lg p-2 text-[var(--text-muted)] hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40"
-                  [disabled]="valuesArray.length <= 1"
-                  (click)="removeValue(i)"
-                  [attr.aria-label]="'Remove value ' + (i + 1)"
-                >
-                  <lucide-icon [img]="trashIcon" class="h-4 w-4" />
-                </button>
-              </div>
-            }
-          </div>
-
-          <div class="flex justify-end gap-2">
-            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeModal()">Cancel</button>
-            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid || saving()">
-              {{ saving() ? 'Saving…' : 'Save' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    }
   `
 })
 export class ProductAttributesListComponent implements OnInit {
@@ -146,7 +137,7 @@ export class ProductAttributesListComponent implements OnInit {
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly attributes = signal<ProductAttributeDto[]>([]);
-  readonly modalOpen = signal(false);
+  readonly formOpen = signal(false);
   readonly editingId = signal<string | null>(null);
 
   readonly form = this.fb.nonNullable.group({
@@ -198,18 +189,18 @@ export class ProductAttributesListComponent implements OnInit {
     this.editingId.set(null);
     this.form.reset({ name: '' });
     this.setValues([]);
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
   openEdit(attr: ProductAttributeDto): void {
     this.editingId.set(attr.id);
     this.form.patchValue({ name: attr.name });
     this.setValues(attr.values.map((v) => v.value));
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
-  closeModal(): void {
-    this.modalOpen.set(false);
+  closeForm(): void {
+    this.formOpen.set(false);
   }
 
   save(): void {
@@ -236,7 +227,7 @@ export class ProductAttributesListComponent implements OnInit {
     req$.subscribe({
       next: () => {
         this.saving.set(false);
-        this.closeModal();
+        this.closeForm();
         this.load();
         this.notifications.success(id ? 'Attribute updated' : 'Attribute created');
       },

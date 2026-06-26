@@ -31,6 +31,50 @@ import { LucideAngularModule, Ticket } from 'lucide-angular';
         <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add coupon</button>
       </div>
 
+      @if (formOpen()) {
+        <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
+          <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit coupon' : 'New coupon' }}</h3>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Code</span>
+            <input class="pf-editor-input w-full font-mono uppercase" formControlName="code" />
+          </label>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Description</span>
+            <input class="pf-editor-input w-full" formControlName="description" />
+          </label>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Discount type</span>
+              <select class="pf-editor-input w-full" formControlName="discountType">
+                <option value="Percentage">Percentage</option>
+                <option value="FixedAmount">Fixed amount</option>
+              </select>
+            </label>
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Value</span>
+              <input class="pf-editor-input w-full" type="number" formControlName="discountValue" />
+            </label>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Min order</span>
+              <input class="pf-editor-input w-full" type="number" formControlName="minOrderAmount" />
+            </label>
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Max uses</span>
+              <input class="pf-editor-input w-full" type="number" formControlName="maxUses" placeholder="Unlimited" />
+            </label>
+          </div>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" formControlName="isActive" /> Active
+          </label>
+          <div class="flex justify-end gap-2">
+            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeForm()">Cancel</button>
+            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid">Save</button>
+          </div>
+        </form>
+      }
+
       @if (loading()) {
         <app-loading-spinner label="Loading coupons…" />
       } @else if (!coupons().length) {
@@ -85,53 +129,6 @@ import { LucideAngularModule, Ticket } from 'lucide-angular';
       }
     </app-admin-page-shell>
 
-    @if (modalOpen()) {
-      <div class="fixed inset-0 z-50 grid place-items-center p-4">
-        <div class="admin-modal-backdrop absolute inset-0" (click)="closeModal()"></div>
-        <form class="admin-glass-card relative w-full max-w-md space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
-          <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit coupon' : 'New coupon' }}</h3>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Code</span>
-            <input class="pf-editor-input w-full font-mono uppercase" formControlName="code" />
-          </label>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Description</span>
-            <input class="pf-editor-input w-full" formControlName="description" />
-          </label>
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Discount type</span>
-              <select class="pf-editor-input w-full" formControlName="discountType">
-                <option value="Percentage">Percentage</option>
-                <option value="FixedAmount">Fixed amount</option>
-              </select>
-            </label>
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Value</span>
-              <input class="pf-editor-input w-full" type="number" formControlName="discountValue" />
-            </label>
-          </div>
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Min order</span>
-              <input class="pf-editor-input w-full" type="number" formControlName="minOrderAmount" />
-            </label>
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Max uses</span>
-              <input class="pf-editor-input w-full" type="number" formControlName="maxUses" placeholder="Unlimited" />
-            </label>
-          </div>
-          <label class="flex items-center gap-2 text-sm">
-            <input type="checkbox" formControlName="isActive" /> Active
-          </label>
-          <div class="flex justify-end gap-2">
-            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeModal()">Cancel</button>
-            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid">Save</button>
-          </div>
-        </form>
-      </div>
-    }
-
     <app-confirm-dialog
       [open]="!!deleteTarget()"
       title="Delete coupon"
@@ -151,7 +148,7 @@ export class CouponsListComponent implements OnInit {
   readonly couponIcon = Ticket;
   readonly loading = signal(true);
   readonly coupons = signal<Coupon[]>([]);
-  readonly modalOpen = signal(false);
+  readonly formOpen = signal(false);
   readonly editingId = signal<string | null>(null);
   readonly deleteTarget = signal<Coupon | null>(null);
 
@@ -196,7 +193,7 @@ export class CouponsListComponent implements OnInit {
       maxUses: null,
       isActive: true
     });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
   openEdit(c: Coupon): void {
@@ -210,11 +207,11 @@ export class CouponsListComponent implements OnInit {
       maxUses: c.maxUses ?? null,
       isActive: c.isActive
     });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
-  closeModal(): void {
-    this.modalOpen.set(false);
+  closeForm(): void {
+    this.formOpen.set(false);
   }
 
   save(): void {
@@ -234,7 +231,7 @@ export class CouponsListComponent implements OnInit {
     const req$ = id ? this.api.update(id, payload) : this.api.create(payload);
     req$.subscribe({
       next: () => {
-        this.closeModal();
+        this.closeForm();
         this.load();
         this.notifications.success('Coupon saved');
       }

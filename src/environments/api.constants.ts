@@ -107,9 +107,6 @@ export const API_ENDPOINTS = {
       `${base}/products/${encodeURIComponent(productId)}/inventory/${encodeURIComponent(inventoryId)}`,
     tags: (id: string) => `${base}/products/${encodeURIComponent(id)}/tags`
   },
-  inventory: {
-    adjust: (inventoryId: string) => `${base}/inventory/${encodeURIComponent(inventoryId)}/adjust`
-  },
   catalog: {
     products: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/products`,
     product: (tenantSlug: string, slug: string) =>

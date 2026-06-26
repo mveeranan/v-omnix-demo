@@ -30,6 +30,48 @@ import { LucideAngularModule, Receipt } from 'lucide-angular';
         <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add tax rule</button>
       </div>
 
+      @if (formOpen()) {
+        <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
+          <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit tax rule' : 'New tax rule' }}</h3>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Name</span>
+            <input class="pf-editor-input w-full" formControlName="name" />
+          </label>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Country code</span>
+              <input class="pf-editor-input w-full" formControlName="country" placeholder="IN" />
+            </label>
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Region</span>
+              <input class="pf-editor-input w-full" formControlName="region" />
+            </label>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Tax type</span>
+              <select class="pf-editor-input w-full" formControlName="taxType">
+                <option value="GST">GST</option>
+                <option value="VAT">VAT</option>
+                <option value="Sales Tax">Sales Tax</option>
+              </select>
+            </label>
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Rate (%)</span>
+              <input class="pf-editor-input w-full" type="number" formControlName="rate" />
+            </label>
+          </div>
+          <div class="flex flex-wrap gap-4 text-sm">
+            <label class="flex items-center gap-2"><input type="checkbox" formControlName="isActive" /> Active</label>
+            <label class="flex items-center gap-2"><input type="checkbox" formControlName="applyToShipping" /> Apply to shipping</label>
+          </div>
+          <div class="flex justify-end gap-2">
+            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeForm()">Cancel</button>
+            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid">Save</button>
+          </div>
+        </form>
+      }
+
       @if (loading()) {
         <app-loading-spinner label="Loading tax rules…" />
       } @else if (!rules().length) {
@@ -88,51 +130,6 @@ import { LucideAngularModule, Receipt } from 'lucide-angular';
       }
     </app-admin-page-shell>
 
-    @if (modalOpen()) {
-      <div class="fixed inset-0 z-50 grid place-items-center p-4">
-        <div class="admin-modal-backdrop absolute inset-0" (click)="closeModal()"></div>
-        <form class="admin-glass-card relative w-full max-w-md space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
-          <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit tax rule' : 'New tax rule' }}</h3>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Name</span>
-            <input class="pf-editor-input w-full" formControlName="name" />
-          </label>
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Country code</span>
-              <input class="pf-editor-input w-full" formControlName="country" placeholder="IN" />
-            </label>
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Region</span>
-              <input class="pf-editor-input w-full" formControlName="region" />
-            </label>
-          </div>
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Tax type</span>
-              <select class="pf-editor-input w-full" formControlName="taxType">
-                <option value="GST">GST</option>
-                <option value="VAT">VAT</option>
-                <option value="Sales Tax">Sales Tax</option>
-              </select>
-            </label>
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Rate (%)</span>
-              <input class="pf-editor-input w-full" type="number" formControlName="rate" />
-            </label>
-          </div>
-          <div class="flex flex-wrap gap-4 text-sm">
-            <label class="flex items-center gap-2"><input type="checkbox" formControlName="isActive" /> Active</label>
-            <label class="flex items-center gap-2"><input type="checkbox" formControlName="applyToShipping" /> Apply to shipping</label>
-          </div>
-          <div class="flex justify-end gap-2">
-            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeModal()">Cancel</button>
-            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid">Save</button>
-          </div>
-        </form>
-      </div>
-    }
-
     <app-confirm-dialog
       [open]="!!deleteTarget()"
       title="Delete tax rule"
@@ -152,7 +149,7 @@ export class TaxRulesComponent implements OnInit {
   readonly taxIcon = Receipt;
   readonly loading = signal(true);
   readonly rules = signal<TaxRule[]>([]);
-  readonly modalOpen = signal(false);
+  readonly formOpen = signal(false);
   readonly editingId = signal<string | null>(null);
   readonly deleteTarget = signal<TaxRule | null>(null);
 
@@ -192,17 +189,17 @@ export class TaxRulesComponent implements OnInit {
       isActive: true,
       applyToShipping: false
     });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
   openEdit(r: TaxRule): void {
     this.editingId.set(r.id);
     this.form.patchValue(r);
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
-  closeModal(): void {
-    this.modalOpen.set(false);
+  closeForm(): void {
+    this.formOpen.set(false);
   }
 
   save(): void {
@@ -222,7 +219,7 @@ export class TaxRulesComponent implements OnInit {
     const req$ = id ? this.api.update(id, payload) : this.api.create(payload);
     req$.subscribe({
       next: () => {
-        this.closeModal();
+        this.closeForm();
         this.load();
         this.notifications.success('Tax rule saved');
       }
