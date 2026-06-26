@@ -40,11 +40,15 @@ type InventoryFormMode = 'create' | 'edit' | null;
           Save variants first to set per-variant inventory.
         </p>
       } @else {
-        @if (formMode() === 'create' && activeRow(); as row) {
+        @if (formMode() && activeRow(); as row) {
           <div class="admin-glass-card mb-4 space-y-4 rounded-xl p-4">
-            <h4 class="text-sm font-semibold">Add inventory</h4>
+            <h4 class="text-sm font-semibold">{{ formMode() === 'create' ? 'Add inventory' : 'Edit inventory' }}</h4>
             <p class="text-sm text-[var(--text-muted)]">{{ productName() }} — {{ row.label }}</p>
-            <form class="space-y-4" [formGroup]="setForm" (ngSubmit)="saveCreate()">
+            <form
+              class="space-y-4"
+              [formGroup]="setForm"
+              (ngSubmit)="formMode() === 'create' ? saveCreate() : saveSet()"
+            >
               <label class="block space-y-1">
                 <span class="text-sm font-medium">Quantity available</span>
                 <input class="pf-editor-input w-full" type="number" formControlName="quantityAvailable" min="0" />
@@ -62,82 +66,59 @@ type InventoryFormMode = 'create' | 'edit' | null;
                   class="admin-section-action-btn rounded-lg px-4 py-2 text-sm"
                   [disabled]="setForm.invalid || savingSet()"
                 >
-                  {{ savingSet() ? 'Saving…' : 'Create inventory' }}
+                  @if (savingSet()) {
+                    Saving…
+                  } @else if (formMode() === 'create') {
+                    Create inventory
+                  } @else {
+                    Save inventory
+                  }
                 </button>
               </div>
             </form>
           </div>
-        }
-
-        @if (formMode() === 'edit' && activeRow(); as row) {
-          <div class="admin-glass-card mb-4 space-y-4 rounded-xl p-4">
-            <h4 class="text-sm font-semibold">Edit inventory</h4>
-            <p class="text-sm text-[var(--text-muted)]">{{ productName() }} — {{ row.label }}</p>
-            <form class="space-y-4" [formGroup]="setForm" (ngSubmit)="saveSet()">
-              <label class="block space-y-1">
-                <span class="text-sm font-medium">Quantity available</span>
-                <input class="pf-editor-input w-full" type="number" formControlName="quantityAvailable" min="0" />
-              </label>
-              <label class="block space-y-1">
-                <span class="text-sm font-medium">Low stock threshold</span>
-                <input class="pf-editor-input w-full" type="number" formControlName="lowStockThreshold" min="0" />
-              </label>
-              <div class="flex justify-end gap-2">
-                <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeForm()">
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  class="admin-section-action-btn rounded-lg px-4 py-2 text-sm"
-                  [disabled]="setForm.invalid || savingSet()"
-                >
-                  {{ savingSet() ? 'Saving…' : 'Save inventory' }}
-                </button>
-              </div>
-            </form>
-          </div>
-        }
-
-        <app-table>
-          <table class="admin-data-table">
-            <thead>
-              <tr>
-                <th class="admin-data-table__index">#</th>
-                <th>Item</th>
-                <th>Available</th>
-                <th>Reserved</th>
-                <th>Low stock</th>
-                <th class="admin-data-table__col-actions">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of visibleStockRows(); track row.variantId ?? 'simple'; let i = $index) {
-                <tr class="admin-data-table__row">
-                  <td class="admin-data-table__index">{{ i + 1 }}</td>
-                  <td>
-                    <div class="text-sm font-medium">{{ productName() }} — {{ row.label }}</div>
-                    @if (row.sku) {
-                      <div class="text-xs text-[var(--text-muted)]">{{ row.sku }}</div>
-                    }
-                  </td>
-                  <td>{{ row.inventoryId ? row.quantityAvailable : '—' }}</td>
-                  <td>{{ row.inventoryId ? row.quantityReserved : '—' }}</td>
-                  <td>{{ row.inventoryId ? row.lowStockThreshold : '—' }}</td>
-                  <td class="admin-data-table__col-actions">
-                    <div class="admin-data-table__actions">
-                      @if (!row.inventoryId) {
-                        <app-admin-table-action label="Add" variant="edit" (action)="openCreate(row)" />
-                      } @else {
-                        <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(row)" />
-                        <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(row)" />
-                      }
-                    </div>
-                  </td>
+        } @else {
+          <app-table>
+            <table class="admin-data-table">
+              <thead>
+                <tr>
+                  <th class="admin-data-table__index">#</th>
+                  <th>Item</th>
+                  <th>Available</th>
+                  <th>Reserved</th>
+                  <th>Low stock</th>
+                  <th class="admin-data-table__col-actions">Actions</th>
                 </tr>
-              }
-            </tbody>
-          </table>
-        </app-table>
+              </thead>
+              <tbody>
+                @for (row of stockRows(); track row.variantId ?? 'simple'; let i = $index) {
+                  <tr class="admin-data-table__row">
+                    <td class="admin-data-table__index">{{ i + 1 }}</td>
+                    <td>
+                      <div class="text-sm font-medium">{{ productName() }} — {{ row.label }}</div>
+                      @if (row.sku) {
+                        <div class="text-xs text-[var(--text-muted)]">{{ row.sku }}</div>
+                      }
+                    </td>
+                    <td>{{ row.inventoryId ? row.quantityAvailable : '—' }}</td>
+                    <td>{{ row.inventoryId ? row.quantityReserved : '—' }}</td>
+                    <td>{{ row.inventoryId ? row.lowStockThreshold : '—' }}</td>
+                    <td class="admin-data-table__col-actions">
+                      <div class="admin-data-table__actions">
+                        @if (!row.inventoryId) {
+                          <app-admin-table-action label="Add" variant="edit" (action)="openCreate(row)" />
+                        } @else {
+                          <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(row)" />
+                          <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(row)" />
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </app-table>
+        }
       }
     </app-admin-form-section-card>
 
@@ -170,13 +151,6 @@ export class ProductInventorySectionComponent {
 
   readonly productName = computed(() => this.state.product()?.name ?? 'Product');
   readonly trackInventoryEnabled = computed(() => this.state.product()?.trackInventory ?? false);
-  readonly visibleStockRows = computed(() => {
-    const active = this.activeRow();
-    if (!active || !this.formMode()) {
-      return this.stockRows();
-    }
-    return this.stockRows().filter((row) => !this.isSameStockRow(row, active));
-  });
 
   private readonly trackInventoryMessage =
     'Enable track inventory in product details to create or edit inventory.';
@@ -422,12 +396,5 @@ export class ProductInventorySectionComponent {
       this.closeForm();
     }
     this.expanded.set(next);
-  }
-
-  private isSameStockRow(a: VariantStockRow, b: VariantStockRow): boolean {
-    if (a.inventoryId && b.inventoryId) {
-      return a.inventoryId === b.inventoryId;
-    }
-    return (a.variantId ?? 'simple') === (b.variantId ?? 'simple');
   }
 }

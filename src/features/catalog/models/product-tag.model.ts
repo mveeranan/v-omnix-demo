@@ -12,6 +12,12 @@ export interface CreateProductTagRequest {
   isActive: boolean;
 }
 
+export interface SaveProductTagRequest {
+  tenantId: string;
+  name: string;
+  isActive: boolean;
+}
+
 export function createEmptyProductTag(tenantId: string): CreateProductTagRequest {
   return {
     tenantId,

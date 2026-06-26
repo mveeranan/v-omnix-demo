@@ -73,7 +73,9 @@ export const API_ENDPOINTS = {
   },
   productTags: {
     list: (tenantId: string) => `${base}/product-tags?tenantId=${encodeURIComponent(tenantId)}`,
-    create: `${base}/product-tags`
+    create: `${base}/product-tags`,
+    update: (id: string) => `${base}/product-tags/${encodeURIComponent(id)}`,
+    delete: (id: string) => `${base}/product-tags/${encodeURIComponent(id)}`
   },
   productAttributes: {
     list: (tenantId: string) => `${base}/product-attributes?tenantId=${encodeURIComponent(tenantId)}`,

@@ -51,6 +51,7 @@ import { LucideAngularModule, Award } from 'lucide-angular';
         </form>
       }
 
+      @if (!formOpen()) {
       @if (loading()) {
         <app-loading-spinner label="Loading brands…" />
       } @else if (!brands().length) {
@@ -65,6 +66,7 @@ import { LucideAngularModule, Award } from 'lucide-angular';
               <tr>
                 <th class="admin-data-table__index">#</th>
                 <th>Brand name</th>
+                <th>Description</th>
                 <th class="admin-data-table__col-status">Status</th>
                 <th class="admin-data-table__col-actions">Actions</th>
               </tr>
@@ -80,6 +82,9 @@ import { LucideAngularModule, Award } from 'lucide-angular';
                         <div class="admin-data-table__entity-title">{{ b.name }}</div>
                       </div>
                     </div>
+                  </td>
+                  <td class="admin-data-table__col-description">
+                    <p class="line-clamp-2 text-sm text-[var(--text-secondary)]">{{ b.description || '—' }}</p>
                   </td>
                   <td class="admin-data-table__col-status">
                     <app-admin-status-badge
@@ -98,6 +103,7 @@ import { LucideAngularModule, Award } from 'lucide-angular';
             </tbody>
           </table>
         </app-table>
+      }
       }
     </app-admin-page-shell>
 

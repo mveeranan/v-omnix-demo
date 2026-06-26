@@ -42,26 +42,6 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
           <a routerLink="/admin/product-attributes" class="underline">Manage attributes</a>
         </p>
       } @else {
-        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <p class="text-sm text-[var(--text-muted)]">
-            @if (hasVariants()) {
-              Manage variants individually. Delete all variants to convert to a simple product.
-            } @else {
-              Simple product — no variants.
-            }
-          </p>
-          @if (state.attributes().length) {
-            <button
-              type="button"
-              class="admin-section-action-btn rounded-lg px-4 py-2 text-sm"
-              [disabled]="saving()"
-              (click)="openCreate()"
-            >
-              + Add variant
-            </button>
-          }
-        </div>
-
         @if (formOpen()) {
           <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-4" [formGroup]="form" (ngSubmit)="saveForm()">
             <h4 class="text-sm font-semibold">{{ editingVariantId() ? 'Edit variant' : 'New variant' }}</h4>
@@ -172,47 +152,67 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
               </button>
             </div>
           </form>
-        }
-
-        @if (!variants().length) {
-          <p class="text-sm text-[var(--text-muted)]">No variants yet.</p>
         } @else {
-          <app-table>
-            <table class="admin-data-table">
-              <thead>
-                <tr>
-                  <th class="admin-data-table__index">#</th>
-                  <th>SKU</th>
-                  <th>Attributes</th>
-                  <th>Price</th>
-                  <th class="admin-data-table__col-status">Status</th>
-                  <th class="admin-data-table__col-actions">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (v of visibleVariants(); track v.id; let i = $index) {
-                  <tr class="admin-data-table__row">
-                    <td class="admin-data-table__index">{{ i + 1 }}</td>
-                    <td class="text-sm text-[var(--text-secondary)]">{{ v.sku }}</td>
-                    <td class="text-sm">{{ variantAttrs(v) }}</td>
-                    <td class="admin-data-table__price">{{ v.price }}</td>
-                    <td class="admin-data-table__col-status">
-                      <app-admin-status-badge
-                        [label]="v.isActive ? 'Active' : 'Inactive'"
-                        [variant]="v.isActive ? 'active' : 'inactive'"
-                      />
-                    </td>
-                    <td class="admin-data-table__col-actions">
-                      <div class="admin-data-table__actions">
-                        <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(v)" />
-                        <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(v)" />
-                      </div>
-                    </td>
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p class="text-sm text-[var(--text-muted)]">
+              @if (hasVariants()) {
+                Manage variants individually. Delete all variants to convert to a simple product.
+              } @else {
+                Simple product — no variants.
+              }
+            </p>
+            @if (state.attributes().length) {
+              <button
+                type="button"
+                class="admin-section-action-btn rounded-lg px-4 py-2 text-sm"
+                [disabled]="saving()"
+                (click)="openCreate()"
+              >
+                + Add variant
+              </button>
+            }
+          </div>
+
+          @if (!variants().length) {
+            <p class="text-sm text-[var(--text-muted)]">No variants yet.</p>
+          } @else {
+            <app-table>
+              <table class="admin-data-table">
+                <thead>
+                  <tr>
+                    <th class="admin-data-table__index">#</th>
+                    <th>SKU</th>
+                    <th>Attributes</th>
+                    <th>Price</th>
+                    <th class="admin-data-table__col-status">Status</th>
+                    <th class="admin-data-table__col-actions">Actions</th>
                   </tr>
-                }
-              </tbody>
-            </table>
-          </app-table>
+                </thead>
+                <tbody>
+                  @for (v of variants(); track v.id; let i = $index) {
+                    <tr class="admin-data-table__row">
+                      <td class="admin-data-table__index">{{ i + 1 }}</td>
+                      <td class="text-sm text-[var(--text-secondary)]">{{ v.sku }}</td>
+                      <td class="text-sm">{{ variantAttrs(v) }}</td>
+                      <td class="admin-data-table__price">{{ v.price }}</td>
+                      <td class="admin-data-table__col-status">
+                        <app-admin-status-badge
+                          [label]="v.isActive ? 'Active' : 'Inactive'"
+                          [variant]="v.isActive ? 'active' : 'inactive'"
+                        />
+                      </td>
+                      <td class="admin-data-table__col-actions">
+                        <div class="admin-data-table__actions">
+                          <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(v)" />
+                          <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(v)" />
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </app-table>
+          }
         }
       }
     </app-admin-form-section-card>
@@ -245,13 +245,6 @@ export class ProductVariantsSectionComponent {
   readonly draftSelections = signal<Record<string, string>>({});
 
   readonly variants = computed(() => this.state.product()?.variants ?? []);
-  readonly visibleVariants = computed(() => {
-    const editingId = this.editingVariantId();
-    if (!this.formOpen() || !editingId) {
-      return this.variants();
-    }
-    return this.variants().filter((v) => v.id !== editingId);
-  });
   readonly hasVariants = computed(() => this.variants().length > 0);
   readonly productName = computed(() => this.state.product()?.name ?? 'Product');
 

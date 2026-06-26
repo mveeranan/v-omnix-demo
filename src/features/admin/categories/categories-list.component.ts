@@ -56,6 +56,7 @@ import { LucideAngularModule, FolderTree } from 'lucide-angular';
         </form>
       }
 
+      @if (!formOpen()) {
       @if (loading()) {
         <app-loading-spinner label="Loading categories…" />
       } @else if (!categories().length) {
@@ -71,6 +72,7 @@ import { LucideAngularModule, FolderTree } from 'lucide-angular';
               <tr>
                 <th class="admin-data-table__index">#</th>
                 <th>Category name</th>
+                <th>Description</th>
                 <th>Order</th>
                 <th class="admin-data-table__col-status">Status</th>
                 <th class="admin-data-table__col-actions">Actions</th>
@@ -87,6 +89,9 @@ import { LucideAngularModule, FolderTree } from 'lucide-angular';
                         <div class="admin-data-table__entity-title">{{ cat.name }}</div>
                       </div>
                     </div>
+                  </td>
+                  <td class="admin-data-table__col-description">
+                    <p class="line-clamp-2 text-sm text-[var(--text-secondary)]">{{ cat.description || '—' }}</p>
                   </td>
                   <td>{{ cat.displayOrder }}</td>
                   <td class="admin-data-table__col-status">
@@ -106,6 +111,7 @@ import { LucideAngularModule, FolderTree } from 'lucide-angular';
             </tbody>
           </table>
         </app-table>
+      }
       }
     </app-admin-page-shell>
 

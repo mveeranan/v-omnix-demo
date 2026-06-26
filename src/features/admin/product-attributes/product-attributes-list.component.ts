@@ -71,6 +71,7 @@ import { LucideAngularModule, Plus, SlidersHorizontal, Trash2 } from 'lucide-ang
         </form>
       }
 
+      @if (!formOpen()) {
       @if (loading()) {
         <app-loading-spinner label="Loading attributes…" />
       } @else if (!attributes().length) {
@@ -121,6 +122,7 @@ import { LucideAngularModule, Plus, SlidersHorizontal, Trash2 } from 'lucide-ang
             </tbody>
           </table>
         </app-table>
+      }
       }
     </app-admin-page-shell>
   `

@@ -27,19 +27,6 @@ import { NotificationService } from '@core/notifications/notification.service';
   ],
   template: `
     <app-admin-page-shell eyebrow="Operations" title="Returns" description="Manage return requests and refund status.">
-      <div class="admin-data-table-toolbar">
-        <p class="admin-data-table-toolbar__summary">Showing {{ filtered().length }} of {{ returns().length }} returns</p>
-        <div class="admin-data-table-toolbar__filters">
-          <select class="pf-editor-input" [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()">
-            <option value="">All statuses</option>
-            @for (s of statuses; track s) {
-              <option [value]="s">{{ s }}</option>
-            }
-          </select>
-          <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ New return</button>
-        </div>
-      </div>
-
       @if (formOpen()) {
         <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
           <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit return' : 'New return' }}</h3>
@@ -84,48 +71,63 @@ import { NotificationService } from '@core/notifications/notification.service';
         </form>
       }
 
-      @if (loading()) {
-        <app-loading-spinner label="Loading returns…" />
-      } @else if (!filtered().length) {
-        <div class="admin-glass-card rounded-xl p-8 text-center">
-          <p class="font-medium">No returns found</p>
-        </div>
-      } @else {
-        <app-table>
-          <table class="admin-data-table">
-            <thead>
-              <tr>
-                <th class="admin-data-table__index">#</th>
-                <th>Order</th>
-                <th>Customer</th>
-                <th>Reason</th>
-                <th>Refund</th>
-                <th class="admin-data-table__col-status">Status</th>
-                <th class="admin-data-table__col-actions">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (r of filtered(); track r.id; let i = $index) {
-                <tr class="admin-data-table__row">
-                  <td class="admin-data-table__index">{{ i + 1 }}</td>
-                  <td><span class="admin-data-table__entity-title">#{{ r.orderNumber }}</span></td>
-                  <td>{{ r.customerName }}</td>
-                  <td class="text-[var(--text-secondary)]">{{ r.reason }}</td>
-                  <td><span class="admin-data-table__price">{{ format(r.refundAmount, r.currency) }}</span></td>
-                  <td class="admin-data-table__col-status">
-                    <app-admin-status-badge [label]="r.status" [variant]="statusVariant(r.status)" />
-                  </td>
-                  <td class="admin-data-table__col-actions">
-                    <div class="admin-data-table__actions">
-                      <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(r)" />
-                      <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(r)" />
-                    </div>
-                  </td>
-                </tr>
+      @if (!formOpen()) {
+        <div class="admin-data-table-toolbar">
+          <p class="admin-data-table-toolbar__summary">Showing {{ filtered().length }} of {{ returns().length }} returns</p>
+          <div class="admin-data-table-toolbar__filters">
+            <select class="pf-editor-input" [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()">
+              <option value="">All statuses</option>
+              @for (s of statuses; track s) {
+                <option [value]="s">{{ s }}</option>
               }
-            </tbody>
-          </table>
-        </app-table>
+            </select>
+            <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ New return</button>
+          </div>
+        </div>
+
+        @if (loading()) {
+          <app-loading-spinner label="Loading returns…" />
+        } @else if (!filtered().length) {
+          <div class="admin-glass-card rounded-xl p-8 text-center">
+            <p class="font-medium">No returns found</p>
+          </div>
+        } @else {
+          <app-table>
+            <table class="admin-data-table">
+              <thead>
+                <tr>
+                  <th class="admin-data-table__index">#</th>
+                  <th>Order</th>
+                  <th>Customer</th>
+                  <th>Reason</th>
+                  <th>Refund</th>
+                  <th class="admin-data-table__col-status">Status</th>
+                  <th class="admin-data-table__col-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of filtered(); track r.id; let i = $index) {
+                  <tr class="admin-data-table__row">
+                    <td class="admin-data-table__index">{{ i + 1 }}</td>
+                    <td><span class="admin-data-table__entity-title">#{{ r.orderNumber }}</span></td>
+                    <td>{{ r.customerName }}</td>
+                    <td class="text-[var(--text-secondary)]">{{ r.reason }}</td>
+                    <td><span class="admin-data-table__price">{{ format(r.refundAmount, r.currency) }}</span></td>
+                    <td class="admin-data-table__col-status">
+                      <app-admin-status-badge [label]="r.status" [variant]="statusVariant(r.status)" />
+                    </td>
+                    <td class="admin-data-table__col-actions">
+                      <div class="admin-data-table__actions">
+                        <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(r)" />
+                        <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(r)" />
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </app-table>
+        }
       }
     </app-admin-page-shell>
 

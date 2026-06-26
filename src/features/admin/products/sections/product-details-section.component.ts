@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { afterNextRender, Component, effect, inject, Injector, signal } from '@angular/core';
+import { afterNextRender, Component, computed, effect, inject, Injector, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { Package } from 'lucide-angular';
 import { AdminFormSectionCardComponent } from '@features/admin/shared/admin-form-section-card.component';
@@ -11,11 +12,12 @@ import { ProductDetailDto } from '@features/catalog/models/product-admin.model';
 import { ProductStatus, productStatusLabel } from '@features/catalog/models/product-status.enum';
 import { ProductAdminService } from '../data-access/product-admin.service';
 import { ProductFormStateService } from '../data-access/product-form-state.service';
+import { RichTextEditorComponent } from '@shared/ui/rich-text-editor.component';
 
 @Component({
   selector: 'app-product-details-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AdminFormSectionCardComponent],
+  imports: [CommonModule, ReactiveFormsModule, AdminFormSectionCardComponent, RichTextEditorComponent],
   template: `
     <app-admin-form-section-card
       title="Product details"
@@ -42,6 +44,18 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
           <div><dt class="text-[var(--text-muted)]">Category</dt><dd>{{ state.product()!.categoryName }}</dd></div>
           <div><dt class="text-[var(--text-muted)]">Price</dt><dd>{{ formatPrice(state.product()!.price) }}</dd></div>
           <div><dt class="text-[var(--text-muted)]">Status</dt><dd>{{ statusLabel(state.product()!.status) }}</dd></div>
+          @if (state.product()!.shortDescription) {
+            <div class="sm:col-span-2">
+              <dt class="text-[var(--text-muted)]">Short description</dt>
+              <dd class="mt-1 text-[var(--text-secondary)]">{{ state.product()!.shortDescription }}</dd>
+            </div>
+          }
+          @if (state.product()!.description) {
+            <div class="sm:col-span-2">
+              <dt class="text-[var(--text-muted)]">Description</dt>
+              <dd class="rich-text-content mt-1" [innerHTML]="descriptionPreview()"></dd>
+            </div>
+          }
         </dl>
       } @else {
         <form [formGroup]="form" class="space-y-6" (ngSubmit)="$event.preventDefault()">
@@ -98,14 +112,15 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
                 }
               </select>
             </label>
-            <label class="block space-y-1">
+            <div class="block space-y-1">
               <span class="text-sm font-medium">Short description</span>
+              <p class="text-xs text-[var(--text-muted)]">Brief summary shown under the product title on your store. Also used in search.</p>
               <textarea class="pf-editor-input w-full" formControlName="shortDescription" rows="2"></textarea>
-            </label>
-            <label class="block space-y-1">
+            </div>
+            <div class="block space-y-1">
               <span class="text-sm font-medium">Description</span>
-              <textarea class="pf-editor-input w-full min-h-[100px]" formControlName="description"></textarea>
-            </label>
+              <app-rich-text-editor formControlName="description" placeholder="Describe your product…" />
+            </div>
           </div>
 
           <div class="space-y-4 border-t border-[var(--border-subtle)] pt-4">
@@ -251,6 +266,12 @@ export class ProductDetailsSectionComponent {
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
   private readonly injector = inject(Injector);
+  private readonly sanitizer = inject(DomSanitizer);
+
+  readonly descriptionPreview = computed((): SafeHtml => {
+    const html = this.state.product()?.description ?? '';
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  });
 
   readonly sectionIcon = Package;
   readonly ProductStatus = ProductStatus;
