@@ -137,10 +137,10 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
   },
   {
     id: 'product-attributes',
-    label: 'Attributes',
+    label: 'Features',
     path: 'product-attributes',
     icon: SlidersHorizontal,
-    description: 'Variant attributes like Size and Color.',
+    description: 'Variant features like Size and Color.',
     section: 'business'
   },
   {

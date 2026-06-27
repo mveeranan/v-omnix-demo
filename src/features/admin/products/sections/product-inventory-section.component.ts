@@ -111,7 +111,7 @@ type InventoryFormMode = 'create' | 'edit' | null;
                 <tr>
                   <th class="admin-data-table__index">#</th>
                   <th>Product</th>
-                  <th>Attributes</th>
+                  <th>Features</th>
                   <th>Available</th>
                   <th>Reserved</th>
                   <th>Low stock</th>

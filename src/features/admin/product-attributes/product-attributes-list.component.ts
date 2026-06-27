@@ -29,8 +29,8 @@ import { LucideAngularModule, Plus, SlidersHorizontal, Trash2 } from 'lucide-ang
     LucideAngularModule
   ],
   template: `
-    <app-admin-page-shell eyebrow="Catalog" title="Product attributes" description="Define variant attributes like Size and Color.">
-      <button admin-page-actions type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add attribute</button>
+    <app-admin-page-shell eyebrow="Catalog" title="Product features" description="Define variant features like Size and Color.">
+      <button admin-page-actions type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add feature</button>
 
       @if (formOpen()) {
         <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
@@ -73,12 +73,12 @@ import { LucideAngularModule, Plus, SlidersHorizontal, Trash2 } from 'lucide-ang
 
       @if (!formOpen()) {
       @if (loading()) {
-        <app-loading-spinner label="Loading attributes…" />
+        <app-loading-spinner label="Loading features…" />
       } @else if (!attributes().length) {
         <div class="admin-glass-card rounded-xl p-8 text-center">
-          <p class="font-medium">No attributes yet</p>
-          <p class="mt-1 text-sm text-[var(--text-secondary)]">Create attributes used when building product variants.</p>
-          <button type="button" class="admin-section-action-btn mt-4 rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Create attribute</button>
+          <p class="font-medium">No features yet</p>
+          <p class="mt-1 text-sm text-[var(--text-secondary)]">Create features used when building product variants.</p>
+          <button type="button" class="admin-section-action-btn mt-4 rounded-lg px-4 py-2 text-sm" (click)="openCreate()">Create feature</button>
         </div>
       } @else {
         <app-table>
@@ -86,7 +86,7 @@ import { LucideAngularModule, Plus, SlidersHorizontal, Trash2 } from 'lucide-ang
             <thead>
               <tr>
                 <th class="admin-data-table__index">#</th>
-                <th>Attribute name</th>
+                <th>Feature name</th>
                 <th>Values</th>
                 <th class="admin-data-table__col-actions">Actions</th>
               </tr>
@@ -231,11 +231,11 @@ export class ProductAttributesListComponent implements OnInit {
         this.saving.set(false);
         this.closeForm();
         this.load();
-        this.notifications.success(id ? 'Attribute updated' : 'Attribute created');
+        this.notifications.success(id ? 'Feature updated' : 'Feature created');
       },
       error: (err) => {
         this.saving.set(false);
-        this.notifications.errorFromApi(err, 'Could not save attribute');
+        this.notifications.errorFromApi(err, 'Could not save feature');
       }
     });
   }

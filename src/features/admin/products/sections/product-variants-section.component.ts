@@ -11,6 +11,7 @@ import { NotificationService } from '@core/notifications/notification.service';
 import { ProductVariantAttributeInput, ProductVariantDto } from '@features/catalog/models/product-admin.model';
 import { ProductAdminService } from '../data-access/product-admin.service';
 import { ProductFormStateService } from '../data-access/product-form-state.service';
+import { previewVariantAttributes, VariantAttributeDisplay } from './product-variant.util';
 
 @Component({
   selector: 'app-product-variants-section',
@@ -38,8 +39,8 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
     >
       @if (!state.attributes().length && !(state.product()?.variants?.length ?? 0)) {
         <p class="text-sm text-[var(--text-muted)]">
-          Define attributes first.
-          <a routerLink="/admin/product-attributes" class="underline">Manage attributes</a>
+          Define features first.
+          <a routerLink="/admin/product-attributes" class="underline">Manage features</a>
         </p>
       } @else {
         @if (formOpen()) {
@@ -182,7 +183,7 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
                   <tr>
                     <th class="admin-data-table__index">#</th>
                     <th>SKU</th>
-                    <th>Attributes</th>
+                    <th>Features</th>
                     <th>Price</th>
                     <th class="admin-data-table__col-status">Status</th>
                     <th class="admin-data-table__col-actions">Actions</th>
@@ -193,7 +194,24 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
                     <tr class="admin-data-table__row">
                       <td class="admin-data-table__index">{{ i + 1 }}</td>
                       <td class="text-sm text-[var(--text-secondary)]">{{ v.sku }}</td>
-                      <td class="text-sm">{{ variantAttrs(v) }}</td>
+                      <td class="text-sm text-[var(--text-secondary)]">
+                        @if (v.attributes.length) {
+                          <div class="flex flex-wrap items-center gap-1">
+                            @for (attr of attrPreview(v.attributes).visible; track attr.name + attr.value) {
+                              <span class="rounded-md bg-[var(--surface-muted)] px-2 py-0.5 text-xs text-[var(--text-primary)]">
+                                {{ attr.name }}: {{ attr.value }}
+                              </span>
+                            }
+                            @if (attrPreview(v.attributes).extraCount > 0) {
+                              <span class="text-xs font-medium text-[var(--accent)]">
+                                +{{ attrPreview(v.attributes).extraCount }} more
+                              </span>
+                            }
+                          </div>
+                        } @else {
+                          —
+                        }
+                      </td>
                       <td class="admin-data-table__price">{{ v.price }}</td>
                       <td class="admin-data-table__col-status">
                         <app-admin-status-badge
@@ -307,6 +325,11 @@ export class ProductVariantsSectionComponent {
 
   isComplete(): boolean {
     return (this.state.product()?.variants.length ?? 0) > 0;
+  }
+
+  attrPreview(attributes: { attributeName: string; value: string }[]) {
+    const mapped: VariantAttributeDisplay[] = attributes.map((a) => ({ name: a.attributeName, value: a.value }));
+    return previewVariantAttributes(mapped, 2);
   }
 
   variantAttrs(v: ProductVariantDto): string {
