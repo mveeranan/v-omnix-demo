@@ -137,16 +137,18 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
         enabled: source.team?.enabled ?? defaults.team.enabled,
         members: (source.team?.members ?? []).map((m: PortfolioTeamMember) => ({ ...m }))
       },
-      stats: {
-        ...defaults.stats,
-        ...source.stats,
-        totalOrders:
-          source.stats.totalOrders ??
-          source.stats.ordersCompleted ??
-          source.stats.bookingsCompleted ??
-          0,
-        totalCustomers: source.stats.totalCustomers ?? source.stats.happyCustomers ?? 0
-      },
+      stats: source.stats
+        ? {
+            ...defaults.stats,
+            ...source.stats,
+            totalOrders:
+              source.stats.totalOrders ??
+              source.stats.ordersCompleted ??
+              source.stats.bookingsCompleted ??
+              0,
+            totalCustomers: source.stats.totalCustomers ?? source.stats.happyCustomers ?? 0
+          }
+        : { ...defaults.stats },
       cta: { ...defaults.cta, ...source.cta },
       contact: source.contact ? { ...source.contact } : { ...defaults.contact },
       highlights: source.highlights

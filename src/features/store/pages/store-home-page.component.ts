@@ -24,8 +24,6 @@ import { ContactSectionComponent } from '../commerce/contact-section.component';
 
 import { CategoryShowcaseSectionComponent } from '../commerce/category-showcase-section.component';
 
-import { LookbookSectionComponent } from '../commerce/lookbook-section.component';
-
 import { PromoStripSectionComponent } from '../commerce/promo-strip-section.component';
 
 import { StorePoliciesSectionComponent } from '../commerce/store-policies-section.component';
@@ -67,8 +65,6 @@ import { StoreContextService } from '../data-access/store-context.service';
     OfferBannerSectionComponent,
 
     SaleCollectionSectionComponent,
-
-    LookbookSectionComponent,
 
     ReviewsSectionComponent,
 
@@ -155,14 +151,6 @@ import { StoreContextService } from '../data-access/store-context.service';
       @if (p.saleCollection.enabled) {
 
         <app-sale-collection-section [portfolio]="p" [storeSlug]="ctx.slug()" />
-
-      }
-
-
-
-      @if (p.lookbook.enabled) {
-
-        <app-lookbook-section [portfolio]="p" />
 
       }
 

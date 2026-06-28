@@ -44,8 +44,6 @@ import { OfferBannerEditorSectionComponent } from './sections/offer-banner-edito
 
 import { SaleCollectionEditorSectionComponent } from './sections/sale-collection-editor-section.component';
 
-import { LookbookEditorSectionComponent } from './sections/lookbook-editor-section.component';
-
 import { ReviewsSectionComponent } from './sections/reviews-section.component';
 
 import { StatsEditorSectionComponent } from './sections/stats-editor-section.component';
@@ -93,8 +91,6 @@ type EditorTab = 'content' | 'publish';
     OfferBannerEditorSectionComponent,
 
     SaleCollectionEditorSectionComponent,
-
-    LookbookEditorSectionComponent,
 
     ReviewsSectionComponent,
 

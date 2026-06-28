@@ -150,16 +150,22 @@ export class CartPageComponent implements OnInit {
   }
 
   applyCoupon(): void {
-    this.checkout.validateCoupon(this.couponCode).subscribe((r) => {
-      if (r.valid) {
+    const slug = this.cart.storeSlug() ?? '';
+    const subtotal = this.cart.summary().subtotal;
+    this.checkout.validateCoupon(slug, this.couponCode, subtotal).subscribe((r) => {
+      if (r.valid && r.discountValue != null) {
+        const discount = r.discountType === 'Percentage'
+          ? subtotal * (r.discountValue / 100)
+          : r.discountValue;
+        const capped = r.maximumDiscountAmount ? Math.min(discount, r.maximumDiscountAmount) : discount;
         this.couponApplied.set(true);
-        this.couponDiscount.set(this.cart.summary().subtotal * r.percent);
-        this.couponMessage.set(`Coupon applied (${Math.round(r.percent * 100)}% off)`);
+        this.couponDiscount.set(capped);
+        this.couponMessage.set(r.message ?? 'Coupon applied');
         sessionStorage.setItem('work-orbit.coupon', this.couponCode.trim().toUpperCase());
       } else {
         this.couponApplied.set(false);
         this.couponDiscount.set(0);
-        this.couponMessage.set('Invalid coupon code');
+        this.couponMessage.set(r.message ?? 'Invalid coupon code');
         sessionStorage.removeItem('work-orbit.coupon');
       }
     });

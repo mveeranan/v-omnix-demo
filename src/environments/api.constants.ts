@@ -114,11 +114,15 @@ export const API_ENDPOINTS = {
     product: (tenantSlug: string, slug: string) =>
       `${base}/catalog/${encodeURIComponent(tenantSlug)}/products/${encodeURIComponent(slug)}`,
     categories: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/categories`,
-    brands: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/brands`
+    brands: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/brands`,
+    reviews: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/reviews`,
+    newsletterSubscribe: (tenantSlug: string) =>
+      `${base}/catalog/${encodeURIComponent(tenantSlug)}/newsletter/subscribe`
   },
   orders: {
     list: `${base}/orders`,
-    get: (id: string) => `${base}/orders/${id}`,
+    get: (id: string) => `${base}/orders/${encodeURIComponent(id)}`,
+    create: `${base}/orders`,
     updateStatus: (id: string) => `${base}/orders/${id}/status`
   },
   returns: {
@@ -158,7 +162,8 @@ export const API_ENDPOINTS = {
     list: `${base}/coupons`,
     create: `${base}/coupons`,
     update: (id: string) => `${base}/coupons/${id}`,
-    delete: (id: string) => `${base}/coupons/${id}`
+    delete: (id: string) => `${base}/coupons/${id}`,
+    validate: `${base}/coupons/validate`
   },
   reviews: {
     list: `${base}/reviews`,

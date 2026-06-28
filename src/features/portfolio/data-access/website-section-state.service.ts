@@ -15,7 +15,6 @@ import {
   PortfolioCategoryShowcase,
   PortfolioHero,
   PortfolioHighlights,
-  PortfolioLookbook,
   PortfolioNewsletter,
   PortfolioOfferBanner,
   PortfolioReview,
@@ -76,12 +75,6 @@ export interface PublishSectionBuffer {
   published: boolean;
 }
 
-export interface LookbookSectionBuffer {
-  lookbook: PortfolioLookbook;
-  gallerySection: Portfolio['gallerySection'];
-  gallery: Portfolio['gallery'];
-}
-
 export type SectionBuffer =
   | BrandSectionBuffer
   | PortfolioHero
@@ -89,7 +82,6 @@ export type SectionBuffer =
   | PortfolioFeaturedProducts
   | PortfolioOfferBanner
   | PortfolioSaleCollection
-  | LookbookSectionBuffer
   | ReviewsSectionBuffer
   | PortfolioHighlights
   | PortfolioStats
@@ -473,7 +465,6 @@ export class WebsiteSectionStateService {
       case 'categoryShowcase':
       case 'offerBanner':
       case 'saleCollection':
-      case 'lookbook':
       case 'whyChooseUs':
       case 'stats':
       case 'newsletter':
@@ -506,12 +497,6 @@ export class WebsiteSectionStateService {
         return structuredClone(draft.offerBanner);
       case 'saleCollection':
         return structuredClone(draft.saleCollection);
-      case 'lookbook':
-        return {
-          lookbook: structuredClone(draft.lookbook),
-          gallerySection: structuredClone(draft.gallerySection),
-          gallery: structuredClone(draft.gallery)
-        };
       case 'reviews':
         return {
           reviewsSection: structuredClone(draft.reviewsSection),
@@ -563,14 +548,6 @@ export class WebsiteSectionStateService {
         return { offerBanner: buffer as PortfolioOfferBanner };
       case 'saleCollection':
         return { saleCollection: buffer as PortfolioSaleCollection };
-      case 'lookbook': {
-        const lb = buffer as LookbookSectionBuffer;
-        return {
-          lookbook: lb.lookbook,
-          gallerySection: lb.gallerySection,
-          gallery: lb.gallery
-        };
-      }
       case 'reviews': {
         const r = buffer as ReviewsSectionBuffer;
         return { reviewsSection: r.reviewsSection, reviews: r.reviews };

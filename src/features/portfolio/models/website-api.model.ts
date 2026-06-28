@@ -9,6 +9,7 @@ export interface WebsiteSectionSaveRequest {
   enabled?: boolean;
   title?: string | null;
   subtitle?: string | null;
+  // Sent as a plain object; the backend DTO accepts JsonElement
   contentJson: Record<string, unknown>;
 }
 
@@ -27,23 +28,22 @@ export interface PublishSectionPayload {
   published: boolean;
 }
 
-const SECTION_API_TYPE: Partial<Record<WebsiteSectionId, WebsiteSectionType | string>> = {
-  hero: 'Hero',
+// Maps each editor section ID to the backend WebsiteSectionType enum name.
+// Sections handled by dedicated services (brand→BusinessProfile, hero→HeroSlide,
+// social→SocialMedia, theme→BusinessProfile, publish→PublishWebsite) are excluded.
+const SECTION_API_TYPE: Partial<Record<WebsiteSectionId, string>> = {
   categoryShowcase: 'FeaturedCategories',
   featuredProducts: 'FeaturedProducts',
-  offerBanner: 'PromoBanner',
-  saleCollection: 'ProductGrid',
-  lookbook: 'PortfolioGallery',
-  reviews: 'Testimonials',
-  whyChooseUs: 'WhyChooseUs',
-  stats: 'RichText',
-  newsletter: 'NewsletterSignup',
-  contactSupport: 'ContactSupport',
-  social: 'RichText',
-  theme: 'RichText'
+  offerBanner:      'PromoBanner',
+  saleCollection:   'ProductGrid',
+  reviews:          'Testimonials',
+  whyChooseUs:      'WhyChooseUs',
+  stats:            'RichText',
+  newsletter:       'NewsletterSignup',
+  contactSupport:   'ContactSupport'
 };
 
-export function websiteSectionApiType(sectionId: WebsiteSectionId): WebsiteSectionType | string {
+export function websiteSectionApiType(sectionId: WebsiteSectionId): string {
   return SECTION_API_TYPE[sectionId] ?? 'RichText';
 }
 

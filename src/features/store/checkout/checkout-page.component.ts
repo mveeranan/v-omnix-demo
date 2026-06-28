@@ -165,20 +165,26 @@ export class CheckoutPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    const subtotal = this.cart.summary().subtotal;
     const coupon = sessionStorage.getItem('work-orbit.coupon');
     if (coupon) {
-      this.checkout.validateCoupon(coupon).subscribe((r) => {
-        if (r.valid) this.discount.set(this.cart.summary().subtotal * r.percent);
+      const slug = this.cart.storeSlug() ?? '';
+      this.checkout.validateCoupon(slug, coupon, subtotal).subscribe((r) => {
+        if (r.valid && r.discountValue != null) {
+          const raw = r.discountType === 'Percentage' ? subtotal * (r.discountValue / 100) : r.discountValue;
+          const capped = r.maximumDiscountAmount ? Math.min(raw, r.maximumDiscountAmount) : raw;
+          this.discount.set(capped);
+        }
       });
     }
-    this.checkout.getShippingOptions(this.cart.summary().subtotal).subscribe((opts) => {
+    this.checkout.getShippingOptions(subtotal).subscribe((opts) => {
       this.shippingOptions.set(opts);
       if (opts[0]) {
         this.shippingMethod.set(opts[0].id);
         this.shippingCost.set(opts[0].cost);
       }
     });
-    this.checkout.calculateTax(this.cart.summary().subtotal).subscribe((t) => this.tax.set(t));
+    this.checkout.calculateTax(subtotal).subscribe((t) => this.tax.set(t));
   }
 
   total(): number {
@@ -222,7 +228,11 @@ export class CheckoutPageComponent implements OnInit {
           discount: this.discount(),
           paymentMethod: this.paymentMethod(),
           shippingMethod: this.shippingMethod(),
-          couponCode: sessionStorage.getItem('work-orbit.coupon') ?? undefined
+          couponCode: sessionStorage.getItem('work-orbit.coupon') ?? undefined,
+          customerFirstName: v.firstName,
+          customerLastName: v.lastName,
+          shippingState: v.state,
+          shippingZip: v.zip
         }
       )
       .subscribe({

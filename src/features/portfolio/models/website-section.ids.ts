@@ -6,7 +6,6 @@ export type WebsiteSectionId =
   | 'featuredProducts'
   | 'offerBanner'
   | 'saleCollection'
-  | 'lookbook'
   | 'reviews'
   | 'whyChooseUs'
   | 'stats'
@@ -24,7 +23,6 @@ export const WEBSITE_CONTENT_SECTIONS: WebsiteSectionId[] = [
   'featuredProducts',
   'offerBanner',
   'saleCollection',
-  'lookbook',
   'reviews',
   'whyChooseUs',
   'stats',
