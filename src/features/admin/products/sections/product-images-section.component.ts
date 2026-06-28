@@ -11,78 +11,71 @@ import { ProductFormStateService } from '../data-access/product-form-state.servi
   standalone: true,
   imports: [AdminFormSectionCardComponent],
   template: `
-    @if (!state.sectionsEnabled()) {
-      <div class="pf-editor-card rounded-xl p-4">
-        <p class="text-sm font-semibold">Media</p>
-        <p class="mt-1 text-sm text-[var(--text-muted)]">Save product details first to enable this section.</p>
-      </div>
-    } @else {
-      <app-admin-form-section-card
-        title="Media"
-        subtitle="Product images and primary photo"
-        [icon]="sectionIcon"
-        [complete]="isComplete()"
-        [(expanded)]="expanded"
-        [editing]="editing()"
-        [saving]="state.isSectionSaving('images')"
-        [canSave]="!!state.productId()"
-        [lastSavedAt]="state.sectionLastSaved('images')"
-        (edit)="startEdit()"
-        (save)="save()"
-        (cancel)="cancelEdit()"
-      >
-        @if (!editing() && state.product()) {
-          <div class="flex flex-wrap gap-3">
-            @for (img of state.product()!.images; track img.id) {
-              <div class="rounded-lg border border-[var(--border)] p-2">
-                <img [src]="img.url" alt="" class="h-20 w-20 rounded object-cover" />
-                @if (img.isPrimary) {
-                  <p class="mt-1 text-center text-xs text-[var(--text-muted)]">Primary</p>
-                }
-              </div>
-            }
-            @if (!state.product()!.images.length) {
-              <p class="text-sm text-[var(--text-muted)]">No images yet.</p>
-            }
-          </div>
-        } @else {
-          <div class="space-y-4">
-            <label class="block space-y-1">
-              <span class="text-sm font-medium">Upload images</span>
-              <input type="file" accept="image/*" multiple class="pf-editor-input w-full" (change)="onFilesSelected($event)" />
-            </label>
-            @if (existingImages().length) {
-              <div class="space-y-2">
-                <p class="text-sm font-medium">Existing images</p>
-                @for (img of existingImages(); track img.id ?? img.documentId) {
-                  <div class="flex items-center gap-3 rounded-lg border border-[var(--border)] p-2">
-                    <img [src]="img.url || ''" alt="" class="h-12 w-12 rounded object-cover" />
-                    <span class="flex-1 text-sm">{{ img.altText || 'Image' }}</span>
-                    <label class="text-xs">
-                      <input type="radio" name="primary" [checked]="img.isPrimary" (change)="setPrimaryExisting(img)" /> Primary
-                    </label>
-                  </div>
-                }
-              </div>
-            }
-            @if (pendingImages().length) {
-              <div class="space-y-2">
-                <p class="text-sm font-medium">Pending uploads</p>
-                @for (img of pendingImages(); track $index) {
-                  <div class="flex items-center gap-3 rounded-lg border border-[var(--border)] p-2">
-                    <span class="flex-1 truncate text-sm">{{ img.file.name }}</span>
-                    <label class="text-xs">
-                      <input type="radio" name="primaryPending" [checked]="img.isPrimary" (change)="setPrimaryPending($index)" /> Primary
-                    </label>
-                    <button type="button" class="text-xs text-rose-600" (click)="removePending($index)">Remove</button>
-                  </div>
-                }
-              </div>
-            }
-          </div>
-        }
-      </app-admin-form-section-card>
-    }
+    <app-admin-form-section-card
+      title="Media"
+      [icon]="sectionIcon"
+      [disabled]="!state.sectionsEnabled()"
+      [complete]="isComplete()"
+      [(expanded)]="expanded"
+      [editing]="editing()"
+      [saving]="state.isSectionSaving('images')"
+      [canSave]="!!state.productId()"
+      [lastSavedAt]="state.sectionLastSaved('images')"
+      (edit)="startEdit()"
+      (save)="save()"
+      (cancel)="cancelEdit()"
+    >
+      @if (!editing() && state.product()) {
+        <div class="flex flex-wrap gap-3">
+          @for (img of state.product()!.images; track img.id) {
+            <div class="rounded-lg border border-[var(--border)] p-2">
+              <img [src]="img.url" alt="" class="h-20 w-20 rounded object-cover" />
+              @if (img.isPrimary) {
+                <p class="mt-1 text-center text-xs text-[var(--text-muted)]">Primary</p>
+              }
+            </div>
+          }
+          @if (!state.product()!.images.length) {
+            <p class="text-sm text-[var(--text-muted)]">No images yet.</p>
+          }
+        </div>
+      } @else {
+        <div class="space-y-4">
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Upload images</span>
+            <input type="file" accept="image/*" multiple class="pf-editor-input w-full" (change)="onFilesSelected($event)" />
+          </label>
+          @if (existingImages().length) {
+            <div class="space-y-2">
+              <p class="text-sm font-medium">Existing images</p>
+              @for (img of existingImages(); track img.id ?? img.documentId) {
+                <div class="flex items-center gap-3 rounded-lg border border-[var(--border)] p-2">
+                  <img [src]="img.url || ''" alt="" class="h-12 w-12 rounded object-cover" />
+                  <span class="flex-1 text-sm">{{ img.altText || 'Image' }}</span>
+                  <label class="text-xs">
+                    <input type="radio" name="primary" [checked]="img.isPrimary" (change)="setPrimaryExisting(img)" /> Primary
+                  </label>
+                </div>
+              }
+            </div>
+          }
+          @if (pendingImages().length) {
+            <div class="space-y-2">
+              <p class="text-sm font-medium">Pending uploads</p>
+              @for (img of pendingImages(); track $index) {
+                <div class="flex items-center gap-3 rounded-lg border border-[var(--border)] p-2">
+                  <span class="flex-1 truncate text-sm">{{ img.file.name }}</span>
+                  <label class="text-xs">
+                    <input type="radio" name="primaryPending" [checked]="img.isPrimary" (change)="setPrimaryPending($index)" /> Primary
+                  </label>
+                  <button type="button" class="text-xs text-rose-600" (click)="removePending($index)">Remove</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </app-admin-form-section-card>
   `
 })
 export class ProductImagesSectionComponent {
@@ -147,7 +140,7 @@ export class ProductImagesSectionComponent {
       },
       error: (err) => {
         this.state.setSectionSaving('images', false);
-        this.notifications.error(err?.message ?? 'Could not save media');
+        this.notifications.errorFromApi(err, 'Could not save media');
       }
     });
   }

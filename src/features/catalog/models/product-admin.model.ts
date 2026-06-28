@@ -63,8 +63,8 @@ export interface ProductImageDto {
 export interface InventoryItemDto {
   id: string;
   productId: string;
-  variantId: string | null;
-  variantSku: string | null;
+  variantId?: string | null;
+  variantSku?: string | null;
   quantityAvailable: number;
   quantityReserved: number;
   lowStockThreshold: number;
@@ -118,22 +118,42 @@ export interface PatchProductStatusRequest {
   status: ProductStatus;
 }
 
-export interface SaveProductVariantItem {
-  id: string | null;
-  /** Server-generated on create; omit from upsert requests. */
-  sku?: string;
-  price: number;
-  compareAtPrice: number | null;
-  barcode: string | null;
-  weight: number | null;
-  isActive: boolean;
-  attributes: { attributeId: string; valueId: string }[];
+export interface BulkUpdateProductStatusRequest {
+  tenantId: string;
+  productIds: string[];
+  status: ProductStatus;
 }
 
-export interface SaveProductVariantsRequest {
+export interface BulkProductStatusFailure {
+  productId: string;
+  error: string;
+}
+
+export interface BulkUpdateProductStatusResult {
+  successCount: number;
+  failureCount: number;
+  failures: BulkProductStatusFailure[];
+}
+
+export interface ProductVariantAttributeInput {
+  attributeId: string;
+  attributeName: string;
+  valueId: string;
+  value: string;
+}
+
+export interface SaveProductVariantRequest {
   tenantId: string;
-  selectedAttributeIds: string[];
-  variants: SaveProductVariantItem[];
+  price: number;
+  compareAtPrice?: number | null;
+  barcode?: string | null;
+  weight?: number | null;
+  isActive: boolean;
+  attributes: ProductVariantAttributeInput[];
+}
+
+export interface DeleteProductVariantRequest {
+  tenantId: string;
 }
 
 export interface SaveProductImageItem {
@@ -149,26 +169,26 @@ export interface SaveProductImagesRequest {
   images: SaveProductImageItem[];
 }
 
-export interface SaveInventoryItem {
+export interface CreateInventoryRequest {
+  tenantId: string;
   variantId: string | null;
   quantityAvailable: number;
   lowStockThreshold: number;
 }
 
-export interface SaveInventoryRequest {
+export interface UpdateInventoryRequest {
   tenantId: string;
-  items: SaveInventoryItem[];
+  quantityAvailable: number;
+  lowStockThreshold: number;
+}
+
+export interface DeleteInventoryRequest {
+  tenantId: string;
 }
 
 export interface SaveProductTagsRequest {
   tenantId: string;
   tagIds: string[];
-}
-
-export interface AdjustInventoryRequest {
-  tenantId: string;
-  quantityChange: number;
-  notes: string;
 }
 
 export interface PendingImageUpload {
@@ -178,14 +198,30 @@ export interface PendingImageUpload {
   isPrimary: boolean;
 }
 
+/** Source data for duplicate-product flow. */
+export interface ProductDuplicateVariantSource {
+  sourceVariantId: string;
+  price: number;
+  compareAtPrice: number | null;
+  barcode: string | null;
+  weight: number | null;
+  isActive: boolean;
+  attributes: ProductVariantAttributeInput[];
+}
+
+export interface ProductDuplicateInventorySource {
+  sourceVariantId: string | null;
+  quantityAvailable: number;
+  lowStockThreshold: number;
+}
+
 export interface ProductSavePayload {
   productId?: string;
   core: SaveProductRequest;
-  selectedAttributeIds: string[];
-  variants: SaveProductVariantItem[];
+  variants: ProductDuplicateVariantSource[];
   existingImages: SaveProductImageItem[];
   pendingImages: PendingImageUpload[];
-  inventory: SaveInventoryItem[];
+  inventory: ProductDuplicateInventorySource[];
   tagIds: string[];
   publish: boolean;
 }

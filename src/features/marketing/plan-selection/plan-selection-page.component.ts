@@ -8,6 +8,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { NotificationService } from '@core/notifications/notification.service';
 import { API_ENDPOINTS } from '@env/api.constants';
 import { ApiResponse } from '@shared/models/api-response.model';
+import { getApiErrorMessage } from '@shared/utils/api-error.util';
 import { formatPhoneWithDialCode } from '@shared/utils/phone.util';
 import { PlanCheckoutService } from './plan-checkout.service';
 import { PlanSelectionFlowService } from './plan-selection-flow.service';
@@ -161,7 +162,7 @@ export class PlanSelectionPageComponent implements OnInit {
       await this.continueRegistration(plan, planPriceId);
     } catch (error) {
       this.submitting = false;
-      this.pageError = this.extractErrorMessage(error) || 'Unable to continue. Please try again.';
+      this.pageError = getApiErrorMessage(error, 'Unable to continue. Please try again.');
       this.notificationService.error(this.pageError);
     }
   }
@@ -243,28 +244,9 @@ export class PlanSelectionPageComponent implements OnInit {
         this.selectedPlanId = preselected || this.pricingPlans[0].id;
       }
     } catch (error) {
-      this.pricingError = this.extractErrorMessage(error) || 'Unable to load pricing plans right now.';
+      this.pricingError = getApiErrorMessage(error, 'Unable to load pricing plans right now.');
     } finally {
       this.pricingLoading = false;
     }
-  }
-
-  private extractErrorMessage(error: unknown): string {
-    if (error instanceof Error) {
-      return error.message;
-    }
-    if (typeof error !== 'object' || !error) {
-      return '';
-    }
-    const httpError = error as {
-      error?: { message?: string; errors?: string[] };
-      message?: string;
-    };
-    return (
-      httpError.error?.message ||
-      (Array.isArray(httpError.error?.errors) && httpError.error.errors[0]) ||
-      httpError.message ||
-      ''
-    );
   }
 }

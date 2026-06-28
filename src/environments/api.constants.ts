@@ -73,11 +73,14 @@ export const API_ENDPOINTS = {
   },
   productTags: {
     list: (tenantId: string) => `${base}/product-tags?tenantId=${encodeURIComponent(tenantId)}`,
-    create: `${base}/product-tags`
+    create: `${base}/product-tags`,
+    update: (id: string) => `${base}/product-tags/${encodeURIComponent(id)}`,
+    delete: (id: string) => `${base}/product-tags/${encodeURIComponent(id)}`
   },
   productAttributes: {
     list: (tenantId: string) => `${base}/product-attributes?tenantId=${encodeURIComponent(tenantId)}`,
-    upsert: `${base}/product-attributes`
+    create: `${base}/product-attributes`,
+    update: (id: string) => `${base}/product-attributes/${encodeURIComponent(id)}`
   },
   products: {
     list: `${base}/products`,
@@ -88,14 +91,23 @@ export const API_ENDPOINTS = {
     delete: (id: string, tenantId: string) =>
       `${base}/products/${encodeURIComponent(id)}?tenantId=${encodeURIComponent(tenantId)}`,
     patchStatus: (id: string) => `${base}/products/${encodeURIComponent(id)}/status`,
-    variants: (id: string) => `${base}/products/${encodeURIComponent(id)}/variants`,
+    bulkStatus: `${base}/products/status`,
+    createVariant: (productId: string) =>
+      `${base}/products/${encodeURIComponent(productId)}/variants`,
+    updateVariant: (productId: string, variantId: string) =>
+      `${base}/products/${encodeURIComponent(productId)}/variants/${encodeURIComponent(variantId)}`,
+    deleteVariant: (productId: string, variantId: string) =>
+      `${base}/products/${encodeURIComponent(productId)}/variants/${encodeURIComponent(variantId)}`,
     images: (id: string) => `${base}/products/${encodeURIComponent(id)}/images`,
     inventory: (id: string, tenantId: string) =>
       `${base}/products/${encodeURIComponent(id)}/inventory?tenantId=${encodeURIComponent(tenantId)}`,
+    createInventory: (productId: string) =>
+      `${base}/products/${encodeURIComponent(productId)}/inventory`,
+    updateInventory: (productId: string, inventoryId: string) =>
+      `${base}/products/${encodeURIComponent(productId)}/inventory/${encodeURIComponent(inventoryId)}`,
+    deleteInventory: (productId: string, inventoryId: string) =>
+      `${base}/products/${encodeURIComponent(productId)}/inventory/${encodeURIComponent(inventoryId)}`,
     tags: (id: string) => `${base}/products/${encodeURIComponent(id)}/tags`
-  },
-  inventory: {
-    adjust: (inventoryId: string) => `${base}/inventory/${encodeURIComponent(inventoryId)}/adjust`
   },
   catalog: {
     products: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/products`,

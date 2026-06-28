@@ -9,6 +9,7 @@ import { AdminStatusBadgeComponent } from '@shared/ui/admin-status-badge.compone
 import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
+import { NotificationService } from '@core/notifications/notification.service';
 import { ProductAdminService } from './data-access/product-admin.service';
 import { CategoryAdminService } from '../data-access/category-admin.service';
 import { ProductListItemDto, ProductListFilters } from '@features/catalog/models/product-admin.model';
@@ -19,6 +20,7 @@ import { Package } from 'lucide-angular';
 @Component({
   selector: 'app-products-list',
   standalone: true,
+  styleUrl: './products-list.component.scss',
   imports: [
     FormsModule,
     RouterLink,
@@ -47,21 +49,55 @@ import { Package } from 'lucide-angular';
           Showing {{ result()?.items?.length ?? 0 }} of {{ result()?.totalCount ?? 0 }} products
         </p>
         <div class="admin-data-table-toolbar__filters">
-          <input class="pf-editor-input" placeholder="Search by name" [(ngModel)]="search" (ngModelChange)="load()" />
-          <select class="pf-editor-input" [(ngModel)]="statusFilter" (ngModelChange)="load()">
+          <input class="pf-editor-input" placeholder="Search by name" [(ngModel)]="search" (ngModelChange)="onFiltersChange()" />
+          <select class="pf-editor-input" [(ngModel)]="statusFilter" (ngModelChange)="onFiltersChange()">
             <option value="">All statuses</option>
             <option value="2">Active</option>
             <option value="1">Draft</option>
             <option value="3">Inactive</option>
             <option value="4">Archived</option>
           </select>
-          <select class="pf-editor-input" [(ngModel)]="pageSize" (ngModelChange)="load()">
+          <select class="pf-editor-input" [(ngModel)]="pageSize" (ngModelChange)="onFiltersChange()">
             <option [ngValue]="10">10 per page</option>
             <option [ngValue]="25">25 per page</option>
             <option [ngValue]="50">50 per page</option>
           </select>
         </div>
       </div>
+
+      @if (selected().size > 0) {
+        <div class="admin-bulk-selection-bar" role="region" aria-label="Bulk actions">
+          <div class="admin-bulk-selection-bar__meta">
+            <span class="admin-bulk-selection-bar__count">{{ selected().size }} selected</span>
+            <button
+              type="button"
+              class="admin-bulk-selection-bar__clear"
+              [disabled]="bulkApplying()"
+              (click)="clearSelection()"
+            >
+              Clear selection
+            </button>
+          </div>
+          <div class="admin-bulk-selection-bar__actions">
+            <button
+              type="button"
+              class="admin-section-action-btn admin-bulk-selection-bar__btn rounded-lg px-3 py-1.5 text-sm"
+              [disabled]="bulkApplying()"
+              (click)="runBulkStatus(ProductStatus.Active)"
+            >
+              {{ bulkApplying() ? 'Updating…' : 'Publish' }}
+            </button>
+            <button
+              type="button"
+              class="admin-action-secondary admin-bulk-selection-bar__btn admin-bulk-selection-bar__btn--danger rounded-lg px-3 py-1.5 text-sm"
+              [disabled]="bulkApplying()"
+              (click)="confirmArchive()"
+            >
+              Archive
+            </button>
+          </div>
+        </div>
+      }
 
       @if (loading()) {
         <app-loading-spinner label="Loading products…" />
@@ -74,7 +110,9 @@ import { Package } from 'lucide-angular';
           <table class="admin-data-table">
             <thead>
               <tr>
-                <th class="admin-data-table__checkbox"><input type="checkbox" [checked]="allSelected()" (change)="toggleAll($event)" /></th>
+                <th class="admin-data-table__checkbox">
+                  <input type="checkbox" [checked]="allSelected()" (change)="toggleAll($event)" />
+                </th>
                 <th class="admin-data-table__col-product">Product</th>
                 <th class="admin-data-table__col-category">Category</th>
                 <th class="admin-data-table__col-price">Price</th>
@@ -85,8 +123,10 @@ import { Package } from 'lucide-angular';
             </thead>
             <tbody>
               @for (p of result()!.items; track p.id; let i = $index) {
-                <tr class="admin-data-table__row">
-                  <td class="admin-data-table__checkbox"><input type="checkbox" [checked]="selected().has(p.id)" (change)="toggleOne(p.id)" /></td>
+                <tr class="admin-data-table__row" [class.admin-data-table__row--selected]="selected().has(p.id)">
+                  <td class="admin-data-table__checkbox">
+                    <input type="checkbox" [checked]="selected().has(p.id)" (change)="toggleOne(p.id)" />
+                  </td>
                   <td class="admin-data-table__col-product">
                     <div class="admin-data-table__entity">
                       <img [src]="p.primaryImageUrl || placeholderImage" alt="" width="40" height="40" class="admin-data-table__entity-thumb" />
@@ -133,12 +173,24 @@ import { Package } from 'lucide-angular';
       (confirmed)="doDelete()"
       (cancelled)="deleteTarget.set(null)"
     />
+
+    <app-confirm-dialog
+      [open]="archiveConfirmOpen()"
+      title="Archive products"
+      [message]="'Archive ' + selected().size + ' selected product(s)? They will be hidden from your store.'"
+      confirmLabel="Archive"
+      [danger]="true"
+      (confirmed)="confirmArchiveAndRun()"
+      (cancelled)="archiveConfirmOpen.set(false)"
+    />
   `
 })
 export class ProductsListComponent implements OnInit {
   private readonly api = inject(ProductAdminService);
   private readonly categoryApi = inject(CategoryAdminService);
+  private readonly notifications = inject(NotificationService);
   readonly packageIcon = Package;
+  readonly ProductStatus = ProductStatus;
   readonly placeholderImage = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600';
 
   readonly loading = signal(true);
@@ -146,6 +198,8 @@ export class ProductsListComponent implements OnInit {
   readonly result = signal<{ items: ProductListItemDto[]; totalCount: number; page: number; pageSize: number } | null>(null);
   readonly page = signal(1);
   readonly selected = signal(new Set<string>());
+  readonly bulkApplying = signal(false);
+  readonly archiveConfirmOpen = signal(false);
   readonly deleteTarget = signal<ProductListItemDto | null>(null);
 
   search = '';
@@ -156,6 +210,12 @@ export class ProductsListComponent implements OnInit {
     this.categoryApi.list().subscribe({
       next: (cats) => this.hasCategories.set(cats.length > 0)
     });
+    this.load();
+  }
+
+  onFiltersChange(): void {
+    this.page.set(1);
+    this.clearSelection();
     this.load();
   }
 
@@ -178,6 +238,7 @@ export class ProductsListComponent implements OnInit {
 
   onPage(p: number): void {
     this.page.set(p);
+    this.clearSelection();
     this.load();
   }
 
@@ -225,6 +286,55 @@ export class ProductsListComponent implements OnInit {
     if (next.has(id)) next.delete(id);
     else next.add(id);
     this.selected.set(next);
+  }
+
+  clearSelection(): void {
+    this.selected.set(new Set());
+  }
+
+  confirmArchive(): void {
+    if (this.selected().size === 0) return;
+    this.archiveConfirmOpen.set(true);
+  }
+
+  confirmArchiveAndRun(): void {
+    this.archiveConfirmOpen.set(false);
+    this.runBulkStatus(ProductStatus.Archived);
+  }
+
+  runBulkStatus(status: ProductStatus): void {
+    const productIds = [...this.selected()];
+    if (productIds.length === 0) {
+      this.notifications.error('Select at least one product');
+      return;
+    }
+
+    this.bulkApplying.set(true);
+    this.api.bulkUpdateStatus(productIds, status).subscribe({
+      next: (result) => {
+        this.bulkApplying.set(false);
+        if (result.failureCount > 0) {
+          const firstError = result.failures[0]?.error;
+          this.notifications.error(
+            firstError
+              ? `${result.successCount} updated, ${result.failureCount} failed: ${firstError}`
+              : `${result.successCount} updated, ${result.failureCount} failed`
+          );
+        } else {
+          this.notifications.success(
+            status === ProductStatus.Active
+              ? `${result.successCount} product(s) published`
+              : `${result.successCount} product(s) archived`
+          );
+        }
+        this.clearSelection();
+        this.load();
+      },
+      error: (err) => {
+        this.bulkApplying.set(false);
+        this.notifications.errorFromApi(err, 'Could not update product status');
+      }
+    });
   }
 
   duplicate(id: string): void {

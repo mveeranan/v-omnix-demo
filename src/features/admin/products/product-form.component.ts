@@ -16,6 +16,7 @@ import { ProductInventorySectionComponent } from './sections/product-inventory-s
   selector: 'app-product-form',
   standalone: true,
   providers: [ProductFormStateService],
+  styleUrl: './product-form.component.scss',
   imports: [
     RouterLink,
     AdminPageShellComponent,
@@ -47,14 +48,14 @@ import { ProductInventorySectionComponent } from './sections/product-inventory-s
       } @else if (state.loadError()) {
         <p class="text-sm text-rose-600">{{ state.loadError() }}</p>
       } @else {
-        @if (!state.categories().length) {
-          <div class="mb-4 rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm dark:bg-amber-500/10">
-            No categories found.
-            <a routerLink="/admin/categories" class="font-semibold underline">Create a category first</a>
-          </div>
-        }
+        <div class="admin-profile-sections">
+          @if (!state.categories().length) {
+            <div class="rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm dark:bg-amber-500/10">
+              No categories found.
+              <a routerLink="/admin/categories" class="font-semibold underline">Create a category first</a>
+            </div>
+          }
 
-        <div class="space-y-4">
           <app-product-details-section />
           <app-product-tags-section />
           <app-product-images-section />

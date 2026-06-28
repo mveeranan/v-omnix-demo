@@ -27,68 +27,8 @@ import { NotificationService } from '@core/notifications/notification.service';
   ],
   template: `
     <app-admin-page-shell eyebrow="Operations" title="Returns" description="Manage return requests and refund status.">
-      <div class="admin-data-table-toolbar">
-        <p class="admin-data-table-toolbar__summary">Showing {{ filtered().length }} of {{ returns().length }} returns</p>
-        <div class="admin-data-table-toolbar__filters">
-          <select class="pf-editor-input" [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()">
-            <option value="">All statuses</option>
-            @for (s of statuses; track s) {
-              <option [value]="s">{{ s }}</option>
-            }
-          </select>
-          <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ New return</button>
-        </div>
-      </div>
-
-      @if (loading()) {
-        <app-loading-spinner label="Loading returns…" />
-      } @else if (!filtered().length) {
-        <div class="admin-glass-card rounded-xl p-8 text-center">
-          <p class="font-medium">No returns found</p>
-        </div>
-      } @else {
-        <app-table>
-          <table class="admin-data-table">
-            <thead>
-              <tr>
-                <th class="admin-data-table__index">#</th>
-                <th>Order</th>
-                <th>Customer</th>
-                <th>Reason</th>
-                <th>Refund</th>
-                <th class="admin-data-table__col-status">Status</th>
-                <th class="admin-data-table__col-actions">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (r of filtered(); track r.id; let i = $index) {
-                <tr class="admin-data-table__row">
-                  <td class="admin-data-table__index">{{ i + 1 }}</td>
-                  <td><span class="admin-data-table__entity-title">#{{ r.orderNumber }}</span></td>
-                  <td>{{ r.customerName }}</td>
-                  <td class="text-[var(--text-secondary)]">{{ r.reason }}</td>
-                  <td><span class="admin-data-table__price">{{ format(r.refundAmount, r.currency) }}</span></td>
-                  <td class="admin-data-table__col-status">
-                    <app-admin-status-badge [label]="r.status" [variant]="statusVariant(r.status)" />
-                  </td>
-                  <td class="admin-data-table__col-actions">
-                    <div class="admin-data-table__actions">
-                      <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(r)" />
-                      <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(r)" />
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </app-table>
-      }
-    </app-admin-page-shell>
-
-    @if (modalOpen()) {
-      <div class="fixed inset-0 z-50 grid place-items-center p-4">
-        <div class="admin-modal-backdrop absolute inset-0" (click)="closeModal()"></div>
-        <form class="admin-glass-card relative w-full max-w-lg space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
+      @if (formOpen()) {
+        <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
           <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit return' : 'New return' }}</h3>
           <div class="grid gap-4 sm:grid-cols-2">
             <label class="block space-y-1">
@@ -125,12 +65,71 @@ import { NotificationService } from '@core/notifications/notification.service';
             <textarea class="pf-editor-input w-full" formControlName="notes" rows="2"></textarea>
           </label>
           <div class="flex justify-end gap-2">
-            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeModal()">Cancel</button>
+            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeForm()">Cancel</button>
             <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid">Save</button>
           </div>
         </form>
-      </div>
-    }
+      }
+
+      @if (!formOpen()) {
+        <div class="admin-data-table-toolbar">
+          <p class="admin-data-table-toolbar__summary">Showing {{ filtered().length }} of {{ returns().length }} returns</p>
+          <div class="admin-data-table-toolbar__filters">
+            <select class="pf-editor-input" [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()">
+              <option value="">All statuses</option>
+              @for (s of statuses; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+            <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ New return</button>
+          </div>
+        </div>
+
+        @if (loading()) {
+          <app-loading-spinner label="Loading returns…" />
+        } @else if (!filtered().length) {
+          <div class="admin-glass-card rounded-xl p-8 text-center">
+            <p class="font-medium">No returns found</p>
+          </div>
+        } @else {
+          <app-table>
+            <table class="admin-data-table">
+              <thead>
+                <tr>
+                  <th class="admin-data-table__index">#</th>
+                  <th>Order</th>
+                  <th>Customer</th>
+                  <th>Reason</th>
+                  <th>Refund</th>
+                  <th class="admin-data-table__col-status">Status</th>
+                  <th class="admin-data-table__col-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of filtered(); track r.id; let i = $index) {
+                  <tr class="admin-data-table__row">
+                    <td class="admin-data-table__index">{{ i + 1 }}</td>
+                    <td><span class="admin-data-table__entity-title">#{{ r.orderNumber }}</span></td>
+                    <td>{{ r.customerName }}</td>
+                    <td class="text-[var(--text-secondary)]">{{ r.reason }}</td>
+                    <td><span class="admin-data-table__price">{{ format(r.refundAmount, r.currency) }}</span></td>
+                    <td class="admin-data-table__col-status">
+                      <app-admin-status-badge [label]="r.status" [variant]="statusVariant(r.status)" />
+                    </td>
+                    <td class="admin-data-table__col-actions">
+                      <div class="admin-data-table__actions">
+                        <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(r)" />
+                        <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(r)" />
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </app-table>
+        }
+      }
+    </app-admin-page-shell>
 
     <app-confirm-dialog
       [open]="!!deleteTarget()"
@@ -152,7 +151,7 @@ export class ReturnsListComponent implements OnInit {
   readonly loading = signal(true);
   readonly returns = signal<ReturnDto[]>([]);
   readonly filtered = signal<ReturnDto[]>([]);
-  readonly modalOpen = signal(false);
+  readonly formOpen = signal(false);
   readonly editingId = signal<string | null>(null);
   readonly deleteTarget = signal<ReturnDto | null>(null);
   statusFilter = '';
@@ -215,7 +214,7 @@ export class ReturnsListComponent implements OnInit {
       refundAmount: 0,
       notes: ''
     });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
   openEdit(r: ReturnDto): void {
@@ -229,11 +228,11 @@ export class ReturnsListComponent implements OnInit {
       refundAmount: r.refundAmount,
       notes: r.notes ?? ''
     });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
-  closeModal(): void {
-    this.modalOpen.set(false);
+  closeForm(): void {
+    this.formOpen.set(false);
   }
 
   save(): void {
@@ -258,10 +257,11 @@ export class ReturnsListComponent implements OnInit {
     const req$ = id ? this.api.update(id, payload) : this.api.create(payload);
     req$.subscribe({
       next: () => {
-        this.closeModal();
+        this.closeForm();
         this.load();
         this.notifications.success('Return saved');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not save return')
     });
   }
 
@@ -277,7 +277,8 @@ export class ReturnsListComponent implements OnInit {
         this.deleteTarget.set(null);
         this.load();
         this.notifications.success('Return deleted');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not delete return')
     });
   }
 

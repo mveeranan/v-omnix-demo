@@ -1,149 +1,325 @@
-import { afterNextRender, Component, effect, inject, Injector, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Layers } from 'lucide-angular';
 import { AdminFormSectionCardComponent } from '@features/admin/shared/admin-form-section-card.component';
+import { AppTableComponent } from '@shared/ui/app-table.component';
+import { AdminStatusBadgeComponent } from '@shared/ui/admin-status-badge.component';
+import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
+import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { NotificationService } from '@core/notifications/notification.service';
-import { SaveProductVariantItem } from '@features/catalog/models/product-admin.model';
+import { ProductVariantAttributeInput, ProductVariantDto } from '@features/catalog/models/product-admin.model';
 import { ProductAdminService } from '../data-access/product-admin.service';
 import { ProductFormStateService } from '../data-access/product-form-state.service';
-import {
-  generateVariantRows,
-  selectedAttributeIdsFromProduct,
-  variantLabel,
-  variantRowsFromProduct,
-  VariantRow
-} from './product-variant.util';
+import { previewVariantAttributes, VariantAttributeDisplay } from './product-variant.util';
 
 @Component({
   selector: 'app-product-variants-section',
   standalone: true,
-  imports: [FormsModule, RouterLink, AdminFormSectionCardComponent],
+  imports: [
+    FormsModule,
+    ReactiveFormsModule,
+    RouterLink,
+    AdminFormSectionCardComponent,
+    AppTableComponent,
+    AdminStatusBadgeComponent,
+    AdminTableActionComponent,
+    ConfirmDialogComponent
+  ],
   template: `
-    @if (!state.sectionsEnabled()) {
-      <div class="pf-editor-card rounded-xl p-4">
-        <p class="text-sm font-semibold">Variants</p>
-        <p class="mt-1 text-sm text-[var(--text-muted)]">Save product details first to enable this section.</p>
-      </div>
-    } @else {
-      <app-admin-form-section-card
-        title="Variants"
-        subtitle="Options, SKUs, and variant pricing"
-        [icon]="sectionIcon"
-        [complete]="isComplete()"
-        [(expanded)]="expanded"
-        [editing]="editing()"
-        [saving]="state.isSectionSaving('variants')"
-        [canSave]="!!state.productId()"
-        [lastSavedAt]="state.sectionLastSaved('variants')"
-        (edit)="startEdit()"
-        (save)="save()"
-        (cancel)="cancelEdit()"
-      >
-        @if (!editing() && state.product()) {
-          @if (!state.product()!.variants.length) {
-            <p class="text-sm text-[var(--text-muted)]">Simple product — no variants.</p>
-          } @else {
-            <ul class="space-y-2 text-sm">
-              @for (v of state.product()!.variants; track v.id) {
-                <li class="rounded-lg border border-[var(--border)] px-3 py-2">
-                  <span class="font-medium">{{ v.sku }}</span>
-                  <span class="text-[var(--text-muted)]"> — {{ variantAttrs(v) }}</span>
-                </li>
-              }
-            </ul>
-          }
-        } @else {
-          <div class="space-y-4">
-            <label class="flex items-center gap-2 text-sm">
-              <input type="checkbox" [checked]="hasVariants()" (change)="onVariantsToggle($event)" />
-              This product has variants
-            </label>
-            @if (hasVariants()) {
-              @if (!state.attributes().length) {
-                <p class="text-sm text-[var(--text-muted)]">
-                  Define attributes first.
-                  <a routerLink="/admin/product-attributes" class="underline">Manage attributes</a>
-                </p>
-              } @else {
-                <div class="space-y-3">
-                  <p class="text-sm font-medium">Select attributes for variants</p>
-                  @for (attr of state.attributes(); track attr.id) {
-                    <label class="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        [checked]="selectedAttributeIds().has(attr.id)"
-                        (change)="toggleAttribute(attr.id)"
-                      />
-                      {{ attr.name }} ({{ attr.values.length }} values)
-                    </label>
-                  }
+    <app-admin-form-section-card
+      title="Variants"
+      [icon]="sectionIcon"
+      [disabled]="!state.sectionsEnabled()"
+      [complete]="isComplete()"
+      [(expanded)]="expanded"
+      [editing]="false"
+      [canSave]="false"
+      (edit)="onSectionEdit()"
+    >
+      @if (!state.attributes().length && !(state.product()?.variants?.length ?? 0)) {
+        <p class="text-sm text-[var(--text-muted)]">
+          Define features first.
+          <a routerLink="/admin/product-attributes" class="underline">Manage features</a>
+        </p>
+      } @else {
+        @if (formOpen()) {
+          <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-4" [formGroup]="form" (ngSubmit)="saveForm()">
+            <h4 class="text-sm font-semibold">{{ editingVariantId() ? 'Edit variant' : 'New variant' }}</h4>
+
+            @if (editingVariantId() && editingSku()) {
+              <label class="block space-y-1">
+                <span class="text-sm font-medium">SKU</span>
+                <input class="pf-editor-input w-full bg-[var(--surface-muted)]" [value]="editingSku()" readonly />
+              </label>
+            }
+
+            <div class="space-y-3 rounded-lg border border-[var(--border)] p-3">
+              <p class="text-sm font-medium">Attributes</p>
+              @if (attributesAvailableForAdd().length) {
+                <div class="flex flex-wrap items-end gap-3">
+                  <label class="block min-w-[10rem] flex-1 space-y-1">
+                    <span class="text-sm font-medium">Feature type</span>
+                    <select
+                      class="pf-editor-input w-full"
+                      [(ngModel)]="featureTypeId"
+                      [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="featureValueId = ''"
+                    >
+                      <option value="">Select feature type</option>
+                      @for (attr of attributesAvailableForAdd(); track attr.id) {
+                        <option [value]="attr.id">{{ attr.name }}</option>
+                      }
+                    </select>
+                  </label>
+                  <label class="block min-w-[10rem] flex-1 space-y-1">
+                    <span class="text-sm font-medium">Value</span>
+                    <select
+                      class="pf-editor-input w-full"
+                      [(ngModel)]="featureValueId"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="!featureTypeId"
+                    >
+                      <option value="">Select value</option>
+                      @for (val of valuesForFeatureType(); track val.id) {
+                        <option [value]="val.id">{{ val.value }}</option>
+                      }
+                    </select>
+                  </label>
                   <button
                     type="button"
                     class="admin-action-secondary rounded-lg px-3 py-1.5 text-sm"
-                    (click)="generateVariants()"
+                    [disabled]="!featureTypeId || !featureValueId"
+                    (click)="addDraftFeature()"
                   >
-                    Generate variant combinations
+                    Add feature
                   </button>
                 </div>
-                @if (variantRows().length) {
-                  <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                      <thead>
-                        <tr class="border-b">
-                          <th class="p-2">SKU</th>
-                          <th class="p-2">Price</th>
-                          <th class="p-2">Attributes</th>
-                          <th class="p-2">Active</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        @for (row of variantRows(); track $index) {
-                          <tr class="border-b">
-                            <td class="p-2 text-xs text-[var(--text-muted)]">
-                              {{ row.sku || 'Assigned on save' }}
-                            </td>
-                            <td class="p-2">
-                              <input class="pf-editor-input w-20 text-xs" type="number" [(ngModel)]="row.price" />
-                            </td>
-                            <td class="p-2 text-xs">{{ rowLabel(row) }}</td>
-                            <td class="p-2">
-                              <input type="checkbox" [(ngModel)]="row.isActive" />
-                            </td>
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                }
               }
+              @if (draftFeatureChips().length) {
+                <div class="flex flex-wrap gap-2">
+                  @for (chip of draftFeatureChips(); track chip.attributeId) {
+                    <span class="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm">
+                      {{ chip.label }}
+                      <button
+                        type="button"
+                        class="text-[var(--text-muted)] hover:text-rose-600"
+                        (click)="removeDraftFeature(chip.attributeId)"
+                        aria-label="Remove feature"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  }
+                </div>
+              } @else {
+                <p class="text-sm text-[var(--text-muted)]">No attributes selected.</p>
+              }
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="block space-y-1">
+                <span class="text-sm font-medium">Price</span>
+                <input class="pf-editor-input w-full" type="number" formControlName="price" />
+              </label>
+              <label class="block space-y-1">
+                <span class="text-sm font-medium">Compare at price</span>
+                <input class="pf-editor-input w-full" type="number" formControlName="compareAtPrice" />
+              </label>
+              <label class="block space-y-1">
+                <span class="text-sm font-medium">Barcode</span>
+                <input class="pf-editor-input w-full" formControlName="barcode" />
+              </label>
+              <label class="block space-y-1">
+                <span class="text-sm font-medium">Weight</span>
+                <input class="pf-editor-input w-full" type="number" formControlName="weight" />
+              </label>
+            </div>
+
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" formControlName="isActive" /> Active
+            </label>
+
+            <div class="flex justify-end gap-2">
+              <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeForm()">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="admin-section-action-btn rounded-lg px-4 py-2 text-sm"
+                [disabled]="form.invalid || saving() || !hasDraftSelections()"
+              >
+                {{ saving() ? 'Saving…' : editingVariantId() ? 'Update' : 'Create' }}
+              </button>
+            </div>
+          </form>
+        } @else {
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p class="text-sm text-[var(--text-muted)]">
+              @if (hasVariants()) {
+                Manage variants individually. Delete all variants to convert to a simple product.
+              } @else {
+                Simple product — no variants.
+              }
+            </p>
+            @if (state.attributes().length) {
+              <button
+                type="button"
+                class="admin-section-action-btn rounded-lg px-4 py-2 text-sm"
+                [disabled]="saving()"
+                (click)="openCreate()"
+              >
+                + Add variant
+              </button>
             }
           </div>
+
+          @if (!variants().length) {
+            <p class="text-sm text-[var(--text-muted)]">No variants yet.</p>
+          } @else {
+            <app-table>
+              <table class="admin-data-table">
+                <thead>
+                  <tr>
+                    <th class="admin-data-table__index">#</th>
+                    <th>SKU</th>
+                    <th>Features</th>
+                    <th>Price</th>
+                    <th class="admin-data-table__col-status">Status</th>
+                    <th class="admin-data-table__col-actions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (v of variants(); track v.id; let i = $index) {
+                    <tr class="admin-data-table__row">
+                      <td class="admin-data-table__index">{{ i + 1 }}</td>
+                      <td class="text-sm text-[var(--text-secondary)]">{{ v.sku }}</td>
+                      <td class="text-sm text-[var(--text-secondary)]">
+                        @if (v.attributes.length) {
+                          <div class="flex flex-wrap items-center gap-1">
+                            @for (attr of attrPreview(v.attributes).visible; track attr.name + attr.value) {
+                              <span class="rounded-md bg-[var(--surface-muted)] px-2 py-0.5 text-xs text-[var(--text-primary)]">
+                                {{ attr.name }}: {{ attr.value }}
+                              </span>
+                            }
+                            @if (attrPreview(v.attributes).extraCount > 0) {
+                              <span class="text-xs font-medium text-[var(--accent)]">
+                                +{{ attrPreview(v.attributes).extraCount }} more
+                              </span>
+                            }
+                          </div>
+                        } @else {
+                          —
+                        }
+                      </td>
+                      <td class="admin-data-table__price">{{ v.price }}</td>
+                      <td class="admin-data-table__col-status">
+                        <app-admin-status-badge
+                          [label]="v.isActive ? 'Active' : 'Inactive'"
+                          [variant]="v.isActive ? 'active' : 'inactive'"
+                        />
+                      </td>
+                      <td class="admin-data-table__col-actions">
+                        <div class="admin-data-table__actions">
+                          <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(v)" />
+                          <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(v)" />
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </app-table>
+          }
         }
-      </app-admin-form-section-card>
-    }
+      }
+    </app-admin-form-section-card>
+
+    <app-confirm-dialog
+      [open]="!!deleteTarget()"
+      title="Delete variant"
+      [message]="'Delete variant ' + (deleteTarget()?.sku ?? '') + '?'"
+      confirmLabel="Delete"
+      [danger]="true"
+      (confirmed)="doDelete()"
+      (cancelled)="deleteTarget.set(null)"
+    />
   `
 })
 export class ProductVariantsSectionComponent {
   readonly state = inject(ProductFormStateService);
   private readonly api = inject(ProductAdminService);
+  private readonly fb = inject(FormBuilder);
   private readonly notifications = inject(NotificationService);
-  private readonly injector = inject(Injector);
 
   readonly sectionIcon = Layers;
   readonly expanded = signal(false);
-  readonly editing = signal(false);
-  readonly hasVariants = signal(false);
-  readonly selectedAttributeIds = signal(new Set<string>());
-  readonly variantRows = signal<VariantRow[]>([]);
+  readonly sectionActive = signal(false);
+  readonly saving = signal(false);
+  readonly formOpen = signal(false);
+  readonly editingVariantId = signal<string | null>(null);
+  readonly editingSku = signal('');
+  readonly deleteTarget = signal<ProductVariantDto | null>(null);
+  readonly draftSelections = signal<Record<string, string>>({});
+
+  readonly variants = computed(() => this.state.product()?.variants ?? []);
+  readonly hasVariants = computed(() => this.variants().length > 0);
+  readonly productName = computed(() => this.state.product()?.name ?? 'Product');
+
+  featureTypeId = '';
+  featureValueId = '';
+
+  readonly form = this.fb.nonNullable.group({
+    price: [0, [Validators.required, Validators.min(0)]],
+    compareAtPrice: this.fb.control<number | null>(null),
+    barcode: [''],
+    weight: this.fb.control<number | null>(null),
+    isActive: [true]
+  });
 
   constructor() {
     effect(() => {
-      const p = this.state.product();
+      this.state.product();
       this.state.attributes();
-      if (p && !this.editing()) {
-        this.patchFromProduct();
+    });
+
+    effect(() => {
+      if (!this.expanded()) {
+        this.sectionActive.set(false);
+        this.closeForm();
       }
+    });
+  }
+
+  valuesForFeatureType() {
+    const attr = this.state.attributes().find((a) => a.id === this.featureTypeId);
+    return attr?.values ?? [];
+  }
+
+  attributesAvailableForAdd() {
+    const selected = new Set(Object.keys(this.draftSelections()));
+    return this.state.attributes().filter((attr) => !selected.has(attr.id));
+  }
+
+  draftFeatureChips(): { attributeId: string; label: string }[] {
+    const editingVariant = this.editingVariantId()
+      ? this.variants().find((v) => v.id === this.editingVariantId())
+      : null;
+
+    return Object.entries(this.draftSelections()).map(([attributeId, valueId]) => {
+      const attr = this.state.attributes().find((a) => a.id === attributeId);
+      const val = attr?.values.find((v) => v.id === valueId);
+      const variantAttr = editingVariant?.attributes.find((a) => a.attributeId === attributeId);
+
+      return {
+        attributeId,
+        label:
+          attr && val
+            ? `${attr.name}: ${val.value}`
+            : variantAttr
+              ? `${variantAttr.attributeName}: ${variantAttr.value}`
+              : attributeId
+      };
     });
   }
 
@@ -151,103 +327,181 @@ export class ProductVariantsSectionComponent {
     return (this.state.product()?.variants.length ?? 0) > 0;
   }
 
-  startEdit(): void {
-    this.editing.set(true);
-    afterNextRender(
-      () => this.patchFromProduct(),
-      { injector: this.injector }
-    );
+  attrPreview(attributes: { attributeName: string; value: string }[]) {
+    const mapped: VariantAttributeDisplay[] = attributes.map((a) => ({ name: a.attributeName, value: a.value }));
+    return previewVariantAttributes(mapped, 2);
   }
 
-  cancelEdit(): void {
-    this.patchFromProduct();
-    this.editing.set(false);
-  }
-
-  onVariantsToggle(event: Event): void {
-    const checked = (event.target as HTMLInputElement).checked;
-    this.hasVariants.set(checked);
-    if (!checked) {
-      this.variantRows.set([]);
-      this.selectedAttributeIds.set(new Set());
-    }
-  }
-
-  toggleAttribute(id: string): void {
-    const next = new Set(this.selectedAttributeIds());
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    this.selectedAttributeIds.set(next);
-  }
-
-  generateVariants(): void {
-    const p = this.state.product();
-    const defaults = {
-      price: p?.price ?? 0,
-      compareAtPrice: p?.compareAtPrice ?? null,
-      weight: p?.weight ?? null
-    };
-    this.variantRows.set(
-      generateVariantRows(
-        this.state.attributes(),
-        this.selectedAttributeIds(),
-        defaults,
-        this.variantRows()
-      )
-    );
-  }
-
-  rowLabel(row: VariantRow): string {
-    return variantLabel(row, this.state.attributes());
-  }
-
-  variantAttrs(v: { attributes: { attributeName: string; value: string }[] }): string {
+  variantAttrs(v: ProductVariantDto): string {
     return v.attributes.map((a) => `${a.attributeName}: ${a.value}`).join(', ');
   }
 
-  save(): void {
+  openCreate(): void {
+    this.expanded.set(true);
+    this.sectionActive.set(true);
+    const p = this.state.product();
+    this.editingVariantId.set(null);
+    this.editingSku.set('');
+    this.draftSelections.set({});
+    this.resetDraftInputs();
+    this.form.reset({
+      price: p?.price ?? 0,
+      compareAtPrice: p?.compareAtPrice ?? null,
+      barcode: '',
+      weight: p?.weight ?? null,
+      isActive: true
+    });
+    this.formOpen.set(true);
+  }
+
+  openEdit(v: ProductVariantDto): void {
+    if (this.formOpen() && this.editingVariantId() === v.id) {
+      this.closeForm();
+      return;
+    }
+
+    this.expanded.set(true);
+    this.sectionActive.set(true);
+    this.editingVariantId.set(v.id);
+    this.editingSku.set(v.sku);
+    this.draftSelections.set(
+      Object.fromEntries(v.attributes.map((a) => [a.attributeId, a.valueId]))
+    );
+    this.resetDraftInputs();
+    this.form.patchValue({
+      price: v.price,
+      compareAtPrice: v.compareAtPrice,
+      barcode: v.barcode ?? '',
+      weight: v.weight,
+      isActive: v.isActive
+    });
+    this.formOpen.set(true);
+  }
+
+  closeForm(): void {
+    this.formOpen.set(false);
+    this.editingVariantId.set(null);
+    this.draftSelections.set({});
+    this.resetDraftInputs();
+  }
+
+  onSectionEdit(): void {
+    if (this.sectionActive()) {
+      this.sectionActive.set(false);
+      this.expanded.set(false);
+      this.closeForm();
+      return;
+    }
+    this.sectionActive.set(true);
+  }
+
+  addDraftFeature(): void {
+    if (!this.featureTypeId || !this.featureValueId) return;
+    this.draftSelections.update((current) => ({
+      ...current,
+      [this.featureTypeId]: this.featureValueId
+    }));
+    this.resetDraftInputs();
+  }
+
+  removeDraftFeature(attributeId: string): void {
+    this.draftSelections.update((current) => {
+      const next = { ...current };
+      delete next[attributeId];
+      return next;
+    });
+  }
+
+  hasDraftSelections(): boolean {
+    return Object.keys(this.draftSelections()).length > 0;
+  }
+
+  saveForm(): void {
+    if (this.form.invalid || this.saving() || !this.hasDraftSelections()) return;
+
     const productId = this.state.productId();
     if (!productId) return;
 
-    const variants: SaveProductVariantItem[] = this.hasVariants()
-      ? this.variantRows().map((row) => ({
-          id: row.id,
-          price: row.price,
-          compareAtPrice: row.compareAtPrice,
-          barcode: row.barcode || null,
-          weight: row.weight,
-          isActive: row.isActive,
-          attributes: Object.entries(row.attributeSelections).map(([attributeId, valueId]) => ({
-            attributeId,
-            valueId
-          }))
-        }))
-      : [];
+    const v = this.form.getRawValue();
+    const attributes = this.buildVariantAttributes();
 
-    this.state.setSectionSaving('variants', true);
-    this.api.saveVariants(productId, [...this.selectedAttributeIds()], variants).subscribe({
+    const payload = {
+      price: v.price,
+      compareAtPrice: v.compareAtPrice,
+      barcode: v.barcode || null,
+      weight: v.weight,
+      isActive: v.isActive,
+      attributes
+    };
+
+    const variantId = this.editingVariantId();
+    const req$ = variantId
+      ? this.api.updateVariant(productId, variantId, payload)
+      : this.api.createVariant(productId, payload);
+
+    this.saving.set(true);
+    req$.subscribe({
       next: (saved) => {
-        this.state.setSectionSaving('variants', false);
-        this.state.markSectionSaved('variants');
-        if (saved) {
-          this.state.mergeProduct(saved);
-          this.patchFromProduct();
-        }
-        this.editing.set(false);
-        this.notifications.success('Variants saved');
+        this.saving.set(false);
+        this.state.mergeProduct(saved);
+        this.closeForm();
+        this.notifications.success(variantId ? 'Variant updated' : 'Variant created');
       },
       error: (err) => {
-        this.state.setSectionSaving('variants', false);
-        this.notifications.error(err?.message ?? 'Could not save variants');
+        this.saving.set(false);
+        this.notifications.errorFromApi(err, 'Could not save variant');
       }
     });
   }
 
-  private patchFromProduct(): void {
-    const p = this.state.product();
-    if (!p) return;
-    this.hasVariants.set(p.variants.length > 0);
-    this.selectedAttributeIds.set(selectedAttributeIdsFromProduct(p));
-    this.variantRows.set(variantRowsFromProduct(p));
+  confirmDelete(v: ProductVariantDto): void {
+    this.deleteTarget.set(v);
+  }
+
+  doDelete(): void {
+    const target = this.deleteTarget();
+    const productId = this.state.productId();
+    if (!target || !productId) return;
+
+    this.saving.set(true);
+    this.api.deleteVariant(productId, target.id).subscribe({
+      next: (saved) => {
+        this.saving.set(false);
+        this.deleteTarget.set(null);
+        this.state.mergeProduct(saved);
+        this.notifications.success('Variant deleted');
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.deleteTarget.set(null);
+        this.notifications.errorFromApi(err, 'Could not delete variant');
+      }
+    });
+  }
+
+  private resetDraftInputs(): void {
+    this.featureTypeId = '';
+    this.featureValueId = '';
+  }
+
+  private buildVariantAttributes(): ProductVariantAttributeInput[] {
+    const editingVariant = this.editingVariantId()
+      ? this.variants().find((v) => v.id === this.editingVariantId())
+      : null;
+
+    return Object.entries(this.draftSelections())
+      .filter(([, valueId]) => !!valueId)
+      .map(([attributeId, valueId]) => {
+        const attr = this.state.attributes().find((a) => a.id === attributeId);
+        const val = attr?.values.find((v) => v.id === valueId);
+        const variantAttr = editingVariant?.attributes.find((a) => a.attributeId === attributeId);
+
+        return {
+          attributeId,
+          attributeName: attr?.name ?? variantAttr?.attributeName ?? '',
+          valueId,
+          value: val?.value ?? variantAttr?.value ?? ''
+        };
+      });
   }
 }

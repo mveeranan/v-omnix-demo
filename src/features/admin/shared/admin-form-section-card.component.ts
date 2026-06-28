@@ -16,7 +16,7 @@ import {
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
   template: `
-    <div class="pf-editor-card admin-form-section-card">
+    <div class="pf-editor-card admin-form-section-card" [class.admin-form-section-card--disabled]="disabled()">
       <div class="pf-editor-card__header admin-form-section-card__header">
         <button
           type="button"
@@ -49,7 +49,7 @@ import {
               type="button"
               class="admin-form-section-card__action"
               (click)="onEdit()"
-              [disabled]="saving()"
+              [disabled]="saving() || disabled()"
               [attr.aria-label]="'Edit ' + title()"
             >
               <lucide-icon [img]="editIcon" class="h-4 w-4" />
@@ -104,6 +104,10 @@ import {
   styles: `
     :host {
       display: block;
+    }
+
+    .admin-form-section-card--disabled {
+      opacity: 0.6;
     }
 
     .admin-form-section-card__header {
@@ -236,6 +240,8 @@ export class AdminFormSectionCardComponent {
   readonly editing = input(false);
   readonly saving = input(false);
   readonly canSave = input(true);
+  readonly disabled = input(false);
+  readonly expandOnEdit = input(true);
   readonly showClear = input(false);
   readonly lastSavedAt = input<Date | null>(null);
 
@@ -252,7 +258,9 @@ export class AdminFormSectionCardComponent {
   readonly clearIcon = RotateCcw;
 
   onEdit(): void {
-    this.expanded.set(true);
+    if (this.expandOnEdit()) {
+      this.expanded.set(true);
+    }
     this.edit.emit();
   }
 }

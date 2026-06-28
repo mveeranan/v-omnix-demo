@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { StoreContextService } from '../data-access/store-context.service';
 import { ProductApiService } from '../data-access/product-api.service';
@@ -57,6 +58,9 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
           <div>
             <p class="pf-text-muted text-sm">{{ p.brandName }} · {{ p.categoryName }}</p>
             <h1 class="pf-display pf-heading mt-2 text-3xl font-semibold">{{ p.name }}</h1>
+            @if (p.shortDescription) {
+              <p class="pf-text mt-3 max-w-prose leading-relaxed text-[var(--text-secondary)]">{{ p.shortDescription }}</p>
+            }
             <div class="mt-4 flex items-baseline gap-3">
               <span class="text-2xl font-bold">{{ formatPrice(p.price) }}</span>
               @if (p.compareAtPrice && p.compareAtPrice > p.price) {
@@ -114,7 +118,11 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
               <button type="button" class="mox-tabs__btn" [class.mox-tabs__btn--active]="detailTab() === 'reviews'" (click)="detailTab.set('reviews')">Reviews</button>
             </div>
             @if (detailTab() === 'description') {
-              <p class="pf-text mt-4 leading-relaxed">{{ p.description }}</p>
+              @if (p.description) {
+                <div class="rich-text-content pf-text mt-4 leading-relaxed" [innerHTML]="descriptionHtml()"></div>
+              } @else {
+                <p class="pf-text mt-4 leading-relaxed text-[var(--text-muted)]">No description available.</p>
+              }
             } @else if (detailTab() === 'specs') {
               <dl class="mt-4 grid gap-2 text-sm sm:grid-cols-2">
                 <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">SKU</dt><dd class="font-medium">{{ p.sku || '—' }}</dd></div>
@@ -163,6 +171,7 @@ export class ProductDetailPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly productApi = inject(ProductApiService);
   private readonly cart = inject(CartStateService);
+  private readonly sanitizer = inject(DomSanitizer);
   readonly Math = Math;
   readonly variantLabel = variantLabel;
 
@@ -173,6 +182,11 @@ export class ProductDetailPageComponent implements OnInit {
   readonly selectedVariantId = signal<string | undefined>(undefined);
   readonly qty = signal(1);
   readonly detailTab = signal<'description' | 'specs' | 'reviews'>('description');
+
+  readonly descriptionHtml = computed((): SafeHtml => {
+    const html = this.product()?.description ?? '';
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  });
 
   ngOnInit(): void {
     const productSlug = this.route.snapshot.paramMap.get('productSlug');

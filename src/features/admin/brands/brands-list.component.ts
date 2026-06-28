@@ -30,6 +30,28 @@ import { LucideAngularModule, Award } from 'lucide-angular';
     <app-admin-page-shell eyebrow="Catalog" title="Brands" description="Optional product brands for your catalog.">
       <button admin-page-actions type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="openCreate()">+ Add brand</button>
 
+      @if (formOpen()) {
+        <form class="admin-glass-card mb-4 space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
+          <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit brand' : 'New brand' }}</h3>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Name</span>
+            <input class="pf-editor-input w-full" formControlName="name" />
+          </label>
+          <label class="block space-y-1">
+            <span class="text-sm font-medium">Description</span>
+            <textarea class="pf-editor-input w-full" formControlName="description" rows="2"></textarea>
+          </label>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" formControlName="isActive" /> Active
+          </label>
+          <div class="flex justify-end gap-2">
+            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeForm()">Cancel</button>
+            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm">Save</button>
+          </div>
+        </form>
+      }
+
+      @if (!formOpen()) {
       @if (loading()) {
         <app-loading-spinner label="Loading brands…" />
       } @else if (!brands().length) {
@@ -44,6 +66,7 @@ import { LucideAngularModule, Award } from 'lucide-angular';
               <tr>
                 <th class="admin-data-table__index">#</th>
                 <th>Brand name</th>
+                <th>Description</th>
                 <th class="admin-data-table__col-status">Status</th>
                 <th class="admin-data-table__col-actions">Actions</th>
               </tr>
@@ -59,6 +82,9 @@ import { LucideAngularModule, Award } from 'lucide-angular';
                         <div class="admin-data-table__entity-title">{{ b.name }}</div>
                       </div>
                     </div>
+                  </td>
+                  <td class="admin-data-table__col-description">
+                    <p class="line-clamp-2 text-sm text-[var(--text-secondary)]">{{ b.description || '—' }}</p>
                   </td>
                   <td class="admin-data-table__col-status">
                     <app-admin-status-badge
@@ -78,31 +104,8 @@ import { LucideAngularModule, Award } from 'lucide-angular';
           </table>
         </app-table>
       }
+      }
     </app-admin-page-shell>
-
-    @if (modalOpen()) {
-      <div class="fixed inset-0 z-50 grid place-items-center p-4">
-        <div class="admin-modal-backdrop absolute inset-0" (click)="closeModal()"></div>
-        <form class="admin-glass-card relative w-full max-w-md space-y-4 rounded-xl p-6" [formGroup]="form" (ngSubmit)="save()">
-          <h3 class="text-lg font-semibold">{{ editingId() ? 'Edit brand' : 'New brand' }}</h3>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Name</span>
-            <input class="pf-editor-input w-full" formControlName="name" />
-          </label>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Description</span>
-            <textarea class="pf-editor-input w-full" formControlName="description" rows="2"></textarea>
-          </label>
-          <label class="flex items-center gap-2 text-sm">
-            <input type="checkbox" formControlName="isActive" /> Active
-          </label>
-          <div class="flex justify-end gap-2">
-            <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeModal()">Cancel</button>
-            <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm">Save</button>
-          </div>
-        </form>
-      </div>
-    }
 
     <app-confirm-dialog
       [open]="!!deleteTarget()"
@@ -124,7 +127,7 @@ export class BrandsListComponent implements OnInit {
   readonly brandIcon = Award;
   readonly loading = signal(true);
   readonly brands = signal<BrandDto[]>([]);
-  readonly modalOpen = signal(false);
+  readonly formOpen = signal(false);
   readonly editingId = signal<string | null>(null);
   readonly deleteTarget = signal<BrandDto | null>(null);
 
@@ -152,7 +155,7 @@ export class BrandsListComponent implements OnInit {
   openCreate(): void {
     this.editingId.set(null);
     this.form.reset({ name: '', description: '', isActive: true });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
   openEdit(b: BrandDto): void {
@@ -162,11 +165,11 @@ export class BrandsListComponent implements OnInit {
       description: b.description ?? '',
       isActive: b.isActive
     });
-    this.modalOpen.set(true);
+    this.formOpen.set(true);
   }
 
-  closeModal(): void {
-    this.modalOpen.set(false);
+  closeForm(): void {
+    this.formOpen.set(false);
   }
 
   save(): void {
@@ -182,10 +185,11 @@ export class BrandsListComponent implements OnInit {
     const req$ = id ? this.api.update(id, payload) : this.api.create(payload);
     req$.subscribe({
       next: () => {
-        this.closeModal();
+        this.closeForm();
         this.load();
         this.notifications.success('Brand saved');
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not save brand')
     });
   }
 
@@ -200,7 +204,8 @@ export class BrandsListComponent implements OnInit {
       next: () => {
         this.deleteTarget.set(null);
         this.load();
-      }
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not delete brand')
     });
   }
 }

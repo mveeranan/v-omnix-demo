@@ -5,17 +5,22 @@ import { API_ENDPOINTS } from '@env/api.constants';
 import { ApiResponse } from '@shared/models/api-response.model';
 import { AuthService } from '@core/auth/auth.service';
 import {
-  AdjustInventoryRequest,
+  BulkUpdateProductStatusRequest,
+  BulkUpdateProductStatusResult,
+  CreateInventoryRequest,
+  DeleteInventoryRequest,
+  DeleteProductVariantRequest,
   InventoryItemDto,
   PatchProductStatusRequest,
   ProductDetailDto,
   ProductListFilters,
   ProductListResponse,
-  SaveInventoryRequest,
+  ProductVariantDto,
   SaveProductImagesRequest,
   SaveProductRequest,
   SaveProductTagsRequest,
-  SaveProductVariantsRequest
+  SaveProductVariantRequest,
+  UpdateInventoryRequest
 } from '../models/product-admin.model';
 import { buildQueryString, requireTenantId, unwrapApiResponse } from './catalog-api.util';
 
@@ -74,9 +79,40 @@ export class ProductAdminApiService {
       .pipe(map(unwrapApiResponse));
   }
 
-  saveVariants(id: string, body: SaveProductVariantsRequest): Observable<ProductDetailDto> {
+  bulkUpdateStatus(body: BulkUpdateProductStatusRequest): Observable<BulkUpdateProductStatusResult> {
     return this.http
-      .put<ApiResponse<ProductDetailDto>>(API_ENDPOINTS.products.variants(id), body)
+      .put<ApiResponse<BulkUpdateProductStatusResult>>(API_ENDPOINTS.products.bulkStatus, body)
+      .pipe(map(unwrapApiResponse));
+  }
+
+  createVariant(productId: string, body: SaveProductVariantRequest): Observable<ProductVariantDto> {
+    return this.http
+      .post<ApiResponse<ProductVariantDto>>(API_ENDPOINTS.products.createVariant(productId), body)
+      .pipe(map(unwrapApiResponse));
+  }
+
+  updateVariant(
+    productId: string,
+    variantId: string,
+    body: SaveProductVariantRequest
+  ): Observable<ProductVariantDto> {
+    return this.http
+      .put<ApiResponse<ProductVariantDto>>(
+        API_ENDPOINTS.products.updateVariant(productId, variantId),
+        body
+      )
+      .pipe(map(unwrapApiResponse));
+  }
+
+  deleteVariant(
+    productId: string,
+    variantId: string,
+    body: DeleteProductVariantRequest
+  ): Observable<boolean> {
+    return this.http
+      .delete<ApiResponse<boolean>>(API_ENDPOINTS.products.deleteVariant(productId, variantId), {
+        body
+      })
       .pipe(map(unwrapApiResponse));
   }
 
@@ -93,26 +129,40 @@ export class ProductAdminApiService {
       .pipe(map(unwrapApiResponse));
   }
 
-  saveInventory(id: string, body: SaveInventoryRequest): Observable<InventoryItemDto[]> {
+  createInventory(productId: string, body: CreateInventoryRequest): Observable<InventoryItemDto> {
     return this.http
-      .put<ApiResponse<InventoryItemDto[]>>(API_ENDPOINTS.products.inventory(id, body.tenantId), body)
+      .post<ApiResponse<InventoryItemDto>>(API_ENDPOINTS.products.createInventory(productId), body)
+      .pipe(map(unwrapApiResponse));
+  }
+
+  updateInventory(
+    productId: string,
+    inventoryId: string,
+    body: UpdateInventoryRequest
+  ): Observable<InventoryItemDto> {
+    return this.http
+      .put<ApiResponse<InventoryItemDto>>(
+        API_ENDPOINTS.products.updateInventory(productId, inventoryId),
+        body
+      )
+      .pipe(map(unwrapApiResponse));
+  }
+
+  deleteInventory(
+    productId: string,
+    inventoryId: string,
+    body: DeleteInventoryRequest
+  ): Observable<boolean> {
+    return this.http
+      .delete<ApiResponse<boolean>>(API_ENDPOINTS.products.deleteInventory(productId, inventoryId), {
+        body
+      })
       .pipe(map(unwrapApiResponse));
   }
 
   saveTags(id: string, body: SaveProductTagsRequest): Observable<ProductDetailDto> {
     return this.http
       .put<ApiResponse<ProductDetailDto>>(API_ENDPOINTS.products.tags(id), body)
-      .pipe(map(unwrapApiResponse));
-  }
-}
-
-@Injectable({ providedIn: 'root' })
-export class InventoryApiService {
-  private readonly http = inject(HttpClient);
-
-  adjust(inventoryId: string, body: AdjustInventoryRequest): Observable<InventoryItemDto> {
-    return this.http
-      .post<ApiResponse<InventoryItemDto>>(API_ENDPOINTS.inventory.adjust(inventoryId), body)
       .pipe(map(unwrapApiResponse));
   }
 }

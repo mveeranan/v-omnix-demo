@@ -1,0 +1,180 @@
+:host {
+  display: block;
+}
+
+.rich-text-editor {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.75rem;
+  overflow: visible;
+  background: rgb(255 255 255);
+}
+
+:host-context(.dark) .rich-text-editor,
+.dark .rich-text-editor {
+  border-color: rgb(63 63 70);
+  background: rgb(24 24 27);
+}
+
+.rich-text-editor--disabled {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.rich-text-editor__editor {
+  min-height: 10rem;
+}
+
+.rich-text-editor > .ql-toolbar.ql-snow {
+  order: 2;
+  flex-shrink: 0;
+  overflow: visible;
+  position: relative;
+  z-index: 5;
+  border: none;
+  border-top: 1px solid rgb(226 232 240);
+  border-radius: 0 0 0.75rem 0.75rem;
+  background: rgb(248 250 252);
+  padding: 0.625rem 0.75rem;
+}
+
+:host-context(.dark) .rich-text-editor > .ql-toolbar.ql-snow,
+.dark .rich-text-editor > .ql-toolbar.ql-snow {
+  border-top-color: rgb(63 63 70);
+  background: rgb(39 39 42);
+}
+
+.rich-text-editor > .ql-container.ql-snow {
+  order: 1;
+  overflow: visible;
+  border: none;
+  border-radius: 0.75rem 0.75rem 0 0;
+  font-size: 0.9375rem;
+}
+
+.rich-text-editor .ql-editor {
+  min-height: 10rem;
+  padding: 0.875rem 1rem;
+  line-height: 1.6;
+}
+
+.rich-text-editor .ql-editor.ql-blank::before {
+  color: rgb(148 163 184);
+  font-style: normal;
+  left: 1rem;
+  right: 1rem;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow .ql-formats {
+  margin-right: 0.875rem;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow button {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.375rem;
+  border-radius: 0.375rem;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow button:hover,
+.rich-text-editor .ql-toolbar.ql-snow button.ql-active {
+  background: rgb(238 242 255);
+}
+
+:host-context(.dark) .rich-text-editor .ql-toolbar.ql-snow button:hover,
+:host-context(.dark) .rich-text-editor .ql-toolbar.ql-snow button.ql-active,
+.dark .rich-text-editor .ql-toolbar.ql-snow button:hover,
+.dark .rich-text-editor .ql-toolbar.ql-snow button.ql-active {
+  background: rgb(46 16 101);
+}
+
+.rich-text-editor .ql-toolbar.ql-snow button svg {
+  width: 1.375rem !important;
+  height: 1.375rem !important;
+  max-width: none !important;
+  float: none !important;
+  display: block;
+  margin: 0 auto;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow .ql-picker {
+  height: 2.5rem;
+  font-size: 0.9375rem;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded {
+  z-index: 10;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow .ql-picker-label {
+  display: flex;
+  align-items: center;
+  height: 2.5rem;
+  border-radius: 0.375rem;
+  padding: 0 0.625rem;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow .ql-picker-label svg {
+  width: 1.125rem !important;
+  height: 1.125rem !important;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow .ql-picker-options {
+  z-index: 11;
+  background: rgb(255 255 255);
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.12);
+  padding: 0.25rem 0;
+}
+
+:host-context(.dark) .rich-text-editor .ql-toolbar.ql-snow .ql-picker-options,
+.dark .rich-text-editor .ql-toolbar.ql-snow .ql-picker-options {
+  background: rgb(39 39 42);
+  border-color: rgb(63 63 70);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+.rich-text-editor > .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-options {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow .ql-picker-item {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.9375rem;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow .ql-color-picker,
+.rich-text-editor .ql-toolbar.ql-snow .ql-background {
+  width: 2.5rem;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow .ql-color-picker .ql-picker-label,
+.rich-text-editor .ql-toolbar.ql-snow .ql-background .ql-picker-label {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow .ql-color-picker .ql-picker-label svg,
+.rich-text-editor .ql-toolbar.ql-snow .ql-background .ql-picker-label svg {
+  width: 1.375rem !important;
+  height: 1.375rem !important;
+  position: static !important;
+  right: auto !important;
+  margin: 0 !important;
+  float: none !important;
+}
+
+.rich-text-editor .ql-toolbar.ql-snow .ql-color-picker .ql-picker-item,
+.rich-text-editor .ql-toolbar.ql-snow .ql-background .ql-picker-item {
+  width: 1.375rem;
+  height: 1.375rem;
+}

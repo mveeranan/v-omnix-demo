@@ -45,6 +45,21 @@
   background: var(--surface-0);
   color: var(--text-primary);
   box-shadow: none;
+  cursor: pointer;
+}
+
+.admin-action-secondary:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.admin-action-secondary:disabled,
+.admin-section-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admin-section-action-btn:not(:disabled) {
+  cursor: pointer;
 }
 
 .admin-bookings-secondary-btn:hover:not(:disabled) {

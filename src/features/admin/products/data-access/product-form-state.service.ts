@@ -10,6 +10,7 @@ import { ProductCategoryDto } from '@features/catalog/models/product-category.mo
 import { BrandDto } from '@features/catalog/models/brand.model';
 import { ProductTagDto } from '@features/catalog/models/product-tag.model';
 import { ProductAttributeDto } from '@features/catalog/models/product-attribute.model';
+import { getApiErrorMessage } from '@shared/utils/api-error.util';
 
 export type ProductFormSection = 'details' | 'tags' | 'images' | 'variants' | 'inventory';
 
@@ -95,7 +96,7 @@ export class ProductFormStateService {
         this.loading.set(false);
       },
       error: (err) => {
-        this.loadError.set(err?.message ?? 'Could not load product');
+        this.loadError.set(getApiErrorMessage(err, 'Could not load product'));
         this.loading.set(false);
       }
     });

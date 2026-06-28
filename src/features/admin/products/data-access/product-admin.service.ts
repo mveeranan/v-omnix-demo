@@ -1,19 +1,21 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, map, switchMap } from 'rxjs';
+import { Observable, map, of, switchMap } from 'rxjs';
 import { AuthService } from '@core/auth/auth.service';
 import { ProductAdminApiService } from '@features/catalog/data-access/product-admin-api.service';
 import { ProductSaveOrchestrator } from '@features/catalog/data-access/product-save.orchestrator';
 import { requireTenantId } from '@features/catalog/data-access/catalog-api.util';
 import {
+  BulkUpdateProductStatusResult,
+  CreateInventoryRequest,
   PendingImageUpload,
   ProductDetailDto,
   ProductListFilters,
   ProductListResponse,
   ProductSavePayload,
-  SaveInventoryItem,
   SaveProductImageItem,
   SaveProductRequest,
-  SaveProductVariantItem
+  SaveProductVariantRequest,
+  UpdateInventoryRequest
 } from '@features/catalog/models/product-admin.model';
 import { ProductStatus } from '@features/catalog/models/product-status.enum';
 
@@ -25,6 +27,10 @@ export class ProductAdminService {
 
   private tenantId(): string {
     return requireTenantId(this.auth);
+  }
+
+  private refreshProduct(productId: string): Observable<ProductDetailDto> {
+    return this.api.get(productId, this.tenantId());
   }
 
   list(filters: ProductListFilters = {}): Observable<ProductListResponse> {
@@ -51,16 +57,51 @@ export class ProductAdminService {
     return this.orchestrator.saveImages(productId, this.tenantId(), existingImages, pendingImages);
   }
 
-  saveVariants(
-    productId: string,
-    selectedAttributeIds: string[],
-    variants: SaveProductVariantItem[]
-  ): Observable<ProductDetailDto> {
-    return this.orchestrator.saveVariants(productId, this.tenantId(), selectedAttributeIds, variants);
+  createVariant(productId: string, body: Omit<SaveProductVariantRequest, 'tenantId'>): Observable<ProductDetailDto> {
+    return this.api
+      .createVariant(productId, { ...body, tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
   }
 
-  saveInventory(productId: string, items: SaveInventoryItem[]): Observable<ProductDetailDto> {
-    return this.orchestrator.saveInventory(productId, this.tenantId(), items);
+  updateVariant(
+    productId: string,
+    variantId: string,
+    body: Omit<SaveProductVariantRequest, 'tenantId'>
+  ): Observable<ProductDetailDto> {
+    return this.api
+      .updateVariant(productId, variantId, { ...body, tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
+  }
+
+  deleteVariant(productId: string, variantId: string): Observable<ProductDetailDto> {
+    return this.api
+      .deleteVariant(productId, variantId, { tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
+  }
+
+  createInventory(
+    productId: string,
+    body: Omit<CreateInventoryRequest, 'tenantId'>
+  ): Observable<ProductDetailDto> {
+    return this.api
+      .createInventory(productId, { ...body, tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
+  }
+
+  updateInventory(
+    productId: string,
+    inventoryId: string,
+    body: Omit<UpdateInventoryRequest, 'tenantId'>
+  ): Observable<ProductDetailDto> {
+    return this.api
+      .updateInventory(productId, inventoryId, { ...body, tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
+  }
+
+  deleteInventory(productId: string, inventoryId: string): Observable<ProductDetailDto> {
+    return this.api
+      .deleteInventory(productId, inventoryId, { tenantId: this.tenantId() })
+      .pipe(switchMap(() => this.refreshProduct(productId)));
   }
 
   /** @deprecated Use section-specific save methods in the product form. Kept for duplicate flow. */
@@ -94,9 +135,8 @@ export class ProductAdminService {
         };
         const payload: ProductSavePayload = {
           core,
-          selectedAttributeIds: [],
           variants: source.variants.map((v) => ({
-            id: null,
+            sourceVariantId: v.id,
             price: v.price,
             compareAtPrice: v.compareAtPrice,
             barcode: v.barcode,
@@ -104,13 +144,15 @@ export class ProductAdminService {
             isActive: v.isActive,
             attributes: v.attributes.map((a) => ({
               attributeId: a.attributeId,
-              valueId: a.valueId
+              attributeName: a.attributeName,
+              valueId: a.valueId,
+              value: a.value
             }))
           })),
           existingImages: [],
           pendingImages: [],
           inventory: source.inventory.map((i) => ({
-            variantId: i.variantId,
+            sourceVariantId: i.variantId ?? null,
             quantityAvailable: i.quantityAvailable,
             lowStockThreshold: i.lowStockThreshold
           })),
@@ -123,11 +165,14 @@ export class ProductAdminService {
     );
   }
 
-  bulkUpdateStatus(ids: string[], status: ProductStatus): Observable<number> {
-    const tenantId = this.tenantId();
-    if (ids.length === 0) return new Observable((s) => { s.next(0); s.complete(); });
-    return forkJoin(
-      ids.map((id) => this.api.patchStatus(id, { tenantId, status }))
-    ).pipe(map((results) => results.length));
+  bulkUpdateStatus(productIds: string[], status: ProductStatus): Observable<BulkUpdateProductStatusResult> {
+    if (productIds.length === 0) {
+      return of({ successCount: 0, failureCount: 0, failures: [] });
+    }
+    return this.api.bulkUpdateStatus({
+      tenantId: this.tenantId(),
+      productIds,
+      status
+    });
   }
 }

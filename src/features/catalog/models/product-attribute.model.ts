@@ -11,13 +11,8 @@ export interface ProductAttributeDto {
   values: ProductAttributeValueDto[];
 }
 
-export interface UpsertProductAttributeItem {
-  id: string | null;
+export interface SaveProductAttributeRequest {
+  tenantId: string;
   name: string;
   values: string[];
-}
-
-export interface UpsertProductAttributesRequest {
-  tenantId: string;
-  attributes: UpsertProductAttributeItem[];
 }

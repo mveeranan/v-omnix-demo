@@ -1,100 +1,182 @@
-import { afterNextRender, Component, effect, inject, Injector, signal } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Warehouse } from 'lucide-angular';
 import { AdminFormSectionCardComponent } from '@features/admin/shared/admin-form-section-card.component';
+import { AppTableComponent } from '@shared/ui/app-table.component';
+import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
+import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { NotificationService } from '@core/notifications/notification.service';
-import { SaveInventoryItem } from '@features/catalog/models/product-admin.model';
 import { ProductAdminService } from '../data-access/product-admin.service';
 import { ProductFormStateService } from '../data-access/product-form-state.service';
-import { stockRowsFromProduct, VariantStockRow } from './product-variant.util';
+import {
+  formatVariantAttributes,
+  previewVariantAttributes,
+  stockRowsFromProduct,
+  VariantAttributeDisplay,
+  VariantStockRow
+} from './product-variant.util';
+
+type InventoryFormMode = 'create' | 'edit' | null;
 
 @Component({
   selector: 'app-product-inventory-section',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, AdminFormSectionCardComponent],
+  imports: [
+    ReactiveFormsModule,
+    AdminFormSectionCardComponent,
+    AppTableComponent,
+    AdminTableActionComponent,
+    ConfirmDialogComponent
+  ],
   template: `
-    @if (!state.sectionsEnabled()) {
-      <div class="pf-editor-card rounded-xl p-4">
-        <p class="text-sm font-semibold">Inventory</p>
-        <p class="mt-1 text-sm text-[var(--text-muted)]">Save product details first to enable this section.</p>
-      </div>
-    } @else {
-      <app-admin-form-section-card
-        title="Inventory"
-        subtitle="Stock levels and low-stock alerts"
-        [icon]="sectionIcon"
-        [complete]="isComplete()"
-        [(expanded)]="expanded"
-        [editing]="editing()"
-        [saving]="state.isSectionSaving('inventory')"
-        [canSave]="canSave()"
-        [lastSavedAt]="state.sectionLastSaved('inventory')"
-        (edit)="startEdit()"
-        (save)="save()"
-        (cancel)="cancelEdit()"
-      >
-        @if (!trackInventory()) {
-          <p class="text-sm text-[var(--text-muted)]">Inventory tracking is disabled for this product.</p>
-        } @else if (!editing() && state.product()) {
-          @if (hasActiveVariants()) {
-            <ul class="space-y-2 text-sm">
-              @for (row of stockRows(); track row.variantId) {
-                <li class="rounded-lg border border-[var(--border)] px-3 py-2">
-                  <span class="font-medium">{{ row.sku }}</span>
-                  <span class="text-[var(--text-muted)]"> ({{ row.label }})</span>
-                  <span class="text-[var(--text-muted)]">
-                    — Qty {{ row.quantityAvailable }}, low stock {{ row.lowStockThreshold }}
-                  </span>
-                </li>
+    <app-admin-form-section-card
+      title="Inventory"
+      [icon]="sectionIcon"
+      [disabled]="!state.sectionsEnabled()"
+      [complete]="isComplete()"
+      [expanded]="expanded()"
+      [expandOnEdit]="false"
+      [editing]="false"
+      [canSave]="false"
+      (expandedChange)="onExpandedChange($event)"
+      (edit)="onSectionEdit()"
+    >
+      @if (hasActiveVariants() && !variantsReady()) {
+        <p class="text-sm text-amber-700 dark:text-amber-200">
+          Save variants first to set per-variant inventory.
+        </p>
+      } @else {
+        @if (formMode() && activeRow(); as row) {
+          <div class="admin-glass-card mb-4 space-y-4 rounded-xl p-4">
+            <h4 class="text-sm font-semibold">{{ formMode() === 'create' ? 'Add inventory' : 'Edit inventory' }}</h4>
+            <div class="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3 space-y-3">
+              <div>
+                <div class="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Product</div>
+                <div class="mt-1 text-sm font-semibold text-[var(--text-primary)]">{{ productName() }}</div>
+                @if (row.sku) {
+                  <div class="mt-0.5 text-xs text-[var(--text-muted)]">{{ row.sku }}</div>
+                }
+              </div>
+              @if (row.attributes.length) {
+                <div>
+                  <div class="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Attributes</div>
+                  <dl class="mt-2 grid gap-2 sm:grid-cols-2">
+                    @for (attr of row.attributes; track attr.name + attr.value) {
+                      <div class="rounded-md border border-[var(--border-subtle)] bg-white px-3 py-2 dark:bg-zinc-900">
+                        <dt class="text-xs text-[var(--text-muted)]">{{ attr.name }}</dt>
+                        <dd class="text-sm font-medium text-[var(--text-primary)]">{{ attr.value }}</dd>
+                      </div>
+                    }
+                  </dl>
+                </div>
               }
-            </ul>
-          } @else {
-            <dl class="grid gap-2 text-sm sm:grid-cols-2">
-              <div>
-                <dt class="text-[var(--text-muted)]">Quantity available</dt>
-                <dd class="font-medium">{{ simpleQty() }}</dd>
-              </div>
-              <div>
-                <dt class="text-[var(--text-muted)]">Low stock threshold</dt>
-                <dd class="font-medium">{{ simpleLowStock() }}</dd>
-              </div>
-            </dl>
-          }
-        } @else if (trackInventory()) {
-          @if (hasActiveVariants()) {
-            @if (!stockRows().length) {
-              <p class="text-sm text-amber-700 dark:text-amber-200">
-                Save variants first to set per-variant inventory.
-              </p>
-            }
-            @for (row of stockRows(); track row.variantId) {
-              <div class="mb-3 grid gap-3 rounded-lg border border-[var(--border)] p-3 sm:grid-cols-3">
-                <span class="text-sm font-medium sm:col-span-3">{{ row.sku }} — {{ row.label }}</span>
-                <label class="block space-y-1">
-                  <span class="text-xs">Qty</span>
-                  <input class="pf-editor-input w-full" type="number" [(ngModel)]="row.quantityAvailable" />
-                </label>
-                <label class="block space-y-1">
-                  <span class="text-xs">Low stock</span>
-                  <input class="pf-editor-input w-full" type="number" [(ngModel)]="row.lowStockThreshold" />
-                </label>
-              </div>
-            }
-          } @else {
-            <form [formGroup]="simpleForm" class="space-y-4">
+            </div>
+            <form
+              class="space-y-4"
+              [formGroup]="setForm"
+              (ngSubmit)="formMode() === 'create' ? saveCreate() : saveSet()"
+            >
               <label class="block space-y-1">
                 <span class="text-sm font-medium">Quantity available</span>
-                <input class="pf-editor-input w-full" type="number" formControlName="stockQuantity" />
+                <input class="pf-editor-input w-full" type="number" formControlName="quantityAvailable" min="0" />
               </label>
               <label class="block space-y-1">
                 <span class="text-sm font-medium">Low stock threshold</span>
-                <input class="pf-editor-input w-full" type="number" formControlName="lowStockThreshold" />
+                <input class="pf-editor-input w-full" type="number" formControlName="lowStockThreshold" min="0" />
               </label>
+              <div class="flex justify-end gap-2">
+                <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="closeForm()">
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="admin-section-action-btn rounded-lg px-4 py-2 text-sm"
+                  [disabled]="setForm.invalid || savingSet()"
+                >
+                  @if (savingSet()) {
+                    Saving…
+                  } @else if (formMode() === 'create') {
+                    Create inventory
+                  } @else {
+                    Save inventory
+                  }
+                </button>
+              </div>
             </form>
-          }
+          </div>
+        } @else {
+          <app-table>
+            <table class="admin-data-table">
+              <thead>
+                <tr>
+                  <th class="admin-data-table__index">#</th>
+                  <th>Product</th>
+                  <th>Features</th>
+                  <th>Available</th>
+                  <th>Reserved</th>
+                  <th>Low stock</th>
+                  <th class="admin-data-table__col-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of stockRows(); track row.variantId ?? 'simple'; let i = $index) {
+                  <tr class="admin-data-table__row">
+                    <td class="admin-data-table__index">{{ i + 1 }}</td>
+                    <td>
+                      <div class="text-sm font-medium">{{ productName() }}</div>
+                      @if (row.sku) {
+                        <div class="text-xs text-[var(--text-muted)]">{{ row.sku }}</div>
+                      }
+                    </td>
+                    <td class="text-sm text-[var(--text-secondary)]">
+                      @if (row.attributes.length) {
+                        <div class="flex flex-wrap items-center gap-1">
+                          @for (attr of attributePreview(row.attributes).visible; track attr.name + attr.value) {
+                            <span class="rounded-md bg-[var(--surface-muted)] px-2 py-0.5 text-xs text-[var(--text-primary)]">
+                              {{ attr.name }}: {{ attr.value }}
+                            </span>
+                          }
+                          @if (attributePreview(row.attributes).extraCount > 0) {
+                            <span class="text-xs font-medium text-[var(--accent)]">
+                              +{{ attributePreview(row.attributes).extraCount }} more
+                            </span>
+                          }
+                        </div>
+                      } @else {
+                        —
+                      }
+                    </td>
+                    <td>{{ row.inventoryId ? row.quantityAvailable : '—' }}</td>
+                    <td>{{ row.inventoryId ? row.quantityReserved : '—' }}</td>
+                    <td>{{ row.inventoryId ? row.lowStockThreshold : '—' }}</td>
+                    <td class="admin-data-table__col-actions">
+                      <div class="admin-data-table__actions">
+                        @if (!row.inventoryId) {
+                          <app-admin-table-action label="Add" variant="edit" (action)="openCreate(row)" />
+                        } @else {
+                          <app-admin-table-action label="Edit" variant="edit" (action)="openEdit(row)" />
+                          <app-admin-table-action label="Delete" variant="delete" (action)="confirmDelete(row)" />
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </app-table>
         }
-      </app-admin-form-section-card>
-    }
+      }
+    </app-admin-form-section-card>
+
+    <app-confirm-dialog
+      [open]="!!deleteTarget()"
+      title="Delete inventory"
+      [message]="deleteMessage()"
+      confirmLabel="Delete"
+      [danger]="true"
+      (confirmed)="doDelete()"
+      (cancelled)="deleteTarget.set(null)"
+    />
   `
 })
 export class ProductInventorySectionComponent {
@@ -102,44 +184,57 @@ export class ProductInventorySectionComponent {
   private readonly api = inject(ProductAdminService);
   private readonly fb = inject(FormBuilder);
   private readonly notifications = inject(NotificationService);
-  private readonly injector = inject(Injector);
 
   readonly sectionIcon = Warehouse;
   readonly expanded = signal(false);
-  readonly editing = signal(false);
+  readonly sectionActive = signal(false);
+  readonly savingSet = signal(false);
+  readonly savingDelete = signal(false);
   readonly stockRows = signal<VariantStockRow[]>([]);
+  readonly formMode = signal<InventoryFormMode>(null);
+  readonly activeRow = signal<VariantStockRow | null>(null);
+  readonly deleteTarget = signal<VariantStockRow | null>(null);
 
-  readonly simpleForm = this.fb.nonNullable.group({
-    stockQuantity: [0, Validators.min(0)],
-    lowStockThreshold: [5, Validators.min(0)]
+  readonly productName = computed(() => this.state.product()?.name ?? 'Product');
+  readonly trackInventoryEnabled = computed(() => this.state.product()?.trackInventory ?? false);
+
+  private readonly trackInventoryMessage =
+    'Enable track inventory in product details to create or edit inventory.';
+
+  readonly setForm = this.fb.nonNullable.group({
+    quantityAvailable: [0, [Validators.required, Validators.min(0)]],
+    lowStockThreshold: [5, [Validators.required, Validators.min(0)]]
   });
 
   constructor() {
     effect(() => {
       const p = this.state.product();
       this.state.attributes();
-      if (p && !this.editing()) {
+      if (p) {
         this.patchFromProduct();
       }
     });
-  }
 
-  trackInventory(): boolean {
-    return this.state.product()?.trackInventory ?? false;
+    effect(() => {
+      if (!this.trackInventoryEnabled() && this.expanded()) {
+        this.setSectionExpanded(false);
+      }
+    });
+
+    effect(() => {
+      if (!this.expanded()) {
+        this.sectionActive.set(false);
+        this.closeForm();
+      }
+    });
   }
 
   hasActiveVariants(): boolean {
     return (this.state.product()?.variants.filter((v) => v.isActive).length ?? 0) > 0;
   }
 
-  simpleQty(): number {
-    const inv = this.state.product()?.inventory.find((i) => !i.variantId);
-    return inv?.quantityAvailable ?? 0;
-  }
-
-  simpleLowStock(): number {
-    const inv = this.state.product()?.inventory.find((i) => !i.variantId);
-    return inv?.lowStockThreshold ?? 5;
+  variantsReady(): boolean {
+    return this.hasActiveVariants() && (this.state.product()?.variants.length ?? 0) > 0;
   }
 
   isComplete(): boolean {
@@ -148,77 +243,211 @@ export class ProductInventorySectionComponent {
     return p.inventory.length > 0;
   }
 
-  canSave(): boolean {
-    if (!this.state.productId() || !this.trackInventory()) return false;
-    if (this.hasActiveVariants()) return this.stockRows().length > 0;
-    return this.simpleForm.valid;
+  deleteMessage(): string {
+    const row = this.deleteTarget();
+    if (!row) return '';
+    if (row.quantityReserved > 0) {
+      return 'Cannot delete inventory while quantity is reserved.';
+    }
+    const attrs = row.attributes.length ? formatVariantAttributes(row.attributes) : '';
+    return attrs
+      ? `Delete inventory for ${this.productName()} (${attrs})?`
+      : `Delete inventory for ${this.productName()}?`;
   }
 
-  startEdit(): void {
-    this.editing.set(true);
-    afterNextRender(
-      () => this.patchFromProduct(),
-      { injector: this.injector }
-    );
+  attributePreview(attributes: VariantAttributeDisplay[]) {
+    return previewVariantAttributes(attributes, 2);
   }
 
-  cancelEdit(): void {
-    this.patchFromProduct();
-    this.editing.set(false);
+  onExpandedChange(next: boolean): void {
+    if (next && !this.trackInventoryEnabled()) {
+      this.notifications.warning(this.trackInventoryMessage);
+      return;
+    }
+    this.setSectionExpanded(next);
   }
 
-  save(): void {
-    const productId = this.state.productId();
-    const p = this.state.product();
-    if (!productId || !p?.trackInventory) return;
-
-    const activeVariants = p.variants.filter((v) => v.isActive);
-    let items: SaveInventoryItem[] = [];
-
-    if (activeVariants.length > 0) {
-      items = this.stockRows().map((row) => ({
-        variantId: row.variantId,
-        quantityAvailable: row.quantityAvailable,
-        lowStockThreshold: row.lowStockThreshold
-      }));
-    } else {
-      const v = this.simpleForm.getRawValue();
-      items = [
-        {
-          variantId: null,
-          quantityAvailable: v.stockQuantity,
-          lowStockThreshold: v.lowStockThreshold
-        }
-      ];
+  onSectionEdit(): void {
+    if (!this.trackInventoryEnabled()) {
+      this.notifications.warning(this.trackInventoryMessage);
+      return;
     }
 
-    this.state.setSectionSaving('inventory', true);
-    this.api.saveInventory(productId, items).subscribe({
-      next: (saved) => {
-        this.state.setSectionSaving('inventory', false);
-        this.state.markSectionSaved('inventory');
-        if (saved) {
+    if (this.expanded()) {
+      this.setSectionExpanded(false);
+      return;
+    }
+    this.setSectionExpanded(true);
+  }
+
+  openCreate(row: VariantStockRow): void {
+    if (!this.trackInventoryEnabled()) {
+      this.notifications.warning(this.trackInventoryMessage);
+      return;
+    }
+
+    this.setSectionExpanded(true);
+    this.activeRow.set(row);
+    this.formMode.set('create');
+    this.setForm.reset({ quantityAvailable: 0, lowStockThreshold: 5 });
+  }
+
+  openEdit(row: VariantStockRow): void {
+    if (!this.trackInventoryEnabled()) {
+      this.notifications.warning(this.trackInventoryMessage);
+      return;
+    }
+
+    if (
+      this.formMode() === 'edit' &&
+      this.activeRow()?.inventoryId === row.inventoryId
+    ) {
+      this.closeForm();
+      return;
+    }
+
+    this.setSectionExpanded(true);
+    this.activeRow.set(row);
+    this.formMode.set('edit');
+    this.patchSetFormFromRow(row);
+  }
+
+  closeForm(): void {
+    this.formMode.set(null);
+    this.activeRow.set(null);
+  }
+
+  saveCreate(): void {
+    if (this.setForm.invalid || this.savingSet()) return;
+
+    const productId = this.state.productId();
+    const row = this.activeRow();
+    if (!productId || !row) return;
+
+    const v = this.setForm.getRawValue();
+    this.savingSet.set(true);
+    this.api
+      .createInventory(productId, {
+        variantId: row.variantId,
+        quantityAvailable: v.quantityAvailable,
+        lowStockThreshold: v.lowStockThreshold
+      })
+      .subscribe({
+        next: (saved) => {
+          this.savingSet.set(false);
           this.state.mergeProduct(saved);
           this.patchFromProduct();
+          this.closeForm();
+          this.notifications.success('Inventory created');
+        },
+        error: (err) => {
+          this.savingSet.set(false);
+          this.notifications.errorFromApi(err, 'Could not create inventory');
         }
-        this.editing.set(false);
-        this.notifications.success('Inventory saved');
+      });
+  }
+
+  saveSet(): void {
+    if (this.setForm.invalid || this.savingSet()) return;
+
+    const productId = this.state.productId();
+    const row = this.activeRow();
+    if (!productId || !row?.inventoryId) return;
+
+    const v = this.setForm.getRawValue();
+    this.savingSet.set(true);
+    this.api
+      .updateInventory(productId, row.inventoryId, {
+        quantityAvailable: v.quantityAvailable,
+        lowStockThreshold: v.lowStockThreshold
+      })
+      .subscribe({
+        next: (saved) => {
+          this.savingSet.set(false);
+          this.state.mergeProduct(saved);
+          this.refreshActiveRow();
+          this.closeForm();
+          this.notifications.success('Inventory updated');
+        },
+        error: (err) => {
+          this.savingSet.set(false);
+          this.notifications.errorFromApi(err, 'Could not update inventory');
+        }
+      });
+  }
+
+  confirmDelete(row: VariantStockRow): void {
+    if (row.quantityReserved > 0) {
+      this.notifications.error('Cannot delete inventory while quantity is reserved.');
+      return;
+    }
+    this.deleteTarget.set(row);
+  }
+
+  doDelete(): void {
+    const row = this.deleteTarget();
+    const productId = this.state.productId();
+    if (!row?.inventoryId || !productId) return;
+
+    if (row.quantityReserved > 0) {
+      this.notifications.error('Cannot delete inventory while quantity is reserved.');
+      this.deleteTarget.set(null);
+      return;
+    }
+
+    this.savingDelete.set(true);
+    this.api.deleteInventory(productId, row.inventoryId).subscribe({
+      next: (saved) => {
+        this.savingDelete.set(false);
+        this.deleteTarget.set(null);
+        this.state.mergeProduct(saved);
+        this.patchFromProduct();
+        if (this.activeRow()?.inventoryId === row.inventoryId) {
+          this.closeForm();
+        }
+        this.notifications.success('Inventory deleted');
       },
       error: (err) => {
-        this.state.setSectionSaving('inventory', false);
-        this.notifications.error(err?.message ?? 'Could not save inventory');
+        this.savingDelete.set(false);
+        this.deleteTarget.set(null);
+        this.notifications.errorFromApi(err, 'Could not delete inventory');
       }
     });
+  }
+
+  private patchSetFormFromRow(row: VariantStockRow): void {
+    this.setForm.patchValue({
+      quantityAvailable: row.quantityAvailable,
+      lowStockThreshold: row.lowStockThreshold
+    });
+  }
+
+  private refreshActiveRow(): void {
+    this.patchFromProduct();
+    const current = this.activeRow();
+    if (!current) return;
+
+    const key = current.variantId ?? 'simple';
+    const updated = this.stockRows().find((r) => (r.variantId ?? 'simple') === key);
+    if (updated) {
+      this.activeRow.set(updated);
+      this.patchSetFormFromRow(updated);
+    }
   }
 
   private patchFromProduct(): void {
     const p = this.state.product();
     if (!p) return;
     this.stockRows.set(stockRowsFromProduct(p, this.state.attributes()));
-    const simple = p.inventory.find((i) => !i.variantId);
-    this.simpleForm.patchValue({
-      stockQuantity: simple?.quantityAvailable ?? 0,
-      lowStockThreshold: simple?.lowStockThreshold ?? 5
-    });
+  }
+
+  private setSectionExpanded(next: boolean): void {
+    if (next) {
+      this.sectionActive.set(true);
+    } else {
+      this.sectionActive.set(false);
+      this.closeForm();
+    }
+    this.expanded.set(next);
   }
 }

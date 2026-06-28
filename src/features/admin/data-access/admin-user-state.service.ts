@@ -60,9 +60,9 @@ export class AdminUserStateService {
           this.lastSavedAt.set(new Date());
           this.notifications.success('Personal info saved');
         },
-        error: () => {
+        error: (err) => {
           this.saving.set(false);
-          this.notifications.error('Could not save personal info');
+          this.notifications.errorFromApi(err, 'Could not save personal info');
         }
       })
     );

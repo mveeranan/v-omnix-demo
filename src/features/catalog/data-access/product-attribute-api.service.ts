@@ -6,7 +6,7 @@ import { ApiResponse } from '@shared/models/api-response.model';
 import { AuthService } from '@core/auth/auth.service';
 import {
   ProductAttributeDto,
-  UpsertProductAttributesRequest
+  SaveProductAttributeRequest
 } from '../models/product-attribute.model';
 import { requireTenantId, unwrapApiResponse } from './catalog-api.util';
 
@@ -22,9 +22,15 @@ export class ProductAttributeApiService {
       .pipe(map(unwrapApiResponse));
   }
 
-  upsert(body: UpsertProductAttributesRequest): Observable<ProductAttributeDto[]> {
+  create(body: SaveProductAttributeRequest): Observable<ProductAttributeDto> {
     return this.http
-      .put<ApiResponse<ProductAttributeDto[]>>(API_ENDPOINTS.productAttributes.upsert, body)
+      .post<ApiResponse<ProductAttributeDto>>(API_ENDPOINTS.productAttributes.create, body)
+      .pipe(map(unwrapApiResponse));
+  }
+
+  update(id: string, body: SaveProductAttributeRequest): Observable<ProductAttributeDto> {
+    return this.http
+      .put<ApiResponse<ProductAttributeDto>>(API_ENDPOINTS.productAttributes.update(id), body)
       .pipe(map(unwrapApiResponse));
   }
 }
