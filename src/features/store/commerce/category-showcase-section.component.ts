@@ -2,13 +2,24 @@ import { Component, computed, inject, input, signal, OnInit } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import { Portfolio } from '../../portfolio/models/portfolio.model';
 import { CatalogStorefrontApiService } from '@features/catalog/data-access/catalog-storefront-api.service';
-import { CatalogProductListItemDto, catalogPrimaryImage } from '@features/catalog/models/catalog-storefront.model';
+import { CatalogCategoryDto } from '@features/catalog/models/catalog-storefront.model';
+
+// Generic category fallback images (Unsplash, different by index)
+const CATEGORY_FALLBACKS = [
+  'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80',
+  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
+  'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=600&q=80',
+  'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&q=80',
+  'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&q=80',
+  'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600&q=80',
+  'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80',
+  'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&q=80'
+];
 
 interface CategoryCard {
   name: string;
   slug: string;
   imageUrl: string;
-  count: number;
 }
 
 @Component({
@@ -26,10 +37,10 @@ interface CategoryCard {
             }
           </header>
           <div class="mox-category-grid">
-            @for (cat of categories(); track cat.slug) {
+            @for (cat of categories(); track cat.slug; let i = $index) {
               <a
                 class="mox-category-card"
-                [routerLink]="categoryLink()"
+                [routerLink]="['/store', storeSlug(), 'products']"
                 [queryParams]="{ category: cat.slug }"
               >
                 <img class="mox-category-card__img" [src]="cat.imageUrl" [alt]="cat.name" loading="lazy" />
@@ -48,57 +59,40 @@ export class CategoryShowcaseSectionComponent implements OnInit {
   readonly enabled = input(true);
 
   private readonly catalogApi = inject(CatalogStorefrontApiService);
-  private readonly products = signal<CatalogProductListItemDto[]>([]);
-  private readonly catalogCategories = signal<{ name: string; slug: string }[]>([]);
+  private readonly allCategories = signal<CatalogCategoryDto[]>([]);
 
   ngOnInit(): void {
     if (!this.enabled() || !this.portfolio().categoryShowcase.enabled) return;
-    this.catalogApi.listProducts(this.storeSlug(), { pageSize: 100 }).subscribe({
-      next: (r) => this.products.set(r.items)
-    });
     this.catalogApi.listCategories(this.storeSlug()).subscribe({
-      next: (cats) => {
-        const flat: { name: string; slug: string }[] = [];
-        const walk = (items: typeof cats) => {
-          for (const c of items) {
-            flat.push({ name: c.name, slug: c.slug });
-            if (c.children?.length) walk(c.children);
-          }
-        };
-        walk(cats);
-        this.catalogCategories.set(flat);
-      }
+      next: (cats) => this.allCategories.set(cats)
     });
   }
 
   readonly categories = computed((): CategoryCard[] => {
     if (!this.enabled() || !this.portfolio().categoryShowcase.enabled) return [];
 
+    // Flatten nested categories
+    const flat: { name: string; slug: string }[] = [];
+    const walk = (items: CatalogCategoryDto[]) => {
+      for (const c of items) {
+        flat.push({ name: c.name, slug: c.slug });
+        if (c.children?.length) walk(c.children);
+      }
+    };
+    walk(this.allCategories());
+
     const configured = this.portfolio().categoryShowcase.categoryNames.filter(Boolean);
-    const available = this.catalogCategories();
-    const names =
-      configured.length > 0
-        ? configured
-        : available.map((c) => c.name);
     const max = this.portfolio().categoryShowcase.maxCount || 4;
 
-    return names.slice(0, max).map((name) => {
-      const catMeta = available.find((c) => c.name === name);
-      const slug = catMeta?.slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      const categoryProducts = this.products().filter(
-        (p) => p.tags.includes(name) || false
-      );
-      const imageProduct = this.products()[0];
-      return {
-        name,
-        slug,
-        imageUrl: imageProduct ? catalogPrimaryImage(imageProduct) : 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80',
-        count: categoryProducts.length
-      };
+    const names = configured.length > 0
+      ? configured.slice(0, max)
+      : flat.map((c) => c.name).slice(0, max);
+
+    return names.map((name, index) => {
+      const meta = flat.find((c) => c.name === name);
+      const slug = meta?.slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const imageUrl = CATEGORY_FALLBACKS[index % CATEGORY_FALLBACKS.length];
+      return { name, slug, imageUrl };
     });
   });
-
-  categoryLink(): string[] {
-    return ['/store', this.storeSlug(), 'products'];
-  }
 }

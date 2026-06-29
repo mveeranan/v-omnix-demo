@@ -61,6 +61,7 @@ import { CatalogProductListItemDto, catalogPrimaryImage } from '@features/catalo
             />
           </div>
           <p class="pf-editor-hint">Pin products to feature on your storefront home page.</p>
+          <p class="pf-editor-hint">Products already shown in a section above are hidden on the live home page.</p>
           @if (loading()) {
             <p class="pf-editor-muted">Loading products…</p>
           } @else {

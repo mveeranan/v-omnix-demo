@@ -47,6 +47,7 @@ import { CatalogProductListItemDto, catalogPrimaryImage } from '@features/catalo
             <input type="number" min="1" max="8" class="pf-editor-input" [ngModel]="b.maxCount" (ngModelChange)="patch({ maxCount: +$event })" />
           </div>
           <p class="pf-editor-hint">Pin products for the horizontal sale row on your homepage.</p>
+          <p class="pf-editor-hint">Products already shown in a section above are hidden on the live home page.</p>
           @if (loading()) {
             <p class="pf-editor-muted">Loading products…</p>
           } @else {

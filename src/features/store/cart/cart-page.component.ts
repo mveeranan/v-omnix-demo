@@ -7,6 +7,7 @@ import { ProductApiService } from '../data-access/product-api.service';
 import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { ProductCardComponent } from '../commerce/product-card.component';
 import { StoreProduct } from '../models/product.model';
+import { storeCheckoutRoute } from '../utils/store-commerce-route.util';
 
 @Component({
   selector: 'app-cart-page',
@@ -19,9 +20,9 @@ import { StoreProduct } from '../models/product.model';
           <h1 class="text-2xl font-semibold">Your cart</h1>
 
           @if (!cart.lineItems().length) {
-            <p class="mt-6 text-[var(--text-secondary)]">Your cart is empty.</p>
+            <p class="mt-6 text-[var(--mox-muted)]">Your cart is empty.</p>
             @if (cart.storeSlug()) {
-              <a [routerLink]="['/store', cart.storeSlug(), 'products']" class="admin-section-action-btn mt-6 inline-flex rounded-lg px-4 py-2 text-sm">
+              <a [routerLink]="['/store', cart.storeSlug(), 'products']" class="mox-btn mox-btn--primary mt-6 inline-flex text-sm">
                 Start shopping
               </a>
             }
@@ -46,12 +47,12 @@ import { StoreProduct } from '../models/product.model';
                     } @else {
                       <p class="font-medium">{{ line.productName }}</p>
                     }
-                    <p class="text-sm text-[var(--text-secondary)]">{{ format(line.unitPrice, line.currency) }} each</p>
+                    <p class="text-sm text-[var(--mox-muted)]">{{ format(line.unitPrice, line.currency) }} each</p>
                   </div>
                   <div class="flex items-center gap-2">
-                    <button type="button" class="admin-action-secondary rounded px-3 py-1 text-sm" (click)="changeQty(line, -1)">−</button>
+                    <button type="button" class="mox-btn mox-btn--outline rounded px-3 py-1 text-sm" (click)="changeQty(line, -1)">−</button>
                     <span class="w-8 text-center text-sm">{{ line.quantity }}</span>
-                    <button type="button" class="admin-action-secondary rounded px-3 py-1 text-sm" (click)="changeQty(line, 1)">+</button>
+                    <button type="button" class="mox-btn mox-btn--outline rounded px-3 py-1 text-sm" (click)="changeQty(line, 1)">+</button>
                   </div>
                   <p class="font-semibold">{{ format(line.unitPrice * line.quantity, line.currency) }}</p>
                   <button type="button" class="text-sm text-rose-600" (click)="confirmRemove(line)">Remove</button>
@@ -60,8 +61,8 @@ import { StoreProduct } from '../models/product.model';
             </ul>
 
             <div class="mt-6 flex flex-wrap gap-2">
-              <input class="pf-editor-input max-w-xs flex-1" placeholder="Coupon code" [(ngModel)]="couponCode" />
-              <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="applyCoupon()">Apply</button>
+              <input class="mox-input max-w-xs flex-1" placeholder="Coupon code" [(ngModel)]="couponCode" />
+              <button type="button" class="mox-btn mox-btn--outline text-sm" (click)="applyCoupon()">Apply</button>
               @if (couponApplied()) {
                 <button type="button" class="text-sm text-rose-600" (click)="removeCoupon()">Remove coupon</button>
               }
@@ -77,8 +78,8 @@ import { StoreProduct } from '../models/product.model';
             <h2 class="font-semibold">Summary</h2>
             <div class="mt-4 space-y-2 text-sm">
               <div class="flex justify-between"><span>Subtotal</span><span>{{ format(cart.summary().subtotal, cart.summary().currency) }}</span></div>
-              <div class="flex justify-between text-[var(--text-muted)]"><span>Shipping</span><span>Calculated at checkout</span></div>
-              <div class="flex justify-between text-[var(--text-muted)]"><span>Tax</span><span>Calculated at checkout</span></div>
+              <div class="flex justify-between text-[var(--mox-muted)]"><span>Shipping</span><span>Calculated at checkout</span></div>
+              <div class="flex justify-between text-[var(--mox-muted)]"><span>Tax</span><span>Calculated at checkout</span></div>
               @if (couponDiscount() > 0) {
                 <div class="flex justify-between text-emerald-600"><span>Discount</span><span>-{{ format(couponDiscount(), cart.summary().currency) }}</span></div>
               }
@@ -88,9 +89,9 @@ import { StoreProduct } from '../models/product.model';
               <span>{{ format(cart.summary().subtotal - couponDiscount(), cart.summary().currency) }}</span>
             </div>
             <div class="mt-6 flex flex-col gap-3">
-              <a routerLink="/checkout" class="admin-section-action-btn text-center rounded-lg py-3 text-sm">Proceed to checkout</a>
+              <a [routerLink]="checkoutLink()" class="mox-btn mox-btn--primary text-center text-sm">Proceed to checkout</a>
               @if (cart.storeSlug()) {
-                <a [routerLink]="['/store', cart.storeSlug(), 'products']" class="admin-action-secondary text-center rounded-lg py-2 text-sm">Continue shopping</a>
+                <a [routerLink]="['/store', cart.storeSlug(), 'products']" class="mox-btn mox-btn--outline text-center text-sm">Continue shopping</a>
               }
             </div>
           </aside>
@@ -177,5 +178,9 @@ export class CartPageComponent implements OnInit {
     this.couponDiscount.set(0);
     this.couponMessage.set('');
     sessionStorage.removeItem('work-orbit.coupon');
+  }
+
+  checkoutLink(): string[] {
+    return storeCheckoutRoute(this.cart.storeSlug());
   }
 }

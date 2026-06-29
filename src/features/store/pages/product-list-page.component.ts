@@ -14,91 +14,127 @@ import { Package } from 'lucide-angular';
   standalone: true,
   imports: [ProductFiltersComponent, ProductCardComponent, PaginationComponent, AppEmptyStateComponent],
   template: `
-    <div class="container mx-auto px-6 py-10">
-      <div class="mb-8 text-center md:text-left">
-        <p class="mox-hero__eyebrow">Shop</p>
-        <h1 class="mox-sale-section__title">All products</h1>
-        <p class="mox-sale-section__subtitle mt-2">Browse the full catalog, add to cart, and checkout securely.</p>
-      </div>
+    <div class="mox-section">
+      <div class="container mx-auto px-6 py-10">
 
-      <div class="mox-shop-layout">
-        <aside class="mox-shop-sidebar hidden lg:block">
-          <app-product-filters
-            [filters]="filters()"
-            [categories]="result()?.categories ?? []"
-            [brands]="result()?.brands ?? []"
-            (filtersChange)="onFiltersChange($event)"
-          />
-        </aside>
-
-        <div>
-      <div class="mb-4 lg:hidden">
-        <app-product-filters
-          [filters]="filters()"
-          [categories]="result()?.categories ?? []"
-          [brands]="result()?.brands ?? []"
-          (filtersChange)="onFiltersChange($event)"
-        />
-      </div>
-
-      <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <p class="text-sm text-[var(--text-muted)]">
-          Showing {{ rangeStart() }}-{{ rangeEnd() }} of {{ result()?.total ?? 0 }} products
-        </p>
-        <div class="flex flex-wrap items-center gap-3">
-          <select class="pf-editor-input text-sm" [value]="filters().sort ?? 'popular'" (change)="onSort($event)">
-            @for (opt of sortOptions; track opt.value) {
-              <option [value]="opt.value">{{ opt.label }}</option>
-            }
-          </select>
-          <select class="pf-editor-input text-sm" [value]="filters().pageSize ?? 12" (change)="onPageSize($event)">
-            <option [value]="12">12 per page</option>
-            <option [value]="24">24 per page</option>
-            <option [value]="48">48 per page</option>
-          </select>
-          <button type="button" class="admin-action-secondary rounded px-2 py-1 text-sm" (click)="viewMode.set('grid')">Grid</button>
-          <button type="button" class="admin-action-secondary rounded px-2 py-1 text-sm" (click)="viewMode.set('list')">List</button>
+        <!-- Page header -->
+        <div class="mb-8">
+          <p class="mox-hero__eyebrow">Shop</p>
+          <h1 class="mox-sale-section__title">All Products</h1>
+          <p class="mt-2" style="color:var(--mox-muted);font-size:0.9375rem">
+            Browse the full catalog, add to cart, and checkout securely.
+          </p>
         </div>
-      </div>
 
-      <label class="mb-4 flex items-center gap-2 text-sm">
-        <input type="checkbox" [checked]="!!filters().inStock" (change)="toggleInStock($event)" /> In stock only
-      </label>
-      <label class="mb-4 ml-4 flex items-center gap-2 text-sm">
-        <input type="checkbox" [checked]="!!filters().onSale" (change)="toggleOnSale($event)" /> On sale only
-      </label>
+        <div class="mox-shop-layout">
 
-      @if (loading()) {
-        <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          @for (i of [1, 2, 3, 4]; track i) {
-            <div class="pf-glass-card h-72 animate-pulse rounded-xl"></div>
-          }
-        </div>
-      } @else if (result()?.items?.length) {
-        <div class="mt-4 grid gap-6" [class.sm:grid-cols-2]="viewMode() === 'grid'" [class.lg:grid-cols-3]="viewMode() === 'grid'" [class.xl:grid-cols-4]="viewMode() === 'grid'" [class.grid-cols-1]="viewMode() === 'list'">
-          @for (product of result()!.items; track product.id) {
-            <app-product-card
-              [product]="product"
-              [storeSlug]="ctx.slug()"
-              [promoMarquee]="promoMarquee()"
-              [showQtyControls]="showQtyControls()"
+          <!-- Sidebar filter (desktop) -->
+          <aside class="mox-shop-sidebar hidden lg:block">
+            <p class="mb-4 text-sm font-bold uppercase tracking-wide" style="color:var(--mox-primary)">Filters</p>
+            <app-product-filters
+              [filters]="filters()"
+              [categories]="result()?.categories ?? []"
+              [brands]="result()?.brands ?? []"
+              (filtersChange)="onFiltersChange($event)"
             />
-          }
-        </div>
-        <div class="mt-10 pb-6">
-          <app-pagination
-            [total]="result()!.total"
-            [page]="filters().page ?? 1"
-            [pageSize]="filters().pageSize ?? 12"
-            [showGoto]="true"
-            (pageChange)="goToPage($event)"
-          />
-        </div>
-      } @else {
-        <app-empty-state title="No products found" description="Try clearing your filters or search." [icon]="packageIcon">
-          <button type="button" class="admin-action-secondary mt-4 rounded-lg px-4 py-2 text-sm" (click)="clearFilters()">Clear filters</button>
-        </app-empty-state>
-      }
+          </aside>
+
+          <!-- Main content -->
+          <div class="min-w-0">
+
+            <!-- Mobile filter (collapsed row) -->
+            <div class="mb-4 lg:hidden">
+              <app-product-filters
+                [filters]="filters()"
+                [categories]="result()?.categories ?? []"
+                [brands]="result()?.brands ?? []"
+                (filtersChange)="onFiltersChange($event)"
+              />
+            </div>
+
+            <!-- Toolbar -->
+            <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <p class="text-sm" style="color:var(--mox-muted)">
+                @if (loading()) {
+                  Loading…
+                } @else {
+                  Showing {{ rangeStart() }}–{{ rangeEnd() }} of {{ result()?.total ?? 0 }} products
+                }
+              </p>
+              <div class="flex flex-wrap items-center gap-2">
+                <select class="mox-input" style="width:auto;min-width:9rem" [value]="filters().sort ?? 'popular'" (change)="onSort($event)">
+                  @for (opt of sortOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+                <select class="mox-input" style="width:auto" [value]="filters().pageSize ?? 12" (change)="onPageSize($event)">
+                  <option [value]="12">12 / page</option>
+                  <option [value]="24">24 / page</option>
+                  <option [value]="48">48 / page</option>
+                </select>
+                <div class="flex rounded overflow-hidden" style="border:1px solid var(--mox-border)">
+                  <button
+                    type="button"
+                    class="px-3 py-1.5 text-sm font-semibold transition-colors"
+                    [style.background]="viewMode() === 'grid' ? 'var(--mox-accent)' : 'var(--mox-surface)'"
+                    [style.color]="viewMode() === 'grid' ? '#fff' : 'var(--mox-text)'"
+                    (click)="viewMode.set('grid')"
+                  >Grid</button>
+                  <button
+                    type="button"
+                    class="px-3 py-1.5 text-sm font-semibold transition-colors"
+                    [style.background]="viewMode() === 'list' ? 'var(--mox-accent)' : 'var(--mox-surface)'"
+                    [style.color]="viewMode() === 'list' ? '#fff' : 'var(--mox-text)'"
+                    (click)="viewMode.set('list')"
+                  >List</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product grid -->
+            @if (loading()) {
+              <div class="mox-product-grid">
+                @for (i of skeletons; track i) {
+                  <div class="mox-skeleton h-80 animate-pulse"></div>
+                }
+              </div>
+            } @else if (result()?.items?.length) {
+              <div
+                class="grid gap-5"
+                [class.mox-product-grid]="viewMode() === 'grid'"
+                [class.grid-cols-1]="viewMode() === 'list'"
+              >
+                @for (product of result()!.items; track product.id) {
+                  <app-product-card
+                    [product]="product"
+                    [storeSlug]="ctx.slug()"
+                    [promoMarquee]="promoMarquee()"
+                    [showQtyControls]="showQtyControls()"
+                  />
+                }
+              </div>
+              <div class="mt-10 pb-6">
+                <app-pagination
+                  [total]="result()!.total"
+                  [page]="filters().page ?? 1"
+                  [pageSize]="filters().pageSize ?? 12"
+                  [showGoto]="true"
+                  (pageChange)="goToPage($event)"
+                />
+              </div>
+            } @else {
+              <app-empty-state
+                title="No products found"
+                description="Try adjusting your filters or search."
+                [icon]="packageIcon"
+              >
+                <button type="button" class="mox-btn mox-btn--outline mt-4 text-sm" (click)="clearFilters()">
+                  Clear filters
+                </button>
+              </app-empty-state>
+            }
+
+          </div>
         </div>
       </div>
     </div>
@@ -108,7 +144,9 @@ export class ProductListPageComponent implements OnInit {
   readonly ctx = inject(StoreContextService);
   private readonly route = inject(ActivatedRoute);
   private readonly productApi = inject(ProductApiService);
+
   readonly packageIcon = Package;
+  readonly skeletons = [1, 2, 3, 4, 5, 6, 7, 8];
 
   readonly filters = signal<ProductListFilters>({ page: 1, pageSize: 12, sort: 'popular' });
   readonly result = signal<ProductListResult | null>(null);
@@ -116,12 +154,12 @@ export class ProductListPageComponent implements OnInit {
   readonly viewMode = signal<'grid' | 'list'>('grid');
 
   readonly sortOptions: { value: ProductSortOption; label: string }[] = [
-    { value: 'popular', label: 'Most popular' },
-    { value: 'newest', label: 'Newest' },
-    { value: 'price-asc', label: 'Price: low to high' },
-    { value: 'price-desc', label: 'Price: high to low' },
-    { value: 'rating', label: 'Highest rated' },
-    { value: 'reviews', label: 'Most reviews' }
+    { value: 'popular',    label: 'Most popular' },
+    { value: 'newest',     label: 'Newest' },
+    { value: 'price-asc',  label: 'Price: low → high' },
+    { value: 'price-desc', label: 'Price: high → low' },
+    { value: 'rating',     label: 'Highest rated' },
+    { value: 'reviews',    label: 'Most reviews' }
   ];
 
   readonly promoMarquee = computed(
@@ -154,16 +192,13 @@ export class ProductListPageComponent implements OnInit {
   load(): void {
     this.loading.set(true);
     this.productApi.listByStore(this.ctx.slug(), this.filters()).subscribe({
-      next: (r) => {
-        this.result.set(r);
-        this.loading.set(false);
-      },
+      next: (r) => { this.result.set(r); this.loading.set(false); },
       error: () => this.loading.set(false)
     });
   }
 
   onFiltersChange(partial: ProductListFilters): void {
-    this.filters.update((f) => ({ ...f, ...partial, page: 1 }));
+    this.filters.set({ ...partial, page: 1 });
     this.load();
   }
 
@@ -176,18 +211,6 @@ export class ProductListPageComponent implements OnInit {
   onPageSize(event: Event): void {
     const pageSize = Number((event.target as HTMLSelectElement).value);
     this.filters.update((f) => ({ ...f, pageSize, page: 1 }));
-    this.load();
-  }
-
-  toggleInStock(event: Event): void {
-    const inStock = (event.target as HTMLInputElement).checked;
-    this.filters.update((f) => ({ ...f, inStock: inStock || undefined, page: 1 }));
-    this.load();
-  }
-
-  toggleOnSale(event: Event): void {
-    const onSale = (event.target as HTMLInputElement).checked;
-    this.filters.update((f) => ({ ...f, onSale: onSale || undefined, page: 1 }));
     this.load();
   }
 

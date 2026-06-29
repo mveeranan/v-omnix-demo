@@ -3,6 +3,7 @@ import { Component, inject, input, output, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideAngularModule, X } from 'lucide-angular';
 import { CartStateService } from '../data-access/cart-state.service';
+import { storeCartRoute, storeCheckoutRoute } from '../utils/store-commerce-route.util';
 
 const FREE_SHIPPING_THRESHOLD = 50;
 
@@ -43,8 +44,8 @@ const FREE_SHIPPING_THRESHOLD = 50;
             <span>{{ cart.summary().subtotal | currency: cart.summary().currency }}</span>
           </div>
           <div class="mox-cart-drawer__actions">
-            <a [routerLink]="['/cart']" class="mox-btn mox-btn--outline" (click)="closed.emit()">View Cart</a>
-            <a [routerLink]="['/checkout']" class="mox-btn mox-btn--primary" (click)="closed.emit()">Check Out</a>
+            <a [routerLink]="cartLink()" class="mox-btn mox-btn--outline" (click)="closed.emit()">View Cart</a>
+            <a [routerLink]="checkoutLink()" class="mox-btn mox-btn--primary" (click)="closed.emit()">Check Out</a>
           </div>
         </div>
       </aside>
@@ -66,4 +67,12 @@ export class CartDrawerComponent {
     }
     return 'You qualify for free shipping!';
   });
+
+  cartLink(): string[] {
+    return storeCartRoute(this.cart.storeSlug());
+  }
+
+  checkoutLink(): string[] {
+    return storeCheckoutRoute(this.cart.storeSlug());
+  }
 }

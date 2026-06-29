@@ -131,7 +131,7 @@
   padding: 0 4px;
   border-radius: 999px;
   background: var(--mox-accent);
-  color: #fff;
+  color: var(--pf-on-accent, #fff);
   font-size: 0.625rem;
   font-weight: 700;
   display: grid;
@@ -141,7 +141,7 @@
 .mox-hero {
   padding: 3rem 0 2rem;
   text-align: center;
-  background: #fff;
+  background: var(--mox-surface);
 }
 
 .mox-hero__eyebrow {
@@ -223,7 +223,7 @@
   position: relative;
   overflow: hidden;
   aspect-ratio: 3 / 4;
-  background: #f8f8f8;
+  background: color-mix(in srgb, var(--mox-border) 30%, var(--mox-surface));
 }
 
 .mox-product-card__media img {
@@ -305,7 +305,7 @@
 .mox-product-card__marquee-wrap {
   overflow: hidden;
   border-top: 1px solid var(--mox-border);
-  background: #fafafa;
+  background: var(--mox-bg);
 }
 
 .mox-product-card__marquee {
@@ -350,7 +350,7 @@
   width: 1.75rem;
   height: 1.75rem;
   border: 1px solid var(--mox-border);
-  background: #fff;
+  background: var(--mox-surface);
   font-size: 1rem;
   line-height: 1;
   cursor: pointer;
@@ -421,7 +421,7 @@
 
 .mox-sale-section {
   padding: 3rem 0;
-  background: #fafafa;
+  background: var(--mox-bg);
 }
 
 .mox-sale-section__header {
@@ -483,7 +483,7 @@
 
 .mox-newsletter {
   background: var(--mox-primary);
-  color: #fff;
+  color: var(--pf-on-accent, #fff);
   padding: 3rem 0;
   text-align: center;
 }
@@ -529,7 +529,7 @@
   padding: 0 1.5rem;
   border: none;
   background: var(--mox-accent);
-  color: #fff;
+  color: var(--pf-on-accent, #fff);
   font-weight: 700;
   font-size: 0.8125rem;
   text-transform: uppercase;
@@ -553,7 +553,7 @@
   z-index: 81;
   width: min(100%, 24rem);
   height: 100%;
-  background: #fff;
+  background: var(--mox-surface);
   display: flex;
   flex-direction: column;
   box-shadow: -8px 0 32px rgb(0 0 0 / 0.12);
@@ -576,7 +576,7 @@
 .mox-cart-drawer__shipping {
   padding: 0.75rem 1.25rem;
   font-size: 0.75rem;
-  background: #fff8f0;
+  background: color-mix(in srgb, var(--mox-accent) 10%, var(--mox-surface));
   color: var(--mox-text);
   border-bottom: 1px solid var(--mox-border);
 }
@@ -635,17 +635,24 @@
 
 .mox-btn--primary {
   background: var(--mox-accent);
-  color: #fff;
+  color: var(--pf-on-accent, #fff);
 }
 
 .mox-btn--outline {
   background: transparent;
-  border: 1px solid var(--mox-primary);
-  color: var(--mox-primary);
+  border: 1px solid var(--mox-border);
+  color: var(--mox-text);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.mox-btn--outline:hover {
+  border-color: var(--mox-accent);
+  color: var(--mox-accent);
+  background: color-mix(in srgb, var(--mox-accent) 8%, transparent);
 }
 
 .mox-footer {
-  background: #f8f8f8;
+  background: var(--mox-bg);
   border-top: 1px solid var(--mox-border);
   padding: 2.5rem 0 1.5rem;
 }
@@ -950,4 +957,40 @@
   .mox-sticky-bar {
     display: none;
   }
+}
+
+.mox-skeleton {
+  background: color-mix(in srgb, var(--mox-border) 40%, var(--mox-surface));
+  border-radius: var(--mox-radius);
+}
+
+.mox-input {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--mox-border);
+  border-radius: var(--mox-radius);
+  background: var(--mox-surface);
+  color: var(--mox-text);
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.mox-input:focus {
+  outline: none;
+  border-color: var(--mox-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mox-accent) 25%, transparent);
+}
+
+.mox-input::placeholder {
+  color: var(--mox-muted);
+}
+
+.mox-review-bar {
+  background: color-mix(in srgb, var(--mox-border) 35%, var(--mox-surface));
+  overflow: hidden;
+}
+
+.mox-review-bar__fill {
+  min-width: 0;
 }

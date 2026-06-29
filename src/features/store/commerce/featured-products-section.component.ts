@@ -27,7 +27,7 @@ import { Portfolio } from '../../portfolio/models/portfolio.model';
         @if (loading()) {
           <div class="mox-product-grid">
             @for (i of [1, 2, 3, 4]; track i) {
-              <div class="mox-product-card h-80 animate-pulse bg-[#f0f0f0]"></div>
+              <div class="mox-product-card mox-skeleton h-80 animate-pulse"></div>
             }
           </div>
         } @else if (products().length) {

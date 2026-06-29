@@ -35,11 +35,13 @@ import {
 export class OfferBannerSectionComponent implements OnInit {
   readonly portfolio = input.required<Portfolio>();
   readonly storeSlug = input.required<string>();
+  /** When set, overrides portfolio.offerBanner.productIds (e.g. after home-page dedup). */
+  readonly productIds = input<string[] | undefined>(undefined);
   private readonly productApi = inject(ProductApiService);
   readonly products = signal<CatalogProductListItemDto[]>([]);
 
   ngOnInit(): void {
-    const ids = this.portfolio().offerBanner.productIds;
+    const ids = this.productIds() ?? this.portfolio().offerBanner.productIds;
     if (!this.portfolio().offerBanner.enabled) return;
 
     this.productApi.listByStore(this.storeSlug()).subscribe({

@@ -26,11 +26,13 @@ import { CatalogProductListItemDto, catalogPrimaryImage } from '@features/catalo
           <app-admin-detail-item [icon]="pinnedIcon" label="Pinned offers" [value]="pinnedCount() + ' of 2'" />
         </app-admin-detail-card>
         <p class="pf-editor-hint">Two large promo tiles on your company homepage.</p>
+        <p class="pf-editor-hint">Products already shown in a section above are hidden on the live home page.</p>
       </div>
       <div edit class="pf-editor-fields">
         @if (buffer(); as b) {
           <app-section-toggle label="Show offer tiles" [enabled]="b.enabled" (enabledChange)="patch({ enabled: $event })" />
           <p class="pf-editor-hint">Select up to 2 products for side-by-side offer banners.</p>
+          <p class="pf-editor-hint">Products already shown in a section above are hidden on the live home page.</p>
           @if (loading()) {
             <p class="pf-editor-muted">Loading products…</p>
           } @else {

@@ -22,24 +22,29 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
   imports: [RouterLink, ProductCardComponent, StarsRatingComponent, ProductReviewsSectionComponent],
   template: `
     @if (loading()) {
-      <div class="container mx-auto px-6 py-16">
-        <div class="pf-glass-card h-96 animate-pulse rounded-xl"></div>
+      <div class="mox-section">
+        <div class="container mx-auto px-6 py-16">
+          <div class="mox-skeleton h-96 animate-pulse rounded-xl"></div>
+        </div>
       </div>
     } @else if (!product()) {
-      <div class="container mx-auto px-6 py-16 text-center">
+      <div class="mox-section">
+        <div class="container mx-auto px-6 py-16 text-center">
         <h1 class="pf-heading text-2xl font-semibold">Product not found</h1>
-        <a [routerLink]="['/store', ctx.slug(), 'products']" class="pf-btn-primary mt-6 inline-flex">Back to products</a>
+        <a [routerLink]="['/store', ctx.slug(), 'products']" class="mox-btn mox-btn--primary mt-6 inline-flex">Back to products</a>
+        </div>
       </div>
     } @else {
       @if (product(); as p) {
-        <nav class="container mx-auto px-6 pt-8 text-sm text-[var(--text-muted)]">
+        <div class="mox-section">
+        <nav class="container mx-auto px-6 pt-8 text-sm text-[var(--mox-muted)]">
           <a [routerLink]="['/store', ctx.slug()]" class="hover:underline">Home</a>
           <span class="mx-2">/</span>
           <a [routerLink]="['/store', ctx.slug(), 'products']" class="hover:underline">Shop</a>
           <span class="mx-2">/</span>
           <span>{{ p.categoryName }}</span>
           <span class="mx-2">/</span>
-          <span class="text-[var(--text-primary)]">{{ p.name }}</span>
+          <span class="text-[var(--mox-text)]">{{ p.name }}</span>
         </nav>
 
         <div class="container mx-auto grid gap-10 px-6 py-10 lg:grid-cols-2">
@@ -59,7 +64,7 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
             <p class="pf-text-muted text-sm">{{ p.brandName }} · {{ p.categoryName }}</p>
             <h1 class="pf-display pf-heading mt-2 text-3xl font-semibold">{{ p.name }}</h1>
             @if (p.shortDescription) {
-              <p class="pf-text mt-3 max-w-prose leading-relaxed text-[var(--text-secondary)]">{{ p.shortDescription }}</p>
+              <p class="pf-text mt-3 max-w-prose leading-relaxed text-[var(--mox-muted)]">{{ p.shortDescription }}</p>
             }
             <div class="mt-4 flex items-baseline gap-3">
               <span class="text-2xl font-bold">{{ formatPrice(p.price) }}</span>
@@ -96,9 +101,9 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
 
             <div class="mt-6 flex items-center gap-3">
               <span class="text-sm font-medium">Qty</span>
-              <button type="button" class="admin-action-secondary rounded px-3 py-1" (click)="qty.set(Math.max(1, qty() - 1))">−</button>
+              <button type="button" class="mox-btn mox-btn--outline rounded px-3 py-1" (click)="qty.set(Math.max(1, qty() - 1))">−</button>
               <span class="w-8 text-center">{{ qty() }}</span>
-              <button type="button" class="admin-action-secondary rounded px-3 py-1" (click)="qty.set(qty() + 1)">+</button>
+              <button type="button" class="mox-btn mox-btn--outline rounded px-3 py-1" (click)="qty.set(qty() + 1)">+</button>
             </div>
 
             <button type="button" class="pf-btn-primary mt-6 w-full sm:w-auto" [disabled]="!inStock()" (click)="addToCart()">
@@ -121,22 +126,22 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
               @if (p.description) {
                 <div class="rich-text-content pf-text mt-4 leading-relaxed" [innerHTML]="descriptionHtml()"></div>
               } @else {
-                <p class="pf-text mt-4 leading-relaxed text-[var(--text-muted)]">No description available.</p>
+                <p class="pf-text mt-4 leading-relaxed text-[var(--mox-muted)]">No description available.</p>
               }
             } @else if (detailTab() === 'specs') {
               <dl class="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-                <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">SKU</dt><dd class="font-medium">{{ p.sku || '—' }}</dd></div>
-                <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">Brand</dt><dd class="font-medium">{{ p.brandName }}</dd></div>
-                <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">Category</dt><dd class="font-medium">{{ p.categoryName }}</dd></div>
+                <div class="mox-card p-3"><dt class="text-[var(--mox-muted)]">SKU</dt><dd class="font-medium">{{ p.sku || '—' }}</dd></div>
+                <div class="mox-card p-3"><dt class="text-[var(--mox-muted)]">Brand</dt><dd class="font-medium">{{ p.brandName }}</dd></div>
+                <div class="mox-card p-3"><dt class="text-[var(--mox-muted)]">Category</dt><dd class="font-medium">{{ p.categoryName }}</dd></div>
                 @if (p.tags.length) {
-                  <div class="mox-card p-3"><dt class="text-[var(--text-muted)]">Tags</dt><dd class="font-medium">{{ p.tags.join(', ') }}</dd></div>
+                  <div class="mox-card p-3"><dt class="text-[var(--mox-muted)]">Tags</dt><dd class="font-medium">{{ p.tags.join(', ') }}</dd></div>
                 }
               </dl>
             }
 
             <div class="mt-6 flex flex-wrap gap-2">
-              <button type="button" class="admin-action-secondary rounded-lg px-3 py-1 text-sm" (click)="share('whatsapp')">WhatsApp</button>
-              <button type="button" class="admin-action-secondary rounded-lg px-3 py-1 text-sm" (click)="copyLink()">Copy link</button>
+              <button type="button" class="mox-btn mox-btn--outline text-sm" (click)="share('whatsapp')">WhatsApp</button>
+              <button type="button" class="mox-btn mox-btn--outline text-sm" (click)="copyLink()">Copy link</button>
             </div>
           </div>
         </div>
@@ -162,6 +167,7 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
             </div>
           </section>
         }
+        </div>
       }
     }
   `

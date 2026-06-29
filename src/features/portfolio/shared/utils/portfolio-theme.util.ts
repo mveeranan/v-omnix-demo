@@ -134,6 +134,10 @@ export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, s
     : `color-mix(in srgb, ${bg} 78%, transparent)`;
   const glassBorder = `color-mix(in srgb, ${readableOn(accent, bg, 0.18)} 38%, transparent)`;
 
+  const moxSurface = isLight ? WHITE : mixHex(bg, '#1e272c', 0.55);
+  const moxBg = isLight ? mixHex(WHITE, brand, 0.03) : bg;
+  const surfaceElevated = isLight ? WHITE : mixHex(moxSurface, PAPER, 0.06);
+
   return {
     '--pf-primary': brand,
     '--pf-accent': accent,
@@ -143,6 +147,7 @@ export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, s
     '--pf-bg': bg,
     '--pf-surface': bg,
     '--pf-surface-alt': bgAlt,
+    '--pf-surface-elevated': surfaceElevated,
     '--pf-text': text,
     '--pf-text-muted': textMuted,
     '--pf-heading': heading,
@@ -162,6 +167,8 @@ export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, s
     '--mox-text': text,
     '--mox-muted': textMuted,
     '--mox-border': isLight ? '#e0e0e0' : mixHex(bg, PAPER, 0.15),
+    '--mox-surface': moxSurface,
+    '--mox-bg': moxBg,
     '--mox-radius': borderRadius,
     '--mox-font-body': theme.fontFamily,
     '--mox-font-heading': "'Poppins', Roboto, sans-serif"

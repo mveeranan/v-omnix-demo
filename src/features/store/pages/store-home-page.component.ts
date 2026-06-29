@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { dedupeHomeProductIds } from '../utils/home-product-dedup.util';
 
 import { RouterLink } from '@angular/router';
 
@@ -126,7 +127,7 @@ import { StoreContextService } from '../data-access/store-context.service';
 
           [maxCount]="p.featuredProducts.maxCount"
 
-          [productIds]="p.featuredProducts.productIds"
+          [productIds]="homeProductIds().featured"
 
           [promoMarquee]="p.featuredProducts.promoMarqueeText"
 
@@ -142,7 +143,11 @@ import { StoreContextService } from '../data-access/store-context.service';
 
       @if (p.offerBanner.enabled) {
 
-        <app-offer-banner-section [portfolio]="p" [storeSlug]="ctx.slug()" />
+        <app-offer-banner-section
+          [portfolio]="p"
+          [storeSlug]="ctx.slug()"
+          [productIds]="homeProductIds().offer"
+        />
 
       }
 
@@ -150,7 +155,11 @@ import { StoreContextService } from '../data-access/store-context.service';
 
       @if (p.saleCollection.enabled) {
 
-        <app-sale-collection-section [portfolio]="p" [storeSlug]="ctx.slug()" />
+        <app-sale-collection-section
+          [portfolio]="p"
+          [storeSlug]="ctx.slug()"
+          [productIds]="homeProductIds().sale"
+        />
 
       }
 
@@ -253,6 +262,21 @@ export class StoreHomePageComponent {
   readonly ctx = inject(StoreContextService);
 
   readonly portfolio = this.ctx.portfolio;
+
+  readonly homeProductIds = computed(() => {
+    const p = this.portfolio();
+    if (!p) return { featured: [] as string[], offer: [] as string[], sale: [] as string[] };
+    return dedupeHomeProductIds(
+      p.featuredProducts.productIds,
+      p.offerBanner.productIds,
+      p.saleCollection.productIds,
+      {
+        featuredMax: p.featuredProducts.maxCount,
+        offerMax: 2,
+        saleMax: p.saleCollection.maxCount
+      }
+    );
+  });
 
 
 
