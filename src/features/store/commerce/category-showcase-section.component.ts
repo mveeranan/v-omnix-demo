@@ -4,7 +4,7 @@ import { Portfolio } from '../../portfolio/models/portfolio.model';
 import { CatalogStorefrontApiService } from '@features/catalog/data-access/catalog-storefront-api.service';
 import { CatalogCategoryDto } from '@features/catalog/models/catalog-storefront.model';
 
-// Generic category fallback images (Unsplash, different by index)
+// Fallback images shown when a category has no image set
 const CATEGORY_FALLBACKS = [
   'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80',
   'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
@@ -37,7 +37,7 @@ interface CategoryCard {
             }
           </header>
           <div class="mox-category-grid">
-            @for (cat of categories(); track cat.slug; let i = $index) {
+            @for (cat of categories(); track cat.slug) {
               <a
                 class="mox-category-card"
                 [routerLink]="['/store', storeSlug(), 'products']"
@@ -64,34 +64,36 @@ export class CategoryShowcaseSectionComponent implements OnInit {
   ngOnInit(): void {
     if (!this.enabled() || !this.portfolio().categoryShowcase.enabled) return;
     this.catalogApi.listCategories(this.storeSlug()).subscribe({
-      next: (cats) => this.allCategories.set(cats)
+      next: (cats) => {
+        const flat: CatalogCategoryDto[] = [];
+        const walk = (items: CatalogCategoryDto[]) => {
+          for (const c of items) {
+            flat.push(c);
+            if (c.children?.length) walk(c.children);
+          }
+        };
+        walk(cats);
+        this.allCategories.set(flat);
+      }
     });
   }
 
   readonly categories = computed((): CategoryCard[] => {
     if (!this.enabled() || !this.portfolio().categoryShowcase.enabled) return [];
 
-    // Flatten nested categories
-    const flat: { name: string; slug: string }[] = [];
-    const walk = (items: CatalogCategoryDto[]) => {
-      for (const c of items) {
-        flat.push({ name: c.name, slug: c.slug });
-        if (c.children?.length) walk(c.children);
-      }
-    };
-    walk(this.allCategories());
-
+    const available = this.allCategories();
     const configured = this.portfolio().categoryShowcase.categoryNames.filter(Boolean);
     const max = this.portfolio().categoryShowcase.maxCount || 4;
 
     const names = configured.length > 0
       ? configured.slice(0, max)
-      : flat.map((c) => c.name).slice(0, max);
+      : available.map((c) => c.name).slice(0, max);
 
     return names.map((name, index) => {
-      const meta = flat.find((c) => c.name === name);
+      const meta = available.find((c) => c.name === name);
       const slug = meta?.slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      const imageUrl = CATEGORY_FALLBACKS[index % CATEGORY_FALLBACKS.length];
+      // Use real category image if set, else fallback by index
+      const imageUrl = meta?.imageUrl || CATEGORY_FALLBACKS[index % CATEGORY_FALLBACKS.length];
       return { name, slug, imageUrl };
     });
   });

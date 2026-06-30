@@ -121,13 +121,11 @@ export class StoreFacadeService {
       team: { ...portfolio.team, enabled: false },
       stats: {
         ...portfolio.stats,
-        totalProducts: portfolio.stats.totalProducts ?? 0,
-        totalOrders:
-          portfolio.stats.totalOrders ??
-          portfolio.stats.ordersCompleted ??
-          portfolio.stats.bookingsCompleted ??
-          0,
-        totalCustomers: portfolio.stats.totalCustomers ?? portfolio.stats.happyCustomers ?? 0
+        totalProducts:  portfolio.stats.totalProducts,
+        totalOrders:    portfolio.stats.totalOrders,
+        totalCustomers: portfolio.stats.totalCustomers || portfolio.stats.happyCustomers,
+        happyCustomers: portfolio.stats.happyCustomers,
+        yearsExperience: portfolio.stats.yearsExperience
       }
     };
   }

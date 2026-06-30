@@ -101,6 +101,11 @@ export const adminRoutes: Routes = [
           import('./product-attributes/product-attributes-list.component').then((m) => m.ProductAttributesListComponent)
       },
       {
+        path: 'feedback',
+        loadComponent: () =>
+          import('./feedback/feedback-list.component').then((m) => m.FeedbackListComponent)
+      },
+      {
         path: 'billing',
         loadComponent: () =>
           import('./billing/billing.component').then((m) => m.BillingComponent)

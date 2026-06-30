@@ -1,5 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
-import { dedupeHomeProductIds } from '../utils/home-product-dedup.util';
+import { Component, inject } from '@angular/core';
 
 import { RouterLink } from '@angular/router';
 
@@ -14,10 +13,6 @@ import { ReviewsSectionComponent } from '../../portfolio/public/sections/reviews
 import { StatsSectionComponent } from '../../portfolio/public/sections/stats-section.component';
 
 import { FeaturedProductsSectionComponent } from '../commerce/featured-products-section.component';
-
-import { OfferBannerSectionComponent } from '../commerce/offer-banner-section.component';
-
-import { SaleCollectionSectionComponent } from '../commerce/sale-collection-section.component';
 
 import { NewsletterSignupSectionComponent } from '../commerce/newsletter-signup-section.component';
 
@@ -62,10 +57,6 @@ import { StoreContextService } from '../data-access/store-context.service';
     AboutSectionComponent,
 
     FeaturedProductsSectionComponent,
-
-    OfferBannerSectionComponent,
-
-    SaleCollectionSectionComponent,
 
     ReviewsSectionComponent,
 
@@ -127,7 +118,7 @@ import { StoreContextService } from '../data-access/store-context.service';
 
           [maxCount]="p.featuredProducts.maxCount"
 
-          [productIds]="homeProductIds().featured"
+          [productIds]="p.featuredProducts.productIds"
 
           [promoMarquee]="p.featuredProducts.promoMarqueeText"
 
@@ -141,33 +132,9 @@ import { StoreContextService } from '../data-access/store-context.service';
 
 
 
-      @if (p.offerBanner.enabled) {
-
-        <app-offer-banner-section
-          [portfolio]="p"
-          [storeSlug]="ctx.slug()"
-          [productIds]="homeProductIds().offer"
-        />
-
-      }
-
-
-
-      @if (p.saleCollection.enabled) {
-
-        <app-sale-collection-section
-          [portfolio]="p"
-          [storeSlug]="ctx.slug()"
-          [productIds]="homeProductIds().sale"
-        />
-
-      }
-
-
-
       @if (p.reviewsSection.enabled) {
 
-        <app-pf-reviews-section [portfolio]="p" />
+        <app-pf-reviews-section [storeSlug]="ctx.slug()" />
 
       }
 
@@ -262,23 +229,6 @@ export class StoreHomePageComponent {
   readonly ctx = inject(StoreContextService);
 
   readonly portfolio = this.ctx.portfolio;
-
-  readonly homeProductIds = computed(() => {
-    const p = this.portfolio();
-    if (!p) return { featured: [] as string[], offer: [] as string[], sale: [] as string[] };
-    return dedupeHomeProductIds(
-      p.featuredProducts.productIds,
-      p.offerBanner.productIds,
-      p.saleCollection.productIds,
-      {
-        featuredMax: p.featuredProducts.maxCount,
-        offerMax: 2,
-        saleMax: p.saleCollection.maxCount
-      }
-    );
-  });
-
-
 
   shopLink(): string[] {
 

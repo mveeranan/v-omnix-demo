@@ -107,7 +107,8 @@ export const API_ENDPOINTS = {
       `${base}/products/${encodeURIComponent(productId)}/inventory/${encodeURIComponent(inventoryId)}`,
     deleteInventory: (productId: string, inventoryId: string) =>
       `${base}/products/${encodeURIComponent(productId)}/inventory/${encodeURIComponent(inventoryId)}`,
-    tags: (id: string) => `${base}/products/${encodeURIComponent(id)}/tags`
+    tags: (id: string) => `${base}/products/${encodeURIComponent(id)}/tags`,
+    toggleFeatured: (id: string) => `${base}/products/${encodeURIComponent(id)}/featured`
   },
   catalog: {
     products: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/products`,
@@ -116,8 +117,15 @@ export const API_ENDPOINTS = {
     categories: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/categories`,
     brands: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/brands`,
     reviews: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/reviews`,
+    feedback: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/feedback`,
     newsletterSubscribe: (tenantSlug: string) =>
       `${base}/catalog/${encodeURIComponent(tenantSlug)}/newsletter/subscribe`
+  },
+  storeFeedback: {
+    list: (tenantId: string) => `${base}/store-feedback?tenantId=${encodeURIComponent(tenantId)}`,
+    create: `${base}/store-feedback`,
+    update: (id: string) => `${base}/store-feedback/${encodeURIComponent(id)}`,
+    delete: (id: string) => `${base}/store-feedback/${encodeURIComponent(id)}`
   },
   orders: {
     list: `${base}/orders`,

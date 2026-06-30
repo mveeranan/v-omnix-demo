@@ -21,7 +21,8 @@ import {
         <button
           type="button"
           class="admin-form-section-card__toggle"
-          (click)="expanded.set(!expanded())"
+          [class.admin-form-section-card__toggle--no-collapse]="noCollapse()"
+          (click)="!noCollapse() && expanded.set(!expanded())"
           [attr.aria-expanded]="expanded()"
         >
           @if (icon()) {
@@ -36,11 +37,13 @@ import {
           @if (complete()) {
             <lucide-icon [img]="checkIcon" class="h-4 w-4 shrink-0 text-emerald-500" />
           }
-          <lucide-icon
-            [img]="chevronIcon"
-            class="h-5 w-5 shrink-0 opacity-50 transition-transform duration-200"
-            [class.rotate-180]="expanded()"
-          />
+          @if (!noCollapse()) {
+            <lucide-icon
+              [img]="chevronIcon"
+              class="h-5 w-5 shrink-0 opacity-50 transition-transform duration-200"
+              [class.rotate-180]="expanded()"
+            />
+          }
         </button>
 
         <div class="admin-form-section-card__actions" (click)="$event.stopPropagation()">
@@ -229,6 +232,10 @@ import {
     .admin-form-section-card__hint {
       margin-bottom: 0.75rem;
     }
+
+    .admin-form-section-card__toggle--no-collapse {
+      cursor: default;
+    }
   `
 })
 export class AdminFormSectionCardComponent {
@@ -244,6 +251,7 @@ export class AdminFormSectionCardComponent {
   readonly expandOnEdit = input(true);
   readonly showClear = input(false);
   readonly lastSavedAt = input<Date | null>(null);
+  readonly noCollapse = input(false);
 
   readonly save = output<void>();
   readonly cancel = output<void>();

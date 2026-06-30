@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, input, model } from '@angular/core';
+import { Component, computed, effect, inject, input, model } from '@angular/core';
 import { LucideIconData } from 'lucide-angular';
 import { AdminFormSectionCardComponent } from '../../../admin/shared/admin-form-section-card.component';
 import { WebsiteSectionId } from '../../models/website-section.ids';
@@ -24,6 +24,7 @@ import { WebsiteSectionStateService } from '../../data-access/website-section-st
       [saving]="saving()"
       [showClear]="editing()"
       [lastSavedAt]="lastSavedAt()"
+      [noCollapse]="alwaysOpen()"
       (edit)="onEdit()"
       (save)="onSave()"
       (cancel)="onCancel()"
@@ -68,7 +69,14 @@ export class WebsiteSectionShellComponent {
   readonly title = input.required<string>();
   readonly icon = input<LucideIconData | null>(null);
   readonly complete = input(false);
+  readonly alwaysOpen = input(false);
   readonly expanded = model(false);
+
+  constructor() {
+    effect(() => {
+      if (this.alwaysOpen()) this.expanded.set(true);
+    });
+  }
 
   readonly isDirty = computed(() => this.sectionState.sectionMeta(this.sectionId()).dirty);
   readonly editing = computed(() => this.sectionState.isEditing(this.sectionId()));

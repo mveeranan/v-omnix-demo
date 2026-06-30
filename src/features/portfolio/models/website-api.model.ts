@@ -33,13 +33,8 @@ export interface PublishSectionPayload {
 // social→SocialMedia, theme→BusinessProfile, publish→PublishWebsite) are excluded.
 const SECTION_API_TYPE: Partial<Record<WebsiteSectionId, string>> = {
   categoryShowcase: 'FeaturedCategories',
-  featuredProducts: 'FeaturedProducts',
-  offerBanner:      'PromoBanner',
-  saleCollection:   'ProductGrid',
-  reviews:          'Testimonials',
   whyChooseUs:      'WhyChooseUs',
   stats:            'RichText',
-  newsletter:       'NewsletterSignup',
   contactSupport:   'ContactSupport'
 };
 

@@ -217,13 +217,15 @@ export interface PortfolioTeam {
 
 export interface PortfolioStats {
   enabled: boolean;
-  bookingsCompleted: number;
-  ordersCompleted?: number;
   yearsExperience: number;
   happyCustomers: number;
-  totalProducts?: number;
-  totalOrders?: number;
-  totalCustomers?: number;
+  totalOrders: number;
+  totalCustomers: number;
+  /** Auto-populated from the live product count — read-only in the editor. */
+  totalProducts: number;
+  /** Legacy fields kept for backwards-compat mapper fallbacks. */
+  bookingsCompleted?: number;
+  ordersCompleted?: number;
 }
 
 export interface PortfolioCta {
@@ -422,13 +424,11 @@ export function createEmptyPortfolio(): Portfolio {
     team: { enabled: false, members: [] },
     stats: {
       enabled: true,
-      bookingsCompleted: 0,
-      ordersCompleted: 0,
       yearsExperience: 5,
       happyCustomers: 0,
-      totalProducts: 0,
       totalOrders: 0,
-      totalCustomers: 0
+      totalCustomers: 0,
+      totalProducts: 0
     },
     contact: {
       enabled: true,

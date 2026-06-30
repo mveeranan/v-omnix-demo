@@ -7,7 +7,14 @@ export interface ProductCategoryDto {
   parentCategoryId: string | null;
   displayOrder: number;
   isActive: boolean;
+  imageDocumentId: string | null;
+  imageDocumentUrl: string | null;
   children?: ProductCategoryDto[];
+}
+
+export interface CategoryImageAttachment {
+  fileCategory: number; // 16 = CategoryImage
+  files: Array<{ base64Content: string; fileName: string; contentType: string }>;
 }
 
 export interface SaveProductCategoryRequest {
@@ -17,6 +24,7 @@ export interface SaveProductCategoryRequest {
   parentCategoryId: string | null;
   displayOrder: number;
   isActive: boolean;
+  attachments?: CategoryImageAttachment[];
 }
 
 export function createEmptyProductCategory(tenantId: string): SaveProductCategoryRequest {
@@ -26,7 +34,8 @@ export function createEmptyProductCategory(tenantId: string): SaveProductCategor
     description: null,
     parentCategoryId: null,
     displayOrder: 0,
-    isActive: true
+    isActive: true,
+    attachments: []
   };
 }
 

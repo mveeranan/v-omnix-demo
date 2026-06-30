@@ -202,13 +202,14 @@ export interface PortfolioTeamDto {
 
 export interface PortfolioStatsDto {
   enabled: boolean;
-  bookingsCompleted: number;
-  ordersCompleted?: number;
   yearsExperience: number;
   happyCustomers: number;
-  totalProducts?: number;
-  totalOrders?: number;
-  totalCustomers?: number;
+  totalOrders: number;
+  totalCustomers: number;
+  totalProducts: number;
+  /** Legacy fallback fields — optional for backwards compat. */
+  bookingsCompleted?: number;
+  ordersCompleted?: number;
 }
 
 export interface PortfolioCtaDto {

@@ -50,6 +50,7 @@ export interface CatalogCategoryDto {
   id: string;
   name: string;
   slug: string;
+  imageUrl: string | null;
   children: CatalogCategoryDto[];
 }
 

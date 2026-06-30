@@ -139,14 +139,19 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
       },
       stats: source.stats
         ? {
-            ...defaults.stats,
-            ...source.stats,
+            enabled: source.stats.enabled ?? true,
+            yearsExperience: source.stats.yearsExperience ?? defaults.stats.yearsExperience,
+            happyCustomers: source.stats.happyCustomers ?? defaults.stats.happyCustomers,
             totalOrders:
               source.stats.totalOrders ??
               source.stats.ordersCompleted ??
               source.stats.bookingsCompleted ??
-              0,
-            totalCustomers: source.stats.totalCustomers ?? source.stats.happyCustomers ?? 0
+              defaults.stats.totalOrders,
+            totalCustomers:
+              source.stats.totalCustomers ??
+              source.stats.happyCustomers ??
+              defaults.stats.totalCustomers,
+            totalProducts: source.stats.totalProducts ?? defaults.stats.totalProducts
           }
         : { ...defaults.stats },
       cta: { ...defaults.cta, ...source.cta },

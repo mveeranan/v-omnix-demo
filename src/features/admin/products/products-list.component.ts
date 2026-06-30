@@ -15,7 +15,7 @@ import { CategoryAdminService } from '../data-access/category-admin.service';
 import { ProductListItemDto, ProductListFilters } from '@features/catalog/models/product-admin.model';
 import { parseProductStatus, productStatusLabel, ProductStatus } from '@features/catalog/models/product-status.enum';
 import { AdminStatusBadgeVariant } from '@shared/ui/admin-status-badge.component';
-import { Package } from 'lucide-angular';
+import { LucideAngularModule, Package, Star } from 'lucide-angular';
 
 @Component({
   selector: 'app-products-list',
@@ -31,7 +31,8 @@ import { Package } from 'lucide-angular';
     AdminStatusBadgeComponent,
     AdminTableActionComponent,
     LoadingSpinnerComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    LucideAngularModule
   ],
   template: `
     <app-admin-page-shell eyebrow="Catalog" title="Products" description="Manage your product catalog, pricing, and inventory.">
@@ -118,6 +119,7 @@ import { Package } from 'lucide-angular';
                 <th class="admin-data-table__col-price">Price</th>
                 <th class="admin-data-table__col-variants">Variants</th>
                 <th class="admin-data-table__col-status">Status</th>
+                <th style="width:2.5rem" title="Featured on website">⭐</th>
                 <th class="admin-data-table__col-actions">Actions</th>
               </tr>
             </thead>
@@ -141,6 +143,22 @@ import { Package } from 'lucide-angular';
                   <td class="admin-data-table__col-variants">{{ p.variantCount }}</td>
                   <td class="admin-data-table__col-status">
                     <app-admin-status-badge [label]="statusLabel(p.status)" [variant]="statusVariant(p.status)" />
+                  </td>
+                  <td style="text-align:center">
+                    <button
+                      type="button"
+                      class="inline-flex items-center justify-center rounded p-1 transition-colors hover:bg-amber-50"
+                      [title]="p.isFeatured ? 'Remove from featured' : 'Feature on website'"
+                      (click)="toggleFeatured(p)"
+                    >
+                      <lucide-icon
+                        [img]="starIcon"
+                        [size]="16"
+                        [class.text-amber-400]="p.isFeatured"
+                        [class.text-[var(--text-muted)]]="!p.isFeatured"
+                        [style.fill]="p.isFeatured ? '#fbbf24' : 'none'"
+                      />
+                    </button>
                   </td>
                   <td class="admin-data-table__col-actions">
                     <div class="admin-data-table__actions">
@@ -190,6 +208,7 @@ export class ProductsListComponent implements OnInit {
   private readonly categoryApi = inject(CategoryAdminService);
   private readonly notifications = inject(NotificationService);
   readonly packageIcon = Package;
+  readonly starIcon = Star;
   readonly ProductStatus = ProductStatus;
   readonly placeholderImage = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600';
 
@@ -351,6 +370,25 @@ export class ProductsListComponent implements OnInit {
     this.api.delete(p.id).subscribe(() => {
       this.deleteTarget.set(null);
       this.load();
+    });
+  }
+
+  toggleFeatured(p: ProductListItemDto): void {
+    this.api.toggleFeatured(p.id).subscribe({
+      next: (r) => {
+        // Optimistically update the local list
+        this.result.update((res) => {
+          if (!res) return res;
+          return {
+            ...res,
+            items: res.items.map((item) =>
+              item.id === p.id ? { ...item, isFeatured: r.isFeatured } : item
+            )
+          };
+        });
+        this.notifications.success(r.isFeatured ? 'Product featured on website' : 'Product removed from featured');
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not update featured status')
     });
   }
 }

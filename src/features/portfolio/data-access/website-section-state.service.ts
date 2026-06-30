@@ -11,14 +11,9 @@ import {
   Portfolio,
   PortfolioBrand,
   PortfolioCta,
-  PortfolioFeaturedProducts,
   PortfolioCategoryShowcase,
   PortfolioHero,
   PortfolioHighlights,
-  PortfolioNewsletter,
-  PortfolioOfferBanner,
-  PortfolioReview,
-  PortfolioSaleCollection,
   PortfolioSocial,
   PortfolioStats,
   PortfolioStoreDescription,
@@ -39,9 +34,7 @@ import { HeroSlidePendingUploads } from './hero-slides-portfolio.util';
 import {
   validateBrand,
   validateContactSupport,
-  validateFeaturedProducts,
   validatePublish,
-  validateReviews,
   validateStoreDescription
 } from './website-section.validators';
 
@@ -59,11 +52,6 @@ export interface BrandSectionBuffer {
   storeDescription: PortfolioStoreDescription;
 }
 
-export interface ReviewsSectionBuffer {
-  reviewsSection: Portfolio['reviewsSection'];
-  reviews: PortfolioReview[];
-}
-
 export interface SocialSectionBuffer {
   socialSection: Portfolio['socialSection'];
   social: PortfolioSocial;
@@ -79,14 +67,9 @@ export type SectionBuffer =
   | BrandSectionBuffer
   | PortfolioHero
   | PortfolioCategoryShowcase
-  | PortfolioFeaturedProducts
-  | PortfolioOfferBanner
-  | PortfolioSaleCollection
-  | ReviewsSectionBuffer
   | PortfolioHighlights
   | PortfolioStats
   | Portfolio['contactSupport']
-  | PortfolioNewsletter
   | SocialSectionBuffer
   | PortfolioTheme
   | PublishSectionBuffer;
@@ -448,28 +431,11 @@ export class WebsiteSectionStateService {
       case 'brand': {
         const b = buffer as BrandSectionBuffer;
         const brandValidation = validateBrand(b.brand, b.presetId);
-        if (!brandValidation.valid) {
-          return brandValidation;
-        }
+        if (!brandValidation.valid) return brandValidation;
         return validateStoreDescription(b.storeDescription);
-      }
-      case 'featuredProducts':
-        return validateFeaturedProducts(buffer as PortfolioFeaturedProducts);
-      case 'reviews': {
-        const r = buffer as ReviewsSectionBuffer;
-        return validateReviews(r.reviewsSection, r.reviews);
       }
       case 'contactSupport':
         return validateContactSupport(buffer as Portfolio['contactSupport']);
-      case 'hero':
-      case 'categoryShowcase':
-      case 'offerBanner':
-      case 'saleCollection':
-      case 'whyChooseUs':
-      case 'stats':
-      case 'newsletter':
-      case 'social':
-        return { valid: true, errors: [] };
       case 'publish':
         return validatePublish((buffer as PublishSectionBuffer).slug);
       default:
@@ -491,25 +457,12 @@ export class WebsiteSectionStateService {
       }
       case 'categoryShowcase':
         return structuredClone(draft.categoryShowcase);
-      case 'featuredProducts':
-        return structuredClone(draft.featuredProducts);
-      case 'offerBanner':
-        return structuredClone(draft.offerBanner);
-      case 'saleCollection':
-        return structuredClone(draft.saleCollection);
-      case 'reviews':
-        return {
-          reviewsSection: structuredClone(draft.reviewsSection),
-          reviews: structuredClone(draft.reviews)
-        };
       case 'whyChooseUs':
         return structuredClone(draft.highlights);
       case 'stats':
         return structuredClone(draft.stats);
       case 'contactSupport':
         return structuredClone(draft.contactSupport);
-      case 'newsletter':
-        return structuredClone(draft.newsletter);
       case 'social':
         return {
           socialSection: structuredClone(draft.socialSection),
@@ -542,16 +495,6 @@ export class WebsiteSectionStateService {
         return { hero: buffer as PortfolioHero };
       case 'categoryShowcase':
         return { categoryShowcase: buffer as PortfolioCategoryShowcase };
-      case 'featuredProducts':
-        return { featuredProducts: buffer as PortfolioFeaturedProducts };
-      case 'offerBanner':
-        return { offerBanner: buffer as PortfolioOfferBanner };
-      case 'saleCollection':
-        return { saleCollection: buffer as PortfolioSaleCollection };
-      case 'reviews': {
-        const r = buffer as ReviewsSectionBuffer;
-        return { reviewsSection: r.reviewsSection, reviews: r.reviews };
-      }
       case 'whyChooseUs':
         return { highlights: buffer as PortfolioHighlights };
       case 'stats':
@@ -563,8 +506,6 @@ export class WebsiteSectionStateService {
           contact: { ...draft.contact, enabled: cs.enabled, email: cs.email, phone: cs.phone }
         };
       }
-      case 'newsletter':
-        return { newsletter: buffer as PortfolioNewsletter };
       case 'social': {
         const s = buffer as SocialSectionBuffer;
         return { socialSection: s.socialSection, social: s.social };

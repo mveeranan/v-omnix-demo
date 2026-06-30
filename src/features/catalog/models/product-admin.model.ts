@@ -13,6 +13,7 @@ export interface ProductListItemDto {
   brandName: string | null;
   primaryImageUrl: string | null;
   variantCount: number;
+  isFeatured: boolean;
 }
 
 export interface ProductListResponse {

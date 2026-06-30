@@ -38,21 +38,11 @@ import { HeroEditorSectionComponent } from './sections/hero-editor-section.compo
 
 import { CategoryShowcaseEditorSectionComponent } from './sections/category-showcase-editor-section.component';
 
-import { FeaturedProductsEditorSectionComponent } from './sections/featured-products-section.component';
-
-import { OfferBannerEditorSectionComponent } from './sections/offer-banner-editor-section.component';
-
-import { SaleCollectionEditorSectionComponent } from './sections/sale-collection-editor-section.component';
-
-import { ReviewsSectionComponent } from './sections/reviews-section.component';
-
 import { StatsEditorSectionComponent } from './sections/stats-editor-section.component';
 
 import { WhyChooseUsSectionComponent } from './sections/why-choose-us-section.component';
 
 import { ContactSupportSectionComponent } from './sections/contact-support-section.component';
-
-import { NewsletterEditorSectionComponent } from './sections/newsletter-editor-section.component';
 
 import { SocialSectionComponent } from './sections/social-section.component';
 
@@ -86,21 +76,11 @@ type EditorTab = 'content' | 'publish';
 
     CategoryShowcaseEditorSectionComponent,
 
-    FeaturedProductsEditorSectionComponent,
-
-    OfferBannerEditorSectionComponent,
-
-    SaleCollectionEditorSectionComponent,
-
-    ReviewsSectionComponent,
-
     StatsEditorSectionComponent,
 
     WhyChooseUsSectionComponent,
 
     ContactSupportSectionComponent,
-
-    NewsletterEditorSectionComponent,
 
     SocialSectionComponent,
 
