@@ -17,7 +17,11 @@ import {
   PortfolioSocial,
   PortfolioStats,
   PortfolioStoreDescription,
-  PortfolioTheme
+  PortfolioTheme,
+  PortfolioAnnouncementBar,
+  PortfolioFaq,
+  PortfolioNewArrivals,
+  PortfolioBrandStrip
 } from '../models/portfolio.model';
 import { PortfolioStateService } from './portfolio-state.service';
 import { WebsiteApiService } from './website-api.service';
@@ -72,7 +76,11 @@ export type SectionBuffer =
   | Portfolio['contactSupport']
   | SocialSectionBuffer
   | PortfolioTheme
-  | PublishSectionBuffer;
+  | PublishSectionBuffer
+  | PortfolioAnnouncementBar
+  | PortfolioFaq
+  | PortfolioNewArrivals
+  | PortfolioBrandStrip;
 
 const DEFAULT_META: SectionMeta = {
   editing: false,
@@ -472,6 +480,14 @@ export class WebsiteSectionStateService {
         return structuredClone(draft.theme);
       case 'publish':
         return { slug: draft.slug, cta: structuredClone(draft.cta), published: draft.published };
+      case 'announcementBar':
+        return structuredClone(draft.announcementBar);
+      case 'faq':
+        return structuredClone(draft.faq);
+      case 'newArrivals':
+        return structuredClone(draft.newArrivals);
+      case 'brandStrip':
+        return structuredClone(draft.brandStrip);
       default: {
         const _exhaustive: never = id;
         return _exhaustive;
@@ -516,6 +532,14 @@ export class WebsiteSectionStateService {
         const p = buffer as PublishSectionBuffer;
         return { slug: p.slug, cta: p.cta, published: p.published };
       }
+      case 'announcementBar':
+        return { announcementBar: buffer as PortfolioAnnouncementBar };
+      case 'faq':
+        return { faq: buffer as PortfolioFaq };
+      case 'newArrivals':
+        return { newArrivals: buffer as PortfolioNewArrivals };
+      case 'brandStrip':
+        return { brandStrip: buffer as PortfolioBrandStrip };
       default:
         return {};
     }

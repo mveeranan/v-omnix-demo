@@ -48,6 +48,14 @@ import { SocialSectionComponent } from './sections/social-section.component';
 
 import { PublishEditorPanelComponent } from './sections/publish-editor-panel.component';
 
+import { AnnouncementBarEditorSectionComponent } from './sections/announcement-bar-editor-section.component';
+
+import { FaqEditorSectionComponent } from './sections/faq-editor-section.component';
+
+import { NewArrivalsEditorSectionComponent } from './sections/new-arrivals-editor-section.component';
+
+import { BrandStripEditorSectionComponent } from './sections/brand-strip-editor-section.component';
+
 import { ScrollRevealService } from '@features/portfolio/shared/services/scroll-reveal.service';
 
 type EditorTab = 'content' | 'publish';
@@ -84,7 +92,15 @@ type EditorTab = 'content' | 'publish';
 
     SocialSectionComponent,
 
-    PublishEditorPanelComponent
+    PublishEditorPanelComponent,
+
+    AnnouncementBarEditorSectionComponent,
+
+    FaqEditorSectionComponent,
+
+    NewArrivalsEditorSectionComponent,
+
+    BrandStripEditorSectionComponent
 
   ],
 

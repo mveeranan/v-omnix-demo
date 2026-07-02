@@ -14,6 +14,7 @@ import { StoreContextService } from '../data-access/store-context.service';
 import { StoreThemeService } from '../data-access/store-theme.service';
 import { StoreNavComponent } from './store-nav.component';
 import { FooterSectionComponent } from '../../portfolio/public/sections/footer-section.component';
+import { AnnouncementBarSectionComponent } from '../commerce/announcement-bar-section.component';
 import { buildPortfolioThemeVars, moxSchemeClass } from '../../portfolio/shared/utils/portfolio-theme.util';
 import { ScrollRevealService } from '../../portfolio/shared/services/scroll-reveal.service';
 import { Portfolio, PortfolioThemeMode } from '../../portfolio/models/portfolio.model';
@@ -21,7 +22,7 @@ import { Portfolio, PortfolioThemeMode } from '../../portfolio/models/portfolio.
 @Component({
   selector: 'app-store-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, StoreNavComponent, FooterSectionComponent],
+  imports: [CommonModule, RouterOutlet, StoreNavComponent, FooterSectionComponent, AnnouncementBarSectionComponent],
   providers: [StoreContextService],
   template: `
     @if (ctx.previewMode()) {
@@ -45,6 +46,7 @@ import { Portfolio, PortfolioThemeMode } from '../../portfolio/models/portfolio.
           [class.pf-root--preview]="ctx.previewMode()"
           [ngStyle]="themeStyles(p)"
         >
+          <app-announcement-bar-section [portfolio]="p" />
           <app-store-nav
             [portfolio]="p"
             [storeSlug]="ctx.slug()"

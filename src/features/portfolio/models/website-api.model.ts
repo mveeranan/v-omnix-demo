@@ -35,7 +35,11 @@ const SECTION_API_TYPE: Partial<Record<WebsiteSectionId, string>> = {
   categoryShowcase: 'FeaturedCategories',
   whyChooseUs:      'WhyChooseUs',
   stats:            'RichText',
-  contactSupport:   'ContactSupport'
+  contactSupport:   'ContactSupport',
+  announcementBar:  'AnnouncementBar',
+  faq:              'FAQ',
+  newArrivals:      'NewArrivals',
+  brandStrip:       'BrandStrip'
 };
 
 export function websiteSectionApiType(sectionId: WebsiteSectionId): string {

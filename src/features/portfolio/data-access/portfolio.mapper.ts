@@ -73,6 +73,36 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
       slug: source.slug,
       published: source.published,
       updatedAt: source.updatedAt,
+      announcementBar: source.announcementBar
+        ? { ...defaults.announcementBar, ...source.announcementBar }
+        : { ...defaults.announcementBar },
+      faq: source.faq
+        ? {
+            ...defaults.faq,
+            ...source.faq,
+            items: (source.faq.items ?? []).map((i: { id?: string; question: string; answer: string; order?: number }) => ({
+              id: i.id ?? crypto.randomUUID(),
+              question: i.question,
+              answer: i.answer,
+              order: i.order ?? 0
+            }))
+          }
+        : { ...defaults.faq },
+      newArrivals: source.newArrivals
+        ? { ...defaults.newArrivals, ...source.newArrivals }
+        : { ...defaults.newArrivals },
+      brandStrip: source.brandStrip
+        ? {
+            ...defaults.brandStrip,
+            ...source.brandStrip,
+            logos: (source.brandStrip.logos ?? []).map((l: { id?: string; name: string; logoUrl: string; order?: number }) => ({
+              id: l.id ?? crypto.randomUUID(),
+              name: l.name,
+              logoUrl: l.logoUrl,
+              order: l.order ?? 0
+            }))
+          }
+        : { ...defaults.brandStrip },
       brand,
       hero: source.hero
         ? {
@@ -176,6 +206,10 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
       slug: synced.slug,
       published: synced.published,
       updatedAt: synced.updatedAt,
+      announcementBar: { ...synced.announcementBar },
+      faq: { ...synced.faq, items: synced.faq.items.map((i) => ({ ...i })) },
+      newArrivals: { ...synced.newArrivals },
+      brandStrip: { ...synced.brandStrip, logos: synced.brandStrip.logos.map((l) => ({ ...l })) },
       brand: { ...synced.brand },
       hero: { ...synced.hero, slides: synced.hero.slides.map((s) => ({ ...s })) },
       categoryShowcase: {

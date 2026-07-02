@@ -190,6 +190,46 @@ export interface PortfolioNewsletter {
   buttonLabel: string;
 }
 
+export interface PortfolioAnnouncementBar {
+  enabled: boolean;
+  text: string;
+  bgColor: string;
+  linkLabel: string;
+  linkUrl: string;
+}
+
+export interface PortfolioFaqItem {
+  id: string;
+  question: string;
+  answer: string;
+  order: number;
+}
+
+export interface PortfolioFaq {
+  enabled: boolean;
+  title: string;
+  items: PortfolioFaqItem[];
+}
+
+export interface PortfolioNewArrivals {
+  enabled: boolean;
+  title: string;
+  maxCount: number;
+}
+
+export interface PortfolioBrandLogo {
+  id: string;
+  name: string;
+  logoUrl: string;
+  order: number;
+}
+
+export interface PortfolioBrandStrip {
+  enabled: boolean;
+  title: string;
+  logos: PortfolioBrandLogo[];
+}
+
 export interface PortfolioHighlightItem {
   text: string;
   iconId: string;
@@ -262,6 +302,10 @@ export interface Portfolio {
   slug: string;
   published: boolean;
   updatedAt: string;
+  announcementBar: PortfolioAnnouncementBar;
+  faq: PortfolioFaq;
+  newArrivals: PortfolioNewArrivals;
+  brandStrip: PortfolioBrandStrip;
   brand: PortfolioBrand;
   hero: PortfolioHero;
   categoryShowcase: PortfolioCategoryShowcase;
@@ -298,6 +342,28 @@ export function createEmptyPortfolio(): Portfolio {
     slug: '',
     published: false,
     updatedAt: new Date().toISOString(),
+    announcementBar: {
+      enabled: false,
+      text: '🎉 Free shipping on orders over $50 — Limited time offer!',
+      bgColor: '',
+      linkLabel: 'Shop Now',
+      linkUrl: ''
+    },
+    faq: {
+      enabled: false,
+      title: 'Frequently Asked Questions',
+      items: []
+    },
+    newArrivals: {
+      enabled: true,
+      title: 'New Arrivals',
+      maxCount: 8
+    },
+    brandStrip: {
+      enabled: false,
+      title: 'Trusted Brands',
+      logos: []
+    },
     brand: {
       enabled: true,
       logoUrl: '',
