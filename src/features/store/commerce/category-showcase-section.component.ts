@@ -28,29 +28,111 @@ interface CategoryCard {
   imports: [RouterLink],
   template: `
     @if (enabled() && categories().length) {
-      <section class="mox-section" id="categories">
+      <section class="msp-cats" id="categories">
         <div class="container mx-auto px-6">
-          <header class="mox-sale-section__header mb-8 text-center">
-            <h2 class="mox-sale-section__title">{{ portfolio().categoryShowcase.title }}</h2>
+          <header class="msp-section-head">
+            <h2 class="msp-section-head__title">{{ portfolio().categoryShowcase.title }}</h2>
+            <span class="msp-section-head__rule" aria-hidden="true"></span>
             @if (portfolio().categoryShowcase.subtitle) {
-              <p class="mox-sale-section__subtitle">{{ portfolio().categoryShowcase.subtitle }}</p>
+              <p class="msp-section-head__subtitle">{{ portfolio().categoryShowcase.subtitle }}</p>
             }
           </header>
-          <div class="mox-category-grid">
+          <div class="msp-cats__grid">
             @for (cat of categories(); track cat.slug) {
               <a
-                class="mox-category-card"
+                class="msp-cat-card"
                 [routerLink]="['/store', storeSlug(), 'products']"
                 [queryParams]="{ category: cat.slug }"
               >
-                <img class="mox-category-card__img" [src]="cat.imageUrl" [alt]="cat.name" loading="lazy" />
-                <p class="mox-category-card__label">{{ cat.name }}</p>
+                <span class="msp-cat-card__media">
+                  <img [src]="cat.imageUrl" [alt]="cat.name" loading="lazy" />
+                </span>
+                <span class="msp-cat-card__label">{{ cat.name }}</span>
               </a>
             }
           </div>
         </div>
       </section>
     }
+  `,
+  styles: `
+    .msp-cats { padding: 4rem 0; background: var(--mox-bg, #fff); }
+
+    .msp-section-head {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 2.5rem;
+      text-align: center;
+    }
+    .msp-section-head__title {
+      margin: 0;
+      font-family: var(--mox-font-heading, inherit);
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      color: var(--mox-text, #23232d);
+    }
+    .msp-section-head__rule {
+      width: 3.5rem;
+      height: 3px;
+      background: var(--mox-accent, #fe4c50);
+      border-radius: 999px;
+    }
+    .msp-section-head__subtitle {
+      margin: 0;
+      max-width: 34rem;
+      font-size: 0.95rem;
+      color: var(--mox-muted, #8a8a8a);
+    }
+
+    .msp-cats__grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+    @media (min-width: 768px) {
+      .msp-cats__grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .msp-cat-card {
+      display: flex;
+      flex-direction: column;
+      background: var(--mox-surface, #fff);
+      border: 1px solid var(--mox-border, #eaeaea);
+      border-radius: var(--mox-radius, 4px);
+      overflow: hidden;
+      text-decoration: none;
+      transition: box-shadow 0.25s ease, transform 0.25s ease;
+    }
+    .msp-cat-card:hover {
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+    .msp-cat-card__media {
+      display: block;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+    }
+    .msp-cat-card__media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .msp-cat-card:hover .msp-cat-card__media img { transform: scale(1.06); }
+    .msp-cat-card__label {
+      padding: 0.85rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      text-align: center;
+      color: var(--mox-text, #23232d);
+      border-top: 1px solid var(--mox-border, #eaeaea);
+      transition: color 0.2s ease;
+    }
+    .msp-cat-card:hover .msp-cat-card__label { color: var(--mox-accent, #fe4c50); }
   `
 })
 export class CategoryShowcaseSectionComponent implements OnInit {

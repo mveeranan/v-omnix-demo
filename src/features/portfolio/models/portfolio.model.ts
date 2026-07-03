@@ -15,6 +15,24 @@ export interface PortfolioTheme {
   mode?: PortfolioThemeMode;
   /** Fixed design token when omitted from tenant config. */
   borderRadius?: string;
+  /** Secondary accent (badges, sale tags). Falls back to accent when omitted. */
+  secondaryColor?: string;
+  /** Explicit page background — overrides the computed background when set. */
+  backgroundColor?: string;
+  /** Explicit card/panel surface color. */
+  surfaceColor?: string;
+  /** Explicit body text color. */
+  textColor?: string;
+  /** Explicit muted/secondary text color. */
+  mutedTextColor?: string;
+  /** Explicit border/divider color. */
+  borderColor?: string;
+  /** Distinct heading font; falls back to fontFamily. */
+  headingFontFamily?: string;
+  /** "rounded" | "square" | "pill" — button shape. */
+  buttonStyle?: string;
+  /** Raw per-tenant overrides as saved on the server (kept for round-tripping). */
+  overrides?: Record<string, unknown>;
 }
 
 export interface PortfolioHeroSlide {

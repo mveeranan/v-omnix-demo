@@ -25,6 +25,10 @@ export class CatalogStorefrontApiService {
       categorySlug: filters.categorySlug,
       brandSlug: filters.brandSlug,
       tagSlug: filters.tagSlug,
+      q: filters.q,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      sort: filters.sort,
       page: filters.page ?? 1,
       pageSize: filters.pageSize ?? 20
     });

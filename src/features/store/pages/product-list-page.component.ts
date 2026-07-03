@@ -158,6 +158,7 @@ export class ProductListPageComponent implements OnInit {
     { value: 'newest',     label: 'Newest' },
     { value: 'price-asc',  label: 'Price: low → high' },
     { value: 'price-desc', label: 'Price: high → low' },
+    { value: 'name',       label: 'Name A → Z' },
     { value: 'rating',     label: 'Highest rated' },
     { value: 'reviews',    label: 'Most reviews' }
   ];
@@ -182,11 +183,19 @@ export class ProductListPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const category = this.route.snapshot.queryParamMap.get('category');
-    if (category) {
-      this.filters.update((f) => ({ ...f, category }));
-    }
-    this.load();
+    // React to query params so the nav search box (?q=) and category links
+    // work both on first load and while already on this page.
+    this.route.queryParamMap.subscribe((params) => {
+      const category = params.get('category');
+      const q = params.get('q');
+      this.filters.update((f) => ({
+        ...f,
+        category: category ?? f.category,
+        search: q !== null ? q || undefined : f.search,
+        page: 1
+      }));
+      this.load();
+    });
   }
 
   load(): void {

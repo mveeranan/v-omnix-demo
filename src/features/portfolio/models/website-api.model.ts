@@ -13,6 +13,24 @@ export interface WebsiteSectionSaveRequest {
   contentJson: Record<string, unknown>;
 }
 
+/** PUT /website/theme — preset id + per-token overrides saved on BusinessProfile. */
+export interface WebsiteThemeSaveRequest {
+  tenantId: string;
+  presetId?: string | null;
+  /** Token overrides object stored verbatim, e.g. { accentColor: '#fe4c50', borderRadius: '4px' }. */
+  overrides?: Record<string, unknown> | null;
+}
+
+/** Item returned by GET /website/sections. */
+export interface WebsiteSectionListItem {
+  id: string;
+  sectionType: string;
+  enabled: boolean;
+  title?: string | null;
+  displayOrder: number;
+  contentJson: string;
+}
+
 export interface WebsitePublishRequest {
   tenantId: string;
   slug: string;

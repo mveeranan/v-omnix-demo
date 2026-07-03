@@ -10,10 +10,11 @@ export type ProductSortOption =
   | 'newest'
   | 'price-asc'
   | 'price-desc'
+  | 'name'
   | 'rating'
   | 'reviews';
 
-export interface ProductListFilters extends CatalogProductListFilters {
+export interface ProductListFilters extends Omit<CatalogProductListFilters, 'sort'> {
   search?: string;
   category?: string;
   brand?: string;

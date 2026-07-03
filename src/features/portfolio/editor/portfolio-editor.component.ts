@@ -34,6 +34,8 @@ import { StorePreviewComponent } from '../../store/layout/store-preview.componen
 
 import { BrandSectionComponent } from './sections/brand-section.component';
 
+import { ThemeEditorSectionComponent } from './sections/theme-editor-section.component';
+
 import { HeroEditorSectionComponent } from './sections/hero-editor-section.component';
 
 import { CategoryShowcaseEditorSectionComponent } from './sections/category-showcase-editor-section.component';
@@ -79,6 +81,8 @@ type EditorTab = 'content' | 'publish';
     StorePreviewComponent,
 
     BrandSectionComponent,
+
+    ThemeEditorSectionComponent,
 
     HeroEditorSectionComponent,
 

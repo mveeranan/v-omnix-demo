@@ -157,6 +157,11 @@ export const API_ENDPOINTS = {
   website: {
     get: `${base}/website`,
     saveSection: `${base}/website/sections`,
+    listSections: (tenantId: string) => `${base}/website/sections?tenantId=${encodeURIComponent(tenantId)}`,
+    reorderSections: `${base}/website/sections/reorder`,
+    deleteSection: (sectionType: string, tenantId: string) =>
+      `${base}/website/sections/${encodeURIComponent(sectionType)}?tenantId=${encodeURIComponent(tenantId)}`,
+    theme: `${base}/website/theme`,
     publish: `${base}/website/publish`
   },
   newsletter: {

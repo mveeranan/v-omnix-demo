@@ -1,31 +1,37 @@
 @if (portfolio().hero.enabled) {
-  <section class="mox-hero-slider" id="hero" @heroEnter>
+  <section class="msp-hero" id="hero" @heroEnter>
     @for (slide of slides(); track slide.id; let i = $index) {
       <div
-        class="mox-hero-slider__slide"
-        [class.mox-hero-slider__slide--active]="activeIndex() === i"
-        [class.mox-hero-slider__slide--gradient]="!slide.imageUrl.trim()"
+        class="msp-hero__slide"
+        [class.msp-hero__slide--active]="activeIndex() === i"
+        [class.msp-hero__slide--gradient]="!slide.imageUrl.trim()"
         [style.background-image]="slideBackground(slide)"
       ></div>
     }
-    <div class="mox-hero-slider__overlay">
+    <div class="msp-hero__scrim" aria-hidden="true"></div>
+
+    <div class="msp-hero__overlay">
       <div class="container mx-auto px-4 sm:px-6">
-        <div class="mox-hero-slider__content hero-item">
-          <p class="mox-hero__eyebrow">{{ eyebrow() }}</p>
-          <h1 class="mox-hero__title !text-white">{{ activeSlide().headline }}</h1>
+        <div class="msp-hero__content hero-item">
+          <p class="msp-hero__eyebrow">{{ eyebrow() }}</p>
+          <h1 class="msp-hero__title">{{ activeSlide().headline }}</h1>
           @if (activeSlide().subheadline) {
-            <p class="mox-hero__subtitle !text-white/90">{{ activeSlide().subheadline }}</p>
+            <p class="msp-hero__subtitle">{{ activeSlide().subheadline }}</p>
           }
+          <a class="msp-hero__cta" [routerLink]="shopLink()">
+            {{ activeSlide().ctaLabel || 'Shop Now' }}
+          </a>
         </div>
       </div>
     </div>
+
     @if (slides().length > 1) {
-      <div class="mox-hero-slider__dots">
+      <div class="msp-hero__dots">
         @for (slide of slides(); track slide.id; let i = $index) {
           <button
             type="button"
-            class="mox-hero-slider__dot"
-            [class.mox-hero-slider__dot--active]="activeIndex() === i"
+            class="msp-hero__dot"
+            [class.msp-hero__dot--active]="activeIndex() === i"
             (click)="goTo(i)"
             [attr.aria-label]="'Slide ' + (i + 1)"
           ></button>

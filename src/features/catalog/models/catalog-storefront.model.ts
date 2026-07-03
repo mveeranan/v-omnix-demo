@@ -61,10 +61,18 @@ export interface CatalogBrandDto {
   productCount: number;
 }
 
+/** Server-side sort options supported by GET /catalog/{slug}/products. */
+export type CatalogSortOption = 'newest' | 'price-asc' | 'price-desc' | 'name';
+
 export interface CatalogProductListFilters {
   categorySlug?: string;
   brandSlug?: string;
   tagSlug?: string;
+  /** Free-text search over product name, short description and SKU (server-side). */
+  q?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: CatalogSortOption;
   page?: number;
   pageSize?: number;
 }

@@ -95,6 +95,20 @@ function buttonColors(accent: string, pageBg: string): { bg: string; fg: string 
   return { bg, fg };
 }
 
+/** Button corner radius derived from the theme's buttonStyle token. */
+function buttonRadius(buttonStyle: string | undefined, fallbackRadius: string): string {
+  switch ((buttonStyle ?? '').toLowerCase()) {
+    case 'pill':
+      return '999px';
+    case 'square':
+      return '0px';
+    case 'rounded':
+      return fallbackRadius;
+    default:
+      return fallbackRadius;
+  }
+}
+
 export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, string> {
   const mode = theme.mode ?? 'light';
   const borderRadius = theme.borderRadius ?? '0.75rem';
@@ -106,18 +120,24 @@ export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, s
     isLight ? '#2563eb' : '#c4b5fd'
   );
 
-  const bg = isLight
+  // Explicit tokens (from preset/overrides) win over computed values.
+  const computedBg = isLight
     ? mixHex(WHITE, brand, 0.04)
     : luminance(brand) < 0.38
       ? brand
       : mixHex(DARK_BASE, brand, 0.22);
+  const bg = theme.backgroundColor ? normalizeHex(theme.backgroundColor, computedBg) : computedBg;
 
-  const bgAlt = isLight ? mixHex(WHITE, brand, 0.09) : mixHex(bg, PAPER, 0.08);
+  const bgAlt = isLight ? mixHex(bg, brand, 0.05) : mixHex(bg, PAPER, 0.08);
 
-  const text = readableOn(isLight ? brand : PAPER, bg);
-  const textMuted = isLight
+  const computedText = readableOn(isLight ? brand : PAPER, bg);
+  const text = theme.textColor ? normalizeHex(theme.textColor, computedText) : computedText;
+  const computedMuted = isLight
     ? mixHex(text, WHITE, 0.42)
     : mixHex(text, bg, 0.38);
+  const textMuted = theme.mutedTextColor
+    ? normalizeHex(theme.mutedTextColor, computedMuted)
+    : computedMuted;
 
   const heading = readableOn(brand, bg);
   const accentText = readableOn(accent, bg, 0.22);
@@ -134,16 +154,28 @@ export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, s
     : `color-mix(in srgb, ${bg} 78%, transparent)`;
   const glassBorder = `color-mix(in srgb, ${readableOn(accent, bg, 0.18)} 38%, transparent)`;
 
-  const moxSurface = isLight ? WHITE : mixHex(bg, '#1e272c', 0.55);
-  const moxBg = isLight ? mixHex(WHITE, brand, 0.03) : bg;
-  const surfaceElevated = isLight ? WHITE : mixHex(moxSurface, PAPER, 0.06);
+  const computedMoxSurface = isLight ? WHITE : mixHex(bg, '#1e272c', 0.55);
+  const moxSurface = theme.surfaceColor
+    ? normalizeHex(theme.surfaceColor, computedMoxSurface)
+    : computedMoxSurface;
+  const moxBg = theme.backgroundColor ? bg : isLight ? mixHex(WHITE, brand, 0.03) : bg;
+  const surfaceElevated = isLight ? (theme.surfaceColor ? moxSurface : WHITE) : mixHex(moxSurface, PAPER, 0.06);
+
+  const computedBorder = isLight ? '#e0e0e0' : mixHex(bg, PAPER, 0.15);
+  const border = theme.borderColor ? normalizeHex(theme.borderColor, computedBorder) : computedBorder;
+
+  const secondary = theme.secondaryColor ? normalizeHex(theme.secondaryColor, accent) : accent;
+  const headingFont = theme.headingFontFamily?.trim() || "'Poppins', Roboto, sans-serif";
+  const btnRadius = buttonRadius(theme.buttonStyle, borderRadius);
 
   return {
     '--pf-primary': brand,
     '--pf-accent': accent,
     '--pf-accent-text': accentText,
     '--pf-radius': borderRadius,
+    '--pf-btn-radius': btnRadius,
     '--pf-font': theme.fontFamily,
+    '--pf-font-heading': headingFont,
     '--pf-bg': bg,
     '--pf-surface': bg,
     '--pf-surface-alt': bgAlt,
@@ -163,14 +195,16 @@ export function buildPortfolioThemeVars(theme: PortfolioTheme): Record<string, s
     '--pf-nav-border': glassBorder,
     '--mox-primary': brand,
     '--mox-accent': accent,
-    '--mox-sale': accent,
+    '--mox-secondary': secondary,
+    '--mox-sale': secondary,
     '--mox-text': text,
     '--mox-muted': textMuted,
-    '--mox-border': isLight ? '#e0e0e0' : mixHex(bg, PAPER, 0.15),
+    '--mox-border': border,
     '--mox-surface': moxSurface,
     '--mox-bg': moxBg,
     '--mox-radius': borderRadius,
+    '--mox-btn-radius': btnRadius,
     '--mox-font-body': theme.fontFamily,
-    '--mox-font-heading': "'Poppins', Roboto, sans-serif"
+    '--mox-font-heading': headingFont
   };
 }
