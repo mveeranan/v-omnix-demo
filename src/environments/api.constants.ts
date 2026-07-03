@@ -119,7 +119,8 @@ export const API_ENDPOINTS = {
     reviews: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/reviews`,
     feedback: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/feedback`,
     newsletterSubscribe: (tenantSlug: string) =>
-      `${base}/catalog/${encodeURIComponent(tenantSlug)}/newsletter/subscribe`
+      `${base}/catalog/${encodeURIComponent(tenantSlug)}/newsletter/subscribe`,
+    dealOfWeek: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/deal-of-week`
   },
   storeFeedback: {
     list: (tenantId: string) => `${base}/store-feedback?tenantId=${encodeURIComponent(tenantId)}`,
@@ -157,12 +158,12 @@ export const API_ENDPOINTS = {
   website: {
     get: `${base}/website`,
     saveSection: `${base}/website/sections`,
+    publish: `${base}/website/publish`,
     listSections: (tenantId: string) => `${base}/website/sections?tenantId=${encodeURIComponent(tenantId)}`,
     reorderSections: `${base}/website/sections/reorder`,
     deleteSection: (sectionType: string, tenantId: string) =>
       `${base}/website/sections/${encodeURIComponent(sectionType)}?tenantId=${encodeURIComponent(tenantId)}`,
-    theme: `${base}/website/theme`,
-    publish: `${base}/website/publish`
+    theme: `${base}/website/theme`
   },
   newsletter: {
     subscribe: `${base}/newsletter/subscribe`,

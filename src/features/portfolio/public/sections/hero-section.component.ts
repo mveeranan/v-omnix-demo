@@ -38,9 +38,20 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
       background-size: cover;
       background-position: center;
       opacity: 0;
-      transition: opacity 0.7s ease;
+      transform: scale(1);
+      transition: opacity 1.2s ease;
     }
-    .msp-hero__slide--active { opacity: 1; }
+    .msp-hero__slide--active {
+      opacity: 1;
+      animation: msp-hero-kenburns 7s ease-out forwards;
+    }
+    @keyframes msp-hero-kenburns {
+      from { transform: scale(1.08); }
+      to { transform: scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .msp-hero__slide--active { animation: none; }
+    }
     .msp-hero__slide--gradient {
       background: linear-gradient(
         120deg,

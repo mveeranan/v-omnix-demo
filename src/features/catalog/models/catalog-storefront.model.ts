@@ -61,18 +61,17 @@ export interface CatalogBrandDto {
   productCount: number;
 }
 
-/** Server-side sort options supported by GET /catalog/{slug}/products. */
-export type CatalogSortOption = 'newest' | 'price-asc' | 'price-desc' | 'name';
+export type CatalogSortOption = 'newest' | 'price-asc' | 'price-desc' | 'name' | 'bestselling';
 
 export interface CatalogProductListFilters {
   categorySlug?: string;
   brandSlug?: string;
   tagSlug?: string;
-  /** Free-text search over product name, short description and SKU (server-side). */
   q?: string;
   minPrice?: number;
   maxPrice?: number;
   sort?: CatalogSortOption;
+  onSale?: boolean;
   page?: number;
   pageSize?: number;
 }
@@ -82,6 +81,15 @@ export interface CatalogProductListResult {
   total: number;
   page: number;
   pageSize: number;
+  totalPages: number;
+}
+
+export interface CatalogDealOfWeekDto {
+  enabled: boolean;
+  title: string | null;
+  badgeText: string | null;
+  endDateUtc: string | null;
+  product: CatalogProductListItemDto | null;
 }
 
 export function catalogDiscountPercent(product: {

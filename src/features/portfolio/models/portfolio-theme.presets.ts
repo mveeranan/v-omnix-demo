@@ -11,23 +11,23 @@ export const PORTFOLIO_THEME_PRESETS: PortfolioThemePreset[] = [
   {
     id: 'minishop',
     label: 'Minishop Minimal',
-    description: 'Minimal product-first storefront — coral accent, white surfaces',
+    description: 'Minimal product-first storefront — muted gold accent, black ink, pill buttons',
     theme: {
       presetId: 'minishop',
-      primaryColor: '#23232d',
-      accentColor: '#fe4c50',
-      secondaryColor: '#f8b600',
+      primaryColor: '#000000',
+      accentColor: '#dbcc8f',
+      secondaryColor: '#dbcc8f',
       backgroundColor: '#ffffff',
-      surfaceColor: '#fafafa',
-      textColor: '#23232d',
-      mutedTextColor: '#8a8a8a',
+      surfaceColor: '#ffffff',
+      textColor: '#000000',
+      mutedTextColor: '#808080',
       borderColor: '#eaeaea',
       fontFamily: '"Open Sans", system-ui, sans-serif',
-      headingFontFamily: 'Poppins, "Open Sans", sans-serif',
-      borderRadius: '4px',
-      buttonStyle: 'square',
+      headingFontFamily: '"Open Sans", system-ui, sans-serif',
+      borderRadius: '0px',
+      buttonStyle: 'pill',
       mode: 'light',
-      colorScheme: 'rose'
+      colorScheme: 'amber'
     }
   },
   {

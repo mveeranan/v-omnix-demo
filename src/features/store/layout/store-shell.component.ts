@@ -62,6 +62,7 @@ import { Portfolio, PortfolioThemeMode } from '../../portfolio/models/portfolio.
     }
   `,
   styles: `
+    .store-shell { position: relative; }
     .store-shell__main { min-height: 50vh; }
   `
 })

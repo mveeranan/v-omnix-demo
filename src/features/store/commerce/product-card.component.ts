@@ -1,18 +1,16 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, computed, inject, input, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { LucideAngularModule, ShoppingCart, Check } from 'lucide-angular';
+import { Component, computed, inject, input } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { LucideAngularModule, Star } from 'lucide-angular';
 import { CatalogProductListItemDto } from '@features/catalog/models/catalog-storefront.model';
-import {
-  productDiscountPercent,
-  catalogPrimaryImage
-} from '../models/product.model';
+import { productDiscountPercent, catalogPrimaryImage } from '../models/product.model';
 import { CartStateService } from '../data-access/cart-state.service';
 
 /**
- * Minishop-style product card: image-dominant white card, sale badge,
- * hover "Add to Cart" reveal, centered body. All colors come from the
- * store theme CSS variables so tenant themes apply automatically.
+ * Minishop product card: vertical rotated sale badge, 1s image zoom + accent overlay fade,
+ * hover-revealed split "Add to cart" / "Buy now" action bar, 5-star outline row, uppercase title.
+ * All content (name, price, category/brand overline, sale state) comes from CatalogProductListItemDto —
+ * nothing here is hardcoded.
  */
 @Component({
   selector: 'app-product-card',
@@ -20,275 +18,215 @@ import { CartStateService } from '../data-access/cart-state.service';
   imports: [RouterLink, CurrencyPipe, LucideAngularModule],
   template: `
     <article class="msp-card">
-      <div class="msp-card__media-wrap">
+      <a [routerLink]="productLink()" class="msp-card__media" [attr.aria-label]="product().name">
+        <img [src]="imageUrl()" [alt]="product().name" loading="lazy" />
         @if (discount(); as d) {
-          <span class="msp-card__badge">-{{ d }}%</span>
+          <span class="msp-card__badge">{{ d }}% Off</span>
         }
-        <a [routerLink]="productLink()" class="msp-card__media">
-          <img [src]="imageUrl()" [alt]="product().name" loading="lazy" />
-        </a>
-        <button type="button" class="msp-card__add" (click)="addToCart()">
-          <lucide-icon [img]="added() ? checkIcon : cartIcon" class="h-4 w-4" />
-          <span>{{ added() ? 'Added!' : 'Add to Cart' }}</span>
-        </button>
-      </div>
+        <div class="msp-card__actions" (click)="$event.stopPropagation()">
+          <button type="button" class="msp-card__action msp-card__action--cart" (click)="addToCart($event)">
+            Add to cart
+          </button>
+          <button type="button" class="msp-card__action msp-card__action--buy" (click)="buyNow($event)">
+            Buy now
+          </button>
+        </div>
+      </a>
 
       <div class="msp-card__body">
-        @if (product().brandName) {
-          <p class="msp-card__brand">{{ product().brandName }}</p>
+        @if (overline()) {
+          <p class="msp-card__overline">{{ overline() }}</p>
         }
-        <a [routerLink]="productLink()" class="msp-card__title">{{ product().name }}</a>
-        <div class="msp-card__price-row">
-          <span class="msp-card__price">{{ product().price | currency: 'USD' }}</span>
-          @if (product().compareAtPrice && product().compareAtPrice! > product().price) {
-            <span class="msp-card__compare">{{ product().compareAtPrice | currency: 'USD' }}</span>
+        <div class="msp-card__stars" aria-hidden="true">
+          @for (i of stars; track i) {
+            <lucide-icon [img]="starIcon" class="msp-card__star" />
           }
         </div>
-        @if (showQtyControls()) {
-          <div class="msp-card__qty">
-            <button type="button" class="msp-card__qty-btn" (click)="decrement()" [disabled]="qty() <= 1">−</button>
-            <span class="msp-card__qty-val">{{ qty() }}</span>
-            <button type="button" class="msp-card__qty-btn" (click)="increment()">+</button>
-          </div>
-        }
-      </div>
-
-      @if (promoMarquee()) {
-        <div class="msp-card__marquee-wrap" aria-hidden="true">
-          <div class="msp-card__marquee">
-            <span>{{ promoMarquee() }}</span>
-            <span>{{ promoMarquee() }}</span>
-            <span>{{ promoMarquee() }}</span>
-            <span>{{ promoMarquee() }}</span>
-          </div>
+        <a [routerLink]="productLink()" class="msp-card__title">{{ product().name }}</a>
+        <div class="msp-card__price-row">
+          @if (discount()) {
+            <span class="msp-card__compare">{{ product().compareAtPrice | currency: 'USD' }}</span>
+          }
+          <span class="msp-card__price">{{ product().price | currency: 'USD' }}</span>
         </div>
-      }
+      </div>
     </article>
   `,
   styles: `
     .msp-card {
+      position: relative;
       display: flex;
       flex-direction: column;
       background: var(--mox-surface, #fff);
-      border: 1px solid var(--mox-border, #eaeaea);
-      border-radius: var(--mox-radius, 4px);
-      overflow: hidden;
-      transition: box-shadow 0.25s ease, transform 0.25s ease;
+      transition: box-shadow 0.3s ease;
     }
     .msp-card:hover {
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-      transform: translateY(-2px);
+      box-shadow: 0 7px 15px -5px rgba(0, 0, 0, 0.07);
     }
 
-    .msp-card__media-wrap {
+    .msp-card__media {
       position: relative;
+      display: block;
+      aspect-ratio: 1 / 1.1;
       overflow: hidden;
       background: color-mix(in srgb, var(--mox-border, #eaeaea) 30%, var(--mox-surface, #fff));
-    }
-    .msp-card__media {
-      display: block;
-      aspect-ratio: 1 / 1;
     }
     .msp-card__media img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.4s ease;
+      transform: scale(1);
+      transition: transform 1s ease;
     }
     .msp-card:hover .msp-card__media img {
-      transform: scale(1.05);
+      transform: scale(1.1);
+    }
+    .msp-card__media::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--mox-accent, #dbcc8f);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    .msp-card:hover .msp-card__media::after {
+      opacity: 0.12;
     }
 
     .msp-card__badge {
       position: absolute;
-      top: 0.75rem;
-      left: 0.75rem;
+      top: 0;
+      left: 1rem;
       z-index: 2;
-      padding: 0.2rem 0.55rem;
-      font-size: 0.72rem;
+      padding: 0.6rem 0.35rem;
+      background: var(--mox-accent, #dbcc8f);
+      color: #000;
+      font-size: 0.7rem;
       font-weight: 700;
-      letter-spacing: 0.02em;
-      color: #fff;
-      background: var(--mox-sale, var(--mox-accent, #fe4c50));
-      border-radius: var(--mox-btn-radius, 2px);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
     }
 
-    .msp-card__add {
+    .msp-card__actions {
       position: absolute;
       left: 0;
       right: 0;
       bottom: 0;
-      z-index: 2;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 0.7rem 1rem;
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #fff;
-      background: var(--mox-accent, #fe4c50);
-      border: none;
-      cursor: pointer;
       transform: translateY(100%);
       opacity: 0;
-      transition: transform 0.28s ease, opacity 0.28s ease, background 0.2s ease;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      z-index: 2;
     }
-    .msp-card:hover .msp-card__add,
-    .msp-card__add:focus-visible {
+    .msp-card:hover .msp-card__actions {
       transform: translateY(0);
       opacity: 1;
     }
-    .msp-card__add:hover {
-      background: color-mix(in srgb, var(--mox-accent, #fe4c50) 85%, #000);
+    .msp-card__action {
+      flex: 1 1 50%;
+      padding: 0.75rem 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
     }
-    /* Touch devices: always show the add button */
-    @media (hover: none) {
-      .msp-card__add {
-        position: static;
-        transform: none;
-        opacity: 1;
-      }
+    .msp-card__action--cart {
+      background: #000;
+      color: #fff;
+    }
+    .msp-card__action--cart:hover {
+      background: var(--mox-accent, #dbcc8f);
+      color: #000;
+    }
+    .msp-card__action--buy {
+      background: #fff;
+      color: #000;
+    }
+    .msp-card__action--buy:hover {
+      background: var(--mox-accent, #dbcc8f);
     }
 
     .msp-card__body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.3rem;
-      padding: 1rem 0.9rem 1.15rem;
-      text-align: center;
+      padding: 1rem 0.25rem 0;
     }
-    .msp-card__brand {
-      margin: 0;
-      font-size: 0.7rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+    .msp-card__overline {
+      margin: 0 0 0.3rem;
+      font-size: 0.72rem;
       color: var(--mox-muted, #8a8a8a);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .msp-card__stars {
+      display: flex;
+      gap: 0.15rem;
+      margin-bottom: 0.4rem;
+      color: var(--mox-accent, #dbcc8f);
+    }
+    .msp-card__star {
+      width: 0.8rem;
+      height: 0.8rem;
     }
     .msp-card__title {
-      font-family: var(--mox-font-heading, inherit);
-      font-size: 0.95rem;
-      font-weight: 600;
-      line-height: 1.35;
+      display: block;
+      margin: 0 0 0.4rem;
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
       color: var(--mox-text, #23232d);
       text-decoration: none;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
     }
     .msp-card__title:hover {
-      color: var(--mox-accent, #fe4c50);
+      color: var(--mox-accent, #dbcc8f);
     }
     .msp-card__price-row {
       display: flex;
       align-items: baseline;
       gap: 0.5rem;
-      margin-top: 0.15rem;
     }
     .msp-card__price {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 700;
-      color: var(--mox-accent, #fe4c50);
+      color: var(--mox-text, #23232d);
     }
     .msp-card__compare {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: var(--mox-muted, #8a8a8a);
       text-decoration: line-through;
-    }
-
-    .msp-card__qty {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      margin-top: 0.4rem;
-    }
-    .msp-card__qty-btn {
-      width: 1.7rem;
-      height: 1.7rem;
-      display: grid;
-      place-items: center;
-      font-size: 1rem;
-      line-height: 1;
-      color: var(--mox-text, #23232d);
-      background: transparent;
-      border: 1px solid var(--mox-border, #eaeaea);
-      border-radius: var(--mox-btn-radius, 2px);
-      cursor: pointer;
-      transition: border-color 0.2s ease, color 0.2s ease;
-    }
-    .msp-card__qty-btn:hover:not(:disabled) {
-      border-color: var(--mox-accent, #fe4c50);
-      color: var(--mox-accent, #fe4c50);
-    }
-    .msp-card__qty-btn:disabled {
-      opacity: 0.4;
-      cursor: default;
-    }
-    .msp-card__qty-val {
-      min-width: 1.2rem;
-      text-align: center;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--mox-text, #23232d);
-    }
-
-    .msp-card__marquee-wrap {
-      overflow: hidden;
-      border-top: 1px solid var(--mox-border, #eaeaea);
-      background: color-mix(in srgb, var(--mox-accent, #fe4c50) 8%, var(--mox-surface, #fff));
-    }
-    .msp-card__marquee {
-      display: flex;
-      gap: 2rem;
-      padding: 0.35rem 0;
-      white-space: nowrap;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--mox-accent, #fe4c50);
-      animation: msp-marquee 14s linear infinite;
-    }
-    @keyframes msp-marquee {
-      from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
     }
   `
 })
 export class ProductCardComponent {
   readonly product = input.required<CatalogProductListItemDto>();
   readonly storeSlug = input.required<string>();
-  readonly promoMarquee = input('');
-  readonly showQtyControls = input(true);
 
-  readonly cartIcon = ShoppingCart;
-  readonly checkIcon = Check;
+  readonly starIcon = Star;
+  readonly stars = [1, 2, 3, 4, 5];
 
   private readonly cart = inject(CartStateService);
-  readonly qty = signal(1);
-  readonly added = signal(false);
+  private readonly router = inject(Router);
 
   readonly imageUrl = computed(() => catalogPrimaryImage(this.product()));
+  readonly overline = computed(() => this.product().brandName || this.product().tags[0] || '');
   discount = () => productDiscountPercent(this.product());
 
   productLink(): string[] {
     return ['/store', this.storeSlug(), 'products', this.product().slug];
   }
 
-  addToCart(): void {
-    this.cart.addListItem(this.product(), this.qty());
-    this.added.set(true);
-    setTimeout(() => this.added.set(false), 1400);
+  addToCart(event: Event): void {
+    event.preventDefault();
+    this.cart.addListItem(this.product(), 1);
   }
 
-  increment(): void {
-    this.qty.update((q) => q + 1);
-  }
-
-  decrement(): void {
-    this.qty.update((q) => Math.max(1, q - 1));
+  buyNow(event: Event): void {
+    event.preventDefault();
+    this.cart.addListItem(this.product(), 1);
+    this.router.navigate(['/store', this.storeSlug(), 'checkout']);
   }
 }

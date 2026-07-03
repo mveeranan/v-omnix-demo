@@ -22,8 +22,6 @@ import { ProductCardComponent } from './product-card.component';
                 <app-product-card
                   [product]="product"
                   [storeSlug]="storeSlug()"
-                  [promoMarquee]="portfolio().featuredProducts.promoMarqueeText"
-                  [showQtyControls]="portfolio().featuredProducts.showQtyControls"
                 />
               }
             </div>

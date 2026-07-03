@@ -12,13 +12,13 @@
 
     <div class="msp-hero__overlay">
       <div class="container mx-auto px-4 sm:px-6">
-        <div class="msp-hero__content hero-item">
-          <p class="msp-hero__eyebrow">{{ eyebrow() }}</p>
-          <h1 class="msp-hero__title">{{ activeSlide().headline }}</h1>
+        <div class="msp-hero__content">
+          <p class="msp-hero__eyebrow hero-item">{{ eyebrow() }}</p>
+          <h1 class="msp-hero__title hero-item">{{ activeSlide().headline }}</h1>
           @if (activeSlide().subheadline) {
-            <p class="msp-hero__subtitle">{{ activeSlide().subheadline }}</p>
+            <p class="msp-hero__subtitle hero-item">{{ activeSlide().subheadline }}</p>
           }
-          <a class="msp-hero__cta" [routerLink]="shopLink()">
+          <a class="msp-hero__cta hero-item" [routerLink]="shopLink()">
             {{ activeSlide().ctaLabel || 'Shop Now' }}
           </a>
         </div>

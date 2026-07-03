@@ -36,8 +36,6 @@ import { Portfolio } from '../../portfolio/models/portfolio.model';
               <app-product-card
                 [product]="product"
                 [storeSlug]="storeSlug()"
-                [promoMarquee]="promoMarquee()"
-                [showQtyControls]="showQtyControls()"
               />
             }
           </div>

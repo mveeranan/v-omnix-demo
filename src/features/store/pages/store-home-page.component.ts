@@ -1,42 +1,33 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HeroSectionComponent } from '../../portfolio/public/sections/hero-section.component';
-import { AboutSectionComponent } from '../../portfolio/public/sections/about-section.component';
-import { HighlightsSectionComponent } from '../../portfolio/public/sections/highlights-section.component';
+import { GallerySectionComponent } from '../../portfolio/public/sections/gallery-section.component';
 import { ReviewsSectionComponent } from '../../portfolio/public/sections/reviews-section.component';
-import { StatsSectionComponent } from '../../portfolio/public/sections/stats-section.component';
 import { FeaturedProductsSectionComponent } from '../commerce/featured-products-section.component';
-import { ContactSectionComponent } from '../commerce/contact-section.component';
 import { NewArrivalsSectionComponent } from '../commerce/new-arrivals-section.component';
-import { FaqSectionComponent } from '../commerce/faq-section.component';
-import { BrandStripSectionComponent } from '../commerce/brand-strip-section.component';
 import { CategoryShowcaseSectionComponent } from '../commerce/category-showcase-section.component';
-import { PromoStripSectionComponent } from '../commerce/promo-strip-section.component';
-import { StorePoliciesSectionComponent } from '../commerce/store-policies-section.component';
 import { TrustBadgesStripComponent } from '../commerce/trust-badges-strip.component';
-import { PaymentMethodsBarComponent } from '../commerce/payment-methods-bar.component';
+import { DealOfWeekSectionComponent } from '../commerce/deal-of-week-section.component';
 import { StoreContextService } from '../data-access/store-context.service';
 
+/**
+ * Minishop home page — section order matches the reference:
+ * hero -> services strip -> new arrivals -> collections -> deal/featured -> testimonials -> gallery.
+ * Footer is rendered once by the store shell.
+ */
 @Component({
   selector: 'app-store-home-page',
   standalone: true,
   imports: [
     RouterLink,
     HeroSectionComponent,
+    TrustBadgesStripComponent,
+    NewArrivalsSectionComponent,
     CategoryShowcaseSectionComponent,
-    AboutSectionComponent,
+    DealOfWeekSectionComponent,
     FeaturedProductsSectionComponent,
     ReviewsSectionComponent,
-    HighlightsSectionComponent,
-    StatsSectionComponent,
-    ContactSectionComponent,
-    NewArrivalsSectionComponent,
-    FaqSectionComponent,
-    BrandStripSectionComponent,
-    PromoStripSectionComponent,
-    StorePoliciesSectionComponent,
-    TrustBadgesStripComponent,
-    PaymentMethodsBarComponent
+    GallerySectionComponent
   ],
   template: `
     @if (portfolio(); as p) {
@@ -44,15 +35,15 @@ import { StoreContextService } from '../data-access/store-context.service';
         <app-pf-hero-section [portfolio]="p" />
       }
 
+      <app-trust-badges-strip [portfolio]="p" />
+
+      <app-new-arrivals-section [portfolio]="p" [storeSlug]="ctx.slug()" />
+
       @if (p.categoryShowcase.enabled) {
         <app-category-showcase-section [portfolio]="p" [storeSlug]="ctx.slug()" />
       }
 
-      <app-new-arrivals-section [portfolio]="p" [storeSlug]="ctx.slug()" />
-
-      @if (p.storeDescription.enabled) {
-        <app-pf-about-section [portfolio]="p" mode="summary" />
-      }
+      <app-deal-of-week-section />
 
       @if (p.featuredProducts.enabled) {
         <app-featured-products-section
@@ -71,36 +62,8 @@ import { StoreContextService } from '../data-access/store-context.service';
         <app-pf-reviews-section [storeSlug]="ctx.slug()" />
       }
 
-      @if (p.highlights.enabled && p.highlights.items.length) {
-        <app-pf-highlights-section [portfolio]="p" />
-      }
-
-      @if (p.stats.enabled) {
-        <app-pf-stats-section [portfolio]="p" />
-      }
-
-      <app-brand-strip-section [portfolio]="p" />
-
-      <app-faq-section [portfolio]="p" />
-
-      @if (p.contactSupport.enabled) {
-        <app-store-contact-section [portfolio]="p" variant="compact" />
-      }
-
-      @if (p.storePolicies.enabled) {
-        <app-store-policies-section [portfolio]="p" />
-      }
-
-      @if (p.trustBadges.enabled) {
-        <app-trust-badges-strip [portfolio]="p" />
-      }
-
-      @if (p.paymentMethods.enabled) {
-        <app-payment-methods-bar [portfolio]="p" />
-      }
-
-      @if (p.promoStrip.enabled) {
-        <app-promo-strip-section [portfolio]="p" [storeSlug]="ctx.slug()" />
+      @if (p.gallery.length) {
+        <app-pf-gallery-section [portfolio]="p" />
       }
 
       <section class="mox-section border-t" style="border-color: var(--mox-border)">

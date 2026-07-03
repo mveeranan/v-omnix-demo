@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { Portfolio } from '../../portfolio/models/portfolio.model';
 import { CatalogStorefrontApiService } from '@features/catalog/data-access/catalog-storefront-api.service';
 import { CatalogCategoryDto } from '@features/catalog/models/catalog-storefront.model';
+import { ScrollRevealDirective } from '@features/portfolio/shared/directives/scroll-reveal.directive';
 
 // Fallback images shown when a category has no image set
 const CATEGORY_FALLBACKS = [
@@ -25,7 +26,7 @@ interface CategoryCard {
 @Component({
   selector: 'app-category-showcase-section',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, ScrollRevealDirective],
   template: `
     @if (enabled() && categories().length) {
       <section class="msp-cats" id="categories">
@@ -37,20 +38,59 @@ interface CategoryCard {
               <p class="msp-section-head__subtitle">{{ portfolio().categoryShowcase.subtitle }}</p>
             }
           </header>
-          <div class="msp-cats__grid">
-            @for (cat of categories(); track cat.slug) {
+          @if (categories().length >= 3) {
+            <div class="msp-mosaic">
               <a
-                class="msp-cat-card"
+                class="msp-mosaic__tile msp-mosaic__tile--main"
                 [routerLink]="['/store', storeSlug(), 'products']"
-                [queryParams]="{ category: cat.slug }"
+                [queryParams]="{ category: categories()[0].slug }"
+                [style.background-image]="'url(' + categories()[0].imageUrl + ')'"
+                appScrollReveal="slide-right"
               >
-                <span class="msp-cat-card__media">
-                  <img [src]="cat.imageUrl" [alt]="cat.name" loading="lazy" />
-                </span>
-                <span class="msp-cat-card__label">{{ cat.name }}</span>
+                <span class="msp-mosaic__label">{{ categories()[0].name }}</span>
               </a>
-            }
-          </div>
+              <div class="msp-mosaic__stack">
+                <a
+                  class="msp-mosaic__tile msp-mosaic__tile--top"
+                  [routerLink]="['/store', storeSlug(), 'products']"
+                  [queryParams]="{ category: categories()[1].slug }"
+                  [style.background-image]="'url(' + categories()[1].imageUrl + ')'"
+                  appScrollReveal="slide-left"
+                >
+                  <span class="msp-mosaic__label">{{ categories()[1].name }}</span>
+                </a>
+                <div class="msp-mosaic__row">
+                  @for (cat of categories().slice(2, 4); track cat.slug; let i = $index) {
+                    <a
+                      class="msp-mosaic__tile msp-mosaic__tile--half"
+                      [routerLink]="['/store', storeSlug(), 'products']"
+                      [queryParams]="{ category: cat.slug }"
+                      [style.background-image]="'url(' + cat.imageUrl + ')'"
+                      appScrollReveal="scale-in"
+                      [appScrollRevealDelay]="i * 100"
+                    >
+                      <span class="msp-mosaic__label">{{ cat.name }}</span>
+                    </a>
+                  }
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="msp-cats__grid">
+              @for (cat of categories(); track cat.slug) {
+                <a
+                  class="msp-cat-card"
+                  [routerLink]="['/store', storeSlug(), 'products']"
+                  [queryParams]="{ category: cat.slug }"
+                >
+                  <span class="msp-cat-card__media">
+                    <img [src]="cat.imageUrl" [alt]="cat.name" loading="lazy" />
+                  </span>
+                  <span class="msp-cat-card__label">{{ cat.name }}</span>
+                </a>
+              }
+            </div>
+          }
         </div>
       </section>
     }
@@ -133,6 +173,73 @@ interface CategoryCard {
       transition: color 0.2s ease;
     }
     .msp-cat-card:hover .msp-cat-card__label { color: var(--mox-accent, #fe4c50); }
+
+    .msp-mosaic {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    @media (min-width: 900px) {
+      .msp-mosaic { grid-template-columns: 1.6fr 1fr; align-items: stretch; }
+    }
+    .msp-mosaic__stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .msp-mosaic__row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      flex: 1;
+    }
+    .msp-mosaic__tile {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      background-size: cover;
+      background-position: center;
+      overflow: hidden;
+      text-decoration: none;
+      transition: box-shadow 0.3s ease;
+    }
+    .msp-mosaic__tile::after {
+      content: '';
+      position: absolute;
+      inset: -4%;
+      background: inherit;
+      background-size: cover;
+      background-position: center;
+      transform: scale(1);
+      transition: transform 0.6s ease;
+      z-index: -1;
+    }
+    .msp-mosaic__tile:hover::after { transform: scale(1.08); }
+    .msp-mosaic__tile::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.05) 55%);
+      transition: background 0.3s ease;
+    }
+    .msp-mosaic__tile:hover::before { background: rgba(0, 0, 0, 0.4); }
+    .msp-mosaic__label {
+      transition: transform 0.3s ease;
+    }
+    .msp-mosaic__tile:hover .msp-mosaic__label { transform: translateY(-4px); }
+    .msp-mosaic__tile--main { min-height: 22rem; }
+    .msp-mosaic__tile--top { min-height: 10rem; }
+    .msp-mosaic__tile--half { min-height: 10rem; }
+    .msp-mosaic__label {
+      position: relative;
+      z-index: 1;
+      padding: 1.5rem;
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #fff;
+    }
   `
 })
 export class CategoryShowcaseSectionComponent implements OnInit {

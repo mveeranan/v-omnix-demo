@@ -12,14 +12,14 @@ import { SocialLinksComponent } from '@features/portfolio/shared/ui/social-links
   styles: `
     .msp-footer {
       margin-top: 3rem;
-      background: color-mix(in srgb, var(--mox-border, #eaeaea) 24%, var(--mox-surface, #fff));
-      border-top: 1px solid var(--mox-border, #eaeaea);
+      background: var(--mox-primary, #000);
+      border-top: none;
     }
     .msp-footer__grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 2rem;
-      padding: 3rem 0 2.5rem;
+      padding: 7em 0 3rem;
     }
     @media (min-width: 640px) {
       .msp-footer__grid { grid-template-columns: repeat(2, 1fr); }
@@ -33,46 +33,61 @@ import { SocialLinksComponent } from '@features/portfolio/shared/ui/social-links
       font-family: var(--mox-font-heading, inherit);
       font-size: 1.2rem;
       font-weight: 700;
-      color: var(--mox-text, #23232d);
+      color: #fff;
     }
     .msp-footer__tagline {
       margin: 0;
       max-width: 22rem;
       font-size: 0.88rem;
-      line-height: 1.6;
-      color: var(--mox-muted, #8a8a8a);
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.55);
     }
-    .msp-footer__social { margin-top: 1.1rem; }
+    .msp-footer__social {
+      margin-top: 1.3rem;
+      display: flex;
+      gap: 0.6rem;
+    }
+    .msp-footer__social ::ng-deep a {
+      display: grid;
+      place-items: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 999px;
+      background: var(--mox-accent, #dbcc8f);
+      color: #000;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .msp-footer__social ::ng-deep a:hover { transform: translateY(-3px); opacity: 0.85; }
 
     .msp-footer__col { display: flex; flex-direction: column; }
     .msp-footer__title {
-      margin: 0 0 0.9rem;
-      font-size: 0.78rem;
+      margin: 0 0 1.2rem;
+      font-size: 0.8rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--mox-text, #23232d);
+      letter-spacing: 0.15em;
+      color: #fff;
     }
     .msp-footer__link {
-      padding: 0.28rem 0;
-      font-size: 0.88rem;
-      color: var(--mox-muted, #8a8a8a);
+      padding: 0.32rem 0;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.55);
       text-decoration: none;
       transition: color 0.2s ease;
       width: fit-content;
     }
-    .msp-footer__link:hover { color: var(--mox-accent, #fe4c50); }
+    .msp-footer__link:hover { color: var(--mox-accent, #dbcc8f); }
 
     .msp-footer__bar {
-      border-top: 1px solid var(--mox-border, #eaeaea);
-      background: var(--mox-surface, #fff);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      background: var(--mox-primary, #000);
     }
     .msp-footer__copy {
       margin: 0;
-      padding: 1rem 0;
+      padding: 1.5rem 0;
       font-size: 0.8rem;
       text-align: center;
-      color: var(--mox-muted, #8a8a8a);
+      color: rgba(255, 255, 255, 0.5);
     }
   `
 })

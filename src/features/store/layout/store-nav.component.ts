@@ -1,5 +1,6 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, computed, inject, input, signal, HostListener } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Menu, X, ShoppingCart, Moon, Sun, Search } from 'lucide-angular';
 import { Portfolio, PortfolioThemeMode } from '../../portfolio/models/portfolio.model';
@@ -17,7 +18,30 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
   standalone: true,
   imports: [RouterLink, RouterLinkActive, FormsModule, LucideAngularModule, CartDrawerComponent],
   template: `
-    <header class="msp-header store-nav" [class.store-nav--preview]="previewMode()">
+    @if (showTopbar()) {
+      <div class="msp-topbar">
+        <div class="container mx-auto px-6 msp-topbar__inner">
+          <div class="msp-topbar__left">
+            @if (portfolio().contactSupport.phone) {
+              <a [href]="'tel:' + portfolio().contactSupport.phone" class="msp-topbar__item">{{ portfolio().contactSupport.phone }}</a>
+            }
+            @if (portfolio().contactSupport.email) {
+              <a [href]="'mailto:' + portfolio().contactSupport.email" class="msp-topbar__item">{{ portfolio().contactSupport.email }}</a>
+            }
+          </div>
+          <div class="msp-topbar__right">
+            <span class="msp-topbar__item">Free shipping on all orders</span>
+          </div>
+        </div>
+      </div>
+    }
+    <header
+      class="msp-header store-nav"
+      [class.store-nav--preview]="previewMode()"
+      [class.msp-header--overlay]="navPhase() === 'overlay'"
+      [class.msp-header--hidden]="navPhase() === 'hidden'"
+      [class.msp-header--awake]="navPhase() === 'awake'"
+    >
       <div class="container mx-auto px-6">
         <div class="msp-header__inner">
           <a [routerLink]="storeBase()" class="msp-header__brand">
@@ -108,12 +132,78 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
   styles: `
     .store-nav--preview { margin-top: 2rem; }
 
+    .msp-topbar {
+      background: var(--mox-primary, #000);
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .msp-topbar__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 2.4rem;
+      font-size: 0.78rem;
+    }
+    .msp-topbar__left { display: flex; align-items: center; gap: 1.25rem; }
+    .msp-topbar__right { display: none; }
+    @media (min-width: 640px) {
+      .msp-topbar__right { display: block; }
+    }
+    .msp-topbar__item {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    a.msp-topbar__item:hover { color: var(--mox-accent, #dbcc8f); }
+
     .msp-header {
       position: sticky;
       top: 0;
       z-index: 40;
       background: var(--mox-surface, #fff);
       border-bottom: 1px solid var(--mox-border, #eaeaea);
+      transition: background 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* Home page only: transparent bar floating over the hero at page load. */
+    .msp-header--overlay {
+      position: absolute;
+      top: 2.4rem;
+      left: 0;
+      right: 0;
+      background: transparent;
+      border-bottom-color: transparent;
+    }
+    .msp-header--overlay .msp-header__brand,
+    .msp-header--overlay .msp-header__link,
+    .msp-header--overlay .msp-header__icon-btn,
+    .msp-header--overlay .msp-header__search-icon {
+      color: #fff;
+    }
+    .msp-header--overlay .msp-header__search-input {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #fff;
+    }
+    .msp-header--overlay .msp-header__search-input::placeholder { color: rgba(255, 255, 255, 0.7); }
+
+    /* Scrolled past the hero: bar tucks away above the viewport. */
+    .msp-header--hidden {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      transform: translateY(-100%);
+    }
+
+    /* Scrolled further: bar slides back down, solid white, sticky. */
+    .msp-header--awake {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      transform: translateY(0);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     }
     .msp-header__inner {
       display: flex;
@@ -276,6 +366,31 @@ export class StoreNavComponent {
   readonly searchTerm = signal('');
   readonly cartCount = computed(() => this.cartState.summary().itemCount);
 
+  readonly scrollY = signal(typeof window === 'undefined' ? 0 : window.scrollY);
+  readonly currentUrl = signal(this.router.url);
+
+  constructor() {
+    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {
+      this.currentUrl.set(this.router.url);
+      this.scrollY.set(typeof window === 'undefined' ? 0 : window.scrollY);
+    });
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    this.scrollY.set(window.scrollY);
+  }
+
+  readonly isHomeRoute = computed(() => this.currentUrl().split('?')[0] === `/store/${this.storeSlug()}`);
+
+  readonly navPhase = computed((): 'overlay' | 'hidden' | 'awake' | 'static' => {
+    if (!this.isHomeRoute()) return 'static';
+    const y = this.scrollY();
+    if (y < 150) return 'overlay';
+    if (y < 350) return 'hidden';
+    return 'awake';
+  });
+
   readonly navLinks = computed(() => {
     const base = ['/store', this.storeSlug()];
     return [
@@ -287,6 +402,11 @@ export class StoreNavComponent {
 
   storeBase(): string[] {
     return ['/store', this.storeSlug()];
+  }
+
+  showTopbar(): boolean {
+    const p = this.portfolio();
+    return !!(p.contactSupport.phone || p.contactSupport.email);
   }
 
   onSearch(event: Event): void {
