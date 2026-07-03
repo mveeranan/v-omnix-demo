@@ -1,119 +1,255 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Palette } from 'lucide-angular';
-import { CollapsibleSectionCardComponent } from '@features/portfolio/shared/ui/collapsible-section-card.component';
-import { SectionToggleComponent } from '@features/portfolio/shared/ui/section-toggle.component';
+import { LucideAngularModule, Palette } from 'lucide-angular';
+import { AuthService } from '@core/auth/auth.service';
+import { NotificationService } from '@core/notifications/notification.service';
 import { PortfolioStateService } from '../../data-access/portfolio-state.service';
-import { PORTFOLIO_THEME_PRESETS } from '../../models/portfolio-theme.presets';
+import { ThemePresetsService } from '../../data-access/theme-presets.service';
+import { WebsiteApiService } from '../../data-access/website-api.service';
+import { PortfolioTheme } from '../../models/portfolio.model';
+import {
+  ThemeOverrides,
+  extractThemeOverrides,
+  mergeThemeWithPreset
+} from '../../models/theme-preset.model';
+
+interface ColorField {
+  key: keyof ThemeOverrides & keyof PortfolioTheme;
+  label: string;
+}
+
+const COLOR_FIELDS: ColorField[] = [
+  { key: 'accentColor', label: 'Accent (buttons, links)' },
+  { key: 'primaryColor', label: 'Primary (brand)' },
+  { key: 'secondaryColor', label: 'Secondary (sale tags)' },
+  { key: 'backgroundColor', label: 'Page background' },
+  { key: 'surfaceColor', label: 'Card surface' },
+  { key: 'textColor', label: 'Text' },
+  { key: 'mutedTextColor', label: 'Muted text' },
+  { key: 'borderColor', label: 'Borders' }
+];
 
 @Component({
   selector: 'app-theme-editor-section',
   standalone: true,
-  imports: [FormsModule, CollapsibleSectionCardComponent, SectionToggleComponent],
+  imports: [FormsModule, LucideAngularModule],
   template: `
-    <app-collapsible-section-card title="Theme" [icon]="icon">
-      @if (draft(); as d) {
+    <section class="pf-editor-section pf-theme-editor">
+      <header class="pf-editor-section-header">
+        <div class="flex items-center gap-2">
+          <lucide-icon [img]="icon" class="h-5 w-5" />
+          <h3 class="pf-editor-section-title">Theme &amp; Colors</h3>
+        </div>
+        <p class="pf-editor-muted text-sm">
+          Pick a preset, then fine-tune any color. Changes apply to your whole store.
+        </p>
+      </header>
+
+      @if (working(); as theme) {
         <div class="pf-editor-fields">
           <div class="pf-editor-field">
-            <span class="pf-editor-label">Preset</span>
-            <select class="pf-editor-input" [ngModel]="d.theme.presetId" (ngModelChange)="applyPreset($event)">
-              @for (preset of presets; track preset.id) {
-                <option [value]="preset.id">{{ preset.label }}</option>
+            <span class="pf-editor-label">Theme preset</span>
+            <select
+              class="pf-editor-input"
+              [ngModel]="theme.presetId"
+              (ngModelChange)="applyPreset($event)"
+            >
+              @for (preset of presets(); track preset.id) {
+                <option [value]="preset.id">{{ preset.name }}</option>
               }
             </select>
           </div>
-          <div class="pf-editor-field">
-            <span class="pf-editor-label">Primary color</span>
-            <input
-              type="color"
-              class="pf-editor-color-input"
-              [(ngModel)]="d.theme.primaryColor"
-              (ngModelChange)="sync()"
-            />
-          </div>
-          <div class="pf-editor-field">
-            <span class="pf-editor-label">Accent color</span>
-            <input
-              type="color"
-              class="pf-editor-color-input"
-              [(ngModel)]="d.theme.accentColor"
-              (ngModelChange)="sync()"
-            />
-          </div>
-          <div class="pf-editor-field">
-            <span class="pf-editor-label">Border radius</span>
-            <input
-              class="pf-editor-input"
-              [(ngModel)]="d.theme.borderRadius"
-              (ngModelChange)="sync()"
-              placeholder="0.75rem"
-            />
-          </div>
-          <div class="pf-editor-field">
-            <span class="pf-editor-label">Font family</span>
-            <input class="pf-editor-input" [(ngModel)]="d.theme.fontFamily" (ngModelChange)="sync()" />
-          </div>
-          <div class="pf-editor-field">
-            <span class="pf-editor-label">Mode</span>
-            <select class="pf-editor-input" [(ngModel)]="d.theme.mode" (ngModelChange)="sync()">
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </div>
-          <app-section-toggle label="Show stats section" [enabled]="d.stats.enabled" (enabledChange)="setStatsEnabled($event)" />
-          @if (d.stats.enabled) {
-            <div class="pf-editor-fields-grid pf-editor-fields-grid--3">
+
+          <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
+            @for (field of colorFields; track field.key) {
               <div class="pf-editor-field">
-                <span class="pf-editor-label">Total orders</span>
-                <input
-                  type="number"
-                  class="pf-editor-input"
-                  [(ngModel)]="d.stats.totalOrders"
-                  (ngModelChange)="sync()"
-                />
+                <span class="pf-editor-label">{{ field.label }}</span>
+                <div class="flex items-center gap-2">
+                  <input
+                    type="color"
+                    class="pf-theme-swatch"
+                    [ngModel]="colorValue(theme, field.key)"
+                    (ngModelChange)="patch(field.key, $event)"
+                  />
+                  <input
+                    class="pf-editor-input flex-1"
+                    [ngModel]="colorValue(theme, field.key)"
+                    (ngModelChange)="patch(field.key, $event)"
+                    placeholder="#000000"
+                  />
+                </div>
               </div>
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Years in business</span>
-                <input
-                  type="number"
-                  class="pf-editor-input"
-                  [(ngModel)]="d.stats.yearsExperience"
-                  (ngModelChange)="sync()"
-                />
-              </div>
-              <div class="pf-editor-field">
-                <span class="pf-editor-label">Total customers</span>
-                <input
-                  type="number"
-                  class="pf-editor-input"
-                  [(ngModel)]="d.stats.totalCustomers"
-                  (ngModelChange)="sync()"
-                />
-              </div>
+            }
+          </div>
+
+          <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Body font</span>
+              <input
+                class="pf-editor-input"
+                [ngModel]="theme.fontFamily"
+                (ngModelChange)="patch('fontFamily', $event)"
+                placeholder='"Open Sans", sans-serif'
+              />
             </div>
-          }
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Heading font</span>
+              <input
+                class="pf-editor-input"
+                [ngModel]="theme.headingFontFamily ?? ''"
+                (ngModelChange)="patch('headingFontFamily', $event)"
+                placeholder="Poppins, sans-serif"
+              />
+            </div>
+          </div>
+
+          <div class="pf-editor-fields-grid pf-editor-fields-grid--2">
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Corner radius</span>
+              <select
+                class="pf-editor-input"
+                [ngModel]="theme.borderRadius ?? '8px'"
+                (ngModelChange)="patch('borderRadius', $event)"
+              >
+                <option value="0px">Square (0)</option>
+                <option value="4px">Subtle (4px)</option>
+                <option value="8px">Soft (8px)</option>
+                <option value="12px">Round (12px)</option>
+                <option value="16px">Extra round (16px)</option>
+              </select>
+            </div>
+            <div class="pf-editor-field">
+              <span class="pf-editor-label">Button style</span>
+              <select
+                class="pf-editor-input"
+                [ngModel]="theme.buttonStyle ?? 'rounded'"
+                (ngModelChange)="patch('buttonStyle', $event)"
+              >
+                <option value="rounded">Rounded</option>
+                <option value="square">Square</option>
+                <option value="pill">Pill</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button
+              type="button"
+              class="pf-editor-btn pf-editor-btn--primary"
+              [disabled]="saving()"
+              (click)="save()"
+            >
+              {{ saving() ? 'Saving…' : 'Save theme' }}
+            </button>
+            <button
+              type="button"
+              class="pf-editor-btn"
+              [disabled]="saving()"
+              (click)="resetToPreset()"
+            >
+              Reset to preset
+            </button>
+          </div>
         </div>
       }
-    </app-collapsible-section-card>
+    </section>
+  `,
+  styles: `
+    .pf-theme-editor { display: block; }
+    .pf-theme-swatch {
+      inline-size: 2.5rem;
+      block-size: 2.5rem;
+      padding: 0;
+      border: 1px solid var(--mox-border, #e0e0e0);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+    }
   `
 })
 export class ThemeEditorSectionComponent {
   private readonly state = inject(PortfolioStateService);
-  readonly draft = this.state.draft;
+  private readonly themePresets = inject(ThemePresetsService);
+  private readonly websiteApi = inject(WebsiteApiService);
+  private readonly authService = inject(AuthService);
+  private readonly notifications = inject(NotificationService);
+
   readonly icon = Palette;
-  readonly presets = PORTFOLIO_THEME_PRESETS;
+  readonly colorFields = COLOR_FIELDS;
+  readonly saving = signal(false);
 
-  applyPreset(id: string): void {
-    const preset = this.presets.find((p) => p.id === id);
+  /** Local working copy — falls back to the current draft theme. */
+  private readonly localTheme = signal<PortfolioTheme | null>(null);
+  readonly working = computed<PortfolioTheme | null>(
+    () => this.localTheme() ?? this.state.draft()?.theme ?? null
+  );
+
+  readonly presets = computed(() => this.themePresets.getCatalog());
+
+  colorValue(theme: PortfolioTheme, key: ColorField['key']): string {
+    const value = theme[key];
+    return typeof value === 'string' && value ? value : '#000000';
+  }
+
+  patch(key: keyof PortfolioTheme, value: unknown): void {
+    const current = this.working();
+    if (!current) return;
+    this.localTheme.set({ ...current, [key]: value } as PortfolioTheme);
+    this.previewLocally();
+  }
+
+  applyPreset(presetId: string): void {
+    const preset = this.themePresets.findById(presetId);
     if (!preset) return;
-    this.state.patchDraft((p) => ({ ...p, theme: { ...preset.theme } }));
+    this.localTheme.set(mergeThemeWithPreset(preset, null));
+    this.previewLocally();
   }
 
-  setStatsEnabled(enabled: boolean): void {
-    this.state.patchDraft((p) => ({ ...p, stats: { ...p.stats, enabled } }));
+  resetToPreset(): void {
+    const current = this.working();
+    if (!current) return;
+    this.applyPreset(current.presetId);
   }
 
-  sync(): void {
-    this.state.patchDraft((p) => ({ ...p }));
+  save(): void {
+    const theme = this.working();
+    if (!theme) return;
+
+    const tenantId = this.authService.resolveTenantId();
+    if (!tenantId) {
+      this.notifications.error('Could not resolve your workspace. Please sign in again.');
+      return;
+    }
+
+    const preset = this.themePresets.findById(theme.presetId);
+    const overrides = preset ? extractThemeOverrides(theme, preset) : null;
+
+    this.saving.set(true);
+    this.websiteApi
+      .saveTheme({
+        tenantId,
+        presetId: theme.presetId,
+        overrides: (overrides ?? {}) as Record<string, unknown>
+      })
+      .subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.state.applyDraftPartial({
+            theme: { ...theme, overrides: (overrides ?? undefined) as Record<string, unknown> | undefined }
+          });
+          this.notifications.success('Theme saved');
+        },
+        error: (err: Error) => {
+          this.saving.set(false);
+          this.notifications.error(err.message || 'Failed to save theme');
+        }
+      });
+  }
+
+  /** Push the working theme into the draft so the live preview reflects edits immediately. */
+  private previewLocally(): void {
+    const theme = this.localTheme();
+    if (!theme) return;
+    this.state.applyDraftPartial({ theme });
   }
 }

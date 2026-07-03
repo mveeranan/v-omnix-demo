@@ -126,19 +126,19 @@ export function createDefaultWebsitePortfolio(): Portfolio {
     featuredProducts: {
       enabled: true,
       maxCount: 8,
-      productIds: ['p1', 'p2', 'p3', 'p5'],
+      productIds: ['p1', 'p2', 'p3'],
       promoMarqueeText: 'Limited time — free shipping on orders over $50',
       showQtyControls: false
     },
     offerBanner: {
       enabled: true,
-      productIds: ['p1', 'p5']
+      productIds: ['p4', 'p6']
     },
     saleCollection: {
       enabled: true,
       title: 'Biggest offers this week',
       subtitle: 'Save on bestsellers while stock lasts.',
-      productIds: ['p1', 'p3', 'p5', 'p6'],
+      productIds: ['p5', 'p6'],
       maxCount: 4
     },
     lookbook: {

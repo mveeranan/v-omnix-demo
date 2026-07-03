@@ -73,6 +73,36 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
       slug: source.slug,
       published: source.published,
       updatedAt: source.updatedAt,
+      announcementBar: source.announcementBar
+        ? { ...defaults.announcementBar, ...source.announcementBar }
+        : { ...defaults.announcementBar },
+      faq: source.faq
+        ? {
+            ...defaults.faq,
+            ...source.faq,
+            items: (source.faq.items ?? []).map((i: { id?: string; question: string; answer: string; order?: number }) => ({
+              id: i.id ?? crypto.randomUUID(),
+              question: i.question,
+              answer: i.answer,
+              order: i.order ?? 0
+            }))
+          }
+        : { ...defaults.faq },
+      newArrivals: source.newArrivals
+        ? { ...defaults.newArrivals, ...source.newArrivals }
+        : { ...defaults.newArrivals },
+      brandStrip: source.brandStrip
+        ? {
+            ...defaults.brandStrip,
+            ...source.brandStrip,
+            logos: (source.brandStrip.logos ?? []).map((l: { id?: string; name: string; logoUrl: string; order?: number }) => ({
+              id: l.id ?? crypto.randomUUID(),
+              name: l.name,
+              logoUrl: l.logoUrl,
+              order: l.order ?? 0
+            }))
+          }
+        : { ...defaults.brandStrip },
       brand,
       hero: source.hero
         ? {
@@ -137,16 +167,23 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
         enabled: source.team?.enabled ?? defaults.team.enabled,
         members: (source.team?.members ?? []).map((m: PortfolioTeamMember) => ({ ...m }))
       },
-      stats: {
-        ...defaults.stats,
-        ...source.stats,
-        totalOrders:
-          source.stats.totalOrders ??
-          source.stats.ordersCompleted ??
-          source.stats.bookingsCompleted ??
-          0,
-        totalCustomers: source.stats.totalCustomers ?? source.stats.happyCustomers ?? 0
-      },
+      stats: source.stats
+        ? {
+            enabled: source.stats.enabled ?? true,
+            yearsExperience: source.stats.yearsExperience ?? defaults.stats.yearsExperience,
+            happyCustomers: source.stats.happyCustomers ?? defaults.stats.happyCustomers,
+            totalOrders:
+              source.stats.totalOrders ??
+              source.stats.ordersCompleted ??
+              source.stats.bookingsCompleted ??
+              defaults.stats.totalOrders,
+            totalCustomers:
+              source.stats.totalCustomers ??
+              source.stats.happyCustomers ??
+              defaults.stats.totalCustomers,
+            totalProducts: source.stats.totalProducts ?? defaults.stats.totalProducts
+          }
+        : { ...defaults.stats },
       cta: { ...defaults.cta, ...source.cta },
       contact: source.contact ? { ...source.contact } : { ...defaults.contact },
       highlights: source.highlights
@@ -169,6 +206,10 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
       slug: synced.slug,
       published: synced.published,
       updatedAt: synced.updatedAt,
+      announcementBar: { ...synced.announcementBar },
+      faq: { ...synced.faq, items: synced.faq.items.map((i) => ({ ...i })) },
+      newArrivals: { ...synced.newArrivals },
+      brandStrip: { ...synced.brandStrip, logos: synced.brandStrip.logos.map((l) => ({ ...l })) },
       brand: { ...synced.brand },
       hero: { ...synced.hero, slides: synced.hero.slides.map((s) => ({ ...s })) },
       categoryShowcase: {

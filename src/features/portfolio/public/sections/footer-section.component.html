@@ -1,30 +1,46 @@
-<footer class="mox-footer">
+<footer class="msp-footer">
   <div class="container mx-auto px-6">
-    <div class="mox-footer__grid">
-      <div>
-        <p class="mox-footer__title">{{ portfolio().brand.businessName }}</p>
-        <p class="text-sm text-[var(--mox-muted)]">{{ portfolio().brand.tagline }}</p>
-        <div class="mt-4">
-          @if (portfolio().socialSection.enabled) {
+    <div class="msp-footer__grid">
+      <div class="msp-footer__col msp-footer__col--brand">
+        <p class="msp-footer__brand">{{ portfolio().brand.businessName }}</p>
+        @if (portfolio().brand.tagline) {
+          <p class="msp-footer__tagline">{{ portfolio().brand.tagline }}</p>
+        }
+        @if (portfolio().socialSection.enabled) {
+          <div class="msp-footer__social">
             <app-pf-social-links [social]="portfolio().social" variant="footer" />
-          }
-        </div>
+          </div>
+        }
       </div>
-      <div>
-        <p class="mox-footer__title">Shop</p>
-        <a class="mox-footer__link" [routerLink]="storeLink()">All products</a>
-        <a class="mox-footer__link" [routerLink]="storeLink('contact')">Contact</a>
+
+      <div class="msp-footer__col">
+        <p class="msp-footer__title">Shop</p>
+        <a class="msp-footer__link" [routerLink]="storeLink()">Home</a>
+        <a class="msp-footer__link" [routerLink]="storeLink('products')">All products</a>
+        <a class="msp-footer__link" [routerLink]="storeLink('cart')">Cart</a>
       </div>
-      <div>
-        <p class="mox-footer__title">Support</p>
+
+      <div class="msp-footer__col">
+        <p class="msp-footer__title">Information</p>
+        <a class="msp-footer__link" [routerLink]="storeLink('about')">About us</a>
+        <a class="msp-footer__link" [routerLink]="storeLink('contact')">Contact</a>
+      </div>
+
+      <div class="msp-footer__col">
+        <p class="msp-footer__title">Get in touch</p>
         @if (portfolio().contactSupport.email) {
-          <a class="mox-footer__link" [href]="'mailto:' + portfolio().contactSupport.email">{{ portfolio().contactSupport.email }}</a>
+          <a class="msp-footer__link" [href]="'mailto:' + portfolio().contactSupport.email">{{ portfolio().contactSupport.email }}</a>
         }
         @if (portfolio().contactSupport.phone) {
-          <a class="mox-footer__link" [href]="'tel:' + portfolio().contactSupport.phone">{{ portfolio().contactSupport.phone }}</a>
+          <a class="msp-footer__link" [href]="'tel:' + portfolio().contactSupport.phone">{{ portfolio().contactSupport.phone }}</a>
         }
       </div>
     </div>
-    <p class="mox-footer__copy">© {{ currentYear }} {{ portfolio().brand.businessName }}. All rights reserved.</p>
+  </div>
+
+  <div class="msp-footer__bar">
+    <div class="container mx-auto px-6">
+      <p class="msp-footer__copy">© {{ currentYear }} {{ portfolio().brand.businessName }}. All rights reserved.</p>
+    </div>
   </div>
 </footer>

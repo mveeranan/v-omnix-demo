@@ -34,19 +34,11 @@ import { StorePreviewComponent } from '../../store/layout/store-preview.componen
 
 import { BrandSectionComponent } from './sections/brand-section.component';
 
+import { ThemeEditorSectionComponent } from './sections/theme-editor-section.component';
+
 import { HeroEditorSectionComponent } from './sections/hero-editor-section.component';
 
 import { CategoryShowcaseEditorSectionComponent } from './sections/category-showcase-editor-section.component';
-
-import { FeaturedProductsEditorSectionComponent } from './sections/featured-products-section.component';
-
-import { OfferBannerEditorSectionComponent } from './sections/offer-banner-editor-section.component';
-
-import { SaleCollectionEditorSectionComponent } from './sections/sale-collection-editor-section.component';
-
-import { LookbookEditorSectionComponent } from './sections/lookbook-editor-section.component';
-
-import { ReviewsSectionComponent } from './sections/reviews-section.component';
 
 import { StatsEditorSectionComponent } from './sections/stats-editor-section.component';
 
@@ -54,11 +46,17 @@ import { WhyChooseUsSectionComponent } from './sections/why-choose-us-section.co
 
 import { ContactSupportSectionComponent } from './sections/contact-support-section.component';
 
-import { NewsletterEditorSectionComponent } from './sections/newsletter-editor-section.component';
-
 import { SocialSectionComponent } from './sections/social-section.component';
 
 import { PublishEditorPanelComponent } from './sections/publish-editor-panel.component';
+
+import { AnnouncementBarEditorSectionComponent } from './sections/announcement-bar-editor-section.component';
+
+import { FaqEditorSectionComponent } from './sections/faq-editor-section.component';
+
+import { NewArrivalsEditorSectionComponent } from './sections/new-arrivals-editor-section.component';
+
+import { BrandStripEditorSectionComponent } from './sections/brand-strip-editor-section.component';
 
 import { ScrollRevealService } from '@features/portfolio/shared/services/scroll-reveal.service';
 
@@ -84,19 +82,11 @@ type EditorTab = 'content' | 'publish';
 
     BrandSectionComponent,
 
+    ThemeEditorSectionComponent,
+
     HeroEditorSectionComponent,
 
     CategoryShowcaseEditorSectionComponent,
-
-    FeaturedProductsEditorSectionComponent,
-
-    OfferBannerEditorSectionComponent,
-
-    SaleCollectionEditorSectionComponent,
-
-    LookbookEditorSectionComponent,
-
-    ReviewsSectionComponent,
 
     StatsEditorSectionComponent,
 
@@ -104,11 +94,17 @@ type EditorTab = 'content' | 'publish';
 
     ContactSupportSectionComponent,
 
-    NewsletterEditorSectionComponent,
-
     SocialSectionComponent,
 
-    PublishEditorPanelComponent
+    PublishEditorPanelComponent,
+
+    AnnouncementBarEditorSectionComponent,
+
+    FaqEditorSectionComponent,
+
+    NewArrivalsEditorSectionComponent,
+
+    BrandStripEditorSectionComponent
 
   ],
 

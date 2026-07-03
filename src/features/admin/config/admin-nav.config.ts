@@ -16,7 +16,8 @@
   Mail,
   Receipt,
   Percent,
-  SlidersHorizontal
+  SlidersHorizontal,
+  MessageSquareQuote
 } from 'lucide-angular';
 
 export type AdminNavSection = 'overview' | 'operations' | 'business' | 'settings';
@@ -160,6 +161,14 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     description: 'Customer testimonials and product reviews.',
     section: 'business',
     featureKey: 'reviews'
+  },
+  {
+    id: 'feedback',
+    label: 'Feedback',
+    path: 'feedback',
+    icon: MessageSquareQuote,
+    description: 'Customer testimonials shown on your public homepage.',
+    section: 'business'
   },
   {
     id: 'coupons',

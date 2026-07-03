@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CartStateService } from '../data-access/cart-state.service';
 import { CheckoutService, ShippingOption } from '../data-access/checkout.service';
+import { storeCartRoute, storeCheckoutSuccessRoute } from '../utils/store-commerce-route.util';
 import { PaymentMethod } from '../../admin/orders/models/order.model';
 import { CustomerService } from '../../admin/customers/data-access/customer.service';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
@@ -18,8 +19,8 @@ import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
           <h1 class="text-2xl font-semibold">Checkout</h1>
 
           @if (!cart.lineItems().length) {
-            <p class="mt-6 text-[var(--text-secondary)]">Your cart is empty.</p>
-            <a routerLink="/cart" class="admin-section-action-btn mt-4 inline-flex rounded-lg px-4 py-2 text-sm">Back to cart</a>
+            <p class="mt-6 text-[var(--mox-muted)]">Your cart is empty.</p>
+            <a [routerLink]="cartLink()" class="mox-btn mox-btn--primary mt-4 inline-flex text-sm">Back to cart</a>
           } @else {
             <div class="mb-8 flex gap-2">
               @for (label of stepLabels; track label; let i = $index) {
@@ -38,18 +39,18 @@ import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
                 <div class="space-y-4">
                   <h2 class="font-semibold">Shipping address</h2>
                   <div class="grid gap-4 sm:grid-cols-2">
-                    <label class="block space-y-1"><span class="text-sm">First name</span><input class="pf-editor-input w-full" formControlName="firstName" /></label>
-                    <label class="block space-y-1"><span class="text-sm">Last name</span><input class="pf-editor-input w-full" formControlName="lastName" /></label>
+                    <label class="block space-y-1"><span class="text-sm">First name</span><input class="mox-input w-full" formControlName="firstName" /></label>
+                    <label class="block space-y-1"><span class="text-sm">Last name</span><input class="mox-input w-full" formControlName="lastName" /></label>
                   </div>
-                  <label class="block space-y-1"><span class="text-sm">Phone</span><input class="pf-editor-input w-full" formControlName="phone" /></label>
-                  <label class="block space-y-1"><span class="text-sm">Email</span><input class="pf-editor-input w-full" type="email" formControlName="email" /></label>
-                  <label class="block space-y-1"><span class="text-sm">Address</span><input class="pf-editor-input w-full" formControlName="address" /></label>
+                  <label class="block space-y-1"><span class="text-sm">Phone</span><input class="mox-input w-full" formControlName="phone" /></label>
+                  <label class="block space-y-1"><span class="text-sm">Email</span><input class="mox-input w-full" type="email" formControlName="email" /></label>
+                  <label class="block space-y-1"><span class="text-sm">Address</span><input class="mox-input w-full" formControlName="address" /></label>
                   <div class="grid gap-4 sm:grid-cols-3">
-                    <label class="block space-y-1"><span class="text-sm">City</span><input class="pf-editor-input w-full" formControlName="city" /></label>
-                    <label class="block space-y-1"><span class="text-sm">State</span><input class="pf-editor-input w-full" formControlName="state" /></label>
-                    <label class="block space-y-1"><span class="text-sm">ZIP</span><input class="pf-editor-input w-full" formControlName="zip" /></label>
+                    <label class="block space-y-1"><span class="text-sm">City</span><input class="mox-input w-full" formControlName="city" /></label>
+                    <label class="block space-y-1"><span class="text-sm">State</span><input class="mox-input w-full" formControlName="state" /></label>
+                    <label class="block space-y-1"><span class="text-sm">ZIP</span><input class="mox-input w-full" formControlName="zip" /></label>
                   </div>
-                  <label class="block space-y-1"><span class="text-sm">Country</span><input class="pf-editor-input w-full" formControlName="country" /></label>
+                  <label class="block space-y-1"><span class="text-sm">Country</span><input class="mox-input w-full" formControlName="country" /></label>
                 </div>
               }
 
@@ -91,12 +92,12 @@ import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 
               <div class="mt-8 flex flex-wrap gap-3">
                 @if (step() > 1) {
-                  <button type="button" class="admin-action-secondary rounded-lg px-4 py-2 text-sm" (click)="step.set(step() - 1)">Back</button>
+                  <button type="button" class="mox-btn mox-btn--outline text-sm" (click)="step.set(step() - 1)">Back</button>
                 }
                 @if (step() < 4) {
-                  <button type="button" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" (click)="nextStep()">Continue</button>
+                  <button type="button" class="mox-btn mox-btn--primary text-sm" (click)="nextStep()">Continue</button>
                 } @else {
-                  <button type="submit" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm" [disabled]="form.invalid || submitting()">
+                  <button type="submit" class="mox-btn mox-btn--primary text-sm" [disabled]="form.invalid || submitting()">
                     {{ submitting() ? 'Placing order…' : 'Place order' }}
                   </button>
                 }
@@ -165,20 +166,26 @@ export class CheckoutPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    const subtotal = this.cart.summary().subtotal;
     const coupon = sessionStorage.getItem('work-orbit.coupon');
     if (coupon) {
-      this.checkout.validateCoupon(coupon).subscribe((r) => {
-        if (r.valid) this.discount.set(this.cart.summary().subtotal * r.percent);
+      const slug = this.cart.storeSlug() ?? '';
+      this.checkout.validateCoupon(slug, coupon, subtotal).subscribe((r) => {
+        if (r.valid && r.discountValue != null) {
+          const raw = r.discountType === 'Percentage' ? subtotal * (r.discountValue / 100) : r.discountValue;
+          const capped = r.maximumDiscountAmount ? Math.min(raw, r.maximumDiscountAmount) : raw;
+          this.discount.set(capped);
+        }
       });
     }
-    this.checkout.getShippingOptions(this.cart.summary().subtotal).subscribe((opts) => {
+    this.checkout.getShippingOptions(subtotal).subscribe((opts) => {
       this.shippingOptions.set(opts);
       if (opts[0]) {
         this.shippingMethod.set(opts[0].id);
         this.shippingCost.set(opts[0].cost);
       }
     });
-    this.checkout.calculateTax(this.cart.summary().subtotal).subscribe((t) => this.tax.set(t));
+    this.checkout.calculateTax(subtotal).subscribe((t) => this.tax.set(t));
   }
 
   total(): number {
@@ -196,6 +203,10 @@ export class CheckoutPageComponent implements OnInit {
       return;
     }
     this.step.set(Math.min(4, this.step() + 1));
+  }
+
+  cartLink(): string[] {
+    return storeCartRoute(this.cart.storeSlug());
   }
 
   onSubmit(): void {
@@ -222,7 +233,11 @@ export class CheckoutPageComponent implements OnInit {
           discount: this.discount(),
           paymentMethod: this.paymentMethod(),
           shippingMethod: this.shippingMethod(),
-          couponCode: sessionStorage.getItem('work-orbit.coupon') ?? undefined
+          couponCode: sessionStorage.getItem('work-orbit.coupon') ?? undefined,
+          customerFirstName: v.firstName,
+          customerLastName: v.lastName,
+          shippingState: v.state,
+          shippingZip: v.zip
         }
       )
       .subscribe({
@@ -231,7 +246,9 @@ export class CheckoutPageComponent implements OnInit {
           sessionStorage.removeItem('work-orbit.coupon');
           this.cart.clear();
           this.submitting.set(false);
-          void this.router.navigate(['/checkout/success'], { queryParams: { order: result.orderId } });
+          void this.router.navigate(storeCheckoutSuccessRoute(this.cart.storeSlug()), {
+            queryParams: { order: result.orderId }
+          });
         },
         error: () => {
           this.error.set('Payment failed. Please try again or choose a different method.');

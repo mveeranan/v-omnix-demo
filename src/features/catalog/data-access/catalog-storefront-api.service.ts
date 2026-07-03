@@ -2,10 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { API_ENDPOINTS } from '@env/api.constants';
-import { ApiResponse } from '@shared/models/api-response.model';
+import { ApiResponse, PagedResponse } from '@shared/models/api-response.model';
 import {
   CatalogBrandDto,
   CatalogCategoryDto,
+  CatalogDealOfWeekDto,
   CatalogProductDetailDto,
   CatalogProductListFilters,
   CatalogProductListItemDto,
@@ -25,26 +26,38 @@ export class CatalogStorefrontApiService {
       categorySlug: filters.categorySlug,
       brandSlug: filters.brandSlug,
       tagSlug: filters.tagSlug,
+      q: filters.q,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      sort: filters.sort,
+      onSale: filters.onSale,
       page: filters.page ?? 1,
       pageSize: filters.pageSize ?? 20
     });
     return this.http
-      .get<ApiResponse<CatalogProductListItemDto[]>>(
+      .get<PagedResponse<CatalogProductListItemDto>>(
         `${API_ENDPOINTS.catalog.products(tenantSlug)}${qs}`
       )
       .pipe(
         map((response) => {
-          const items = unwrapApiResponse(response);
-          const page = filters.page ?? 1;
-          const pageSize = filters.pageSize ?? 20;
+          if (!response.success) {
+            throw new Error(response.message || 'Request failed');
+          }
           return {
-            items,
-            total: items.length,
-            page,
-            pageSize
+            items: response.data ?? [],
+            total: response.totalRecords,
+            page: response.pageNumber,
+            pageSize: response.pageSize,
+            totalPages: response.totalPages
           } satisfies CatalogProductListResult;
         })
       );
+  }
+
+  getDealOfWeek(tenantSlug: string): Observable<CatalogDealOfWeekDto> {
+    return this.http
+      .get<ApiResponse<CatalogDealOfWeekDto>>(API_ENDPOINTS.catalog.dealOfWeek(tenantSlug))
+      .pipe(map(unwrapApiResponse));
   }
 
   getProduct(tenantSlug: string, slug: string): Observable<CatalogProductDetailDto> {

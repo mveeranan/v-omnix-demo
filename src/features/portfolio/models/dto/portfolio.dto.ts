@@ -202,13 +202,14 @@ export interface PortfolioTeamDto {
 
 export interface PortfolioStatsDto {
   enabled: boolean;
-  bookingsCompleted: number;
-  ordersCompleted?: number;
   yearsExperience: number;
   happyCustomers: number;
-  totalProducts?: number;
-  totalOrders?: number;
-  totalCustomers?: number;
+  totalOrders: number;
+  totalCustomers: number;
+  totalProducts: number;
+  /** Legacy fallback fields — optional for backwards compat. */
+  bookingsCompleted?: number;
+  ordersCompleted?: number;
 }
 
 export interface PortfolioCtaDto {
@@ -232,6 +233,46 @@ export interface PortfolioHighlightsDto {
   enabled: boolean;
   title: string;
   items: (string | PortfolioHighlightItemDto)[];
+}
+
+export interface PortfolioAnnouncementBarDto {
+  enabled: boolean;
+  text: string;
+  bgColor: string;
+  linkLabel: string;
+  linkUrl: string;
+}
+
+export interface PortfolioFaqItemDto {
+  id: string;
+  question: string;
+  answer: string;
+  order: number;
+}
+
+export interface PortfolioFaqDto {
+  enabled: boolean;
+  title: string;
+  items: PortfolioFaqItemDto[];
+}
+
+export interface PortfolioNewArrivalsDto {
+  enabled: boolean;
+  title: string;
+  maxCount: number;
+}
+
+export interface PortfolioBrandLogoDto {
+  id: string;
+  name: string;
+  logoUrl: string;
+  order: number;
+}
+
+export interface PortfolioBrandStripDto {
+  enabled: boolean;
+  title: string;
+  logos: PortfolioBrandLogoDto[];
 }
 
 export interface PortfolioDto {
@@ -266,5 +307,9 @@ export interface PortfolioDto {
   cta: PortfolioCtaDto;
   contact?: PortfolioContactDto;
   highlights?: PortfolioHighlightsDto;
+  announcementBar?: PortfolioAnnouncementBarDto;
+  faq?: PortfolioFaqDto;
+  newArrivals?: PortfolioNewArrivalsDto;
+  brandStrip?: PortfolioBrandStripDto;
   theme: PortfolioThemeDto;
 }

@@ -50,6 +50,7 @@ export interface CatalogCategoryDto {
   id: string;
   name: string;
   slug: string;
+  imageUrl: string | null;
   children: CatalogCategoryDto[];
 }
 
@@ -60,10 +61,17 @@ export interface CatalogBrandDto {
   productCount: number;
 }
 
+export type CatalogSortOption = 'newest' | 'price-asc' | 'price-desc' | 'name' | 'bestselling';
+
 export interface CatalogProductListFilters {
   categorySlug?: string;
   brandSlug?: string;
   tagSlug?: string;
+  q?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: CatalogSortOption;
+  onSale?: boolean;
   page?: number;
   pageSize?: number;
 }
@@ -73,6 +81,15 @@ export interface CatalogProductListResult {
   total: number;
   page: number;
   pageSize: number;
+  totalPages: number;
+}
+
+export interface CatalogDealOfWeekDto {
+  enabled: boolean;
+  title: string | null;
+  badgeText: string | null;
+  endDateUtc: string | null;
+  product: CatalogProductListItemDto | null;
 }
 
 export function catalogDiscountPercent(product: {

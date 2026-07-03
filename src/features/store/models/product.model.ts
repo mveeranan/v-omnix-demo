@@ -2,26 +2,26 @@ import {
   CatalogProductListFilters,
   CatalogProductListItemDto,
   CatalogProductListResult,
-  CatalogProductDetailDto
+  CatalogProductDetailDto,
+  CatalogSortOption
 } from '@features/catalog/models/catalog-storefront.model';
 
-export type ProductSortOption =
-  | 'popular'
-  | 'newest'
-  | 'price-asc'
-  | 'price-desc'
-  | 'rating'
-  | 'reviews';
+/** Matches the backend's CatalogProductListQuery.Sort options exactly — no client-only sort modes. */
+export type ProductSortOption = CatalogSortOption;
 
 export interface ProductListFilters extends CatalogProductListFilters {
+  /** Alias for `q` used by the shop page search box. */
   search?: string;
+  /** Alias for `categorySlug` used by the shop sidebar. */
   category?: string;
+  /** Alias for `brandSlug`. */
   brand?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  sort?: ProductSortOption;
+  /**
+   * Client-only filters kept for the legacy `<app-product-filters>` component
+   * (superseded by `msp-shop-sidebar` on the rebuilt shop page — slated for removal in R6).
+   * Not sent to the API.
+   */
   inStock?: boolean;
-  onSale?: boolean;
   minRating?: number;
 }
 

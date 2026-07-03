@@ -2,15 +2,13 @@
 export type WebsiteSectionId =
   | 'brand'
   | 'hero'
+  | 'announcementBar'
   | 'categoryShowcase'
-  | 'featuredProducts'
-  | 'offerBanner'
-  | 'saleCollection'
-  | 'lookbook'
-  | 'reviews'
+  | 'newArrivals'
   | 'whyChooseUs'
   | 'stats'
-  | 'newsletter'
+  | 'brandStrip'
+  | 'faq'
   | 'contactSupport'
   | 'social'
   | 'theme'
@@ -20,15 +18,13 @@ export type WebsiteSectionId =
 export const WEBSITE_CONTENT_SECTIONS: WebsiteSectionId[] = [
   'brand',
   'hero',
+  'announcementBar',
   'categoryShowcase',
-  'featuredProducts',
-  'offerBanner',
-  'saleCollection',
-  'lookbook',
-  'reviews',
+  'newArrivals',
   'whyChooseUs',
   'stats',
-  'newsletter',
+  'brandStrip',
+  'faq',
   'contactSupport',
   'social'
 ];

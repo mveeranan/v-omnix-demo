@@ -1,16 +1,11 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, delay, map, switchMap } from 'rxjs';
-import { OrderService } from '../../admin/orders/data-access/order.service';
-import { Order, OrderLineItem, PaymentMethod } from '../../admin/orders/models/order.model';
-import { PaymentService } from '../../admin/payments/data-access/payment.service';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 import { SettingsService } from '../../admin/settings/data-access/settings.service';
-import { couponStore } from '../../admin/data-access/coupon.store';
-import {
-  CartLineItem,
-  CheckoutCustomer,
-  CheckoutOrderResult,
-  CheckoutPayload
-} from '../models/cart.model';
+import { API_ENDPOINTS } from '@env/api.constants';
+import { ApiResponse } from '@shared/models/api-response.model';
+import { CartLineItem, CheckoutCustomer, CheckoutOrderResult, CheckoutPayload } from '../models/cart.model';
+import { PaymentMethod } from '../../admin/orders/models/order.model';
 
 export interface CheckoutFormData {
   customer: CheckoutCustomer & {
@@ -33,21 +28,29 @@ export interface ShippingOption {
   days: string;
 }
 
+export interface CouponValidation {
+  valid: boolean;
+  discountType?: string;
+  discountValue?: number;
+  maximumDiscountAmount?: number;
+  message?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CheckoutService {
-  private readonly orderService = inject(OrderService);
-  private readonly paymentService = inject(PaymentService);
+  private readonly http = inject(HttpClient);
   private readonly settingsService = inject(SettingsService);
 
-  validateCoupon(code: string): Observable<{ valid: boolean; percent: number }> {
-    const coupon = couponStore.getByCode(code.trim());
-    if (!coupon?.isActive) {
-      return of({ valid: false, percent: 0 }).pipe(delay(150));
-    }
-    const percent =
-      coupon.discountType === 'Percentage' ? coupon.discountValue / 100 : 0;
-    return of({ valid: percent > 0, percent }).pipe(delay(150));
+  validateCoupon(storeSlug: string, code: string, orderSubtotal: number): Observable<CouponValidation> {
+    return this.http
+      .post<ApiResponse<CouponValidation>>(API_ENDPOINTS.coupons.validate, {
+        storeSlug,
+        code: code.trim(),
+        orderSubtotal
+      })
+      .pipe(map((r) => r.data ?? { valid: false, message: r.message ?? 'Invalid coupon.' }));
   }
+
   getShippingOptions(subtotal: number): Observable<ShippingOption[]> {
     return this.settingsService.getShipping().pipe(
       map((s) => {
@@ -78,64 +81,57 @@ export class CheckoutService {
       paymentMethod: PaymentMethod;
       shippingMethod: string;
       couponCode?: string;
+      customerFirstName?: string;
+      customerLastName?: string;
+      shippingState?: string;
+      shippingZip?: string;
     }
   ): Observable<CheckoutOrderResult> {
-    const orderNumber = `WO-${Math.floor(100000 + Math.random() * 900000)}`;
-    const orderId = `ord-${Date.now()}`;
-    const now = new Date().toISOString();
+    const grandTotal = payload.subtotal + extras.shippingCost + extras.tax - extras.discount;
 
-    const items: OrderLineItem[] = payload.items.map((line) => ({
-      ...line,
-      lineTotal: line.unitPrice * line.quantity
-    }));
-
-    const total = payload.subtotal + extras.shippingCost + extras.tax - extras.discount;
-
-    const order: Order = {
-      id: orderId,
-      orderNumber,
+    const body = {
       storeSlug: payload.storeSlug,
-      customerName: payload.customer.name,
-      customerEmail: payload.customer.email,
-      customerPhone: payload.customer.phone,
-      shippingAddress: payload.customer,
-      items,
-      subtotal: payload.subtotal,
-      shipping: extras.shippingCost,
-      tax: extras.tax,
-      discount: extras.discount,
-      total,
-      currency: payload.currency,
-      status: 'pending',
-      paymentStatus: extras.paymentMethod === 'cod' ? 'pending' : 'paid',
-      paymentMethod: extras.paymentMethod,
-      transactionId: `txn_${Date.now()}`,
-      couponCode: extras.couponCode,
+      firstName: extras.customerFirstName ?? payload.customer.name.split(' ')[0],
+      lastName: extras.customerLastName ?? (payload.customer.name.split(' ').slice(1).join(' ') || ''),
+      email: payload.customer.email,
+      phone: payload.customer.phone,
+      shippingAddress: payload.customer.address,
+      shippingCity: payload.customer.city,
+      shippingState: extras.shippingState,
+      shippingZip: extras.shippingZip,
+      shippingCountry: payload.customer.country,
       shippingMethod: extras.shippingMethod,
-      timeline: [
-        { id: 't1', label: 'Order placed', at: now, completed: true },
-        {
-          id: 't2',
-          label: 'Payment received',
-          at: now,
-          completed: extras.paymentMethod !== 'cod'
-        }
-      ],
-      notes: [],
-      createdAt: now,
-      updatedAt: now
+      paymentMethod: extras.paymentMethod,
+      subtotal: payload.subtotal,
+      taxAmount: extras.tax,
+      discountAmount: extras.discount,
+      shippingAmount: extras.shippingCost,
+      grandTotal,
+      couponCode: extras.couponCode || null,
+      items: payload.items.map((line) => ({
+        productId: line.productId,
+        variantId: line.variantId ?? null,
+        productName: line.productName,
+        sku: null,
+        quantity: line.quantity,
+        unitPrice: line.unitPrice
+      }))
     };
 
-    return this.orderService.createFromCheckout(order).pipe(
-      switchMap((saved) =>
-        this.paymentService.recordFromOrder(saved).pipe(
-          map(() => ({
-            orderId: saved.id,
-            orderNumber: saved.orderNumber,
-            status: saved.status
-          }))
-        )
+    return this.http
+      .post<ApiResponse<{ orderId: string; orderNumber: string; grandTotal: number; status: string }>>(
+        API_ENDPOINTS.orders.create,
+        body
       )
-    );
+      .pipe(
+        map((r) => {
+          if (!r.success || !r.data) throw new Error(r.message ?? 'Could not place order.');
+          return {
+            orderId: r.data.orderId,
+            orderNumber: r.data.orderNumber,
+            status: r.data.status
+          };
+        })
+      );
   }
 }

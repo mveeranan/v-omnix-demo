@@ -107,18 +107,31 @@ export const API_ENDPOINTS = {
       `${base}/products/${encodeURIComponent(productId)}/inventory/${encodeURIComponent(inventoryId)}`,
     deleteInventory: (productId: string, inventoryId: string) =>
       `${base}/products/${encodeURIComponent(productId)}/inventory/${encodeURIComponent(inventoryId)}`,
-    tags: (id: string) => `${base}/products/${encodeURIComponent(id)}/tags`
+    tags: (id: string) => `${base}/products/${encodeURIComponent(id)}/tags`,
+    toggleFeatured: (id: string) => `${base}/products/${encodeURIComponent(id)}/featured`
   },
   catalog: {
     products: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/products`,
     product: (tenantSlug: string, slug: string) =>
       `${base}/catalog/${encodeURIComponent(tenantSlug)}/products/${encodeURIComponent(slug)}`,
     categories: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/categories`,
-    brands: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/brands`
+    brands: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/brands`,
+    reviews: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/reviews`,
+    feedback: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/feedback`,
+    newsletterSubscribe: (tenantSlug: string) =>
+      `${base}/catalog/${encodeURIComponent(tenantSlug)}/newsletter/subscribe`,
+    dealOfWeek: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/deal-of-week`
+  },
+  storeFeedback: {
+    list: (tenantId: string) => `${base}/store-feedback?tenantId=${encodeURIComponent(tenantId)}`,
+    create: `${base}/store-feedback`,
+    update: (id: string) => `${base}/store-feedback/${encodeURIComponent(id)}`,
+    delete: (id: string) => `${base}/store-feedback/${encodeURIComponent(id)}`
   },
   orders: {
     list: `${base}/orders`,
-    get: (id: string) => `${base}/orders/${id}`,
+    get: (id: string) => `${base}/orders/${encodeURIComponent(id)}`,
+    create: `${base}/orders`,
     updateStatus: (id: string) => `${base}/orders/${id}/status`
   },
   returns: {
@@ -145,7 +158,12 @@ export const API_ENDPOINTS = {
   website: {
     get: `${base}/website`,
     saveSection: `${base}/website/sections`,
-    publish: `${base}/website/publish`
+    publish: `${base}/website/publish`,
+    listSections: (tenantId: string) => `${base}/website/sections?tenantId=${encodeURIComponent(tenantId)}`,
+    reorderSections: `${base}/website/sections/reorder`,
+    deleteSection: (sectionType: string, tenantId: string) =>
+      `${base}/website/sections/${encodeURIComponent(sectionType)}?tenantId=${encodeURIComponent(tenantId)}`,
+    theme: `${base}/website/theme`
   },
   newsletter: {
     subscribe: `${base}/newsletter/subscribe`,
@@ -158,7 +176,8 @@ export const API_ENDPOINTS = {
     list: `${base}/coupons`,
     create: `${base}/coupons`,
     update: (id: string) => `${base}/coupons/${id}`,
-    delete: (id: string) => `${base}/coupons/${id}`
+    delete: (id: string) => `${base}/coupons/${id}`,
+    validate: `${base}/coupons/validate`
   },
   reviews: {
     list: `${base}/reviews`,

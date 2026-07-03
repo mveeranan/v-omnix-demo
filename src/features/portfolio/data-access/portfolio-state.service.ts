@@ -110,9 +110,18 @@ export class PortfolioStateService {
 
     const presetId = aggregate.presetId?.trim() || profile?.presetId?.trim();
     if (presetId) {
+      // Resolve preset tokens, then re-apply per-tenant overrides saved on the server
+      // (they arrive on the portfolio theme node as `overrides`).
+      const overrides = merged.theme?.overrides;
+      const resolved = this.themePresets.resolvePortfolioTheme(presetId);
       merged = {
         ...merged,
-        theme: this.themePresets.resolvePortfolioTheme(presetId)
+        theme: {
+          ...resolved,
+          ...((overrides ?? {}) as Partial<typeof resolved>),
+          presetId,
+          overrides
+        }
       };
     }
 

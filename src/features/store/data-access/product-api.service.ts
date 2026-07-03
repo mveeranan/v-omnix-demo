@@ -5,72 +5,50 @@ import {
   CatalogProductDetailDto,
   CatalogProductListItemDto
 } from '@features/catalog/models/catalog-storefront.model';
-import {
-  ProductListFilters,
-  ProductListResult,
-  ProductSortOption,
-  StoreProduct
-} from '../models/product.model';
+import { ProductListFilters, ProductListResult, StoreProduct } from '../models/product.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProductApiService {
   private readonly catalogApi = inject(CatalogStorefrontApiService);
 
+  /**
+   * Server-side filtered/sorted/paged product list. Category and brand facet lists are
+   * fetched alongside for the shop sidebar — they're independent of the current filters
+   * (the full taxonomy is always shown, not just what matches the current query).
+   */
   listByStore(storeSlug: string, filters: ProductListFilters = {}): Observable<ProductListResult> {
     return forkJoin({
       products: this.catalogApi.listProducts(storeSlug, {
         categorySlug: filters.category || filters.categorySlug,
         brandSlug: filters.brand || filters.brandSlug,
         tagSlug: filters.tagSlug,
+        q: filters.search || filters.q,
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        sort: filters.sort,
+        onSale: filters.onSale,
         page: filters.page ?? 1,
         pageSize: filters.pageSize ?? 12
       }),
       categories: this.catalogApi.listCategories(storeSlug),
       brands: this.catalogApi.listBrands(storeSlug)
     }).pipe(
-      map(({ products, categories, brands }) => {
-        let items = [...products.items];
-
-        if (filters.search?.trim()) {
-          const q = filters.search.trim().toLowerCase();
-          items = items.filter(
-            (p) =>
-              p.name.toLowerCase().includes(q) ||
-              (p.shortDescription?.toLowerCase().includes(q) ?? false)
-          );
-        }
-        if (filters.minPrice != null) items = items.filter((p) => p.price >= filters.minPrice!);
-        if (filters.maxPrice != null) items = items.filter((p) => p.price <= filters.maxPrice!);
-        if (filters.onSale) {
-          items = items.filter((p) => p.compareAtPrice != null && p.compareAtPrice > p.price);
-        }
-
-        items = this.sortProducts(items, filters.sort);
-
-        const categoryNames = this.flattenCategoryNames(categories);
-        const brandNames = brands.map((b) => b.name).sort();
-
-        const page = filters.page ?? 1;
-        const pageSize = filters.pageSize ?? 12;
-        const start = (page - 1) * pageSize;
-        const paged = items.slice(start, start + pageSize);
-
-        return {
-          items: paged,
-          total: items.length,
-          page,
-          pageSize,
-          categories: categoryNames,
-          brands: brandNames
-        };
-      })
+      map(({ products, categories, brands }) => ({
+        items: products.items,
+        total: products.total,
+        page: products.page,
+        pageSize: products.pageSize,
+        totalPages: products.totalPages,
+        categories: this.flattenCategoryNames(categories),
+        brands: brands.map((b) => b.name).sort()
+      }))
     );
   }
 
   getFeatured(storeSlug: string, limit = 6): Observable<StoreProduct[]> {
     return this.catalogApi
-      .listProducts(storeSlug, { page: 1, pageSize: limit })
-      .pipe(map((r) => r.items.slice(0, limit)));
+      .listProducts(storeSlug, { page: 1, pageSize: limit, sort: 'newest' })
+      .pipe(map((r) => r.items));
   }
 
   getBySlug(_storeSlug: string, productSlug: string): Observable<CatalogProductDetailDto | null> {
@@ -94,15 +72,10 @@ export class ProductApiService {
   }
 
   searchSuggestions(storeSlug: string, query: string): Observable<string[]> {
-    const q = query.trim().toLowerCase();
+    const q = query.trim();
     if (!q) return of([]);
-    return this.catalogApi.listProducts(storeSlug, { pageSize: 50 }).pipe(
-      map((r) =>
-        r.items
-          .filter((p) => p.name.toLowerCase().includes(q))
-          .map((p) => p.name)
-          .slice(0, 8)
-      )
+    return this.catalogApi.listProducts(storeSlug, { q, pageSize: 8 }).pipe(
+      map((r) => r.items.map((p) => p.name))
     );
   }
 
@@ -118,25 +91,5 @@ export class ProductApiService {
     };
     walk(categories);
     return [...new Set(names)].sort();
-  }
-
-  private sortProducts(
-    items: CatalogProductListItemDto[],
-    sort?: ProductSortOption
-  ): CatalogProductListItemDto[] {
-    const list = [...items];
-    switch (sort) {
-      case 'price-asc':
-        return list.sort((a, b) => a.price - b.price);
-      case 'price-desc':
-        return list.sort((a, b) => b.price - a.price);
-      case 'newest':
-        return list;
-      case 'rating':
-      case 'reviews':
-      case 'popular':
-      default:
-        return list;
-    }
   }
 }

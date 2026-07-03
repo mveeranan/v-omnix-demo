@@ -15,6 +15,24 @@ export interface PortfolioTheme {
   mode?: PortfolioThemeMode;
   /** Fixed design token when omitted from tenant config. */
   borderRadius?: string;
+  /** Secondary accent (badges, sale tags). Falls back to accent when omitted. */
+  secondaryColor?: string;
+  /** Explicit page background — overrides the computed background when set. */
+  backgroundColor?: string;
+  /** Explicit card/panel surface color. */
+  surfaceColor?: string;
+  /** Explicit body text color. */
+  textColor?: string;
+  /** Explicit muted/secondary text color. */
+  mutedTextColor?: string;
+  /** Explicit border/divider color. */
+  borderColor?: string;
+  /** Distinct heading font; falls back to fontFamily. */
+  headingFontFamily?: string;
+  /** "rounded" | "square" | "pill" — button shape. */
+  buttonStyle?: string;
+  /** Raw per-tenant overrides as saved on the server (kept for round-tripping). */
+  overrides?: Record<string, unknown>;
 }
 
 export interface PortfolioHeroSlide {
@@ -190,6 +208,46 @@ export interface PortfolioNewsletter {
   buttonLabel: string;
 }
 
+export interface PortfolioAnnouncementBar {
+  enabled: boolean;
+  text: string;
+  bgColor: string;
+  linkLabel: string;
+  linkUrl: string;
+}
+
+export interface PortfolioFaqItem {
+  id: string;
+  question: string;
+  answer: string;
+  order: number;
+}
+
+export interface PortfolioFaq {
+  enabled: boolean;
+  title: string;
+  items: PortfolioFaqItem[];
+}
+
+export interface PortfolioNewArrivals {
+  enabled: boolean;
+  title: string;
+  maxCount: number;
+}
+
+export interface PortfolioBrandLogo {
+  id: string;
+  name: string;
+  logoUrl: string;
+  order: number;
+}
+
+export interface PortfolioBrandStrip {
+  enabled: boolean;
+  title: string;
+  logos: PortfolioBrandLogo[];
+}
+
 export interface PortfolioHighlightItem {
   text: string;
   iconId: string;
@@ -217,13 +275,15 @@ export interface PortfolioTeam {
 
 export interface PortfolioStats {
   enabled: boolean;
-  bookingsCompleted: number;
-  ordersCompleted?: number;
   yearsExperience: number;
   happyCustomers: number;
-  totalProducts?: number;
-  totalOrders?: number;
-  totalCustomers?: number;
+  totalOrders: number;
+  totalCustomers: number;
+  /** Auto-populated from the live product count — read-only in the editor. */
+  totalProducts: number;
+  /** Legacy fields kept for backwards-compat mapper fallbacks. */
+  bookingsCompleted?: number;
+  ordersCompleted?: number;
 }
 
 export interface PortfolioCta {
@@ -260,6 +320,10 @@ export interface Portfolio {
   slug: string;
   published: boolean;
   updatedAt: string;
+  announcementBar: PortfolioAnnouncementBar;
+  faq: PortfolioFaq;
+  newArrivals: PortfolioNewArrivals;
+  brandStrip: PortfolioBrandStrip;
   brand: PortfolioBrand;
   hero: PortfolioHero;
   categoryShowcase: PortfolioCategoryShowcase;
@@ -296,6 +360,28 @@ export function createEmptyPortfolio(): Portfolio {
     slug: '',
     published: false,
     updatedAt: new Date().toISOString(),
+    announcementBar: {
+      enabled: false,
+      text: '🎉 Free shipping on orders over $50 — Limited time offer!',
+      bgColor: '',
+      linkLabel: 'Shop Now',
+      linkUrl: ''
+    },
+    faq: {
+      enabled: false,
+      title: 'Frequently Asked Questions',
+      items: []
+    },
+    newArrivals: {
+      enabled: true,
+      title: 'New Arrivals',
+      maxCount: 8
+    },
+    brandStrip: {
+      enabled: false,
+      title: 'Trusted Brands',
+      logos: []
+    },
     brand: {
       enabled: true,
       logoUrl: '',
@@ -422,13 +508,11 @@ export function createEmptyPortfolio(): Portfolio {
     team: { enabled: false, members: [] },
     stats: {
       enabled: true,
-      bookingsCompleted: 0,
-      ordersCompleted: 0,
       yearsExperience: 5,
       happyCustomers: 0,
-      totalProducts: 0,
       totalOrders: 0,
-      totalCustomers: 0
+      totalCustomers: 0,
+      totalProducts: 0
     },
     contact: {
       enabled: true,

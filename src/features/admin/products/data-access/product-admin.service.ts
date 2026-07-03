@@ -1,9 +1,12 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, map, of, switchMap } from 'rxjs';
 import { AuthService } from '@core/auth/auth.service';
 import { ProductAdminApiService } from '@features/catalog/data-access/product-admin-api.service';
 import { ProductSaveOrchestrator } from '@features/catalog/data-access/product-save.orchestrator';
 import { requireTenantId } from '@features/catalog/data-access/catalog-api.util';
+import { API_ENDPOINTS } from '@env/api.constants';
+import { ApiResponse } from '@shared/models/api-response.model';
 import {
   BulkUpdateProductStatusResult,
   CreateInventoryRequest,
@@ -24,6 +27,7 @@ export class ProductAdminService {
   private readonly api = inject(ProductAdminApiService);
   private readonly orchestrator = inject(ProductSaveOrchestrator);
   private readonly auth = inject(AuthService);
+  private readonly http = inject(HttpClient);
 
   private tenantId(): string {
     return requireTenantId(this.auth);
@@ -174,5 +178,16 @@ export class ProductAdminService {
       productIds,
       status
     });
+  }
+
+  toggleFeatured(productId: string): Observable<{ productId: string; isFeatured: boolean }> {
+    return this.http
+      .put<ApiResponse<{ productId: string; isFeatured: boolean }>>(
+        API_ENDPOINTS.products.toggleFeatured(productId),
+        { tenantId: this.tenantId(), productId }
+      )
+      .pipe(
+        map((r) => r.data ?? { productId, isFeatured: false })
+      );
   }
 }

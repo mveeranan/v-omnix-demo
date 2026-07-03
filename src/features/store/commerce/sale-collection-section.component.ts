@@ -22,8 +22,6 @@ import { ProductCardComponent } from './product-card.component';
                 <app-product-card
                   [product]="product"
                   [storeSlug]="storeSlug()"
-                  [promoMarquee]="portfolio().featuredProducts.promoMarqueeText"
-                  [showQtyControls]="portfolio().featuredProducts.showQtyControls"
                 />
               }
             </div>
@@ -36,13 +34,15 @@ import { ProductCardComponent } from './product-card.component';
 export class SaleCollectionSectionComponent implements OnInit {
   readonly portfolio = input.required<Portfolio>();
   readonly storeSlug = input.required<string>();
+  /** When set, overrides portfolio.saleCollection.productIds (e.g. after home-page dedup). */
+  readonly productIds = input<string[] | undefined>(undefined);
   private readonly productApi = inject(ProductApiService);
   readonly products = signal<CatalogProductListItemDto[]>([]);
 
   ngOnInit(): void {
     if (!this.portfolio().saleCollection.enabled) return;
     const sc = this.portfolio().saleCollection;
-    const ids = sc.productIds;
+    const ids = this.productIds() ?? sc.productIds;
 
     this.productApi.listByStore(this.storeSlug()).subscribe({
       next: (result) => {

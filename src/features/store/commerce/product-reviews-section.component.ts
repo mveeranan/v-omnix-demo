@@ -8,7 +8,7 @@ import { StarsRatingComponent } from '@shared/ui/stars-rating.component';
   standalone: true,
   imports: [StarsRatingComponent],
   template: `
-    <section class="container mx-auto px-6 pb-16" id="reviews">
+    <section class="mox-section container mx-auto px-6 pb-16" id="reviews">
       <h2 class="pf-heading mb-6 text-xl font-semibold">Customer reviews</h2>
 
       @if (summary()) {
@@ -18,10 +18,10 @@ import { StarsRatingComponent } from '@shared/ui/stars-rating.component';
             @for (star of [5, 4, 3, 2, 1]; track star) {
               <div class="flex items-center gap-2">
                 <span class="w-8">{{ star }}★</span>
-                <div class="h-2 w-32 rounded bg-zinc-200 dark:bg-zinc-800">
-                  <div class="h-full rounded bg-amber-400" [style.width.%]="barPercent(star)"></div>
+                <div class="mox-review-bar h-2 w-32 rounded">
+                  <div class="mox-review-bar__fill h-full rounded bg-amber-400" [style.width.%]="barPercent(star)"></div>
                 </div>
-                <span class="text-[var(--text-muted)]">{{ summary()!.breakdown[star] || 0 }}</span>
+                <span class="text-[var(--mox-muted)]">{{ summary()!.breakdown[star] || 0 }}</span>
               </div>
             }
           </div>
@@ -29,7 +29,7 @@ import { StarsRatingComponent } from '@shared/ui/stars-rating.component';
       }
 
       @if (!reviews().length) {
-        <p class="text-[var(--text-muted)]">No reviews yet.</p>
+        <p class="text-[var(--mox-muted)]">No reviews yet.</p>
       } @else {
         <ul class="space-y-4">
           @for (r of reviews(); track r.id) {
@@ -39,7 +39,7 @@ import { StarsRatingComponent } from '@shared/ui/stars-rating.component';
                 <app-stars-rating [rating]="r.rating" [showValue]="false" />
               </div>
               <p class="mt-2 text-sm leading-relaxed">{{ r.text }}</p>
-              <div class="mt-2 flex flex-wrap gap-3 text-xs text-[var(--text-muted)]">
+              <div class="mt-2 flex flex-wrap gap-3 text-xs text-[var(--mox-muted)]">
                 <span>{{ formatDate(r.createdAt) }}</span>
                 @if (r.verifiedPurchase) {
                   <span class="text-emerald-600">Verified purchase</span>

@@ -8,24 +8,24 @@ import { Order } from '../../admin/orders/models/order.model';
   standalone: true,
   imports: [RouterLink],
   template: `
-    <div class="min-h-screen bg-[var(--bg-primary,#fafafa)] px-6 py-16">
+    <div class="mox-section min-h-[50vh] px-6 py-16">
       <div class="container mx-auto max-w-lg text-center">
-        <div class="admin-glass-card rounded-xl p-8">
+        <div class="mox-card rounded-xl p-8">
           <h1 class="text-2xl font-semibold text-emerald-700">Order confirmed!</h1>
           @if (order()) {
-            <p class="mt-4 text-[var(--text-secondary)]">
+            <p class="mt-4 text-[var(--mox-muted)]">
               Thank you. Your order <strong>{{ order()!.orderNumber }}</strong> has been received.
             </p>
-            <p class="mt-2 text-sm text-[var(--text-muted)]">A confirmation email will be sent shortly.</p>
+            <p class="mt-2 text-sm text-[var(--mox-muted)]">A confirmation email will be sent shortly.</p>
             <p class="mt-4 text-lg font-semibold">{{ format(order()!.total, order()!.currency) }}</p>
           } @else {
-            <p class="mt-4 text-[var(--text-secondary)]">Your order has been placed successfully.</p>
+            <p class="mt-4 text-[var(--mox-muted)]">Your order has been placed successfully.</p>
           }
           <div class="mt-8 flex flex-wrap justify-center gap-3">
             @if (storeSlug()) {
-              <a [routerLink]="['/store', storeSlug(), 'products']" class="admin-section-action-btn rounded-lg px-4 py-2 text-sm">Continue shopping</a>
+              <a [routerLink]="['/store', storeSlug(), 'products']" class="mox-btn mox-btn--primary text-sm">Continue shopping</a>
             }
-            <a routerLink="/home" class="admin-action-secondary rounded-lg px-4 py-2 text-sm">Back to home</a>
+            <a routerLink="/home" class="mox-btn mox-btn--outline text-sm">Back to home</a>
           </div>
         </div>
       </div>

@@ -11,19 +11,17 @@ import {
   Portfolio,
   PortfolioBrand,
   PortfolioCta,
-  PortfolioFeaturedProducts,
   PortfolioCategoryShowcase,
   PortfolioHero,
   PortfolioHighlights,
-  PortfolioLookbook,
-  PortfolioNewsletter,
-  PortfolioOfferBanner,
-  PortfolioReview,
-  PortfolioSaleCollection,
   PortfolioSocial,
   PortfolioStats,
   PortfolioStoreDescription,
-  PortfolioTheme
+  PortfolioTheme,
+  PortfolioAnnouncementBar,
+  PortfolioFaq,
+  PortfolioNewArrivals,
+  PortfolioBrandStrip
 } from '../models/portfolio.model';
 import { PortfolioStateService } from './portfolio-state.service';
 import { WebsiteApiService } from './website-api.service';
@@ -40,9 +38,7 @@ import { HeroSlidePendingUploads } from './hero-slides-portfolio.util';
 import {
   validateBrand,
   validateContactSupport,
-  validateFeaturedProducts,
   validatePublish,
-  validateReviews,
   validateStoreDescription
 } from './website-section.validators';
 
@@ -60,11 +56,6 @@ export interface BrandSectionBuffer {
   storeDescription: PortfolioStoreDescription;
 }
 
-export interface ReviewsSectionBuffer {
-  reviewsSection: Portfolio['reviewsSection'];
-  reviews: PortfolioReview[];
-}
-
 export interface SocialSectionBuffer {
   socialSection: Portfolio['socialSection'];
   social: PortfolioSocial;
@@ -76,28 +67,20 @@ export interface PublishSectionBuffer {
   published: boolean;
 }
 
-export interface LookbookSectionBuffer {
-  lookbook: PortfolioLookbook;
-  gallerySection: Portfolio['gallerySection'];
-  gallery: Portfolio['gallery'];
-}
-
 export type SectionBuffer =
   | BrandSectionBuffer
   | PortfolioHero
   | PortfolioCategoryShowcase
-  | PortfolioFeaturedProducts
-  | PortfolioOfferBanner
-  | PortfolioSaleCollection
-  | LookbookSectionBuffer
-  | ReviewsSectionBuffer
   | PortfolioHighlights
   | PortfolioStats
   | Portfolio['contactSupport']
-  | PortfolioNewsletter
   | SocialSectionBuffer
   | PortfolioTheme
-  | PublishSectionBuffer;
+  | PublishSectionBuffer
+  | PortfolioAnnouncementBar
+  | PortfolioFaq
+  | PortfolioNewArrivals
+  | PortfolioBrandStrip;
 
 const DEFAULT_META: SectionMeta = {
   editing: false,
@@ -456,29 +439,11 @@ export class WebsiteSectionStateService {
       case 'brand': {
         const b = buffer as BrandSectionBuffer;
         const brandValidation = validateBrand(b.brand, b.presetId);
-        if (!brandValidation.valid) {
-          return brandValidation;
-        }
+        if (!brandValidation.valid) return brandValidation;
         return validateStoreDescription(b.storeDescription);
-      }
-      case 'featuredProducts':
-        return validateFeaturedProducts(buffer as PortfolioFeaturedProducts);
-      case 'reviews': {
-        const r = buffer as ReviewsSectionBuffer;
-        return validateReviews(r.reviewsSection, r.reviews);
       }
       case 'contactSupport':
         return validateContactSupport(buffer as Portfolio['contactSupport']);
-      case 'hero':
-      case 'categoryShowcase':
-      case 'offerBanner':
-      case 'saleCollection':
-      case 'lookbook':
-      case 'whyChooseUs':
-      case 'stats':
-      case 'newsletter':
-      case 'social':
-        return { valid: true, errors: [] };
       case 'publish':
         return validatePublish((buffer as PublishSectionBuffer).slug);
       default:
@@ -500,31 +465,12 @@ export class WebsiteSectionStateService {
       }
       case 'categoryShowcase':
         return structuredClone(draft.categoryShowcase);
-      case 'featuredProducts':
-        return structuredClone(draft.featuredProducts);
-      case 'offerBanner':
-        return structuredClone(draft.offerBanner);
-      case 'saleCollection':
-        return structuredClone(draft.saleCollection);
-      case 'lookbook':
-        return {
-          lookbook: structuredClone(draft.lookbook),
-          gallerySection: structuredClone(draft.gallerySection),
-          gallery: structuredClone(draft.gallery)
-        };
-      case 'reviews':
-        return {
-          reviewsSection: structuredClone(draft.reviewsSection),
-          reviews: structuredClone(draft.reviews)
-        };
       case 'whyChooseUs':
         return structuredClone(draft.highlights);
       case 'stats':
         return structuredClone(draft.stats);
       case 'contactSupport':
         return structuredClone(draft.contactSupport);
-      case 'newsletter':
-        return structuredClone(draft.newsletter);
       case 'social':
         return {
           socialSection: structuredClone(draft.socialSection),
@@ -534,6 +480,14 @@ export class WebsiteSectionStateService {
         return structuredClone(draft.theme);
       case 'publish':
         return { slug: draft.slug, cta: structuredClone(draft.cta), published: draft.published };
+      case 'announcementBar':
+        return structuredClone(draft.announcementBar);
+      case 'faq':
+        return structuredClone(draft.faq);
+      case 'newArrivals':
+        return structuredClone(draft.newArrivals);
+      case 'brandStrip':
+        return structuredClone(draft.brandStrip);
       default: {
         const _exhaustive: never = id;
         return _exhaustive;
@@ -557,24 +511,6 @@ export class WebsiteSectionStateService {
         return { hero: buffer as PortfolioHero };
       case 'categoryShowcase':
         return { categoryShowcase: buffer as PortfolioCategoryShowcase };
-      case 'featuredProducts':
-        return { featuredProducts: buffer as PortfolioFeaturedProducts };
-      case 'offerBanner':
-        return { offerBanner: buffer as PortfolioOfferBanner };
-      case 'saleCollection':
-        return { saleCollection: buffer as PortfolioSaleCollection };
-      case 'lookbook': {
-        const lb = buffer as LookbookSectionBuffer;
-        return {
-          lookbook: lb.lookbook,
-          gallerySection: lb.gallerySection,
-          gallery: lb.gallery
-        };
-      }
-      case 'reviews': {
-        const r = buffer as ReviewsSectionBuffer;
-        return { reviewsSection: r.reviewsSection, reviews: r.reviews };
-      }
       case 'whyChooseUs':
         return { highlights: buffer as PortfolioHighlights };
       case 'stats':
@@ -586,8 +522,6 @@ export class WebsiteSectionStateService {
           contact: { ...draft.contact, enabled: cs.enabled, email: cs.email, phone: cs.phone }
         };
       }
-      case 'newsletter':
-        return { newsletter: buffer as PortfolioNewsletter };
       case 'social': {
         const s = buffer as SocialSectionBuffer;
         return { socialSection: s.socialSection, social: s.social };
@@ -598,6 +532,14 @@ export class WebsiteSectionStateService {
         const p = buffer as PublishSectionBuffer;
         return { slug: p.slug, cta: p.cta, published: p.published };
       }
+      case 'announcementBar':
+        return { announcementBar: buffer as PortfolioAnnouncementBar };
+      case 'faq':
+        return { faq: buffer as PortfolioFaq };
+      case 'newArrivals':
+        return { newArrivals: buffer as PortfolioNewArrivals };
+      case 'brandStrip':
+        return { brandStrip: buffer as PortfolioBrandStrip };
       default:
         return {};
     }

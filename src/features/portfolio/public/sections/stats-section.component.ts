@@ -22,13 +22,10 @@ export class StatsSectionComponent {
 
     const s = p.stats;
     return [
-      { label: 'Total products', value: s.totalProducts ?? 0 },
-      {
-        label: 'Orders completed',
-        value: s.totalOrders ?? s.ordersCompleted ?? s.bookingsCompleted ?? 0
-      },
-      { label: 'Total customers', value: s.totalCustomers ?? s.happyCustomers ?? 0 },
-      { label: 'Years in business', value: s.yearsExperience ?? 0 }
+      { label: 'Total products',   value: s.totalProducts },
+      { label: 'Orders completed', value: s.totalOrders },
+      { label: 'Happy customers',  value: s.totalCustomers || s.happyCustomers },
+      { label: 'Years in business', value: s.yearsExperience }
     ];
   });
 }

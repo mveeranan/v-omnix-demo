@@ -31,6 +31,7 @@ import { normalizeSlug } from '../../data-access/website-section.validators';
       title="Publish"
       [icon]="icon"
       [complete]="!!draft()?.published"
+      [alwaysOpen]="true"
     >
       <div view class="admin-detail-view admin-detail-view--rich">
         <app-admin-detail-card [full]="true">

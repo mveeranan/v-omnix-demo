@@ -9,6 +9,28 @@ export interface PortfolioThemePreset {
 
 export const PORTFOLIO_THEME_PRESETS: PortfolioThemePreset[] = [
   {
+    id: 'minishop',
+    label: 'Minishop Minimal',
+    description: 'Minimal product-first storefront — muted gold accent, black ink, pill buttons',
+    theme: {
+      presetId: 'minishop',
+      primaryColor: '#000000',
+      accentColor: '#dbcc8f',
+      secondaryColor: '#dbcc8f',
+      backgroundColor: '#ffffff',
+      surfaceColor: '#ffffff',
+      textColor: '#000000',
+      mutedTextColor: '#808080',
+      borderColor: '#eaeaea',
+      fontFamily: '"Open Sans", system-ui, sans-serif',
+      headingFontFamily: '"Open Sans", system-ui, sans-serif',
+      borderRadius: '0px',
+      buttonStyle: 'pill',
+      mode: 'light',
+      colorScheme: 'amber'
+    }
+  },
+  {
     id: 'mox-ecommerce',
     label: 'Mox E-Commerce',
     description: 'Material-inspired storefront with warm amber accent',
