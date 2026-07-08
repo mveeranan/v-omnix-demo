@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { StoreContextService } from '../data-access/store-context.service';
@@ -178,6 +178,7 @@ export class ProductDetailPageComponent implements OnInit {
   private readonly productApi = inject(ProductApiService);
   private readonly cart = inject(CartStateService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly cdr = inject(ChangeDetectorRef);
   readonly Math = Math;
   readonly variantLabel = variantLabel;
 
@@ -208,11 +209,28 @@ export class ProductDetailPageComponent implements OnInit {
         if (p) {
           this.activeImage.set(catalogPrimaryImage(p));
           this.selectedVariantId.set(p.variants.find((v) => v.stockAvailable > 0)?.id);
-          this.productApi.getRelated(this.ctx.slug(), p).subscribe((items) => this.related.set(items));
+          this.productApi.getRelated(this.ctx.slug(), p).subscribe((items) => {
+            this.related.set(items);
+            this.safeDetectChanges();
+          });
         }
+        this.safeDetectChanges();
       },
-      error: () => this.loading.set(false)
+      error: () => {
+        this.loading.set(false);
+        this.safeDetectChanges();
+      }
     });
+  }
+
+  /**
+   * A same-tick HTTP response can resolve while the component's initial view is
+   * still being created, making a synchronous detectChanges() a no-op (Angular
+   * ignores re-entrant CD on a view that's already mid-check). Deferring to a
+   * microtask guarantees the initial creation pass has finished first.
+   */
+  private safeDetectChanges(): void {
+    queueMicrotask(() => this.cdr.detectChanges());
   }
 
   discount = () => {

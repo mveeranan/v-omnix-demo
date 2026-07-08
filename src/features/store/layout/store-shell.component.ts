@@ -97,6 +97,7 @@ export class StoreShellComponent implements OnInit, OnDestroy {
       this.ctx.loading.set(false);
       return;
     }
+
     this.ctx.load(slug);
   }
 
@@ -113,7 +114,7 @@ export class StoreShellComponent implements OnInit, OnDestroy {
 
   shellClass(p: Portfolio): string {
     const mode = this.resolvedMode(p);
-    return `pf-root store-shell mox-theme ${moxSchemeClass(p.theme.colorScheme)} ${mode === 'dark' ? 'pf-dark' : 'pf-light'}`;
+    return `pf-root store-shell mox-theme ${this.moxSchemeClass(p.theme.colorScheme)} ${mode === 'dark' ? 'pf-dark' : 'pf-light'}`;
   }
 
   themeStyles(p: Portfolio): Record<string, string> {

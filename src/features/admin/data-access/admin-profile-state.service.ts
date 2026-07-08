@@ -1,4 +1,4 @@
-﻿import { computed, effect, Injectable, inject, signal, untracked } from '@angular/core';
+import { computed, effect, Injectable, inject, signal, untracked } from '@angular/core';
 import { EMPTY, Observable, map, switchMap, tap } from 'rxjs';
 import { PortfolioTenantStateService } from '../../portfolio/data-access/portfolio-tenant-state.service';
 import { AuthService } from '@core/auth/auth.service';

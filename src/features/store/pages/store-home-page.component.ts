@@ -11,9 +11,9 @@ import { DealOfWeekSectionComponent } from '../commerce/deal-of-week-section.com
 import { StoreContextService } from '../data-access/store-context.service';
 
 /**
- * Minishop home page — section order matches the reference:
- * hero -> services strip -> new arrivals -> collections -> deal/featured -> testimonials -> gallery.
- * Footer is rendered once by the store shell.
+ * Store home page — hero -> trust strip -> new arrivals -> categories ->
+ * deal of week -> featured products -> reviews -> gallery -> shop CTA.
+ * One design, wired entirely to real portfolio/catalog data.
  */
 @Component({
   selector: 'app-store-home-page',

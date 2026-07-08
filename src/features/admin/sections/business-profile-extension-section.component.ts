@@ -12,7 +12,7 @@ import {
   canPublishProfile
 } from '../models/business-profile-extension.model';
 
-type ProfileTab = 'branding' | 'store' | 'seo';
+type ProfileTab = 'branding' | 'store';
 
 @Component({
   selector: 'app-business-profile-extension-section',
@@ -94,27 +94,6 @@ type ProfileTab = 'branding' | 'store' | 'seo';
       </section>
     }
 
-    @if (activeTab() === 'seo') {
-      <section class="admin-glass-card space-y-4 rounded-xl p-6">
-        <h3 class="font-semibold">SEO</h3>
-        <p class="text-sm text-[var(--text-secondary)]">Search and domain settings</p>
-        <form [formGroup]="seoForm" class="pf-editor-fields max-w-xl" (ngSubmit)="saveSeo()">
-          <div class="pf-editor-field">
-            <span class="pf-editor-label">Meta title</span>
-            <input class="pf-editor-input" formControlName="metaTitle" maxlength="70" />
-          </div>
-          <div class="pf-editor-field">
-            <span class="pf-editor-label">Meta description</span>
-            <textarea class="pf-editor-input pf-editor-textarea" formControlName="metaDescription" rows="3" maxlength="160"></textarea>
-          </div>
-          <div class="pf-editor-field">
-            <span class="pf-editor-label">Custom domain</span>
-            <input class="pf-editor-input" formControlName="customDomain" placeholder="shop.example.com" />
-          </div>
-          <button type="submit" class="admin-section-action-btn">Save SEO</button>
-        </form>
-      </section>
-    }
   `
 })
 export class BusinessProfileExtensionSectionComponent implements OnInit {
@@ -128,8 +107,7 @@ export class BusinessProfileExtensionSectionComponent implements OnInit {
   readonly activeTab = signal<ProfileTab>('branding');
   readonly tabs = [
     { id: 'branding' as const, label: 'Branding' },
-    { id: 'store' as const, label: 'Store URL' },
-    { id: 'seo' as const, label: 'SEO' }
+    { id: 'store' as const, label: 'Store URL' }
   ];
 
   private ext: BusinessProfileExtension = {
@@ -158,11 +136,6 @@ export class BusinessProfileExtensionSectionComponent implements OnInit {
     isActive: [true]
   });
 
-  readonly seoForm = this.fb.nonNullable.group({
-    metaTitle: [''],
-    metaDescription: [''],
-    customDomain: ['']
-  });
 
   ngOnInit(): void {
     this.loadExt();
@@ -176,9 +149,6 @@ export class BusinessProfileExtensionSectionComponent implements OnInit {
     return Boolean(this.ext.businessSlug.trim() && this.ext.isPublished);
   }
 
-  seoComplete(): boolean {
-    return Boolean(this.ext.metaTitle.trim() || this.ext.metaDescription.trim());
-  }
 
   canPublish(): boolean {
     return canPublishProfile(this.profileState.profile()?.businessName, this.ext);
@@ -208,10 +178,6 @@ export class BusinessProfileExtensionSectionComponent implements OnInit {
     this.notifications.success('Store settings saved');
   }
 
-  saveSeo(): void {
-    this.mergeAndSave({ ...this.seoForm.getRawValue() });
-    this.notifications.success('SEO settings saved');
-  }
 
   private loadExt(): void {
     const tenantId = this.authService.resolveTenantId() ?? '';
@@ -226,11 +192,6 @@ export class BusinessProfileExtensionSectionComponent implements OnInit {
       isPublished: this.ext.isPublished,
       enableEcommerce: this.ext.enableEcommerce,
       isActive: this.ext.isActive
-    });
-    this.seoForm.patchValue({
-      metaTitle: this.ext.metaTitle,
-      metaDescription: this.ext.metaDescription,
-      customDomain: this.ext.customDomain
     });
   }
 

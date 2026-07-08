@@ -34,15 +34,9 @@ import { StorePreviewComponent } from '../../store/layout/store-preview.componen
 
 import { BrandSectionComponent } from './sections/brand-section.component';
 
-import { ThemeEditorSectionComponent } from './sections/theme-editor-section.component';
-
 import { HeroEditorSectionComponent } from './sections/hero-editor-section.component';
 
 import { CategoryShowcaseEditorSectionComponent } from './sections/category-showcase-editor-section.component';
-
-import { StatsEditorSectionComponent } from './sections/stats-editor-section.component';
-
-import { WhyChooseUsSectionComponent } from './sections/why-choose-us-section.component';
 
 import { ContactSupportSectionComponent } from './sections/contact-support-section.component';
 
@@ -52,11 +46,7 @@ import { PublishEditorPanelComponent } from './sections/publish-editor-panel.com
 
 import { AnnouncementBarEditorSectionComponent } from './sections/announcement-bar-editor-section.component';
 
-import { FaqEditorSectionComponent } from './sections/faq-editor-section.component';
-
 import { NewArrivalsEditorSectionComponent } from './sections/new-arrivals-editor-section.component';
-
-import { BrandStripEditorSectionComponent } from './sections/brand-strip-editor-section.component';
 
 import { ScrollRevealService } from '@features/portfolio/shared/services/scroll-reveal.service';
 
@@ -82,15 +72,9 @@ type EditorTab = 'content' | 'publish';
 
     BrandSectionComponent,
 
-    ThemeEditorSectionComponent,
-
     HeroEditorSectionComponent,
 
     CategoryShowcaseEditorSectionComponent,
-
-    StatsEditorSectionComponent,
-
-    WhyChooseUsSectionComponent,
 
     ContactSupportSectionComponent,
 
@@ -100,11 +84,7 @@ type EditorTab = 'content' | 'publish';
 
     AnnouncementBarEditorSectionComponent,
 
-    FaqEditorSectionComponent,
-
-    NewArrivalsEditorSectionComponent,
-
-    BrandStripEditorSectionComponent
+    NewArrivalsEditorSectionComponent
 
   ],
 

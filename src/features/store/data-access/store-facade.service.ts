@@ -96,37 +96,8 @@ export class StoreFacadeService {
   }
 
   private applyCommerceDefaults(portfolio: Portfolio): Portfolio {
-    const highlights =
-      portfolio.highlights.items.length > 0
-        ? portfolio.highlights
-        : {
-            ...portfolio.highlights,
-            title: 'Why choose us',
-            items: [
-              { text: 'Authentic Products', iconId: 'sparkles' },
-              { text: 'Fast Delivery', iconId: 'truck' },
-              { text: 'Secure Payments', iconId: 'shield' },
-              { text: 'Customer Support', iconId: 'heart' }
-            ]
-          };
-
-    return {
-      ...portfolio,
-      cta: {
-        ...portfolio.cta,
-        label: portfolio.cta.label === 'Book now' ? 'Shop Now' : portfolio.cta.label || 'Shop Now',
-        type: portfolio.cta.type === 'whatsapp' ? 'internal' : portfolio.cta.type
-      },
-      highlights,
-      team: { ...portfolio.team, enabled: false },
-      stats: {
-        ...portfolio.stats,
-        totalProducts:  portfolio.stats.totalProducts,
-        totalOrders:    portfolio.stats.totalOrders,
-        totalCustomers: portfolio.stats.totalCustomers || portfolio.stats.happyCustomers,
-        happyCustomers: portfolio.stats.happyCustomers,
-        yearsExperience: portfolio.stats.yearsExperience
-      }
-    };
+    // For commerce stores, we keep the portfolio as-is.
+    // Commerce-specific defaults (trust badges, etc.) are handled by the backend.
+    return portfolio;
   }
 }

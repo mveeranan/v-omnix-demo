@@ -96,20 +96,20 @@ interface CategoryCard {
     }
   `,
   styles: `
-    .msp-cats { padding: 4rem 0; background: var(--mox-bg, #fff); }
+    .msp-cats { padding: 4.5rem 0; background: var(--mox-bg, #fff); }
 
     .msp-section-head {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 0.6rem;
-      margin-bottom: 2.5rem;
+      margin-bottom: 2.75rem;
       text-align: center;
     }
     .msp-section-head__title {
       margin: 0;
       font-family: var(--mox-font-heading, inherit);
-      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-size: clamp(1.6rem, 3.2vw, 2.1rem);
       font-weight: 700;
       color: var(--mox-text, #23232d);
     }
