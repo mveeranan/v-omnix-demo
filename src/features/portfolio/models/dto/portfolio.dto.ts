@@ -275,14 +275,23 @@ export interface PortfolioBrandStripDto {
   logos: PortfolioBrandLogoDto[];
 }
 
+export interface PortfolioDealOfWeekDto {
+  enabled: boolean;
+  productId?: string;
+  headline?: string;
+  endDate?: string;
+}
+
 export interface PortfolioDto {
   id: string;
   slug: string;
   published: boolean;
   updatedAt: string;
+  activeTemplate?: 'minishop' | 'boutique' | 'marketplace';
   brand: PortfolioBrandDto;
   hero?: PortfolioHeroDto;
   categoryShowcase?: PortfolioCategoryShowcaseDto;
+  dealOfWeek?: PortfolioDealOfWeekDto;
   lookbook?: PortfolioLookbookDto;
   promoStrip?: PortfolioPromoStripDto;
   offerBanner?: PortfolioOfferBannerDto;

@@ -73,6 +73,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
       slug: source.slug,
       published: source.published,
       updatedAt: source.updatedAt,
+      activeTemplate: source.activeTemplate ?? 'minishop',
       announcementBar: source.announcementBar
         ? { ...defaults.announcementBar, ...source.announcementBar }
         : { ...defaults.announcementBar },
@@ -123,6 +124,9 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
             categoryNames: [...source.categoryShowcase.categoryNames]
           }
         : { ...defaults.categoryShowcase },
+      dealOfWeek: source.dealOfWeek
+        ? { ...defaults.dealOfWeek, ...source.dealOfWeek }
+        : { ...defaults.dealOfWeek },
       lookbook: source.lookbook ? { ...defaults.lookbook, ...source.lookbook } : { ...defaults.lookbook },
       promoStrip: source.promoStrip ? { ...defaults.promoStrip, ...source.promoStrip } : { ...defaults.promoStrip },
       offerBanner: source.offerBanner
@@ -206,6 +210,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
       slug: synced.slug,
       published: synced.published,
       updatedAt: synced.updatedAt,
+      activeTemplate: synced.activeTemplate,
       announcementBar: { ...synced.announcementBar },
       faq: { ...synced.faq, items: synced.faq.items.map((i) => ({ ...i })) },
       newArrivals: { ...synced.newArrivals },
@@ -216,6 +221,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
         ...synced.categoryShowcase,
         categoryNames: [...synced.categoryShowcase.categoryNames]
       },
+      dealOfWeek: { ...synced.dealOfWeek },
       lookbook: { ...synced.lookbook },
       promoStrip: { ...synced.promoStrip },
       offerBanner: { ...synced.offerBanner, productIds: [...synced.offerBanner.productIds] },

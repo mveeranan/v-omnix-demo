@@ -169,6 +169,13 @@ export interface PortfolioFeaturedProducts {
   showQtyControls: boolean;
 }
 
+export interface PortfolioDealOfWeek {
+  enabled: boolean;
+  productId?: string;
+  headline?: string;
+  endDate?: string;
+}
+
 export interface PortfolioStorePolicies {
   enabled: boolean;
   returnPolicy: string;
@@ -319,38 +326,51 @@ export interface Portfolio {
   id: string;
   slug: string;
   published: boolean;
+  publishedAt?: string;
   updatedAt: string;
-  announcementBar: PortfolioAnnouncementBar;
-  faq: PortfolioFaq;
-  newArrivals: PortfolioNewArrivals;
-  brandStrip: PortfolioBrandStrip;
+  activeTemplate: 'minishop' | 'boutique' | 'marketplace';
+
+  // Brand information
   brand: PortfolioBrand;
+
+  // Theme configuration
+  theme: PortfolioTheme;
+
+  // Website sections
+  announcementBar: PortfolioAnnouncementBar;
   hero: PortfolioHero;
+  trustBadges: PortfolioTrustBadges;
+  newArrivals: PortfolioNewArrivals;
   categoryShowcase: PortfolioCategoryShowcase;
+  dealOfWeek: PortfolioDealOfWeek;
+  featuredProducts: PortfolioFeaturedProducts;
+  reviewsSection: PortfolioReviewsSection;
+  reviews: PortfolioReview[];
+  gallerySection: PortfolioGallerySection;
+  gallery: PortfolioGalleryItem[];
+  newsletter: PortfolioNewsletter;
+  contactSupport: PortfolioContactSupport;
+  social: PortfolioSocial;
+
+  // Additional sections (kept for backward compatibility)
+  faq: PortfolioFaq;
+  brandStrip: PortfolioBrandStrip;
   lookbook: PortfolioLookbook;
   promoStrip: PortfolioPromoStrip;
   offerBanner: PortfolioOfferBanner;
   saleCollection: PortfolioSaleCollection;
   storeDescription: PortfolioStoreDescription;
-  gallerySection: PortfolioGallerySection;
-  gallery: PortfolioGalleryItem[];
-  featuredProducts: PortfolioFeaturedProducts;
-  reviewsSection: PortfolioReviewsSection;
-  reviews: PortfolioReview[];
-  contactSupport: PortfolioContactSupport;
   paymentMethods: PortfolioPaymentMethods;
   storePolicies: PortfolioStorePolicies;
-  trustBadges: PortfolioTrustBadges;
-  newsletter: PortfolioNewsletter;
   socialSection: PortfolioSocialSection;
-  social: PortfolioSocial;
-  cta: PortfolioCta;
-  theme: PortfolioTheme;
-  about: PortfolioAbout;
   services: PortfolioServiceItem[];
+
+  // Additional deprecated fields
+  about: PortfolioAbout;
+  contact: PortfolioContact;
+  cta: PortfolioCta;
   team: PortfolioTeam;
   stats: PortfolioStats;
-  contact: PortfolioContact;
   highlights: PortfolioHighlights;
 }
 
@@ -360,6 +380,7 @@ export function createEmptyPortfolio(): Portfolio {
     slug: '',
     published: false,
     updatedAt: new Date().toISOString(),
+    activeTemplate: 'minishop',
     announcementBar: {
       enabled: false,
       text: '🎉 Free shipping on orders over $50 — Limited time offer!',
@@ -404,6 +425,12 @@ export function createEmptyPortfolio(): Portfolio {
       subtitle: 'Browse our collections',
       categoryNames: [],
       maxCount: 4
+    },
+    dealOfWeek: {
+      enabled: true,
+      productId: '',
+      headline: 'Deal of the Week',
+      endDate: ''
     },
     lookbook: {
       enabled: true,

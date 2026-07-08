@@ -3,7 +3,6 @@ import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell
 import { AdminProfileStateService } from '../data-access/admin-profile-state.service';
 import { AdminUserStateService } from '../data-access/admin-user-state.service';
 import { BusinessProfileFormSectionComponent } from '../sections/business-profile-form-section.component';
-import { BusinessProfileExtensionSectionComponent } from '../sections/business-profile-extension-section.component';
 import { PersonalInfoSectionComponent } from '../sections/personal-info-section.component';
 import { pageFadeIn } from '../animations/admin.animations';
 
@@ -13,8 +12,7 @@ import { pageFadeIn } from '../animations/admin.animations';
   imports: [
     AdminPageShellComponent,
     PersonalInfoSectionComponent,
-    BusinessProfileFormSectionComponent,
-    BusinessProfileExtensionSectionComponent
+    BusinessProfileFormSectionComponent
   ],
   templateUrl: './admin-profile.component.html',
   styleUrl: './admin-profile.component.scss',
