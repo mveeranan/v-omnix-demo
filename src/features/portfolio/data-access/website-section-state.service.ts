@@ -21,7 +21,14 @@ import {
   PortfolioAnnouncementBar,
   PortfolioFaq,
   PortfolioNewArrivals,
-  PortfolioBrandStrip
+  PortfolioBrandStrip,
+  PortfolioTrustBadges,
+  PortfolioDealOfWeek,
+  PortfolioFeaturedProducts,
+  PortfolioReviewsSection,
+  PortfolioGallerySection,
+  PortfolioGalleryItem,
+  PortfolioNewsletter
 } from '../models/portfolio.model';
 import { PortfolioStateService } from './portfolio-state.service';
 import { WebsiteApiService } from './website-api.service';
@@ -67,6 +74,11 @@ export interface PublishSectionBuffer {
   published: boolean;
 }
 
+export interface GallerySectionBuffer {
+  gallerySection: PortfolioGallerySection;
+  gallery: PortfolioGalleryItem[];
+}
+
 export type SectionBuffer =
   | BrandSectionBuffer
   | PortfolioHero
@@ -80,7 +92,13 @@ export type SectionBuffer =
   | PortfolioAnnouncementBar
   | PortfolioFaq
   | PortfolioNewArrivals
-  | PortfolioBrandStrip;
+  | PortfolioBrandStrip
+  | PortfolioTrustBadges
+  | PortfolioDealOfWeek
+  | PortfolioFeaturedProducts
+  | PortfolioReviewsSection
+  | GallerySectionBuffer
+  | PortfolioNewsletter;
 
 const DEFAULT_META: SectionMeta = {
   editing: false,
@@ -488,6 +506,21 @@ export class WebsiteSectionStateService {
         return structuredClone(draft.newArrivals);
       case 'brandStrip':
         return structuredClone(draft.brandStrip);
+      case 'trustBadges':
+        return structuredClone(draft.trustBadges);
+      case 'dealOfWeek':
+        return structuredClone(draft.dealOfWeek);
+      case 'featuredProducts':
+        return structuredClone(draft.featuredProducts);
+      case 'reviewsSection':
+        return structuredClone(draft.reviewsSection);
+      case 'gallerySection':
+        return {
+          gallerySection: structuredClone(draft.gallerySection),
+          gallery: structuredClone(draft.gallery)
+        };
+      case 'newsletter':
+        return structuredClone(draft.newsletter);
       default: {
         const _exhaustive: never = id;
         return _exhaustive;
@@ -540,6 +573,20 @@ export class WebsiteSectionStateService {
         return { newArrivals: buffer as PortfolioNewArrivals };
       case 'brandStrip':
         return { brandStrip: buffer as PortfolioBrandStrip };
+      case 'trustBadges':
+        return { trustBadges: buffer as PortfolioTrustBadges };
+      case 'dealOfWeek':
+        return { dealOfWeek: buffer as PortfolioDealOfWeek };
+      case 'featuredProducts':
+        return { featuredProducts: buffer as PortfolioFeaturedProducts };
+      case 'reviewsSection':
+        return { reviewsSection: buffer as PortfolioReviewsSection };
+      case 'gallerySection': {
+        const g = buffer as GallerySectionBuffer;
+        return { gallerySection: g.gallerySection, gallery: g.gallery };
+      }
+      case 'newsletter':
+        return { newsletter: buffer as PortfolioNewsletter };
       default:
         return {};
     }

@@ -1,5 +1,5 @@
 import { Component, computed, input } from '@angular/core';
-import { LucideAngularModule, Lock, RefreshCw, Truck, Users } from 'lucide-angular';
+import { LucideAngularModule, Lock, RefreshCw, Truck, Users, Zap } from 'lucide-angular';
 import { Portfolio, PortfolioTrustBadges } from '../../portfolio/models/portfolio.model';
 import { ScrollRevealDirective } from '@features/portfolio/shared/directives/scroll-reveal.directive';
 
@@ -97,6 +97,9 @@ export class TrustBadgesStripComponent {
     }
     if (b.moneyBack) {
       items.push({ icon: RefreshCw, title: 'Money-Back Guarantee', text: '30-day easy returns' });
+    }
+    if (b.fastDelivery) {
+      items.push({ icon: Zap, title: 'Fast Delivery', text: 'Delivered in 2-3 business days' });
     }
     return items.slice(0, 3);
   });

@@ -96,9 +96,9 @@ export const adminRoutes: Routes = [
           import('./product-tags/product-tags-list.component').then((m) => m.ProductTagsListComponent)
       },
       {
-        path: 'product-attributes',
+        path: 'product-types',
         loadComponent: () =>
-          import('./product-attributes/product-attributes-list.component').then((m) => m.ProductAttributesListComponent)
+          import('./product-types/product-types-list.component').then((m) => m.ProductTypesListComponent)
       },
       {
         path: 'feedback',

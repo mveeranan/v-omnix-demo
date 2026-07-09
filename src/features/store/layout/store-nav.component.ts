@@ -1,8 +1,7 @@
-import { Component, computed, inject, input, signal, HostListener } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { Component, computed, inject, input, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Menu, X, ShoppingCart, Moon, Sun, Search } from 'lucide-angular';
+import { LucideAngularModule, Menu, X, ShoppingCart, Moon, Sun, Search, Phone, Mail, Truck } from 'lucide-angular';
 import { Portfolio, PortfolioThemeMode } from '../../portfolio/models/portfolio.model';
 import { CartStateService } from '../data-access/cart-state.service';
 import { StoreThemeService } from '../data-access/store-theme.service';
@@ -23,14 +22,23 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
         <div class="container mx-auto px-6 msp-topbar__inner">
           <div class="msp-topbar__left">
             @if (portfolio().contactSupport.phone) {
-              <a [href]="'tel:' + portfolio().contactSupport.phone" class="msp-topbar__item">{{ portfolio().contactSupport.phone }}</a>
+              <a [href]="'tel:' + portfolio().contactSupport.phone" class="msp-topbar__item">
+                <lucide-icon [img]="phoneIcon" class="msp-topbar__icon" />
+                {{ portfolio().contactSupport.phone }}
+              </a>
             }
             @if (portfolio().contactSupport.email) {
-              <a [href]="'mailto:' + portfolio().contactSupport.email" class="msp-topbar__item">{{ portfolio().contactSupport.email }}</a>
+              <a [href]="'mailto:' + portfolio().contactSupport.email" class="msp-topbar__item">
+                <lucide-icon [img]="mailIcon" class="msp-topbar__icon" />
+                {{ portfolio().contactSupport.email }}
+              </a>
             }
           </div>
           <div class="msp-topbar__right">
-            <span class="msp-topbar__item">Free shipping on all orders</span>
+            <span class="msp-topbar__item">
+              <lucide-icon [img]="truckIcon" class="msp-topbar__icon" />
+              {{ deliveryText() }}
+            </span>
           </div>
         </div>
       </div>
@@ -38,9 +46,6 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
     <header
       class="msp-header store-nav"
       [class.store-nav--preview]="previewMode()"
-      [class.msp-header--overlay]="navPhase() === 'overlay'"
-      [class.msp-header--hidden]="navPhase() === 'hidden'"
-      [class.msp-header--awake]="navPhase() === 'awake'"
     >
       <div class="container mx-auto px-6">
         <div class="msp-header__inner">
@@ -86,14 +91,12 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
             >
               <lucide-icon [img]="isDark() ? sunIcon : moonIcon" class="h-5 w-5" />
             </button>
-            <button type="button" class="msp-header__icon-btn md:hidden" (click)="mobileOpen.set(!mobileOpen())" aria-label="Menu">
+            <button type="button" class="msp-header__icon-btn msp-header__menu-btn" (click)="mobileOpen.set(!mobileOpen())" aria-label="Menu">
               <lucide-icon [img]="mobileOpen() ? closeIcon : menuIcon" class="h-5 w-5" />
             </button>
-            <button type="button" class="msp-header__icon-btn" aria-label="Cart" (click)="cartOpen.set(true)">
+            <button type="button" class="msp-header__cart-btn" aria-label="Cart" (click)="cartOpen.set(true)">
               <lucide-icon [img]="cartIcon" class="h-5 w-5" />
-              @if (cartCount() > 0) {
-                <span class="msp-header__badge">{{ cartCount() }}</span>
-              }
+              <span class="msp-header__cart-count">[{{ cartCount() }}]</span>
             </button>
           </div>
         </div>
@@ -150,10 +153,14 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
       .msp-topbar__right { display: block; }
     }
     .msp-topbar__item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
       color: rgba(255, 255, 255, 0.7);
       text-decoration: none;
       transition: color 0.2s ease;
     }
+    .msp-topbar__icon { width: 0.85rem; height: 0.85rem; flex-shrink: 0; }
     a.msp-topbar__item:hover { color: var(--mox-accent, #dbcc8f); }
 
     .msp-header {
@@ -162,48 +169,6 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
       z-index: 40;
       background: var(--mox-surface, #fff);
       border-bottom: 1px solid var(--mox-border, #eaeaea);
-      transition: background 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
-    }
-
-    /* Home page only: transparent bar floating over the hero at page load. */
-    .msp-header--overlay {
-      position: absolute;
-      top: 2.4rem;
-      left: 0;
-      right: 0;
-      background: transparent;
-      border-bottom-color: transparent;
-    }
-    .msp-header--overlay .msp-header__brand,
-    .msp-header--overlay .msp-header__link,
-    .msp-header--overlay .msp-header__icon-btn,
-    .msp-header--overlay .msp-header__search-icon {
-      color: #fff;
-    }
-    .msp-header--overlay .msp-header__search-input {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.35);
-      color: #fff;
-    }
-    .msp-header--overlay .msp-header__search-input::placeholder { color: rgba(255, 255, 255, 0.7); }
-
-    /* Scrolled past the hero: bar tucks away above the viewport. */
-    .msp-header--hidden {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      transform: translateY(-100%);
-    }
-
-    /* Scrolled further: bar slides back down, solid white, sticky. */
-    .msp-header--awake {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      transform: translateY(0);
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     }
     .msp-header__inner {
       display: flex;
@@ -262,6 +227,16 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
       gap: 0.4rem;
     }
 
+    /* Menu icon: show on mobile, hide on tablet+ */
+    .msp-header__menu-btn {
+      display: grid;
+    }
+    @media (min-width: 768px) {
+      .msp-header__menu-btn {
+        display: none;
+      }
+    }
+
     .msp-header__search {
       position: relative;
       display: none;
@@ -316,21 +291,26 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
       color: var(--mox-accent, #fe4c50);
       background: color-mix(in srgb, var(--mox-accent, #fe4c50) 8%, transparent);
     }
-    .msp-header__badge {
-      position: absolute;
-      top: 0.1rem;
-      right: 0.1rem;
-      min-width: 1.05rem;
-      height: 1.05rem;
-      display: grid;
-      place-items: center;
-      padding: 0 0.25rem;
-      font-size: 0.62rem;
-      font-weight: 700;
-      color: #fff;
-      background: var(--mox-accent, #fe4c50);
-      border-radius: 999px;
+    .msp-header__cart-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      height: 2.4rem;
+      padding: 0 0.6rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--mox-text, #23232d);
+      background: transparent;
+      border: none;
+      border-radius: var(--mox-btn-radius, 2px);
+      cursor: pointer;
+      transition: color 0.2s ease, background 0.2s ease;
     }
+    .msp-header__cart-btn:hover {
+      color: var(--mox-accent, #fe4c50);
+      background: color-mix(in srgb, var(--mox-accent, #fe4c50) 8%, transparent);
+    }
+    .msp-header__cart-count { font-variant-numeric: tabular-nums; }
 
     .msp-header__mobile {
       padding: 0.9rem 1.5rem 1.1rem;
@@ -360,35 +340,21 @@ export class StoreNavComponent {
   readonly moonIcon = Moon;
   readonly sunIcon = Sun;
   readonly searchIcon = Search;
+  readonly phoneIcon = Phone;
+  readonly mailIcon = Mail;
+  readonly truckIcon = Truck;
 
   readonly mobileOpen = signal(false);
   readonly cartOpen = signal(false);
   readonly searchTerm = signal('');
   readonly cartCount = computed(() => this.cartState.summary().itemCount);
 
-  readonly scrollY = signal(typeof window === 'undefined' ? 0 : window.scrollY);
-  readonly currentUrl = signal(this.router.url);
-
-  constructor() {
-    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {
-      this.currentUrl.set(this.router.url);
-      this.scrollY.set(typeof window === 'undefined' ? 0 : window.scrollY);
-    });
-  }
-
-  @HostListener('window:scroll')
-  onWindowScroll(): void {
-    this.scrollY.set(window.scrollY);
-  }
-
-  readonly isHomeRoute = computed(() => this.currentUrl().split('?')[0] === `/store/${this.storeSlug()}`);
-
-  readonly navPhase = computed((): 'overlay' | 'hidden' | 'awake' | 'static' => {
-    if (!this.isHomeRoute()) return 'static';
-    const y = this.scrollY();
-    if (y < 150) return 'overlay';
-    if (y < 350) return 'hidden';
-    return 'awake';
+  readonly deliveryText = computed(() => {
+    const policies = this.portfolio().storePolicies;
+    const delivery = policies?.deliveryTime?.trim();
+    const shipping = policies?.shippingInfo?.trim();
+    if (delivery && shipping) return `${delivery} — ${shipping}`;
+    return delivery || shipping || 'Free shipping & easy returns';
   });
 
   readonly navLinks = computed(() => {

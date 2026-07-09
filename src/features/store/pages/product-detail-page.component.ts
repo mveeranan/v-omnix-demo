@@ -7,6 +7,7 @@ import { CartStateService } from '../data-access/cart-state.service';
 import {
   CatalogProductDetailDto,
   CatalogProductListItemDto,
+  ProductTypeAttributeDto,
   catalogDiscountPercent,
   catalogInStock,
   catalogPrimaryImage
@@ -80,22 +81,65 @@ import { ProductReviewsSectionComponent } from '../commerce/product-reviews-sect
             </p>
 
             @if (p.variants.length) {
-              <div class="mt-6">
-                <p class="pf-eyebrow mb-2">Variant</p>
-                <div class="flex flex-wrap gap-2">
-                  @for (v of p.variants; track v.id) {
-                    <button
-                      type="button"
-                      class="pf-btn-secondary text-sm"
-                      [class.ring-2]="selectedVariantId() === v.id"
-                      [class.ring-[var(--pf-accent)]]="selectedVariantId() === v.id"
-                      [disabled]="v.stockAvailable < 1"
-                      (click)="selectedVariantId.set(v.id)"
-                    >
-                      {{ variantLabel(v) }}
-                    </button>
+              <div class="mt-6 space-y-4">
+                @if (p.productTypeAttributes?.length) {
+                  <!-- ProductType attribute selectors -->
+                  @for (attr of p.productTypeAttributes; track attr.id) {
+                    <div>
+                      <p class="pf-eyebrow mb-2">{{ attr.name }}</p>
+                      @if (isColorAttribute(attr.possibleValues)) {
+                        <!-- Color swatches for hex color values -->
+                        <div class="flex flex-wrap gap-3">
+                          @for (value of attr.possibleValues; track value) {
+                            <button
+                              type="button"
+                              class="h-10 w-10 rounded-full border-2 border-transparent transition hover:border-[var(--mox-text)]"
+                              [style.background-color]="value"
+                              [class.ring-2]="selectedAttributes()[attr.name] === value"
+                              [class.ring-[var(--pf-accent)]]="selectedAttributes()[attr.name] === value"
+                              (click)="selectAttribute(attr.name, value)"
+                              [title]="value"
+                            ></button>
+                          }
+                        </div>
+                      } @else {
+                        <!-- Regular buttons for text/dropdown attributes -->
+                        <div class="flex flex-wrap gap-2">
+                          @for (value of attr.possibleValues; track value) {
+                            <button
+                              type="button"
+                              class="pf-btn-secondary text-sm"
+                              [class.ring-2]="selectedAttributes()[attr.name] === value"
+                              [class.ring-[var(--pf-accent)]]="selectedAttributes()[attr.name] === value"
+                              (click)="selectAttribute(attr.name, value)"
+                            >
+                              {{ value }}
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
                   }
-                </div>
+                } @else {
+                  <!-- Fallback: show all variants as buttons if no ProductType -->
+                  <div>
+                    <p class="pf-eyebrow mb-2">Variant</p>
+                    <div class="flex flex-wrap gap-2">
+                      @for (v of p.variants; track v.id) {
+                        <button
+                          type="button"
+                          class="pf-btn-secondary text-sm"
+                          [class.ring-2]="selectedVariantId() === v.id"
+                          [class.ring-[var(--pf-accent)]]="selectedVariantId() === v.id"
+                          [disabled]="v.stockAvailable < 1"
+                          (click)="selectedVariantId.set(v.id)"
+                        >
+                          {{ variantLabel(v) }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
               </div>
             }
 
@@ -189,6 +233,7 @@ export class ProductDetailPageComponent implements OnInit {
   readonly selectedVariantId = signal<string | undefined>(undefined);
   readonly qty = signal(1);
   readonly detailTab = signal<'description' | 'specs' | 'reviews'>('description');
+  readonly selectedAttributes = signal<Record<string, string>>({}); // {attributeName: selectedValue}
 
   readonly descriptionHtml = computed((): SafeHtml => {
     const html = this.product()?.description ?? '';
@@ -253,6 +298,33 @@ export class ProductDetailPageComponent implements OnInit {
       style: 'currency',
       currency: 'USD'
     }).format(value);
+  }
+
+  selectAttribute(attributeName: string, value: string): void {
+    const attrs = { ...this.selectedAttributes() };
+    attrs[attributeName] = value;
+    this.selectedAttributes.set(attrs);
+    // Auto-select the matching variant
+    this.autoSelectVariantByAttributes(attrs);
+  }
+
+  isColorAttribute(values: string[]): boolean {
+    // Check if all values look like hex color codes
+    return values.length > 0 && values.every(v => /^#[0-9A-Fa-f]{6}$/.test(v.trim()));
+  }
+
+  private autoSelectVariantByAttributes(attributes: Record<string, string>): void {
+    const p = this.product();
+    if (!p) return;
+    // Find variant that matches selected attributes
+    const matchingVariant = p.variants.find(v => {
+      return Object.entries(attributes).every(([attrName, attrValue]) => {
+        return v.attributes[attrName] === attrValue;
+      });
+    });
+    if (matchingVariant) {
+      this.selectedVariantId.set(matchingVariant.id);
+    }
   }
 
   addToCart(): void {

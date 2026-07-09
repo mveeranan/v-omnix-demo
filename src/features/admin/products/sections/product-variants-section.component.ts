@@ -8,7 +8,7 @@ import { AdminStatusBadgeComponent } from '@shared/ui/admin-status-badge.compone
 import { AdminTableActionComponent } from '@shared/ui/admin-table-action.component';
 import { ConfirmDialogComponent } from '@shared/ui/confirm-dialog.component';
 import { NotificationService } from '@core/notifications/notification.service';
-import { ProductVariantAttributeInput, ProductVariantDto } from '@features/catalog/models/product-admin.model';
+import { ProductVariantDto } from '@features/catalog/models/product-admin.model';
 import { ProductAdminService } from '../data-access/product-admin.service';
 import { ProductFormStateService } from '../data-access/product-form-state.service';
 import { previewVariantAttributes, VariantAttributeDisplay } from './product-variant.util';
@@ -37,10 +37,10 @@ import { previewVariantAttributes, VariantAttributeDisplay } from './product-var
       [canSave]="false"
       (edit)="onSectionEdit()"
     >
-      @if (!state.attributes().length && !(state.product()?.variants?.length ?? 0)) {
+      @if (!state.currentTypeAttributes().length && !(state.product()?.variants?.length ?? 0)) {
         <p class="text-sm text-[var(--text-muted)]">
-          Define features first.
-          <a routerLink="/admin/product-attributes" class="underline">Manage features</a>
+          Simple product — no variants. Set stock directly in the Inventory section below.
+          Selling this in different sizes, colors, etc.? <a routerLink="/admin/product-types" class="underline">Add attributes to its product type</a> first.
         </p>
       } @else {
         @if (formOpen()) {
@@ -59,53 +59,63 @@ import { previewVariantAttributes, VariantAttributeDisplay } from './product-var
               @if (attributesAvailableForAdd().length) {
                 <div class="flex flex-wrap items-end gap-3">
                   <label class="block min-w-[10rem] flex-1 space-y-1">
-                    <span class="text-sm font-medium">Feature type</span>
+                    <span class="text-sm font-medium">Attribute</span>
                     <select
                       class="pf-editor-input w-full"
-                      [(ngModel)]="featureTypeId"
+                      [(ngModel)]="draftAttributeName"
                       [ngModelOptions]="{ standalone: true }"
-                      (ngModelChange)="featureValueId = ''"
+                      (ngModelChange)="draftAttributeValue = ''"
                     >
-                      <option value="">Select feature type</option>
-                      @for (attr of attributesAvailableForAdd(); track attr.id) {
-                        <option [value]="attr.id">{{ attr.name }}</option>
+                      <option value="">Select attribute</option>
+                      @for (attr of attributesAvailableForAdd(); track attr.name) {
+                        <option [value]="attr.name">{{ attr.name }}</option>
                       }
                     </select>
                   </label>
                   <label class="block min-w-[10rem] flex-1 space-y-1">
                     <span class="text-sm font-medium">Value</span>
-                    <select
-                      class="pf-editor-input w-full"
-                      [(ngModel)]="featureValueId"
-                      [ngModelOptions]="{ standalone: true }"
-                      [disabled]="!featureTypeId"
-                    >
-                      <option value="">Select value</option>
-                      @for (val of valuesForFeatureType(); track val.id) {
-                        <option [value]="val.id">{{ val.value }}</option>
-                      }
-                    </select>
+                    @if (draftAttributeValues().length) {
+                      <select
+                        class="pf-editor-input w-full"
+                        [(ngModel)]="draftAttributeValue"
+                        [ngModelOptions]="{ standalone: true }"
+                        [disabled]="!draftAttributeName"
+                      >
+                        <option value="">Select value</option>
+                        @for (val of draftAttributeValues(); track val) {
+                          <option [value]="val">{{ val }}</option>
+                        }
+                      </select>
+                    } @else {
+                      <input
+                        class="pf-editor-input w-full"
+                        [(ngModel)]="draftAttributeValue"
+                        [ngModelOptions]="{ standalone: true }"
+                        [disabled]="!draftAttributeName"
+                        placeholder="Enter value"
+                      />
+                    }
                   </label>
                   <button
                     type="button"
                     class="admin-action-secondary rounded-lg px-3 py-1.5 text-sm"
-                    [disabled]="!featureTypeId || !featureValueId"
+                    [disabled]="!draftAttributeName || !draftAttributeValue"
                     (click)="addDraftFeature()"
                   >
-                    Add feature
+                    Add attribute
                   </button>
                 </div>
               }
               @if (draftFeatureChips().length) {
                 <div class="flex flex-wrap gap-2">
-                  @for (chip of draftFeatureChips(); track chip.attributeId) {
+                  @for (chip of draftFeatureChips(); track chip.name) {
                     <span class="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm">
                       {{ chip.label }}
                       <button
                         type="button"
                         class="text-[var(--text-muted)] hover:text-rose-600"
-                        (click)="removeDraftFeature(chip.attributeId)"
-                        aria-label="Remove feature"
+                        (click)="removeDraftFeature(chip.name)"
+                        aria-label="Remove attribute"
                       >
                         ×
                       </button>
@@ -162,7 +172,7 @@ import { previewVariantAttributes, VariantAttributeDisplay } from './product-var
                 Simple product — no variants.
               }
             </p>
-            @if (state.attributes().length) {
+            @if (state.currentTypeAttributes().length) {
               <button
                 type="button"
                 class="admin-section-action-btn rounded-lg px-4 py-2 text-sm"
@@ -195,7 +205,7 @@ import { previewVariantAttributes, VariantAttributeDisplay } from './product-var
                       <td class="admin-data-table__index">{{ i + 1 }}</td>
                       <td class="text-sm text-[var(--text-secondary)]">{{ v.sku }}</td>
                       <td class="text-sm text-[var(--text-secondary)]">
-                        @if (v.attributes.length) {
+                        @if (attrPreview(v.attributes).visible.length || attrPreview(v.attributes).extraCount) {
                           <div class="flex flex-wrap items-center gap-1">
                             @for (attr of attrPreview(v.attributes).visible; track attr.name + attr.value) {
                               <span class="rounded-md bg-[var(--surface-muted)] px-2 py-0.5 text-xs text-[var(--text-primary)]">
@@ -266,8 +276,8 @@ export class ProductVariantsSectionComponent {
   readonly hasVariants = computed(() => this.variants().length > 0);
   readonly productName = computed(() => this.state.product()?.name ?? 'Product');
 
-  featureTypeId = '';
-  featureValueId = '';
+  draftAttributeName = '';
+  draftAttributeValue = '';
 
   readonly form = this.fb.nonNullable.group({
     price: [0, [Validators.required, Validators.min(0)]],
@@ -280,7 +290,7 @@ export class ProductVariantsSectionComponent {
   constructor() {
     effect(() => {
       this.state.product();
-      this.state.attributes();
+      this.state.currentTypeAttributes();
     });
 
     effect(() => {
@@ -291,49 +301,36 @@ export class ProductVariantsSectionComponent {
     });
   }
 
-  valuesForFeatureType() {
-    const attr = this.state.attributes().find((a) => a.id === this.featureTypeId);
-    return attr?.values ?? [];
+  draftAttributeValues(): string[] {
+    const attr = this.state.currentTypeAttributes().find((a) => a.name === this.draftAttributeName);
+    return attr?.possibleValues ?? [];
   }
 
   attributesAvailableForAdd() {
     const selected = new Set(Object.keys(this.draftSelections()));
-    return this.state.attributes().filter((attr) => !selected.has(attr.id));
+    return this.state.currentTypeAttributes().filter((attr) => !selected.has(attr.name));
   }
 
-  draftFeatureChips(): { attributeId: string; label: string }[] {
-    const editingVariant = this.editingVariantId()
-      ? this.variants().find((v) => v.id === this.editingVariantId())
-      : null;
-
-    return Object.entries(this.draftSelections()).map(([attributeId, valueId]) => {
-      const attr = this.state.attributes().find((a) => a.id === attributeId);
-      const val = attr?.values.find((v) => v.id === valueId);
-      const variantAttr = editingVariant?.attributes.find((a) => a.attributeId === attributeId);
-
-      return {
-        attributeId,
-        label:
-          attr && val
-            ? `${attr.name}: ${val.value}`
-            : variantAttr
-              ? `${variantAttr.attributeName}: ${variantAttr.value}`
-              : attributeId
-      };
-    });
+  draftFeatureChips(): { name: string; label: string }[] {
+    return Object.entries(this.draftSelections()).map(([name, value]) => ({
+      name,
+      label: `${name}: ${value}`
+    }));
   }
 
   isComplete(): boolean {
     return (this.state.product()?.variants.length ?? 0) > 0;
   }
 
-  attrPreview(attributes: { attributeName: string; value: string }[]) {
-    const mapped: VariantAttributeDisplay[] = attributes.map((a) => ({ name: a.attributeName, value: a.value }));
+  attrPreview(attributes: Record<string, string>) {
+    const mapped: VariantAttributeDisplay[] = Object.entries(attributes).map(([name, value]) => ({ name, value }));
     return previewVariantAttributes(mapped, 2);
   }
 
   variantAttrs(v: ProductVariantDto): string {
-    return v.attributes.map((a) => `${a.attributeName}: ${a.value}`).join(', ');
+    return Object.entries(v.attributes)
+      .map(([name, value]) => `${name}: ${value}`)
+      .join(', ');
   }
 
   openCreate(): void {
@@ -364,9 +361,7 @@ export class ProductVariantsSectionComponent {
     this.sectionActive.set(true);
     this.editingVariantId.set(v.id);
     this.editingSku.set(v.sku);
-    this.draftSelections.set(
-      Object.fromEntries(v.attributes.map((a) => [a.attributeId, a.valueId]))
-    );
+    this.draftSelections.set({ ...v.attributes });
     this.resetDraftInputs();
     this.form.patchValue({
       price: v.price,
@@ -396,18 +391,18 @@ export class ProductVariantsSectionComponent {
   }
 
   addDraftFeature(): void {
-    if (!this.featureTypeId || !this.featureValueId) return;
+    if (!this.draftAttributeName || !this.draftAttributeValue) return;
     this.draftSelections.update((current) => ({
       ...current,
-      [this.featureTypeId]: this.featureValueId
+      [this.draftAttributeName]: this.draftAttributeValue
     }));
     this.resetDraftInputs();
   }
 
-  removeDraftFeature(attributeId: string): void {
+  removeDraftFeature(name: string): void {
     this.draftSelections.update((current) => {
       const next = { ...current };
-      delete next[attributeId];
+      delete next[name];
       return next;
     });
   }
@@ -423,7 +418,7 @@ export class ProductVariantsSectionComponent {
     if (!productId) return;
 
     const v = this.form.getRawValue();
-    const attributes = this.buildVariantAttributes();
+    const attributes = { ...this.draftSelections() };
 
     const payload = {
       price: v.price,
@@ -480,28 +475,7 @@ export class ProductVariantsSectionComponent {
   }
 
   private resetDraftInputs(): void {
-    this.featureTypeId = '';
-    this.featureValueId = '';
-  }
-
-  private buildVariantAttributes(): ProductVariantAttributeInput[] {
-    const editingVariant = this.editingVariantId()
-      ? this.variants().find((v) => v.id === this.editingVariantId())
-      : null;
-
-    return Object.entries(this.draftSelections())
-      .filter(([, valueId]) => !!valueId)
-      .map(([attributeId, valueId]) => {
-        const attr = this.state.attributes().find((a) => a.id === attributeId);
-        const val = attr?.values.find((v) => v.id === valueId);
-        const variantAttr = editingVariant?.attributes.find((a) => a.attributeId === attributeId);
-
-        return {
-          attributeId,
-          attributeName: attr?.name ?? variantAttr?.attributeName ?? '',
-          valueId,
-          value: val?.value ?? variantAttr?.value ?? ''
-        };
-      });
+    this.draftAttributeName = '';
+    this.draftAttributeValue = '';
   }
 }

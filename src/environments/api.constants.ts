@@ -77,10 +77,12 @@ export const API_ENDPOINTS = {
     update: (id: string) => `${base}/product-tags/${encodeURIComponent(id)}`,
     delete: (id: string) => `${base}/product-tags/${encodeURIComponent(id)}`
   },
-  productAttributes: {
-    list: (tenantId: string) => `${base}/product-attributes?tenantId=${encodeURIComponent(tenantId)}`,
-    create: `${base}/product-attributes`,
-    update: (id: string) => `${base}/product-attributes/${encodeURIComponent(id)}`
+  productTypes: {
+    list: (tenantId: string) => `${base}/product-types?tenantId=${encodeURIComponent(tenantId)}`,
+    create: `${base}/product-types`,
+    update: (id: string) => `${base}/product-types/${encodeURIComponent(id)}`,
+    delete: (id: string, tenantId: string) =>
+      `${base}/product-types/${encodeURIComponent(id)}?tenantId=${encodeURIComponent(tenantId)}`
   },
   products: {
     list: `${base}/products`,

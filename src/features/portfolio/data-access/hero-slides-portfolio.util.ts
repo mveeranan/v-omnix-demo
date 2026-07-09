@@ -33,9 +33,9 @@ export function mergeHeroSlidesIntoPortfolio(
     hero: {
       ...portfolio.hero,
       enabled,
-      eyebrow: first.eyebrow || portfolio.hero.eyebrow,
-      headline: first.headline || portfolio.hero.headline,
-      subheadline: first.subHeadline || portfolio.hero.subheadline,
+      eyebrow: first?.eyebrow || portfolio.hero.eyebrow,
+      headline: first?.headline || portfolio.hero.headline,
+      subheadline: first?.subHeadline || portfolio.hero.subheadline,
       slides: mappedSlides
     }
   };

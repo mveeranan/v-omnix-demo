@@ -11,6 +11,10 @@ export interface ProductListItemDto {
   categoryName: string;
   brandId: string | null;
   brandName: string | null;
+  productTypeId: string;
+  productTypeName: string;
+  isNew: boolean;
+  displayOrder: number;
   primaryImageUrl: string | null;
   variantCount: number;
   isFeatured: boolean;
@@ -34,13 +38,6 @@ export interface ProductListFilters {
   pageSize?: number;
 }
 
-export interface ProductVariantAttributeDto {
-  attributeId: string;
-  attributeName: string;
-  valueId: string;
-  value: string;
-}
-
 export interface ProductVariantDto {
   id: string;
   sku: string;
@@ -49,7 +46,8 @@ export interface ProductVariantDto {
   barcode: string | null;
   weight: number | null;
   isActive: boolean;
-  attributes: ProductVariantAttributeDto[];
+  /** Attribute name to selected value, e.g. { Size: '10', Color: 'Red' }. */
+  attributes: Record<string, string>;
 }
 
 export interface ProductImageDto {
@@ -78,6 +76,8 @@ export interface ProductDetailDto {
   categoryName: string;
   brandId: string | null;
   brandName: string | null;
+  productTypeId: string;
+  productTypeName: string;
   name: string;
   slug: string;
   shortDescription: string | null;
@@ -90,6 +90,8 @@ export interface ProductDetailDto {
   costPrice: number | null;
   weight: number | null;
   trackInventory: boolean;
+  isNew: boolean;
+  displayOrder: number;
   status: ProductStatus;
   variants: ProductVariantDto[];
   images: ProductImageDto[];
@@ -101,6 +103,7 @@ export interface SaveProductRequest {
   tenantId: string;
   categoryId: string;
   brandId: string | null;
+  productTypeId: string;
   name: string;
   shortDescription: string | null;
   description: string | null;
@@ -111,6 +114,8 @@ export interface SaveProductRequest {
   costPrice: number | null;
   weight: number | null;
   trackInventory: boolean;
+  isNew: boolean;
+  displayOrder: number;
   status: ProductStatus;
 }
 
@@ -136,13 +141,6 @@ export interface BulkUpdateProductStatusResult {
   failures: BulkProductStatusFailure[];
 }
 
-export interface ProductVariantAttributeInput {
-  attributeId: string;
-  attributeName: string;
-  valueId: string;
-  value: string;
-}
-
 export interface SaveProductVariantRequest {
   tenantId: string;
   price: number;
@@ -150,7 +148,7 @@ export interface SaveProductVariantRequest {
   barcode?: string | null;
   weight?: number | null;
   isActive: boolean;
-  attributes: ProductVariantAttributeInput[];
+  attributes: Record<string, string>;
 }
 
 export interface DeleteProductVariantRequest {
@@ -207,7 +205,7 @@ export interface ProductDuplicateVariantSource {
   barcode: string | null;
   weight: number | null;
   isActive: boolean;
-  attributes: ProductVariantAttributeInput[];
+  attributes: Record<string, string>;
 }
 
 export interface ProductDuplicateInventorySource {

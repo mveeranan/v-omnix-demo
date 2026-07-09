@@ -8,6 +8,7 @@ import { NewArrivalsSectionComponent } from '../commerce/new-arrivals-section.co
 import { CategoryShowcaseSectionComponent } from '../commerce/category-showcase-section.component';
 import { TrustBadgesStripComponent } from '../commerce/trust-badges-strip.component';
 import { DealOfWeekSectionComponent } from '../commerce/deal-of-week-section.component';
+import { NewsletterSignupSectionComponent } from '../commerce/newsletter-signup-section.component';
 import { StoreContextService } from '../data-access/store-context.service';
 
 /**
@@ -27,7 +28,8 @@ import { StoreContextService } from '../data-access/store-context.service';
     DealOfWeekSectionComponent,
     FeaturedProductsSectionComponent,
     ReviewsSectionComponent,
-    GallerySectionComponent
+    GallerySectionComponent,
+    NewsletterSignupSectionComponent
   ],
   template: `
     @if (portfolio(); as p) {
@@ -65,6 +67,8 @@ import { StoreContextService } from '../data-access/store-context.service';
       @if (p.gallery.length) {
         <app-pf-gallery-section [portfolio]="p" />
       }
+
+      <app-newsletter-signup-section [portfolio]="p" />
 
       <section class="mox-section border-t" style="border-color: var(--mox-border)">
         <div class="container mx-auto px-6 text-center">

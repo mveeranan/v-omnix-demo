@@ -209,7 +209,6 @@ export class ProductInventorySectionComponent {
   constructor() {
     effect(() => {
       const p = this.state.product();
-      this.state.attributes();
       if (p) {
         this.patchFromProduct();
       }
@@ -438,7 +437,7 @@ export class ProductInventorySectionComponent {
   private patchFromProduct(): void {
     const p = this.state.product();
     if (!p) return;
-    this.stockRows.set(stockRowsFromProduct(p, this.state.attributes()));
+    this.stockRows.set(stockRowsFromProduct(p));
   }
 
   private setSectionExpanded(next: boolean): void {

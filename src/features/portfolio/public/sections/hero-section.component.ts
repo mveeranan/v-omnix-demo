@@ -28,114 +28,112 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
   styles: `
     .msp-hero {
       position: relative;
-      min-height: clamp(26rem, 68vh, 42rem);
       overflow: hidden;
-      background: color-mix(in srgb, var(--mox-border, #eaeaea) 30%, var(--mox-surface, #fff));
+      background: var(--mox-hero-bg, color-mix(in srgb, var(--mox-accent, #dbb96a) 35%, #f3ead1));
     }
-    .msp-hero__slide {
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      background-position: center;
-      opacity: 0;
-      transform: scale(1);
-      transition: opacity 1.2s ease;
+    :host-context(.dark) .msp-hero {
+      background: var(--mox-hero-bg, color-mix(in srgb, var(--mox-accent, #7c8aff) 25%, #1e293b));
     }
-    .msp-hero__slide--active {
-      opacity: 1;
-      animation: msp-hero-kenburns 8s ease-out forwards;
-    }
-    @keyframes msp-hero-kenburns {
-      from { transform: scale(1.08); }
-      to { transform: scale(1); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .msp-hero__slide--active { animation: none; }
-    }
-    .msp-hero__slide--gradient {
-      background: linear-gradient(
-        120deg,
-        color-mix(in srgb, var(--mox-accent, #fe4c50) 14%, var(--mox-surface, #fff)),
-        var(--mox-surface, #fff) 60%
-      );
-    }
-    .msp-hero__scrim {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(100deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.28) 45%, rgba(0, 0, 0, 0.05) 75%);
-      pointer-events: none;
-    }
-    /* On gradient (no-image) slides the scrim would gray the design out */
-    .msp-hero:has(.msp-hero__slide--gradient.msp-hero__slide--active) .msp-hero__scrim {
-      background: none;
-    }
-    .msp-hero:has(.msp-hero__slide--gradient.msp-hero__slide--active) .msp-hero__title,
-    .msp-hero:has(.msp-hero__slide--gradient.msp-hero__slide--active) .msp-hero__subtitle {
-      color: var(--mox-text, #23232d);
-      text-shadow: none;
-    }
-
-    .msp-hero__overlay {
+    .msp-hero__grid {
       position: relative;
       z-index: 2;
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr;
       align-items: center;
-      min-height: inherit;
-      padding: 4.5rem 0;
+      gap: 2.5rem;
+      min-height: clamp(24rem, 62vh, 36rem);
+      padding: 3.5rem 0;
     }
+    @media (min-width: 900px) {
+      .msp-hero__grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+      }
+    }
+
     .msp-hero__content {
-      max-width: 36rem;
+      max-width: 32rem;
       text-align: left;
     }
-    .msp-hero__eyebrow {
-      margin: 0 0 0.9rem;
-      font-size: 0.8rem;
+    .msp-hero__badge {
+      display: inline-block;
+      margin: 0 0 1.25rem;
+      padding: 0.4rem 0.9rem;
+      font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.22em;
-      color: var(--mox-accent, #fe4c50);
+      letter-spacing: 0.18em;
+      color: #fff;
+      background: var(--mox-text, #1a1a1a);
     }
     .msp-hero__title {
       margin: 0;
       font-family: var(--mox-font-heading, inherit);
-      font-size: clamp(2.1rem, 5.2vw, 3.5rem);
-      font-weight: 700;
-      line-height: 1.1;
-      color: #fff;
-      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+      font-size: clamp(2rem, 4.6vw, 3.15rem);
+      font-weight: 500;
+      line-height: 1.15;
+      text-transform: uppercase;
+      color: var(--mox-text, #1a1a1a);
     }
     .msp-hero__subtitle {
-      margin: 1.1rem 0 0;
-      max-width: 28rem;
-      font-size: 1.05rem;
-      line-height: 1.65;
-      color: rgba(255, 255, 255, 0.94);
-      text-shadow: 0 1px 10px rgba(0, 0, 0, 0.25);
+      margin: 1.15rem 0 0;
+      max-width: 26rem;
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--mox-muted, #6b6b6b);
     }
     .msp-hero__cta {
       display: inline-flex;
       align-items: center;
-      margin-top: 2rem;
-      padding: 0.9rem 2.3rem;
-      font-size: 0.82rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
+      margin-top: 2.1rem;
+      padding: 0.85rem 2.1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
       color: #fff;
-      background: var(--mox-accent, #fe4c50);
+      background: var(--mox-accent, #c9a24a);
       border-radius: var(--mox-btn-radius, 2px);
       text-decoration: none;
       transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     }
     .msp-hero__cta:hover {
-      background: color-mix(in srgb, var(--mox-accent, #fe4c50) 85%, #000);
+      background: color-mix(in srgb, var(--mox-accent, #c9a24a) 85%, #000);
       transform: translateY(-2px);
-      box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.3);
+    }
+
+    .msp-hero__media {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      min-height: 16rem;
+      height: 100%;
+    }
+    .msp-hero__image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      opacity: 0;
+      transform: scale(0.92) translateY(12px);
+      transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+    .msp-hero__image--active {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+    @media (min-width: 900px) {
+      .msp-hero__media { min-height: 100%; }
+      .msp-hero__image { transform: scale(1.12); }
+      .msp-hero__image--active { transform: scale(1.18); }
     }
 
     .msp-hero__dots {
       position: absolute;
-      bottom: 1.5rem;
+      bottom: 1.25rem;
       left: 50%;
       z-index: 3;
       display: flex;
@@ -146,7 +144,7 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
       width: 0.6rem;
       height: 0.6rem;
       padding: 0;
-      background: rgba(255, 255, 255, 0.55);
+      background: color-mix(in srgb, var(--mox-text, #1a1a1a) 25%, transparent);
       border: none;
       border-radius: 999px;
       cursor: pointer;
@@ -154,7 +152,7 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
     }
     .msp-hero__dot--active {
       width: 1.6rem;
-      background: var(--mox-accent, #fe4c50);
+      background: var(--mox-text, #1a1a1a);
     }
   `
 })
@@ -212,10 +210,6 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
     this.activeIndex.set(index);
     this.stopRotation();
     this.startRotation();
-  }
-
-  slideBackground(slide: PortfolioHeroSlide): string | null {
-    return slide.imageUrl?.trim() ? `url(${slide.imageUrl})` : null;
   }
 
   private startRotation(): void {

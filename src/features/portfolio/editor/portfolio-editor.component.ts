@@ -48,6 +48,18 @@ import { AnnouncementBarEditorSectionComponent } from './sections/announcement-b
 
 import { NewArrivalsEditorSectionComponent } from './sections/new-arrivals-editor-section.component';
 
+import { TrustBadgesEditorSectionComponent } from './sections/trust-badges-editor-section.component';
+
+import { DealOfWeekEditorSectionComponent } from './sections/deal-of-week-editor-section.component';
+
+import { FeaturedProductsEditorSectionComponent } from './sections/featured-products-editor-section.component';
+
+import { ReviewsEditorSectionComponent } from './sections/reviews-editor-section.component';
+
+import { GalleryEditorSectionComponent } from './sections/gallery-editor-section.component';
+
+import { NewsletterEditorSectionComponent } from './sections/newsletter-editor-section.component';
+
 import { ScrollRevealService } from '@features/portfolio/shared/services/scroll-reveal.service';
 
 type EditorTab = 'content' | 'publish';
@@ -84,7 +96,19 @@ type EditorTab = 'content' | 'publish';
 
     AnnouncementBarEditorSectionComponent,
 
-    NewArrivalsEditorSectionComponent
+    NewArrivalsEditorSectionComponent,
+
+    TrustBadgesEditorSectionComponent,
+
+    DealOfWeekEditorSectionComponent,
+
+    FeaturedProductsEditorSectionComponent,
+
+    ReviewsEditorSectionComponent,
+
+    GalleryEditorSectionComponent,
+
+    NewsletterEditorSectionComponent
 
   ],
 

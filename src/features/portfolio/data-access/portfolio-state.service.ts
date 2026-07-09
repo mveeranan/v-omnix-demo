@@ -52,7 +52,14 @@ export class PortfolioStateService {
           this.isLoading.set(false);
           this.portfolioService.saveDraft(portfolio).subscribe({ error: () => undefined });
         },
-        error: () => this.isLoading.set(false)
+        error: (err) => {
+          console.error('Failed to load portfolio draft:', err);
+          // Load default/fallback portfolio so editor is still usable
+          const defaultPortfolio = createDefaultWebsitePortfolio();
+          this.draft.set(defaultPortfolio);
+          this.isLoading.set(false);
+          this.notifications.error('Could not load all website data. Loading defaults. Changes may not sync.');
+        }
       });
   }
 
