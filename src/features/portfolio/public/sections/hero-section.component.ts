@@ -29,10 +29,11 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
     .msp-hero {
       position: relative;
       overflow: hidden;
-      background: var(--mox-hero-bg, color-mix(in srgb, var(--mox-accent, #dbb96a) 35%, #f3ead1));
-    }
-    :host-context(.dark) .msp-hero {
-      background: var(--mox-hero-bg, color-mix(in srgb, var(--mox-accent, #7c8aff) 25%, #1e293b));
+      /* Derive from --mox-surface so the hero adapts to light/dark automatically.
+         Dark mode flips --mox-surface via the .pf-dark theme class on the store
+         shell (there is no global .dark class, so :host-context(.dark) never
+         matched here — that left white hero text on a light cream background). */
+      background: var(--mox-hero-bg, color-mix(in srgb, var(--mox-accent, #dbb96a) 55%, var(--mox-surface, #f3ead1)));
     }
     .msp-hero__grid {
       position: relative;
@@ -45,9 +46,12 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
       padding: 3.5rem 0;
     }
     @media (min-width: 900px) {
+      /* Match Minishop proportions: content gets ~45%, image gets ~55%.
+         Tighter gap (0.5rem) and padding bring them closer together. */
       .msp-hero__grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 0.5rem;
+        padding: 2.5rem 0;
       }
     }
 
@@ -63,7 +67,10 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.18em;
-      color: #fff;
+      /* Inverted chip: text uses --mox-surface so it stays readable against the
+         --mox-text background in both themes (light: dark chip/white text,
+         dark: light chip/dark text). */
+      color: var(--mox-surface, #fff);
       background: var(--mox-text, #1a1a1a);
     }
     .msp-hero__title {
@@ -116,29 +123,20 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
       height: 100%;
       object-fit: contain;
       object-position: center bottom;
+      /* Minishop-style: inactive slides sit off to the right and fade out;
+         the active slide slides in horizontally + fades in. */
       opacity: 0;
-      transform: scale(0.92) translateY(12px);
-      transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+      transform: translateX(6%) scale(0.96);
+      transition: opacity 0.7s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
       pointer-events: none;
     }
     .msp-hero__image--active {
       opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-    @media (min-width: 900px) {
-      .msp-hero__media { min-height: 100%; }
-      .msp-hero__image { transform: scale(1.12); }
-      .msp-hero__image--active { transform: scale(1.18); }
+      transform: translateX(0) scale(1);
     }
 
     .msp-hero__dots {
-      position: absolute;
-      bottom: 1.25rem;
-      left: 50%;
-      z-index: 3;
-      display: flex;
-      gap: 0.5rem;
-      transform: translateX(-50%);
+      display: none;
     }
     .msp-hero__dot {
       width: 0.6rem;

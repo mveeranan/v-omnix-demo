@@ -19,7 +19,7 @@ import { PortfolioNewArrivals } from '../../models/portfolio.model';
       [complete]="true"
     >
       <div view class="pf-editor-view-summary">
-        <p class="pf-editor-view-text">{{ draft()?.newArrivals?.title }} — showing up to {{ draft()?.newArrivals?.maxCount }} newest products</p>
+        <p class="pf-editor-view-text">{{ draft()?.newArrivals?.title }} — showing up to 8 newest products</p>
       </div>
 
       <div edit class="pf-editor-fields">
@@ -38,18 +38,7 @@ import { PortfolioNewArrivals } from '../../models/portfolio.model';
               placeholder="New Arrivals"
             />
           </div>
-          <div class="pf-editor-field">
-            <span class="pf-editor-label">Max products to show (1–12)</span>
-            <input
-              type="number"
-              class="pf-editor-input"
-              [ngModel]="b.maxCount"
-              (ngModelChange)="patch({ maxCount: clamp($event, 1, 12) })"
-              min="1"
-              max="12"
-            />
-          </div>
-          <p class="pf-editor-hint">Products are automatically sorted by newest first — no manual selection needed.</p>
+          <p class="pf-editor-hint">Shows up to 8 newest products automatically sorted by arrival date.</p>
         }
       </div>
     </app-website-section-shell>

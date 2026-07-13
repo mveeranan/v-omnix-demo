@@ -5,48 +5,41 @@
         <p class="pf-eyebrow">Gallery</p>
         <h2 class="pf-display mt-2 text-3xl font-semibold md:text-4xl">Product showcase</h2>
       </div>
-      <div class="pf-masonry mt-12">
+
+      <!-- Slider container -->
+      <div class="pf-gallery-slider mt-12">
         @for (item of sortedGallery(); track item.id; let i = $index) {
           <button
             type="button"
-            appScrollReveal="zoom-in"
-            [appScrollRevealDelay]="i * 60"
-            class="pf-masonry-item group mb-4 block w-full break-inside-avoid overflow-hidden rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--pf-accent)]"
+            class="pf-gallery-slide"
+            [class.pf-gallery-slide--active]="activeIndex() === i"
+            [attr.data-type]="item.type"
             (click)="openLightbox(item)"
           >
-            <div class="relative overflow-hidden">
-              @if (item.type === 'video' && !hasImageThumbnail(item)) {
-                <video
-                  [src]="item.url"
-                  muted
-                  playsinline
-                  preload="metadata"
-                  class="pf-gallery-video-thumb w-full transition-transform duration-500 group-hover:scale-105"
-                ></video>
+            @if (item.type === 'video' && !hasImageThumbnail(item)) {
+              <video
+                [src]="item.url"
+                muted
+                playsinline
+                preload="metadata"
+              ></video>
+            } @else {
+              <img
+                [src]="item.thumbnailUrl || item.url"
+                [alt]="item.category"
+                loading="lazy"
+              />
+            }
+            <div class="pf-gallery-overlay">
+              @if (item.type === 'video') {
+                <lucide-icon [img]="playIcon" class="h-16 w-16 text-white drop-shadow-lg" />
               } @else {
-                <img
-                  [src]="item.thumbnailUrl || item.url"
-                  [alt]="item.category"
-                  class="w-full transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
-              }
-              <div
-                class="pf-masonry-overlay absolute inset-0 flex items-center justify-center"
-                [class.opacity-0]="item.type !== 'video'"
-                [class.group-hover:opacity-100]="item.type !== 'video'"
-                [class.opacity-100]="item.type === 'video'"
-              >
-                @if (item.type === 'video') {
-                  <lucide-icon [img]="playIcon" class="h-12 w-12 text-white drop-shadow-lg" />
-                } @else {
-                  <span class="text-sm font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">{{ item.category }}</span>
-                }
-              </div>
-              @if (item.featured) {
-                <span class="absolute left-2 top-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white">Featured</span>
+                <span class="text-lg font-medium text-white">{{ item.category }}</span>
               }
             </div>
+            @if (item.featured) {
+              <span class="absolute left-4 top-4 rounded bg-black/60 px-3 py-1.5 text-sm font-medium text-white">Featured</span>
+            }
           </button>
         }
       </div>

@@ -46,10 +46,9 @@ export class ProductAdminApiService {
       .pipe(map(unwrapApiResponse));
   }
 
-  get(id: string, tenantId?: string): Observable<ProductDetailDto> {
-    const tid = tenantId ?? requireTenantId(this.auth);
+  get(id: string): Observable<ProductDetailDto> {
     return this.http
-      .get<ApiResponse<ProductDetailDto>>(API_ENDPOINTS.products.get(id, tid))
+      .get<ApiResponse<ProductDetailDto>>(API_ENDPOINTS.products.get(id))
       .pipe(map(unwrapApiResponse));
   }
 
@@ -65,10 +64,9 @@ export class ProductAdminApiService {
       .pipe(map(unwrapApiResponse));
   }
 
-  delete(id: string, tenantId?: string): Observable<void> {
-    const tid = tenantId ?? requireTenantId(this.auth);
+  delete(id: string): Observable<void> {
     return this.http
-      .delete<ApiResponse<null>>(API_ENDPOINTS.products.delete(id, tid))
+      .delete<ApiResponse<null>>(API_ENDPOINTS.products.delete(id))
       .pipe(map(unwrapApiResponse))
       .pipe(map(() => undefined));
   }
@@ -122,10 +120,9 @@ export class ProductAdminApiService {
       .pipe(map(unwrapApiResponse));
   }
 
-  getInventory(id: string, tenantId?: string): Observable<InventoryItemDto[]> {
-    const tid = tenantId ?? requireTenantId(this.auth);
+  getInventory(id: string): Observable<InventoryItemDto[]> {
     return this.http
-      .get<ApiResponse<InventoryItemDto[]>>(API_ENDPOINTS.products.inventory(id, tid))
+      .get<ApiResponse<InventoryItemDto[]>>(API_ENDPOINTS.products.inventory(id))
       .pipe(map(unwrapApiResponse));
   }
 

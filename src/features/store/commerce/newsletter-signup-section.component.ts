@@ -14,9 +14,11 @@ import { Portfolio } from '../../portfolio/models/portfolio.model';
   template: `
     @if (portfolio().newsletter.enabled) {
       <section class="mox-newsletter" id="newsletter">
-        <div class="container mx-auto px-6">
-          <h2 class="mox-newsletter__title">{{ portfolio().newsletter.heading }}</h2>
-          <p class="mox-newsletter__subtitle">{{ portfolio().newsletter.subheading }}</p>
+        <div class="mox-newsletter__container">
+          <div class="mox-newsletter__content">
+            <h2 class="mox-newsletter__title">{{ portfolio().newsletter.heading }}</h2>
+            <p class="mox-newsletter__subtitle">{{ portfolio().newsletter.subheading }}</p>
+          </div>
           <form class="mox-newsletter__form" (ngSubmit)="subscribe()">
             <input
               type="email"
@@ -32,6 +34,104 @@ import { Portfolio } from '../../portfolio/models/portfolio.model';
           </form>
         </div>
       </section>
+    }
+  `,
+  styles: `
+    .mox-newsletter {
+      padding: 60px 20px;
+      background: linear-gradient(135deg, var(--mox-accent, #e8d15e) 0%, color-mix(in srgb, var(--mox-accent, #e8d15e) 85%, #1a1a1a) 100%);
+      width: 100%;
+    }
+
+    .mox-newsletter__container {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .mox-newsletter__content {
+      margin-bottom: 30px;
+    }
+
+    .mox-newsletter__title {
+      font-size: 32px;
+      font-weight: 700;
+      /* Fixed dark: the section background is a fixed amber gradient in both
+         light and dark modes, so foreground must not use theme vars (which
+         flip to light in dark mode and become invisible on the amber). */
+      color: #1a1a1a;
+      margin: 0 0 10px 0;
+    }
+
+    .mox-newsletter__subtitle {
+      font-size: 16px;
+      color: rgba(26, 26, 26, 0.8);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .mox-newsletter__form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+
+      @media (max-width: 768px) {
+        flex-direction: column;
+      }
+    }
+
+    .mox-newsletter__input {
+      flex: 1;
+      min-width: 200px;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      background: white;
+      color: #1a1a1a;
+
+      &::placeholder {
+        color: #999;
+      }
+
+      &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+      }
+
+      @media (max-width: 768px) {
+        min-width: unset;
+      }
+    }
+
+    .mox-newsletter__btn {
+      padding: 14px 40px;
+      /* Fixed dark button on the fixed amber gradient (theme-independent). */
+      background: #1a1a1a;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+
+      &:hover:not(:disabled) {
+        background: white;
+        color: #1a1a1a;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 768px) {
+        width: 100%;
+      }
     }
   `
 })

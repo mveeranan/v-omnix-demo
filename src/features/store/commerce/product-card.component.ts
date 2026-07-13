@@ -74,7 +74,8 @@ import { CartStateService } from '../data-access/cart-state.service';
     .msp-card__media img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      background: white;
       transform: scale(1);
       transition: transform 1s ease;
     }

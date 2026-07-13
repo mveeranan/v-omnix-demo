@@ -84,7 +84,12 @@ interface CategoryCard {
                   [queryParams]="{ category: cat.slug }"
                 >
                   <span class="msp-cat-card__media">
-                    <img [src]="cat.imageUrl" [alt]="cat.name" loading="lazy" />
+                    <img
+                      [src]="cat.imageUrl"
+                      [alt]="cat.name"
+                      loading="lazy"
+                      onerror="this.style.display='none'; this.parentElement.style.backgroundImage='url(data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2220%22%3ENo Image%3C/text%3E%3C/svg%3E)'"
+                    />
                   </span>
                   <span class="msp-cat-card__label">{{ cat.name }}</span>
                 </a>
@@ -150,14 +155,20 @@ interface CategoryCard {
       transform: translateY(-2px);
     }
     .msp-cat-card__media {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       aspect-ratio: 4 / 3;
       overflow: hidden;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+      background-size: cover;
+      background-position: center;
     }
     .msp-cat-card__media img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      background: white;
       transition: transform 0.4s ease;
     }
     .msp-cat-card:hover .msp-cat-card__media img { transform: scale(1.06); }
@@ -283,6 +294,12 @@ export class CategoryShowcaseSectionComponent implements OnInit {
       const slug = meta?.slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       // Use real category image if set, else fallback by index
       const imageUrl = meta?.imageUrl || CATEGORY_FALLBACKS[index % CATEGORY_FALLBACKS.length];
+
+      // Debug: Log categories with missing images
+      if (!meta?.imageUrl) {
+        console.debug(`Category "${name}" has no API image, using fallback:`, imageUrl);
+      }
+
       return { name, slug, imageUrl };
     });
   });

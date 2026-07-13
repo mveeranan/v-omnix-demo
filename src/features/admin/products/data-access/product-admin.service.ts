@@ -34,7 +34,7 @@ export class ProductAdminService {
   }
 
   private refreshProduct(productId: string): Observable<ProductDetailDto> {
-    return this.api.get(productId, this.tenantId());
+    return this.api.get(productId);
   }
 
   list(filters: ProductListFilters = {}): Observable<ProductListResponse> {
@@ -119,7 +119,7 @@ export class ProductAdminService {
 
   duplicate(id: string): Observable<ProductDetailDto | null> {
     const tenantId = requireTenantId(this.auth);
-    return this.api.get(id, tenantId).pipe(
+    return this.api.get(id).pipe(
       switchMap((source) => {
         const core: SaveProductRequest = {
           tenantId,

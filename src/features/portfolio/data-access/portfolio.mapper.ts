@@ -1,6 +1,7 @@
 import { Mapper } from '@shared/mappers/mapper';
 import { PortfolioDto, PortfolioHighlightsDto } from '../models/dto/portfolio.dto';
-import { Portfolio, PortfolioHighlightItem, PortfolioTeamMember, createEmptyPortfolio } from '../models/portfolio.model';
+import { Portfolio, PortfolioHighlightItem, PortfolioTeamMember, TrustBadgeItem, DealOfWeekItem, PortfolioDealOfWeek, createEmptyPortfolio } from '../models/portfolio.model';
+import { PortfolioTrustBadges } from '../models/portfolio.model';
 import { mergeWithWebsiteDefaults } from '../models/portfolio-defaults';
 import { normalizePortfolioTheme } from '../models/theme-preset.model';
 import { mapLegacySocialDtoToLinks, mapPortfolioLinksToLegacySocialDto } from './social-media-portfolio.util';
@@ -17,6 +18,97 @@ function normalizeHighlightItems(
     }
     return { text: item.text, iconId: item.iconId || 'sparkles' };
   });
+}
+
+/** Migrate legacy trust badges boolean structure to new array format. */
+function migrateLegacyTrustBadges(source: any): PortfolioTrustBadges {
+  if (!source) {
+    return { ...defaults.trustBadges };
+  }
+
+  // If it already has the new format with 'badges' array, use it
+  if (Array.isArray(source.badges)) {
+    return {
+      enabled: source.enabled ?? true,
+      badges: source.badges.map((b: any) => ({
+        id: b.id || `badge-${Math.random().toString(36).substr(2, 9)}`,
+        persistedId: b.persistedId,
+        title: b.title || '',
+        icon: b.icon || 'ShieldCheck',
+        enabled: b.enabled ?? true,
+        order: b.order ?? 0
+      }))
+    };
+  }
+
+  // Migrate from old format with individual booleans
+  const badges: TrustBadgeItem[] = [];
+  let order = 0;
+
+  const badgeDefs = [
+    { key: 'freeShipping', title: 'Free Shipping', icon: 'Truck' },
+    { key: 'securePayment', title: 'Secure Payments', icon: 'Lock' },
+    { key: 'moneyBack', title: 'Money-Back Guarantee', icon: 'RefreshCw' },
+    { key: 'fastDelivery', title: 'Fast Delivery', icon: 'Zap' }
+  ];
+
+  for (const def of badgeDefs) {
+    const enabled = (source as any)[def.key] ?? false;
+    badges.push({
+      id: `badge-${def.key}`,
+      title: def.title,
+      icon: def.icon,
+      enabled,
+      order
+    });
+    order++;
+  }
+
+  return {
+    enabled: source.enabled ?? true,
+    badges
+  };
+}
+
+/** Migrate legacy deal of week single item structure to new array format. */
+function migrateLegacyDealOfWeek(source: any): PortfolioDealOfWeek {
+  if (!source) {
+    return { ...defaults.dealOfWeek };
+  }
+
+  // If it already has the new format with 'deals' array, use it
+  if (Array.isArray(source.deals)) {
+    return {
+      enabled: source.enabled ?? true,
+      deals: source.deals.map((d: any) => ({
+        id: d.id || `deal-${Math.random().toString(36).substr(2, 9)}`,
+        persistedId: d.persistedId,
+        productId: d.productId || '',
+        headline: d.headline || '',
+        endDate: d.endDate || '',
+        enabled: d.enabled ?? true,
+        order: d.order ?? 0
+      }))
+    };
+  }
+
+  // Migrate from old format with single product/headline/endDate
+  const deals: DealOfWeekItem[] = [];
+  if (source.productId) {
+    deals.push({
+      id: `deal-${Math.random().toString(36).substr(2, 9)}`,
+      productId: source.productId || '',
+      headline: source.headline || 'Deal of the Week',
+      endDate: source.endDate || '',
+      enabled: source.enabled ?? true,
+      order: 0
+    });
+  }
+
+  return {
+    enabled: source.enabled ?? true,
+    deals
+  };
 }
 
 function syncLegacyFields(portfolio: Portfolio): Portfolio {
@@ -124,9 +216,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
             categoryNames: [...source.categoryShowcase.categoryNames]
           }
         : { ...defaults.categoryShowcase },
-      dealOfWeek: source.dealOfWeek
-        ? { ...defaults.dealOfWeek, ...source.dealOfWeek }
-        : { ...defaults.dealOfWeek },
+      dealOfWeek: migrateLegacyDealOfWeek(source.dealOfWeek),
       lookbook: source.lookbook ? { ...defaults.lookbook, ...source.lookbook } : { ...defaults.lookbook },
       promoStrip: source.promoStrip ? { ...defaults.promoStrip, ...source.promoStrip } : { ...defaults.promoStrip },
       offerBanner: source.offerBanner
@@ -154,7 +244,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
       contactSupport: { ...contactSupport },
       paymentMethods: source.paymentMethods ? { ...source.paymentMethods } : { ...defaults.paymentMethods },
       storePolicies: source.storePolicies ? { ...source.storePolicies } : { ...defaults.storePolicies },
-      trustBadges: source.trustBadges ? { ...source.trustBadges } : { ...defaults.trustBadges },
+      trustBadges: migrateLegacyTrustBadges(source.trustBadges),
       newsletter: source.newsletter ? { ...source.newsletter } : { ...defaults.newsletter },
       socialSection: source.socialSection ?? { enabled: true },
       social: {
@@ -221,7 +311,7 @@ export class PortfolioMapper implements Mapper<PortfolioDto, Portfolio> {
         ...synced.categoryShowcase,
         categoryNames: [...synced.categoryShowcase.categoryNames]
       },
-      dealOfWeek: { ...synced.dealOfWeek },
+      dealOfWeek: { ...synced.dealOfWeek, deals: synced.dealOfWeek.deals.map((d) => ({ ...d })) },
       lookbook: { ...synced.lookbook },
       promoStrip: { ...synced.promoStrip },
       offerBanner: { ...synced.offerBanner, productIds: [...synced.offerBanner.productIds] },

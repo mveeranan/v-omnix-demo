@@ -1,15 +1,15 @@
 import { Component, computed, input } from '@angular/core';
-import { LucideAngularModule, Lock, RefreshCw, Truck, Users, Zap } from 'lucide-angular';
-import { Portfolio, PortfolioTrustBadges } from '../../portfolio/models/portfolio.model';
+import { LucideAngularModule } from 'lucide-angular';
+import { Portfolio, PortfolioTrustBadges, TrustBadgeItem } from '../../portfolio/models/portfolio.model';
 import { ScrollRevealDirective } from '@features/portfolio/shared/directives/scroll-reveal.directive';
+import { resolveTrustBadgeIcon } from '../../portfolio/models/trust-badges-icons';
 
-interface ServiceItem {
-  icon: typeof Truck;
+interface BadgeDisplay {
+  icon: any;
   title: string;
-  text: string;
 }
 
-/** Minishop "services strip": 3 icon + text media blocks under the hero. */
+/** Minishop "services strip": responsive grid of trust badges. */
 @Component({
   selector: 'app-trust-badges-strip',
   standalone: true,
@@ -23,7 +23,6 @@ interface ServiceItem {
               <lucide-icon [img]="item.icon" class="msp-services__icon" />
               <div>
                 <p class="msp-services__title">{{ item.title }}</p>
-                <p class="msp-services__text">{{ item.text }}</p>
               </div>
             </div>
           }
@@ -38,8 +37,11 @@ interface ServiceItem {
       grid-template-columns: 1fr;
       gap: 2rem;
     }
+    @media (min-width: 640px) {
+      .msp-services__grid { grid-template-columns: repeat(2, 1fr); }
+    }
     @media (min-width: 768px) {
-      .msp-services__grid { grid-template-columns: repeat(3, 1fr); }
+      .msp-services__grid { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
     }
     .msp-services__item {
       display: flex;
@@ -53,25 +55,18 @@ interface ServiceItem {
       color: var(--mox-accent, #dbcc8f);
     }
     .msp-services__title {
-      margin: 0 0 0.2rem;
+      margin: 0;
       font-size: 0.95rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.04em;
       color: var(--mox-text, #000);
     }
-    .msp-services__text {
-      margin: 0;
-      font-size: 0.85rem;
-      color: var(--mox-muted, #808080);
-    }
   `
 })
 export class TrustBadgesStripComponent {
   readonly portfolio = input.required<Portfolio>();
   readonly forceShow = input(false);
-
-  readonly usersIcon = Users;
 
   private readonly badges = computed((): PortfolioTrustBadges => {
     const p = this.portfolio();
@@ -81,26 +76,17 @@ export class TrustBadgesStripComponent {
     return p.trustBadges;
   });
 
-  readonly items = computed((): ServiceItem[] => {
+  readonly items = computed((): BadgeDisplay[] => {
     const b = this.badges();
-    if (!b.enabled) return [];
+    if (!b.enabled || !b.badges?.length) return [];
 
-    const items: ServiceItem[] = [];
-    if (b.freeShipping) {
-      items.push({ icon: Truck, title: 'Free Shipping', text: 'Free shipping on all orders' });
-    }
-    if (b.customerCountLabel?.trim()) {
-      items.push({ icon: Users, title: 'Support Customer', text: b.customerCountLabel });
-    }
-    if (b.securePayment) {
-      items.push({ icon: Lock, title: 'Secure Payments', text: 'Guaranteed secure checkout' });
-    }
-    if (b.moneyBack) {
-      items.push({ icon: RefreshCw, title: 'Money-Back Guarantee', text: '30-day easy returns' });
-    }
-    if (b.fastDelivery) {
-      items.push({ icon: Zap, title: 'Fast Delivery', text: 'Delivered in 2-3 business days' });
-    }
-    return items.slice(0, 3);
+    // Filter enabled badges, sort by order, and map to display format
+    return b.badges
+      .filter((badge: TrustBadgeItem) => badge.enabled)
+      .sort((a: TrustBadgeItem, b: TrustBadgeItem) => (a.order ?? 0) - (b.order ?? 0))
+      .map((badge: TrustBadgeItem) => ({
+        icon: resolveTrustBadgeIcon(badge.icon),
+        title: badge.title
+      }));
   });
 }

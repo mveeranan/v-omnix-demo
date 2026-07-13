@@ -4,13 +4,9 @@ const STORAGE_KEY = 'work-orbit.ecommerce.config';
 
 const DEFAULT: StoreSettings = {
   general: {
-    storeName: 'My Store',
-    tagline: 'Quality products, fast delivery',
-    logoUrl: '',
-    coverImageUrl: '',
-    description: 'Quality products delivered with care',
     timezone: 'America/Los_Angeles',
-    currency: 'USD'
+    currency: 'USD',
+    storeUrl: 'https://mystore.com'
   },
   shipping: {
     enabled: true,
@@ -30,14 +26,6 @@ const DEFAULT: StoreSettings = {
     stripePublicKey: '',
     codMinOrder: 0
   },
-  email: {
-    smtpServer: '',
-    smtpPort: 587,
-    username: '',
-    password: '',
-    fromEmail: 'hello@mystore.example.com',
-    fromName: 'My Store'
-  },
   tax: {
     calculateTax: true,
     taxType: 'Sales Tax',
@@ -54,9 +42,7 @@ const DEFAULT: StoreSettings = {
     privacyPolicy: '',
     termsAndConditions: '',
     warrantyInfo: ''
-  },
-  team: [{ id: 'u1', name: 'Store Admin', email: 'admin@example.com', role: 'admin' }],
-  integrations: { stripeConnected: false, razorpayConnected: false }
+  }
 };
 
 class EcommerceConfigStore {
@@ -79,7 +65,7 @@ class EcommerceConfigStore {
   }
 
   isConfigured(): boolean {
-    return Boolean(this.settings.general.storeName?.trim());
+    return Boolean(this.settings.general.storeUrl?.trim());
   }
 
   private load(): StoreSettings {
@@ -93,10 +79,8 @@ class EcommerceConfigStore {
         general: { ...DEFAULT.general, ...parsed.general },
         shipping: { ...DEFAULT.shipping, ...parsed.shipping },
         payment: { ...DEFAULT.payment, ...parsed.payment },
-        email: { ...DEFAULT.email, ...parsed.email },
         tax: { ...DEFAULT.tax, ...parsed.tax },
-        policies: { ...DEFAULT.policies, ...parsed.policies },
-        integrations: { ...DEFAULT.integrations, ...parsed.integrations }
+        policies: { ...DEFAULT.policies, ...parsed.policies }
       };
     } catch {
       return structuredClone(DEFAULT);

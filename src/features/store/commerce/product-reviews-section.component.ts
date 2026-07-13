@@ -53,7 +53,7 @@ import { StarsRatingComponent } from '@shared/ui/stars-rating.component';
   `
 })
 export class ProductReviewsSectionComponent implements OnInit {
-  readonly productId = input.required<string>();
+  readonly productId = input<string>('p1'); // Default to first product for homepage display
   private readonly reviewApi = inject(ReviewService);
 
   readonly reviews = signal<ProductReview[]>([]);

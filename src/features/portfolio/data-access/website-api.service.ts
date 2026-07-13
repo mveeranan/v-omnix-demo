@@ -35,9 +35,9 @@ export class WebsiteApiService {
   }
 
   /** Loads all saved home-page sections for the tenant, ordered by display order — used by the admin editor. */
-  listSections(tenantId: string): Observable<WebsiteSectionListItem[]> {
+  listSections(): Observable<WebsiteSectionListItem[]> {
     return this.http
-      .get<ApiResponse<WebsiteSectionListItem[]>>(API_ENDPOINTS.website.listSections(tenantId))
+      .get<ApiResponse<WebsiteSectionListItem[]>>(API_ENDPOINTS.website.listSections())
       .pipe(
         map((response) => {
           if (!response.success) {
@@ -62,9 +62,9 @@ export class WebsiteApiService {
   }
 
   /** Soft-deletes a single section (by type name) from the tenant's home page. */
-  deleteSection(sectionType: string, tenantId: string): Observable<void> {
+  deleteSection(sectionType: string): Observable<void> {
     return this.http
-      .delete<ApiResponse<unknown>>(API_ENDPOINTS.website.deleteSection(sectionType, tenantId))
+      .delete<ApiResponse<unknown>>(API_ENDPOINTS.website.deleteSection(sectionType))
       .pipe(
         map((response) => {
           if (!response.success) {

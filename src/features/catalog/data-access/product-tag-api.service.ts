@@ -12,10 +12,9 @@ export class ProductTagApiService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
 
-  list(tenantId?: string): Observable<ProductTagDto[]> {
-    const id = tenantId ?? requireTenantId(this.auth);
+  list(): Observable<ProductTagDto[]> {
     return this.http
-      .get<ApiResponse<ProductTagDto[]>>(API_ENDPOINTS.productTags.list(id))
+      .get<ApiResponse<ProductTagDto[]>>(API_ENDPOINTS.productTags.list())
       .pipe(map(unwrapApiResponse));
   }
 

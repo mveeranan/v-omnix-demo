@@ -32,8 +32,6 @@ import { WebsiteSectionStateService } from '../data-access/website-section-state
 
 import { StorePreviewComponent } from '../../store/layout/store-preview.component';
 
-import { BrandSectionComponent } from './sections/brand-section.component';
-
 import { HeroEditorSectionComponent } from './sections/hero-editor-section.component';
 
 import { CategoryShowcaseEditorSectionComponent } from './sections/category-showcase-editor-section.component';
@@ -48,8 +46,6 @@ import { AnnouncementBarEditorSectionComponent } from './sections/announcement-b
 
 import { NewArrivalsEditorSectionComponent } from './sections/new-arrivals-editor-section.component';
 
-import { TrustBadgesEditorSectionComponent } from './sections/trust-badges-editor-section.component';
-
 import { DealOfWeekEditorSectionComponent } from './sections/deal-of-week-editor-section.component';
 
 import { FeaturedProductsEditorSectionComponent } from './sections/featured-products-editor-section.component';
@@ -59,6 +55,8 @@ import { ReviewsEditorSectionComponent } from './sections/reviews-editor-section
 import { GalleryEditorSectionComponent } from './sections/gallery-editor-section.component';
 
 import { NewsletterEditorSectionComponent } from './sections/newsletter-editor-section.component';
+
+import { TrustBadgesEditorSectionComponent } from './sections/trust-badges-editor-section.component';
 
 import { ScrollRevealService } from '@features/portfolio/shared/services/scroll-reveal.service';
 
@@ -82,8 +80,6 @@ type EditorTab = 'content' | 'publish';
 
     StorePreviewComponent,
 
-    BrandSectionComponent,
-
     HeroEditorSectionComponent,
 
     CategoryShowcaseEditorSectionComponent,
@@ -98,8 +94,6 @@ type EditorTab = 'content' | 'publish';
 
     NewArrivalsEditorSectionComponent,
 
-    TrustBadgesEditorSectionComponent,
-
     DealOfWeekEditorSectionComponent,
 
     FeaturedProductsEditorSectionComponent,
@@ -108,7 +102,9 @@ type EditorTab = 'content' | 'publish';
 
     GalleryEditorSectionComponent,
 
-    NewsletterEditorSectionComponent
+    NewsletterEditorSectionComponent,
+
+    TrustBadgesEditorSectionComponent
 
   ],
 

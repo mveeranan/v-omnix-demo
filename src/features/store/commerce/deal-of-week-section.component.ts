@@ -1,5 +1,5 @@
-import { CurrencyPipe } from '@angular/common';
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { CurrencyPipe, NgClass } from '@angular/common';
+import { Component, computed, inject, OnDestroy, OnInit, signal, HostListener } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CatalogStorefrontApiService } from '@features/catalog/data-access/catalog-storefront-api.service';
 import { CatalogDealOfWeekDto, catalogPrimaryImage, catalogDiscountPercent } from '@features/catalog/models/catalog-storefront.model';
@@ -14,52 +14,75 @@ interface CountdownParts {
   seconds: string;
 }
 
-/** Minishop "Deal of the Month": full-bleed accent bg, product image left, countdown + CTA right. */
+/** Minishop "Deal of the Month": carousel with multiple deals, auto-rotation, navigation buttons, and swipe support. */
 @Component({
   selector: 'app-deal-of-week-section',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe, ScrollRevealDirective],
+  imports: [RouterLink, CurrencyPipe, NgClass, ScrollRevealDirective],
   template: `
-    @if (deal(); as d) {
-      <section class="msp-deal">
-        <div class="container mx-auto px-6 msp-deal__grid">
-          <div class="msp-deal__media" appScrollReveal="slide-right">
-            <img [src]="imageUrl()" [alt]="d.product!.name" loading="lazy" />
-          </div>
-          <div class="msp-deal__content" appScrollReveal="slide-left" [appScrollRevealDelay]="120">
-            <p class="msp-deal__eyebrow">{{ d.badgeText || 'Deal Of The Month' }}</p>
-            <h2 class="msp-deal__title">{{ d.title || d.product!.name }}</h2>
+    @if (dealsCarousel(); as carousel) {
+      <section class="msp-deal" [appScrollReveal]="'slide-up'">
+        <div class="container mx-auto px-6 msp-deal__wrapper">
+          <div class="msp-deal__carousel" (mousedown)="onDragStart($event)" (touchstart)="onDragStart($event)">
+            <!-- Slides -->
+            @for (deal of carousel; let idx = $index; track idx) {
+              @if (deal.product) {
+                <div class="msp-deal__slide" [ngClass]="{ 'msp-deal__slide--active': idx === currentSlideIndex() }">
+                  <div class="msp-deal__grid">
+                    <div class="msp-deal__media">
+                      <img [src]="getPrimaryImage(deal.product)" [alt]="deal.product.name" loading="lazy" />
+                    </div>
+                    <div class="msp-deal__content">
+                      <p class="msp-deal__eyebrow">{{ deal.badgeText || 'Deal Of The Month' }}</p>
+                      <h2 class="msp-deal__title">{{ deal.title || deal.product.name }}</h2>
 
-            <div class="msp-deal__countdown">
-              <div class="msp-deal__unit">
-                <span class="msp-deal__num">{{ countdown().days }}</span>
-                <span class="msp-deal__label">Days</span>
-              </div>
-              <div class="msp-deal__unit">
-                <span class="msp-deal__num">{{ countdown().hours }}</span>
-                <span class="msp-deal__label">Hours</span>
-              </div>
-              <div class="msp-deal__unit">
-                <span class="msp-deal__num">{{ countdown().minutes }}</span>
-                <span class="msp-deal__label">Mins</span>
-              </div>
-              <div class="msp-deal__unit">
-                <span class="msp-deal__num">{{ countdown().seconds }}</span>
-                <span class="msp-deal__label">Secs</span>
-              </div>
-            </div>
+                      <div class="msp-deal__countdown">
+                        <div class="msp-deal__unit">
+                          <span class="msp-deal__num">{{ getCountdown(idx).days }}</span>
+                          <span class="msp-deal__label">Days</span>
+                        </div>
+                        <div class="msp-deal__unit">
+                          <span class="msp-deal__num">{{ getCountdown(idx).hours }}</span>
+                          <span class="msp-deal__label">Hours</span>
+                        </div>
+                        <div class="msp-deal__unit">
+                          <span class="msp-deal__num">{{ getCountdown(idx).minutes }}</span>
+                          <span class="msp-deal__label">Mins</span>
+                        </div>
+                        <div class="msp-deal__unit">
+                          <span class="msp-deal__num">{{ getCountdown(idx).seconds }}</span>
+                          <span class="msp-deal__label">Secs</span>
+                        </div>
+                      </div>
 
-            <a [routerLink]="productLink()" class="msp-deal__product-link">{{ d.product!.name }}</a>
-            <div class="msp-deal__price-row">
-              @if (discount(); as disc) {
-                <span class="msp-deal__compare">{{ d.product!.compareAtPrice | currency: 'USD' }}</span>
-                <span class="msp-deal__badge">{{ disc }}% Off</span>
+                      <a [routerLink]="getProductLink(deal)" class="msp-deal__product-link">{{ deal.product.name }}</a>
+                      <div class="msp-deal__price-row">
+                        @if (getDiscount(deal.product); as disc) {
+                          <span class="msp-deal__compare">{{ deal.product.compareAtPrice | currency: 'USD' }}</span>
+                          <span class="msp-deal__badge">{{ disc }}% Off</span>
+                        }
+                        <span class="msp-deal__price">{{ deal.product.price | currency: 'USD' }}</span>
+                      </div>
+
+                      <button type="button" class="msp-deal__cta" (click)="addToCart(deal)">Add to cart</button>
+                    </div>
+                  </div>
+                </div>
               }
-              <span class="msp-deal__price">{{ d.product!.price | currency: 'USD' }}</span>
-            </div>
-
-            <button type="button" class="msp-deal__cta" (click)="addToCart()">Add to cart</button>
+            }
           </div>
+
+          <!-- Navigation Controls -->
+          @if (carousel.length > 1) {
+            <div class="msp-deal__controls">
+              <button type="button" class="msp-deal__nav-btn msp-deal__nav-btn--prev" (click)="previousSlide()" aria-label="Previous deal">
+                <span class="msp-deal__nav-icon">❮</span>
+              </button>
+              <button type="button" class="msp-deal__nav-btn msp-deal__nav-btn--next" (click)="nextSlide()" aria-label="Next deal">
+                <span class="msp-deal__nav-icon">❯</span>
+              </button>
+            </div>
+          }
         </div>
       </section>
     }
@@ -69,18 +92,41 @@ interface CountdownParts {
       padding: 7em 0;
       background: var(--mox-accent, #dbcc8f);
     }
+    .msp-deal__wrapper {
+      position: relative;
+    }
+    .msp-deal__carousel {
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+    }
+    .msp-deal__slide {
+      opacity: 0;
+      position: absolute;
+      width: 100%;
+      transition: opacity 0.6s ease-in-out;
+      pointer-events: none;
+    }
+    .msp-deal__slide--active {
+      opacity: 1;
+      position: relative;
+      pointer-events: auto;
+    }
     .msp-deal__grid {
       display: grid;
       grid-template-columns: 1fr;
       align-items: center;
       gap: 2.5rem;
+      min-height: 400px;
     }
     @media (min-width: 992px) {
-      .msp-deal__grid { grid-template-columns: 1fr 1fr; }
+      .msp-deal__grid { grid-template-columns: 1fr 1fr; min-height: 500px; }
     }
     .msp-deal__media {
       display: flex;
       justify-content: center;
+      align-items: center;
+      min-height: 300px;
     }
     .msp-deal__media img {
       max-width: 100%;
@@ -114,6 +160,7 @@ interface CountdownParts {
       display: flex;
       gap: 1.5rem;
       margin-bottom: 1.5rem;
+      flex-wrap: wrap;
     }
     .msp-deal__unit {
       display: flex;
@@ -147,6 +194,7 @@ interface CountdownParts {
       align-items: center;
       gap: 0.75rem;
       margin-bottom: 1.75rem;
+      flex-wrap: wrap;
     }
     .msp-deal__compare {
       font-size: 0.95rem;
@@ -180,6 +228,49 @@ interface CountdownParts {
       transition: opacity 0.2s ease;
     }
     .msp-deal__cta:hover { opacity: 0.85; }
+    .msp-deal__controls {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      transform: translateY(-50%);
+      display: flex;
+      justify-content: space-between;
+      padding: 0 1rem;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .msp-deal__nav-btn {
+      pointer-events: auto;
+      width: 2.5rem;
+      height: 2.5rem;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease;
+    }
+    .msp-deal__nav-btn:hover {
+      background: rgba(0, 0, 0, 0.7);
+    }
+    .msp-deal__nav-icon {
+      font-weight: bold;
+    }
+    @media (max-width: 768px) {
+      .msp-deal__controls {
+        padding: 0 0.5rem;
+      }
+      .msp-deal__nav-btn {
+        width: 2rem;
+        height: 2rem;
+        font-size: 1rem;
+      }
+    }
   `
 })
 export class DealOfWeekSectionComponent implements OnInit, OnDestroy {
@@ -187,57 +278,163 @@ export class DealOfWeekSectionComponent implements OnInit, OnDestroy {
   private readonly ctx = inject(StoreContextService);
   private readonly cart = inject(CartStateService);
 
-  private readonly dealDto = signal<CatalogDealOfWeekDto | null>(null);
+  private readonly deals = signal<CatalogDealOfWeekDto[]>([]);
+  readonly currentSlideIndex = signal(0);
+  private autoRotateTimer?: ReturnType<typeof setInterval>;
   private tickTimer?: ReturnType<typeof setInterval>;
   private readonly now = signal(Date.now());
 
-  readonly deal = computed(() => {
-    const d = this.dealDto();
-    return d?.enabled && d.product ? d : null;
-  });
+  // Track countdowns per deal
+  private countdownCache = new Map<string, CountdownParts>();
 
-  readonly imageUrl = computed(() => {
-    const d = this.deal();
-    return d?.product ? catalogPrimaryImage(d.product) : '';
-  });
+  // Swipe/drag tracking
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private isDragging = false;
 
-  readonly discount = computed(() => {
-    const d = this.deal();
-    return d?.product ? catalogDiscountPercent(d.product) : null;
-  });
-
-  readonly countdown = computed((): CountdownParts => {
-    const d = this.deal();
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    if (!d?.endDateUtc) return { days: '00', hours: '00', minutes: '00', seconds: '00' };
-
-    const diff = Math.max(0, new Date(d.endDateUtc).getTime() - this.now());
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const minutes = Math.floor((diff % 3600000) / 60000);
-    const seconds = Math.floor((diff % 60000) / 1000);
-    return { days: pad(days), hours: pad(hours), minutes: pad(minutes), seconds: pad(seconds) };
+  readonly dealsCarousel = computed(() => {
+    const d = this.deals();
+    return d.filter(deal => deal.enabled && deal.product).length > 0 ? this.deals() : null;
   });
 
   ngOnInit(): void {
-    this.catalogApi.getDealOfWeek(this.ctx.slug()).subscribe({
-      next: (dto) => this.dealDto.set(dto),
-      error: () => this.dealDto.set(null)
+    // Try to fetch multiple deals first, fall back to single deal
+    this.catalogApi.getDealsCarousel(this.ctx.slug()).subscribe({
+      next: (carousel) => {
+        if (carousel.enabled && carousel.deals.length > 0) {
+          this.deals.set(carousel.deals);
+        } else {
+          this.fetchSingleDeal();
+        }
+      },
+      error: () => this.fetchSingleDeal()
     });
+
+    // Start countdown ticker
     this.tickTimer = setInterval(() => this.now.set(Date.now()), 1000);
+
+    // Auto-rotate carousel every 9 seconds
+    this.autoRotateTimer = setInterval(() => {
+      const carousel = this.dealsCarousel();
+      if (carousel && carousel.length > 1) {
+        this.nextSlide();
+      }
+    }, 9000);
   }
 
   ngOnDestroy(): void {
     if (this.tickTimer) clearInterval(this.tickTimer);
+    if (this.autoRotateTimer) clearInterval(this.autoRotateTimer);
   }
 
-  productLink(): string[] {
-    const d = this.deal();
-    return ['/store', this.ctx.slug(), 'products', d!.product!.slug];
+  private fetchSingleDeal(): void {
+    this.catalogApi.getDealOfWeek(this.ctx.slug()).subscribe({
+      next: (dto) => {
+        if (dto.enabled && dto.product) {
+          this.deals.set([dto]);
+        }
+      },
+      error: () => this.deals.set([])
+    });
   }
 
-  addToCart(): void {
-    const d = this.deal();
-    if (d?.product) this.cart.addListItem(d.product, 1);
+  nextSlide(): void {
+    const carousel = this.dealsCarousel();
+    if (carousel) {
+      this.currentSlideIndex.update(idx => (idx + 1) % carousel.length);
+    }
+  }
+
+  previousSlide(): void {
+    const carousel = this.dealsCarousel();
+    if (carousel) {
+      this.currentSlideIndex.update(idx => (idx - 1 + carousel.length) % carousel.length);
+    }
+  }
+
+  getCountdown(dealIndex: number): CountdownParts {
+    const deals = this.deals();
+    if (dealIndex >= deals.length) {
+      return { days: '00', hours: '00', minutes: '00', seconds: '00' };
+    }
+
+    const deal = deals[dealIndex];
+    const pad = (n: number) => n.toString().padStart(2, '0');
+
+    if (!deal?.endDateUtc) {
+      return { days: '00', hours: '00', minutes: '00', seconds: '00' };
+    }
+
+    const diff = Math.max(0, new Date(deal.endDateUtc).getTime() - this.now());
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    return {
+      days: pad(days),
+      hours: pad(hours),
+      minutes: pad(minutes),
+      seconds: pad(seconds)
+    };
+  }
+
+  getPrimaryImage(product: any): string {
+    return catalogPrimaryImage(product);
+  }
+
+  getDiscount(product: any): number | null {
+    return catalogDiscountPercent(product);
+  }
+
+  getProductLink(deal: CatalogDealOfWeekDto): string[] {
+    return ['/store', this.ctx.slug(), 'products', deal.product!.slug];
+  }
+
+  addToCart(deal: CatalogDealOfWeekDto): void {
+    if (deal?.product) {
+      this.cart.addListItem(deal.product, 1);
+    }
+  }
+
+  // Swipe/drag handlers
+  onDragStart(event: MouseEvent | TouchEvent): void {
+    this.isDragging = true;
+    this.dragStartX = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
+    this.dragStartY = event instanceof TouchEvent ? event.touches[0].clientY : event.clientY;
+
+    const handleDragMove = (moveEvent: MouseEvent | TouchEvent) => {
+      if (!this.isDragging) return;
+
+      const currentX = moveEvent instanceof TouchEvent ? moveEvent.touches[0].clientX : moveEvent.clientX;
+      const currentY = moveEvent instanceof TouchEvent ? moveEvent.touches[0].clientY : moveEvent.clientY;
+      const diffX = currentX - this.dragStartX;
+      const diffY = currentY - this.dragStartY;
+
+      // Only handle horizontal swipe if horizontal movement > vertical movement
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+        this.isDragging = false;
+        if (diffX > 0) {
+          this.previousSlide();
+        } else {
+          this.nextSlide();
+        }
+        document.removeEventListener('mousemove', handleDragMove as any);
+        document.removeEventListener('touchmove', handleDragMove as any);
+      }
+    };
+
+    const handleDragEnd = () => {
+      this.isDragging = false;
+      document.removeEventListener('mousemove', handleDragMove as any);
+      document.removeEventListener('touchmove', handleDragMove as any);
+      document.removeEventListener('mouseup', handleDragEnd);
+      document.removeEventListener('touchend', handleDragEnd);
+    };
+
+    document.addEventListener('mousemove', handleDragMove as any);
+    document.addEventListener('touchmove', handleDragMove as any);
+    document.addEventListener('mouseup', handleDragEnd);
+    document.addEventListener('touchend', handleDragEnd);
   }
 }

@@ -138,29 +138,40 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
     .msp-topbar {
       background: var(--mox-primary, #000);
       color: rgba(255, 255, 255, 0.7);
+      padding: 0.5rem 0;
     }
     .msp-topbar__inner {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      min-height: 2.4rem;
-      font-size: 0.78rem;
+      min-height: 2.2rem;
+      font-size: 0.75rem;
     }
-    .msp-topbar__left { display: flex; align-items: center; gap: 1.25rem; }
+    .msp-topbar__left { display: flex; align-items: center; gap: 2rem; }
     .msp-topbar__right { display: none; }
     @media (min-width: 640px) {
-      .msp-topbar__right { display: block; }
+      .msp-topbar__right { display: flex; align-items: center; }
     }
     .msp-topbar__item {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
-      color: rgba(255, 255, 255, 0.7);
+      gap: 0.65rem;
+      color: rgba(255, 255, 255, 0.75);
       text-decoration: none;
       transition: color 0.2s ease;
+      line-height: 1.4;
+      height: 100%;
     }
-    .msp-topbar__icon { width: 0.85rem; height: 0.85rem; flex-shrink: 0; }
+    .msp-topbar__icon {
+      width: 1rem;
+      height: 1rem;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
     a.msp-topbar__item:hover { color: var(--mox-accent, #dbcc8f); }
 
     .msp-header {
@@ -199,26 +210,27 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
     .msp-header__nav {
       display: none;
       align-items: center;
-      gap: 1.75rem;
+      gap: 2.25rem;
     }
     @media (min-width: 768px) {
       .msp-header__nav { display: flex; }
     }
     .msp-header__link {
-      font-size: 0.8rem;
-      font-weight: 700;
+      font-size: 0.775rem;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       color: var(--mox-text, #23232d);
       text-decoration: none;
-      padding: 0.4rem 0;
+      padding: 0.5rem 0;
       border-bottom: 2px solid transparent;
-      transition: color 0.2s ease, border-color 0.2s ease;
+      transition: color 0.25s ease, border-color 0.25s ease;
+      position: relative;
     }
     .msp-header__link:hover,
     .msp-header__link--active {
-      color: var(--mox-accent, #fe4c50);
-      border-bottom-color: var(--mox-accent, #fe4c50);
+      color: var(--mox-accent, #c9a24a);
+      border-bottom-color: var(--mox-accent, #c9a24a);
     }
 
     .msp-header__actions {
@@ -227,12 +239,14 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
       gap: 0.4rem;
     }
 
-    /* Menu icon: show on mobile, hide on tablet+ */
+    /* Menu icon: show on mobile, hide on tablet+.
+       Uses a compound selector for the hide rule so it out-specifies the
+       base .msp-header__icon-btn { display: grid } rule that follows below. */
     .msp-header__menu-btn {
       display: grid;
     }
     @media (min-width: 768px) {
-      .msp-header__menu-btn {
+      .msp-header__icon-btn.msp-header__menu-btn {
         display: none;
       }
     }

@@ -9,6 +9,7 @@ import { CategoryShowcaseSectionComponent } from '../commerce/category-showcase-
 import { TrustBadgesStripComponent } from '../commerce/trust-badges-strip.component';
 import { DealOfWeekSectionComponent } from '../commerce/deal-of-week-section.component';
 import { NewsletterSignupSectionComponent } from '../commerce/newsletter-signup-section.component';
+import { ProductReviewsSectionComponent } from '../commerce/product-reviews-section.component';
 import { StoreContextService } from '../data-access/store-context.service';
 
 /**
@@ -28,6 +29,7 @@ import { StoreContextService } from '../data-access/store-context.service';
     DealOfWeekSectionComponent,
     FeaturedProductsSectionComponent,
     ReviewsSectionComponent,
+    ProductReviewsSectionComponent,
     GallerySectionComponent,
     NewsletterSignupSectionComponent
   ],
@@ -58,6 +60,10 @@ import { StoreContextService } from '../data-access/store-context.service';
           [showQtyControls]="false"
           [showShopCta]="true"
         />
+      }
+
+      @if (p.reviewsSection?.enabled) {
+        <app-product-reviews-section />
       }
 
       @if (p.reviewsSection.enabled) {

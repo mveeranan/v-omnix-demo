@@ -434,7 +434,10 @@
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
   text-transform: capitalize;
-  color: var(--mox-primary);
+  /* Use --mox-text (not --mox-primary): the store's portfolio theme flips
+     --mox-text for dark mode but keeps --mox-primary dark, which made these
+     section headings invisible on dark backgrounds. */
+  color: var(--mox-text);
 }
 
 .mox-sale-section__subtitle {

@@ -12,10 +12,9 @@ export class ProductTypeApiService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
 
-  list(tenantId?: string): Observable<ProductTypeDto[]> {
-    const id = tenantId ?? requireTenantId(this.auth);
+  list(): Observable<ProductTypeDto[]> {
     return this.http
-      .get<ApiResponse<ProductTypeDto[]>>(API_ENDPOINTS.productTypes.list(id))
+      .get<ApiResponse<ProductTypeDto[]>>(API_ENDPOINTS.productTypes.list())
       .pipe(map(unwrapApiResponse));
   }
 
@@ -31,9 +30,9 @@ export class ProductTypeApiService {
       .pipe(map(unwrapApiResponse));
   }
 
-  delete(id: string, tenantId: string): Observable<void> {
+  delete(id: string): Observable<void> {
     return this.http
-      .delete<ApiResponse<null>>(API_ENDPOINTS.productTypes.delete(id, tenantId))
+      .delete<ApiResponse<null>>(API_ENDPOINTS.productTypes.delete(id))
       .pipe(map(() => undefined));
   }
 }

@@ -105,6 +105,11 @@ export interface CatalogDealOfWeekDto {
   product: CatalogProductListItemDto | null;
 }
 
+export interface CatalogDealsCarouselDto {
+  enabled: boolean;
+  deals: CatalogDealOfWeekDto[];
+}
+
 export function catalogDiscountPercent(product: {
   price: number;
   compareAtPrice: number | null;

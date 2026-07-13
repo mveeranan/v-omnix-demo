@@ -29,9 +29,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const accessToken = authService.getAccessToken();
-  const authReq = accessToken ? addAuthorizationHeader(req, accessToken) : req;
+  const tenantId = authService.getTenantId();
+  let finalReq = accessToken ? addAuthorizationHeader(req, accessToken) : req;
+  finalReq = tenantId ? addTenantIdHeader(finalReq, tenantId) : finalReq;
 
-  return next(authReq).pipe(
+  return next(finalReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status !== 401) {
         return throwError(() => error);
@@ -101,6 +103,14 @@ function addAuthorizationHeader(req: HttpRequest<unknown>, token: string): HttpR
   return req.clone({
     setHeaders: {
       Authorization: `Bearer ${token}`
+    }
+  });
+}
+
+function addTenantIdHeader(req: HttpRequest<unknown>, tenantId: string): HttpRequest<unknown> {
+  return req.clone({
+    setHeaders: {
+      'X-Tenant-Id': tenantId
     }
   });
 }
