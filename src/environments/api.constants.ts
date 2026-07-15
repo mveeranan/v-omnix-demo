@@ -128,12 +128,14 @@ export const API_ENDPOINTS = {
   orders: {
     list: `${base}/orders`,
     get: (id: string) => `${base}/orders/${encodeURIComponent(id)}`,
-    create: `${base}/orders`,
-    updateStatus: (id: string) => `${base}/orders/${id}/status`
+    updateStatus: (id: string) => `${base}/orders/${id}/status`,
+    addNote: (id: string) => `${base}/orders/${id}/notes`
   },
   checkout: {
     quote: `${base}/checkout/quote`,
-    placeOrder: `${base}/checkout/place-order`
+    placeOrder: `${base}/checkout/place-order`,
+    myOrders: `${base}/checkout/my-orders`,
+    myProfile: `${base}/checkout/my-profile`
   },
   payments: {
     methods: `${base}/payments/methods`,

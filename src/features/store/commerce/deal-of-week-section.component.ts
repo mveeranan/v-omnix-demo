@@ -90,7 +90,7 @@ interface CountdownParts {
   styles: `
     .msp-deal {
       padding: 7em 0;
-      background: var(--mox-accent, #dbcc8f);
+      background: var(--mox-accent, #ff6f00);
     }
     .msp-deal__wrapper {
       position: relative;
@@ -151,7 +151,7 @@ interface CountdownParts {
     }
     .msp-deal__title {
       margin: 0 0 1.5rem;
-      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
       font-weight: 700;
       text-transform: uppercase;
       color: #000;
@@ -183,7 +183,7 @@ interface CountdownParts {
       display: inline-block;
       margin-bottom: 0.5rem;
       font-size: 1rem;
-      font-weight: 700;
+      font-weight: 800;
       text-transform: uppercase;
       color: #000;
       text-decoration: none;
@@ -199,11 +199,12 @@ interface CountdownParts {
     .msp-deal__compare {
       font-size: 0.95rem;
       text-decoration: line-through;
-      color: rgba(0, 0, 0, 0.5);
+      color: #000;
     }
     .msp-deal__price {
-      font-size: 1.4rem;
-      font-weight: 700;
+      /* Exact reference: .text-deal .price { font-size:24px; font-weight:800 }. */
+      font-size: 1.5rem;
+      font-weight: 800;
       color: #fff;
     }
     .msp-deal__badge {
@@ -211,7 +212,7 @@ interface CountdownParts {
       font-size: 0.72rem;
       font-weight: 700;
       background: #000;
-      color: var(--mox-accent, #dbcc8f);
+      color: var(--mox-accent, #ff6f00);
       text-transform: uppercase;
     }
     .msp-deal__cta {
@@ -294,21 +295,12 @@ export class DealOfWeekSectionComponent implements OnInit, OnDestroy {
 
   readonly dealsCarousel = computed(() => {
     const d = this.deals();
-    return d.filter(deal => deal.enabled && deal.product).length > 0 ? this.deals() : null;
+    const validDeals = d.filter(deal => deal && deal.enabled && deal.product);
+    return validDeals.length > 0 ? validDeals : null;
   });
 
   ngOnInit(): void {
-    // Try to fetch multiple deals first, fall back to single deal
-    this.catalogApi.getDealsCarousel(this.ctx.slug()).subscribe({
-      next: (carousel) => {
-        if (carousel.enabled && carousel.deals.length > 0) {
-          this.deals.set(carousel.deals);
-        } else {
-          this.fetchSingleDeal();
-        }
-      },
-      error: () => this.fetchSingleDeal()
-    });
+    this.loadDeals();
 
     // Start countdown ticker
     this.tickTimer = setInterval(() => this.now.set(Date.now()), 1000);
@@ -322,6 +314,26 @@ export class DealOfWeekSectionComponent implements OnInit, OnDestroy {
     }, 9000);
   }
 
+  private loadDeals(): void {
+    // Try to fetch multiple deals first, fall back to single deal
+    this.catalogApi.getDealsCarousel(this.ctx.slug()).subscribe({
+      next: (carousel) => {
+        if (carousel && carousel.enabled && carousel.deals && carousel.deals.length > 0) {
+          const validDeals = carousel.deals.filter(d => d && d.product);
+          if (validDeals.length > 0) {
+            this.deals.set(validDeals);
+            return;
+          }
+        }
+        this.fetchSingleDeal();
+      },
+      error: (err) => {
+        console.warn('Failed to load deals carousel, trying single deal:', err);
+        this.fetchSingleDeal();
+      }
+    });
+  }
+
   ngOnDestroy(): void {
     if (this.tickTimer) clearInterval(this.tickTimer);
     if (this.autoRotateTimer) clearInterval(this.autoRotateTimer);
@@ -330,11 +342,16 @@ export class DealOfWeekSectionComponent implements OnInit, OnDestroy {
   private fetchSingleDeal(): void {
     this.catalogApi.getDealOfWeek(this.ctx.slug()).subscribe({
       next: (dto) => {
-        if (dto.enabled && dto.product) {
+        if (dto && dto.enabled && dto.product) {
           this.deals.set([dto]);
+        } else {
+          this.deals.set([]);
         }
       },
-      error: () => this.deals.set([])
+      error: (err) => {
+        console.warn('Failed to load deal of week:', err);
+        this.deals.set([]);
+      }
     });
   }
 

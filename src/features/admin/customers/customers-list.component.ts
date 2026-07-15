@@ -8,6 +8,7 @@ import { AdminTableActionComponent } from '@shared/ui/admin-table-action.compone
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { CustomerService } from './data-access/customer.service';
 import { LucideAngularModule, User } from 'lucide-angular';
+import { NotificationService } from '@core/notifications/notification.service';
 
 @Component({
   selector: 'app-customers-list',
@@ -91,6 +92,7 @@ import { LucideAngularModule, User } from 'lucide-angular';
 })
 export class CustomersListComponent implements OnInit {
   private readonly api = inject(CustomerService);
+  private readonly notifications = inject(NotificationService);
   readonly userIcon = User;
   readonly loading = signal(true);
   readonly items = signal<import('./models/customer.model').Customer[]>([]);
@@ -111,7 +113,10 @@ export class CustomersListComponent implements OnInit {
         this.total.set(r.total);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not load customers.');
+        this.loading.set(false);
+      }
     });
   }
 

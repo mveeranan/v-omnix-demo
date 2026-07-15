@@ -9,6 +9,7 @@ import { AdminTableActionComponent } from '@shared/ui/admin-table-action.compone
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { OrderService } from './data-access/order.service';
 import { Order, OrderListResult, OrderStatus } from './models/order.model';
+import { NotificationService } from '@core/notifications/notification.service';
 
 @Component({
   selector: 'app-orders-list',
@@ -110,6 +111,7 @@ import { Order, OrderListResult, OrderStatus } from './models/order.model';
 })
 export class OrdersListComponent implements OnInit {
   private readonly api = inject(OrderService);
+  private readonly notifications = inject(NotificationService);
   readonly statuses: OrderStatus[] = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
 
   readonly loading = signal(true);
@@ -139,7 +141,10 @@ export class OrdersListComponent implements OnInit {
           this.metrics.set(r);
           this.loading.set(false);
         },
-        error: () => this.loading.set(false)
+        error: (err) => {
+          this.notifications.errorFromApi(err, 'Could not load orders.');
+          this.loading.set(false);
+        }
       });
   }
 

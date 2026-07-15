@@ -1,9 +1,10 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Menu, X, ShoppingCart, Moon, Sun, Search, Phone, Mail, Truck } from 'lucide-angular';
+import { LucideAngularModule, Menu, X, ShoppingCart, Moon, Sun, Search, Phone, Mail, Truck, User } from 'lucide-angular';
 import { Portfolio, PortfolioThemeMode } from '../../portfolio/models/portfolio.model';
 import { CartStateService } from '../data-access/cart-state.service';
+import { StoreAuthService } from '../data-access/store-auth.service';
 import { StoreThemeService } from '../data-access/store-theme.service';
 import { CartDrawerComponent } from '../commerce/cart-drawer.component';
 
@@ -91,6 +92,14 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
             >
               <lucide-icon [img]="isDark() ? sunIcon : moonIcon" class="h-5 w-5" />
             </button>
+            <a
+              [routerLink]="accountLink()"
+              class="msp-header__icon-btn"
+              [attr.aria-label]="storeAuth.isLoggedIn() ? 'My account' : 'Log in'"
+              [title]="storeAuth.isLoggedIn() ? 'My account' : 'Log in'"
+            >
+              <lucide-icon [img]="userIcon" class="h-5 w-5" />
+            </a>
             <button type="button" class="msp-header__icon-btn msp-header__menu-btn" (click)="mobileOpen.set(!mobileOpen())" aria-label="Menu">
               <lucide-icon [img]="mobileOpen() ? closeIcon : menuIcon" class="h-5 w-5" />
             </button>
@@ -137,18 +146,18 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
 
     .msp-topbar {
       background: var(--mox-primary, #000);
-      color: rgba(255, 255, 255, 0.7);
-      padding: 0.5rem 0;
+      color: rgba(255, 255, 255, 0.65);
+      padding: 0.6rem 0;
+      font-size: 0.8rem;
     }
     .msp-topbar__inner {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 1rem;
-      min-height: 2.2rem;
-      font-size: 0.75rem;
+      gap: 1.5rem;
+      min-height: 2rem;
     }
-    .msp-topbar__left { display: flex; align-items: center; gap: 2rem; }
+    .msp-topbar__left { display: flex; align-items: center; gap: 2.5rem; }
     .msp-topbar__right { display: none; }
     @media (min-width: 640px) {
       .msp-topbar__right { display: flex; align-items: center; }
@@ -156,53 +165,54 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
     .msp-topbar__item {
       display: inline-flex;
       align-items: center;
-      gap: 0.65rem;
-      color: rgba(255, 255, 255, 0.75);
+      gap: 0.5rem;
+      color: rgba(255, 255, 255, 0.65);
       text-decoration: none;
-      transition: color 0.2s ease;
-      line-height: 1.4;
-      height: 100%;
+      transition: color 0.25s ease;
+      line-height: 1.3;
+      font-size: 0.8rem;
     }
     .msp-topbar__icon {
       width: 1rem;
       height: 1rem;
       flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
+      opacity: 0.8;
     }
-    a.msp-topbar__item:hover { color: var(--mox-accent, #dbcc8f); }
+    a.msp-topbar__item:hover {
+      color: white;
+    }
 
     .msp-header {
       position: sticky;
       top: 0;
       z-index: 40;
       background: var(--mox-surface, #fff);
-      border-bottom: 1px solid var(--mox-border, #eaeaea);
+      border-bottom: 1px solid var(--mox-border, #f0f0f0);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
     .msp-header__inner {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 1.5rem;
-      min-height: 4.25rem;
+      gap: 2rem;
+      min-height: 3.75rem;
     }
 
     .msp-header__brand {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.5rem;
       font-family: var(--mox-font-heading, inherit);
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 700;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.015em;
       color: var(--mox-text, #23232d);
       text-decoration: none;
       white-space: nowrap;
+      flex-shrink: 0;
     }
     .msp-header__logo {
-      height: 2rem;
+      height: 1.75rem;
       width: auto;
       object-fit: contain;
     }
@@ -210,38 +220,40 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
     .msp-header__nav {
       display: none;
       align-items: center;
-      gap: 2.25rem;
+      gap: 2.5rem;
+      margin: 0 auto;
     }
     @media (min-width: 768px) {
       .msp-header__nav { display: flex; }
     }
     .msp-header__link {
-      font-size: 0.775rem;
-      font-weight: 600;
+      font-size: 0.8rem;
+      font-weight: 500;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--mox-text, #23232d);
+      letter-spacing: 0.08em;
+      color: var(--mox-text, #666);
       text-decoration: none;
-      padding: 0.5rem 0;
+      padding: 0.4rem 0;
       border-bottom: 2px solid transparent;
-      transition: color 0.25s ease, border-color 0.25s ease;
-      position: relative;
+      transition: all 0.2s ease;
     }
-    .msp-header__link:hover,
+    .msp-header__link:hover {
+      color: var(--mox-accent, #ff6f00);
+    }
     .msp-header__link--active {
-      color: var(--mox-accent, #c9a24a);
-      border-bottom-color: var(--mox-accent, #c9a24a);
+      color: var(--mox-text, #23232d);
+      font-weight: 600;
+      border-bottom-color: var(--mox-accent, #ff6f00);
     }
 
     .msp-header__actions {
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.75rem;
+      margin-left: auto;
+      flex-shrink: 0;
     }
 
-    /* Menu icon: show on mobile, hide on tablet+.
-       Uses a compound selector for the hide rule so it out-specifies the
-       base .msp-header__icon-btn { display: grid } rule that follows below. */
     .msp-header__menu-btn {
       display: grid;
     }
@@ -261,79 +273,87 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
     }
     .msp-header__search--mobile {
       display: flex;
-      margin-bottom: 0.75rem;
+      margin-bottom: 1rem;
     }
     .msp-header__search-icon {
       position: absolute;
-      left: 0.7rem;
-      color: var(--mox-muted, #8a8a8a);
+      left: 0.75rem;
+      color: var(--mox-muted, #999);
       pointer-events: none;
+      opacity: 0.6;
     }
     .msp-header__search-input {
-      width: 13rem;
-      padding: 0.45rem 0.8rem 0.45rem 2.2rem;
-      font-size: 0.85rem;
+      width: 14rem;
+      padding: 0.5rem 0.9rem 0.5rem 2.4rem;
+      font-size: 0.8rem;
       color: var(--mox-text, #23232d);
-      background: color-mix(in srgb, var(--mox-border, #eaeaea) 25%, var(--mox-surface, #fff));
-      border: 1px solid var(--mox-border, #eaeaea);
-      border-radius: var(--mox-btn-radius, 2px);
+      background: var(--mox-surface, #fff);
+      background: color-mix(in srgb, var(--mox-border, #f0f0f0) 50%, var(--mox-surface, #fff));
+      border: 1px solid var(--mox-border, #e0e0e0);
+      border-radius: 6px;
       outline: none;
-      transition: border-color 0.2s ease, width 0.25s ease;
+      transition: all 0.2s ease;
     }
     .msp-header__search--mobile .msp-header__search-input { width: 100%; }
     .msp-header__search-input:focus {
-      border-color: var(--mox-accent, #fe4c50);
-      width: 16rem;
+      border-color: var(--mox-accent, #ff6f00);
+      background: var(--mox-surface, #fff);
+      box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.1);
+      width: 17rem;
     }
     .msp-header__search--mobile .msp-header__search-input:focus { width: 100%; }
-    .msp-header__search-input::placeholder { color: var(--mox-muted, #8a8a8a); }
+    .msp-header__search-input::placeholder { color: var(--mox-muted, #999); }
 
     .msp-header__icon-btn {
       position: relative;
       display: grid;
       place-items: center;
-      width: 2.4rem;
-      height: 2.4rem;
-      color: var(--mox-text, #23232d);
+      width: 2.2rem;
+      height: 2.2rem;
+      color: var(--mox-text, #666);
       background: transparent;
       border: none;
-      border-radius: var(--mox-btn-radius, 2px);
+      border-radius: 6px;
       cursor: pointer;
-      transition: color 0.2s ease, background 0.2s ease;
+      transition: all 0.2s ease;
     }
     .msp-header__icon-btn:hover {
-      color: var(--mox-accent, #fe4c50);
-      background: color-mix(in srgb, var(--mox-accent, #fe4c50) 8%, transparent);
+      color: var(--mox-accent, #ff6f00);
+      background: color-mix(in srgb, var(--mox-accent, #ff6f00) 6%, transparent);
     }
     .msp-header__cart-btn {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
-      height: 2.4rem;
-      padding: 0 0.6rem;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--mox-text, #23232d);
+      gap: 0.4rem;
+      height: 2.2rem;
+      padding: 0 0.7rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--mox-text, #666);
       background: transparent;
-      border: none;
-      border-radius: var(--mox-btn-radius, 2px);
+      border: 1px solid var(--mox-border, #e0e0e0);
+      border-radius: 6px;
       cursor: pointer;
-      transition: color 0.2s ease, background 0.2s ease;
+      transition: all 0.2s ease;
     }
     .msp-header__cart-btn:hover {
-      color: var(--mox-accent, #fe4c50);
-      background: color-mix(in srgb, var(--mox-accent, #fe4c50) 8%, transparent);
+      color: var(--mox-accent, #ff6f00);
+      border-color: var(--mox-accent, #ff6f00);
+      background: color-mix(in srgb, var(--mox-accent, #ff6f00) 4%, transparent);
     }
-    .msp-header__cart-count { font-variant-numeric: tabular-nums; }
+    .msp-header__cart-count {
+      font-variant-numeric: tabular-nums;
+      color: var(--mox-text, #666);
+    }
 
     .msp-header__mobile {
-      padding: 0.9rem 1.5rem 1.1rem;
-      border-top: 1px solid var(--mox-border, #eaeaea);
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--mox-border, #f0f0f0);
       background: var(--mox-surface, #fff);
     }
     .msp-header__link--mobile {
       display: block;
-      padding: 0.55rem 0;
+      padding: 0.6rem 0;
       border-bottom: none;
     }
   `
@@ -345,6 +365,7 @@ export class StoreNavComponent {
   readonly themeMode = input<PortfolioThemeMode>('light');
 
   private readonly cartState = inject(CartStateService);
+  readonly storeAuth = inject(StoreAuthService);
   private readonly storeTheme = inject(StoreThemeService);
   private readonly router = inject(Router);
 
@@ -357,6 +378,7 @@ export class StoreNavComponent {
   readonly phoneIcon = Phone;
   readonly mailIcon = Mail;
   readonly truckIcon = Truck;
+  readonly userIcon = User;
 
   readonly mobileOpen = signal(false);
   readonly cartOpen = signal(false);
@@ -382,6 +404,10 @@ export class StoreNavComponent {
 
   storeBase(): string[] {
     return ['/store', this.storeSlug()];
+  }
+
+  accountLink(): string[] {
+    return ['/store', this.storeSlug(), 'account'];
   }
 
   showTopbar(): boolean {

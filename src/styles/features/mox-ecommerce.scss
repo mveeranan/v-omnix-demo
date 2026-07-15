@@ -44,6 +44,28 @@
   font-family: var(--mox-font-heading);
 }
 
+/* Selectable option tile (payment methods etc.) — base surface; pair with
+   .mox-tint-accent for the selected state (defined after, so it wins). */
+.mox-option-tile {
+  background: var(--mox-surface);
+}
+
+/* Accent-tint surfaces — fallback-first for browsers without color-mix()
+   (Safari < 16.2, Firefox < 113 reject the whole declaration, so the plain
+   surface color declared first survives as the rendered value). These classes
+   replace runtime [style.background]="color-mix(...)" bindings, which bypass
+   the build pipeline entirely and can never get fallbacks any other way. */
+.mox-tint-accent {
+  background: var(--mox-surface);
+  background: color-mix(in srgb, var(--mox-accent) 8%, var(--mox-surface));
+}
+
+.mox-chip--accent {
+  background: var(--mox-surface);
+  background: color-mix(in srgb, var(--mox-accent) 12%, var(--mox-surface));
+  color: var(--mox-accent);
+}
+
 .mox-header {
   background: var(--mox-surface);
   border-bottom: 1px solid var(--mox-border);
@@ -431,7 +453,9 @@
 
 .mox-sale-section__title {
   font-family: var(--mox-font-heading);
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  /* Matches the Minishop reference's 40px/600-700 section headings — the
+     previous 24-32px scale read as thin next to that template's bold type. */
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 700;
   text-transform: capitalize;
   /* Use --mox-text (not --mox-primary): the store's portfolio theme flips
@@ -626,7 +650,7 @@
   align-items: center;
   justify-content: center;
   min-height: 2.75rem;
-  padding: 0 1.25rem;
+  padding: 0 1.5rem;
   font-size: 0.8125rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -634,6 +658,14 @@
   text-decoration: none;
   border: none;
   cursor: pointer;
+  /* Signature pill shape (Minishop reference) — used consistently for every
+     CTA across the storefront instead of sharp/near-sharp corners. */
+  border-radius: 999px;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.mox-btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--mox-accent) 55%, transparent);
 }
 
 .mox-btn--primary {

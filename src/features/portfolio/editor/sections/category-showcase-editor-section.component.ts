@@ -10,6 +10,7 @@ import { PortfolioStateService } from '../../data-access/portfolio-state.service
 import { PortfolioCategoryShowcase } from '../../models/portfolio.model';
 import { CategoryAdminService } from '@features/admin/data-access/category-admin.service';
 import { ProductCategoryDto } from '@features/catalog/models/product-category.model';
+import { NotificationService } from '@core/notifications/notification.service';
 
 @Component({
   selector: 'app-category-showcase-editor-section',
@@ -147,6 +148,7 @@ export class CategoryShowcaseEditorSectionComponent implements OnInit {
   private readonly sectionState = inject(WebsiteSectionStateService);
   private readonly portfolioState = inject(PortfolioStateService);
   private readonly categoryApi = inject(CategoryAdminService);
+  private readonly notifications = inject(NotificationService);
 
   readonly icon = Grid3x3;
   readonly buffer = computed(() => this.sectionState.buffer<PortfolioCategoryShowcase>('categoryShowcase'));
@@ -165,7 +167,10 @@ export class CategoryShowcaseEditorSectionComponent implements OnInit {
         this.allCategories.set(cats.filter((c) => c.isActive).sort((a, b) => a.name.localeCompare(b.name)));
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not load categories.');
+        this.loading.set(false);
+      }
     });
   }
 

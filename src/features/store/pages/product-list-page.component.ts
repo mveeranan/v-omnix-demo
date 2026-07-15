@@ -134,7 +134,7 @@ import { Package } from 'lucide-angular';
     .msp-shop-hero__overlay {
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--mox-accent, #dbcc8f) 18%, transparent), transparent 60%);
+      background: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--mox-accent, #ff6f00) 18%, transparent), transparent 60%);
     }
     .msp-shop-hero__content { position: relative; }
     .msp-shop-hero__crumb {
@@ -148,7 +148,7 @@ import { Package } from 'lucide-angular';
       gap: 0.5rem;
     }
     .msp-shop-hero__crumb a { color: rgba(255, 255, 255, 0.7); text-decoration: none; }
-    .msp-shop-hero__crumb a:hover { color: var(--mox-accent, #dbcc8f); }
+    .msp-shop-hero__crumb a:hover { color: var(--mox-accent, #ff6f00); }
     .msp-shop-hero__title {
       margin: 0;
       font-size: clamp(1.75rem, 4vw, 2.25rem);
@@ -156,7 +156,12 @@ import { Package } from 'lucide-angular';
       text-transform: uppercase;
     }
 
-    .msp-shop { padding: 4rem 0; }
+    /* padding-top/bottom only — the template also applies Tailwind's px-6 for
+       horizontal padding on this same element; padding: 4rem 0 shorthand
+       would zero that out at equal specificity, with the winner decided by
+       stylesheet injection order rather than intent (see hero-section.component.ts
+       for the fuller writeup of this bug). */
+    .msp-shop { padding-top: 4rem; padding-bottom: 4rem; }
     .msp-shop__layout {
       display: grid;
       grid-template-columns: 1fr;

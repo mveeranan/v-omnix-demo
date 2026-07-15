@@ -1,11 +1,10 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { CartLineItem, CartSummary, CheckoutOrderResult, CheckoutPayload } from '../models/cart.model';
+import { CartLineItem, CartSummary } from '../models/cart.model';
 import {
   CatalogProductDetailDto,
   CatalogProductListItemDto
 } from '@features/catalog/models/catalog-storefront.model';
 import { catalogPrimaryImage, variantLabel } from '../models/product.model';
-import { Observable, of, delay } from 'rxjs';
 
 const STORAGE_KEY = 'work-orbit.cart';
 
@@ -86,14 +85,6 @@ export class CartStateService {
   clear(): void {
     this.items.set([]);
     this.persist();
-  }
-
-  submitOrder(payload: CheckoutPayload): Observable<CheckoutOrderResult> {
-    return of({
-      orderId: `ord-${Date.now()}`,
-      orderNumber: `WO-${Math.floor(100000 + Math.random() * 900000)}`,
-      status: 'pending'
-    }).pipe(delay(600));
   }
 
   private addLine(line: CartLineItem): void {

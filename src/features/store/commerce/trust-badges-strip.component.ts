@@ -20,10 +20,10 @@ interface BadgeDisplay {
         <div class="container mx-auto px-6 msp-services__grid">
           @for (item of items(); track item.title; let i = $index) {
             <div class="msp-services__item" appScrollReveal="fade-up" [appScrollRevealDelay]="i * 100">
-              <lucide-icon [img]="item.icon" class="msp-services__icon" />
-              <div>
-                <p class="msp-services__title">{{ item.title }}</p>
+              <div class="msp-services__icon-wrap">
+                <lucide-icon [img]="item.icon" class="msp-services__icon" />
               </div>
+              <h3 class="msp-services__title">{{ item.title }}</h3>
             </div>
           }
         </div>
@@ -31,36 +31,57 @@ interface BadgeDisplay {
     }
   `,
   styles: `
-    .msp-services { padding: 3.5rem 0; background: var(--mox-bg, #fff); }
+    /* Trust badges: clean line-icon style, elegant spacing */
+    .msp-services {
+      padding: 3.5rem 0;
+      background: var(--mox-bg, #fff);
+    }
     .msp-services__grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 2rem;
+      gap: 2rem 1rem;
     }
     @media (min-width: 640px) {
-      .msp-services__grid { grid-template-columns: repeat(2, 1fr); }
+      .msp-services__grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2.5rem 1.5rem;
+      }
     }
-    @media (min-width: 768px) {
-      .msp-services__grid { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
+    @media (min-width: 992px) {
+      .msp-services__grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3rem 2rem;
+      }
     }
     .msp-services__item {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 1.1rem;
+      justify-content: flex-start;
+      text-align: center;
+      padding: 1.5rem 1rem 0;
+    }
+    .msp-services__icon-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      height: 3.5rem;
+      width: 3.5rem;
     }
     .msp-services__icon {
-      width: 2.5rem;
-      height: 2.5rem;
-      flex-shrink: 0;
-      color: var(--mox-accent, #dbcc8f);
+      width: 2rem;
+      height: 2rem;
+      color: var(--mox-text, #1a1a1a);
+      stroke-width: 1.2;
     }
     .msp-services__title {
       margin: 0;
       font-size: 0.95rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--mox-text, #000);
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      color: var(--mox-text, #1a1a1a);
+      line-height: 1.4;
     }
   `
 })

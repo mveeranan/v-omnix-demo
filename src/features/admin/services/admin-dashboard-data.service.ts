@@ -1,19 +1,24 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { orderStore } from '../orders/data-access/order.store';
+import { forkJoin } from 'rxjs';
 import { subscriptionStore } from '../data-access/subscription.store';
 import { ProductAdminService } from '../products/data-access/product-admin.service';
+import { OrderService } from '../orders/data-access/order.service';
+import { Order } from '../orders/models/order.model';
 import { DashboardStats } from '../models/dashboard-stats.model';
 import {
   DashboardData,
   RecentOrder,
   TenantBranding
 } from '../models/dashboard-view.model';
+import { NotificationService } from '@core/notifications/notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class AdminDashboardDataService {
   private readonly productApi = inject(ProductAdminService);
+  private readonly orderApi = inject(OrderService);
+  private readonly notifications = inject(NotificationService);
   private readonly loading = signal(false);
-  private readonly data = signal<DashboardData>(this.buildData(0));
+  private readonly data = signal<DashboardData>(this.buildData(0, []));
   private readonly productCount = signal(0);
 
   readonly isLoading = this.loading.asReadonly();
@@ -34,14 +39,18 @@ export class AdminDashboardDataService {
 
   refreshFromStores(): void {
     this.loading.set(true);
-    this.productApi.list({ pageSize: 1 }).subscribe({
-      next: (r) => {
-        this.productCount.set(r.totalCount);
-        this.data.set(this.buildData(r.totalCount));
+    forkJoin({
+      products: this.productApi.list({ pageSize: 1 }),
+      orders: this.orderApi.list({ pageSize: 100 })
+    }).subscribe({
+      next: ({ products, orders }) => {
+        this.productCount.set(products.totalCount);
+        this.data.set(this.buildData(products.totalCount, orders.items));
         this.loading.set(false);
       },
-      error: () => {
-        this.data.set(this.buildData(0));
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not load dashboard data.');
+        this.data.set(this.buildData(0, []));
         this.loading.set(false);
       }
     });
@@ -77,8 +86,7 @@ export class AdminDashboardDataService {
     }));
   }
 
-  private buildData(totalProducts: number): DashboardData {
-    const orders = orderStore.getAll();
+  private buildData(totalProducts: number, orders: Order[]): DashboardData {
     const sub = subscriptionStore.refreshFromSession();
     const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
     const pendingOrders = orders.filter((o) => o.status === 'pending').length;

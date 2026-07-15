@@ -155,7 +155,7 @@ export class GalleryEditorSectionComponent {
   onImageSelected(id: string, file: File): void {
     this.documentUpload.upload(file, FileCategory.PortfolioImage).subscribe({
       next: (doc) => this.patchItem(id, { url: doc.url, thumbnailUrl: doc.url }),
-      error: () => this.notifications.error('Could not upload image')
+      error: (err) => this.notifications.errorFromApi(err, 'Could not upload image.')
     });
   }
 

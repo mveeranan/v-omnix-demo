@@ -5,44 +5,28 @@
         <p class="pf-eyebrow">Gallery</p>
         <h2 class="pf-display mt-2 text-3xl font-semibold md:text-4xl">Product showcase</h2>
       </div>
+    </div>
 
-      <!-- Slider container -->
-      <div class="pf-gallery-slider mt-12">
-        @for (item of sortedGallery(); track item.id; let i = $index) {
-          <button
-            type="button"
-            class="pf-gallery-slide"
-            [class.pf-gallery-slide--active]="activeIndex() === i"
-            [attr.data-type]="item.type"
-            (click)="openLightbox(item)"
-          >
-            @if (item.type === 'video' && !hasImageThumbnail(item)) {
-              <video
-                [src]="item.url"
-                muted
-                playsinline
-                preload="metadata"
-              ></video>
+    <!-- Full-bleed 6-across grid — every image visible at once, exact match to
+         the reference's "Follow Us On Instagram" gallery (not a rotating slide). -->
+    <div class="pf-gallery-grid mt-12">
+      @for (item of sortedGallery(); track item.id) {
+        <button
+          type="button"
+          class="pf-gallery-tile"
+          [style.background-image]="'url(' + (item.thumbnailUrl || item.url) + ')'"
+          [attr.data-type]="item.type"
+          (click)="openLightbox(item)"
+        >
+          <span class="pf-gallery-tile__icon">
+            @if (item.type === 'video') {
+              <lucide-icon [img]="playIcon" class="h-6 w-6" />
             } @else {
-              <img
-                [src]="item.thumbnailUrl || item.url"
-                [alt]="item.category"
-                loading="lazy"
-              />
+              <lucide-icon [img]="instagramIcon" class="h-6 w-6" />
             }
-            <div class="pf-gallery-overlay">
-              @if (item.type === 'video') {
-                <lucide-icon [img]="playIcon" class="h-16 w-16 text-white drop-shadow-lg" />
-              } @else {
-                <span class="text-lg font-medium text-white">{{ item.category }}</span>
-              }
-            </div>
-            @if (item.featured) {
-              <span class="absolute left-4 top-4 rounded bg-black/60 px-3 py-1.5 text-sm font-medium text-white">Featured</span>
-            }
-          </button>
-        }
-      </div>
+          </span>
+        </button>
+      }
     </div>
     <app-gallery-lightbox [item]="lightboxItem()" (close)="closeLightbox()" />
   </section>

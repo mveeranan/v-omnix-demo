@@ -2,6 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { catchError, finalize, map, Observable, of, switchMap, take, throwError } from 'rxjs';
 import { AuthService } from '@core/auth/auth.service';
 import { NotificationService } from '@core/notifications/notification.service';
+import { getApiErrorMessage } from '@shared/utils/api-error.util';
 import { WebsiteSectionId, WEBSITE_CONTENT_SECTIONS } from '../models/website-section.ids';
 import {
   buildWebsitePublishRequest,
@@ -244,10 +245,7 @@ export class WebsiteSectionStateService {
       return;
     }
     this.documentUpload.delete(id).subscribe({
-      error: (err: unknown) => {
-        const message = err instanceof Error ? err.message : 'Could not delete file.';
-        this.notifications.warning(message);
-      }
+      error: (err: unknown) => this.notifications.warning(getApiErrorMessage(err, 'Could not delete file.'))
     });
   }
 
@@ -370,10 +368,9 @@ export class WebsiteSectionStateService {
           this.notifications.success('Section saved');
         },
         error: (err: unknown) => {
-          const message = err instanceof Error ? err.message : '';
           if (!this.meta()[id]?.error) {
             this.patchMeta(id, {
-              error: message || 'Could not save section. Try again.'
+              error: getApiErrorMessage(err, 'Could not save section. Try again.')
             });
           }
         }

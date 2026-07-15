@@ -1,0 +1,19 @@
+# Browsers the storefront and admin UI must render identically on.
+# Drives autoprefixer (via .postcssrc.json) for every stylesheet — global SCSS
+# and inline component styles: blocks alike.
+#
+# Kept to browsers with native color-mix() support (Chrome/Edge 111+, Firefox
+# 113+, Safari 16.4+, ~April 2023 onward). Tailwind v4's Lightning CSS engine
+# reads this file too: targeting anything older (e.g. iOS 15) makes it
+# "downlevel" color-mix() by REPLACING the declaration with a lossy static
+# approximation for every browser, not just old ones — verified by inspecting
+# compiled output, an 8% accent tint became a solid 100% accent fill. Manual
+# fallback-first declarations (plain color declared before color-mix()) handle
+# genuinely older browsers via the CSS cascade instead — no build-tool help
+# needed, and no risk of silently degrading modern rendering.
+last 2 Chrome versions
+last 2 Firefox versions
+last 2 Edge versions
+last 2 Safari versions
+iOS >= 16.4
+not dead

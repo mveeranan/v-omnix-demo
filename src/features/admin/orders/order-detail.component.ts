@@ -5,6 +5,18 @@ import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { OrderService } from './data-access/order.service';
 import { Order, OrderStatus } from './models/order.model';
+import { NotificationService } from '@core/notifications/notification.service';
+import { getApiErrorMessage } from '@shared/utils/api-error.util';
+
+/** Mirrors the backend's status transition graph (OrderManagementService.AllowedTransitions). */
+const NEXT_STATUSES: Record<OrderStatus, OrderStatus[]> = {
+  pending: ['confirmed', 'cancelled'],
+  confirmed: ['processing', 'cancelled'],
+  processing: ['shipped', 'cancelled'],
+  shipped: ['delivered'],
+  delivered: [],
+  cancelled: []
+};
 
 @Component({
   selector: 'app-order-detail',
@@ -19,6 +31,9 @@ import { Order, OrderStatus } from './models/order.model';
         <a routerLink="/admin/orders" class="text-indigo-600 hover:underline">Back to orders</a>
       } @else {
         @if (order(); as o) {
+          @if (statusError()) {
+            <p class="mb-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{{ statusError() }}</p>
+          }
           <div class="grid gap-6 lg:grid-cols-3">
             <div class="space-y-6 lg:col-span-2">
               <section class="admin-glass-card rounded-xl p-6">
@@ -62,22 +77,57 @@ import { Order, OrderStatus } from './models/order.model';
 
             <aside class="space-y-4">
               <section class="admin-glass-card rounded-xl p-6">
-                <label class="block space-y-1 text-sm">
-                  <span class="font-medium">Order status</span>
-                  <select class="pf-editor-input w-full" [ngModel]="o.status" (ngModelChange)="updateStatus($event)">
-                    @for (s of statuses; track s) {
-                      <option [value]="s">{{ s }}</option>
-                    }
-                  </select>
-                </label>
-                <p class="mt-3 text-sm">Payment: <strong class="capitalize">{{ o.paymentStatus }}</strong> ({{ o.paymentMethod }})</p>
+                <p class="text-sm">Current status: <strong class="capitalize">{{ o.status }}</strong></p>
+
+                @if (nextStatuses(o.status).length) {
+                  <label class="mt-3 block space-y-1 text-sm">
+                    <span class="font-medium">Move to</span>
+                    <select class="pf-editor-input w-full" [(ngModel)]="pendingStatus">
+                      <option value="" disabled>Select next status…</option>
+                      @for (s of nextStatuses(o.status); track s) {
+                        <option [value]="s">{{ s }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  @if (pendingStatus === 'shipped' || pendingStatus === 'delivered') {
+                    <label class="mt-3 block space-y-1 text-sm">
+                      <span class="font-medium">Tracking number</span>
+                      <input class="pf-editor-input w-full" [(ngModel)]="trackingNumber" placeholder="e.g. 1Z999AA10123456784" />
+                    </label>
+                    <label class="mt-3 block space-y-1 text-sm">
+                      <span class="font-medium">Carrier</span>
+                      <input class="pf-editor-input w-full" [(ngModel)]="carrier" placeholder="e.g. UPS, FedEx" />
+                    </label>
+                  }
+
+                  <label class="mt-3 block space-y-1 text-sm">
+                    <span class="font-medium">Note (optional)</span>
+                    <textarea class="pf-editor-input w-full min-h-[60px]" [(ngModel)]="statusNote" placeholder="Reason for this update…"></textarea>
+                  </label>
+
+                  <button
+                    type="button"
+                    class="admin-section-action-btn mt-3 w-full rounded-lg py-2 text-sm"
+                    [disabled]="!pendingStatus || updatingStatus()"
+                    (click)="applyStatus(o.id)">
+                    {{ updatingStatus() ? 'Updating…' : 'Update status' }}
+                  </button>
+                } @else {
+                  <p class="mt-3 text-xs text-[var(--text-muted)]">This order is in a final state.</p>
+                }
+
+                <p class="mt-4 text-sm">Payment: <strong class="capitalize">{{ o.paymentStatus }}</strong> ({{ o.paymentMethod }})</p>
                 <button type="button" class="admin-action-secondary mt-4 w-full rounded-lg py-2 text-sm" (click)="print()">Print invoice</button>
               </section>
 
               <section class="admin-glass-card rounded-xl p-6">
-                <h3 class="font-semibold">Notes</h3>
+                <h3 class="font-semibold">General notes</h3>
+                <p class="text-xs text-[var(--text-muted)]">For notes not tied to a status change (e.g. a support call).</p>
                 <textarea class="pf-editor-input mt-2 w-full min-h-[80px]" [(ngModel)]="noteText" placeholder="Add a note…"></textarea>
-                <button type="button" class="admin-section-action-btn mt-2 w-full rounded-lg py-2 text-sm" (click)="addNote()">Save note</button>
+                <button type="button" class="admin-section-action-btn mt-2 w-full rounded-lg py-2 text-sm" [disabled]="savingNote()" (click)="addNote()">
+                  {{ savingNote() ? 'Saving…' : 'Save note' }}
+                </button>
                 <ul class="mt-4 space-y-2 text-sm">
                   @for (n of o.notes; track n.id) {
                     <li class="rounded-lg bg-zinc-50 p-2 dark:bg-zinc-900">{{ n.text }} <span class="text-xs text-[var(--text-muted)]">— {{ n.author }}</span></li>
@@ -94,10 +144,18 @@ import { Order, OrderStatus } from './models/order.model';
 export class OrderDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(OrderService);
+  private readonly notifications = inject(NotificationService);
 
   readonly loading = signal(true);
   readonly order = signal<Order | null>(null);
-  readonly statuses: OrderStatus[] = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+  readonly updatingStatus = signal(false);
+  readonly savingNote = signal(false);
+  readonly statusError = signal('');
+
+  pendingStatus: OrderStatus | '' = '';
+  trackingNumber = '';
+  carrier = '';
+  statusNote = '';
   noteText = '';
 
   ngOnInit(): void {
@@ -111,25 +169,54 @@ export class OrderDetailComponent implements OnInit {
         this.order.set(o);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not load this order.');
+        this.loading.set(false);
+      }
     });
   }
 
-  updateStatus(status: OrderStatus): void {
-    const o = this.order();
-    if (!o) return;
-    this.api.updateStatus(o.id, status).subscribe((updated) => {
-      if (updated) this.order.set(updated);
-    });
+  nextStatuses(current: OrderStatus): OrderStatus[] {
+    return NEXT_STATUSES[current] ?? [];
+  }
+
+  applyStatus(orderId: string): void {
+    if (!this.pendingStatus) return;
+    this.updatingStatus.set(true);
+    this.statusError.set('');
+    this.api
+      .updateStatus(orderId, this.pendingStatus, this.trackingNumber, this.carrier, this.statusNote)
+      .subscribe({
+        next: (updated) => {
+          if (updated) this.order.set(updated);
+          this.pendingStatus = '';
+          this.trackingNumber = '';
+          this.carrier = '';
+          this.statusNote = '';
+          this.updatingStatus.set(false);
+        },
+        error: (err) => {
+          this.statusError.set(getApiErrorMessage(err, 'Could not update status.'));
+          this.updatingStatus.set(false);
+        }
+      });
   }
 
   addNote(): void {
     const o = this.order();
     if (!o || !this.noteText.trim()) return;
-    this.api.addNote(o.id, this.noteText.trim()).subscribe((updated) => {
-      if (updated) {
-        this.order.set(updated);
-        this.noteText = '';
+    this.savingNote.set(true);
+    this.api.addNote(o.id, this.noteText.trim()).subscribe({
+      next: (updated) => {
+        if (updated) {
+          this.order.set(updated);
+          this.noteText = '';
+        }
+        this.savingNote.set(false);
+      },
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not save note.');
+        this.savingNote.set(false);
       }
     });
   }

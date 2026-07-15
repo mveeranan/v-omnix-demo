@@ -6,6 +6,7 @@ import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell
 import { AdminFormSectionCardComponent } from '@features/admin/shared/admin-form-section-card.component';
 import { SettingsService } from './data-access/settings.service';
 import { SettingsCategory, StoreSettings } from './models/store-settings.model';
+import { NotificationService } from '@core/notifications/notification.service';
 
 const SECTIONS: { id: SettingsCategory; label: string; icon: any }[] = [
   { id: 'general', label: 'Store Setup', icon: Settings },
@@ -25,6 +26,7 @@ const SECTIONS: { id: SettingsCategory; label: string; icon: any }[] = [
 export class SettingsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(SettingsService);
+  private readonly notifications = inject(NotificationService);
 
   readonly sections = SECTIONS;
   readonly settings = signal<StoreSettings | null>(null);
@@ -127,7 +129,8 @@ export class SettingsComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.api.getAll().subscribe((s) => {
+    this.api.getAll().subscribe({
+      next: (s) => {
       this.settings.set(s);
       this.generalForm.patchValue({
         storeName: s.general.storeName || '',
@@ -167,6 +170,8 @@ export class SettingsComponent implements OnInit {
         pricesIncludeTax: s.tax.pricesIncludeTax
       });
       this.policiesForm.patchValue(s.policies);
+      },
+      error: (err) => this.notifications.errorFromApi(err, 'Could not load store settings.')
     });
   }
 
@@ -198,7 +203,10 @@ export class SettingsComponent implements OnInit {
     this.setSaving('general', true);
     this.api.updateCategory('general', { ...s.general, ...this.generalForm.getRawValue() }).subscribe({
       next: (u) => this.onSaveComplete('general', u),
-      error: () => this.setSaving('general', false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not save store settings.');
+        this.setSaving('general', false);
+      }
     });
   }
 
@@ -209,7 +217,10 @@ export class SettingsComponent implements OnInit {
     const v = this.shippingForm.getRawValue();
     this.api.updateCategory('shipping', { ...s.shipping, ...v }).subscribe({
       next: (u) => this.onSaveComplete('shipping', u),
-      error: () => this.setSaving('shipping', false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not save shipping settings.');
+        this.setSaving('shipping', false);
+      }
     });
   }
 
@@ -219,7 +230,10 @@ export class SettingsComponent implements OnInit {
     this.setSaving('payment', true);
     this.api.updateCategory('payment', { ...s.payment, ...this.paymentForm.getRawValue() }).subscribe({
       next: (u) => this.onSaveComplete('payment', u),
-      error: () => this.setSaving('payment', false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not save payment settings.');
+        this.setSaving('payment', false);
+      }
     });
   }
 
@@ -229,7 +243,10 @@ export class SettingsComponent implements OnInit {
     this.setSaving('tax', true);
     this.api.updateCategory('tax', { ...s.tax, ...this.taxForm.getRawValue() }).subscribe({
       next: (u) => this.onSaveComplete('tax', u),
-      error: () => this.setSaving('tax', false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not save tax settings.');
+        this.setSaving('tax', false);
+      }
     });
   }
 
@@ -239,7 +256,10 @@ export class SettingsComponent implements OnInit {
     this.setSaving('policies', true);
     this.api.updateCategory('policies', { ...s.policies, ...this.policiesForm.getRawValue() }).subscribe({
       next: (u) => this.onSaveComplete('policies', u),
-      error: () => this.setSaving('policies', false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not save store policies.');
+        this.setSaving('policies', false);
+      }
     });
   }
 

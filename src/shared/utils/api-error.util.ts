@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ApiResponse, getFirstApiError } from '@shared/models/api-response.model';
 
-export const GENERIC_API_ERROR_MESSAGE = 'Something went wrong. Try again later!!';
+export const GENERIC_API_ERROR_MESSAGE = 'Something went wrong. Please try again later.';
 
 export function getApiErrorMessage(
   error: unknown,

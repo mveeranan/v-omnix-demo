@@ -52,6 +52,7 @@ import type { AuthContext, LoginData } from '@core/auth/models/auth.model';
 import { extractLoginContexts } from '@core/auth/models/auth.model';
 import { ThemeService } from '@core/theme/theme.service';
 import { NotificationService } from '@core/notifications/notification.service';
+import { getApiErrorMessage } from '@shared/utils/api-error.util';
 import { firstValueFrom } from 'rxjs';
 import { PhoneNumberFieldComponent } from '@shared/ui/phone-number-field.component';
 import { EMPTY_PHONE_NUMBER } from '@shared/models/phone-number.model';
@@ -370,21 +371,34 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.authService.persistLogin(response.data);
 
       this.loginUserEmail = response.data.email ?? this.loginForm.controls.email.value.trim();
-      this.availableContexts = extractLoginContexts(response.data);
+
+      // This login is for store OWNERS/ADMINS only. Storefront customers (people who created
+      // an account while shopping) have their own login on each store's website — their
+      // Customer-role memberships are filtered out here so they never see admin workspaces,
+      // and a customer-only account is rejected with a pointer to the right place.
+      const allContexts = extractLoginContexts(response.data);
+      this.availableContexts = allContexts.filter((context) =>
+        context.roleName?.toUpperCase().includes('ADMIN')
+      );
 
       if (this.availableContexts.length === 0) {
+        this.authService.logout();
         this.authSubmitting = false;
-        this.authError = 'No tenant context is assigned for this account.';
+        this.authError = allContexts.length
+          ? 'This login is for store owners and administrators. To shop or view your orders, please log in on the store\'s own website.'
+          : 'No workspace is assigned for this account.';
         this.notificationService.warning(this.authError);
         return;
       }
 
       if (this.availableContexts.length > 1) {
+        // Multiple ADMIN workspaces (multi-store owner): still need to pick which store to
+        // manage. This is a workspace picker, not a role picker — customer roles never appear.
         this.showLoginPanel = false;
         this.showContextSelectionModal = true;
         this.syncBodyScrollLock();
         this.selectedContextTenantId = this.availableContexts[0]?.tenantId ?? '';
-        this.notificationService.info('Multiple contexts found. Select one to continue.');
+        this.notificationService.info('Select a workspace to continue.');
         this.authSubmitting = false;
         return;
       }
@@ -973,8 +987,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.pricingPlans = mappedPlans.length > 0 ? mappedPlans : [];
         this.pricingLoading = false;
       },
-      error: () => {
-        this.pricingError = 'Unable to load pricing plans right now.';
+      error: (err) => {
+        this.pricingError = getApiErrorMessage(err, 'Unable to load pricing plans right now.');
         this.pricingLoading = false;
       }
     });

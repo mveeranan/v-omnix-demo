@@ -24,17 +24,3 @@ export interface CheckoutCustomer {
   city: string;
   country: string;
 }
-
-export interface CheckoutPayload {
-  storeSlug: string;
-  customer: CheckoutCustomer;
-  items: CartLineItem[];
-  subtotal: number;
-  currency: string;
-}
-
-export interface CheckoutOrderResult {
-  orderId: string;
-  orderNumber: string;
-  status: string;
-}

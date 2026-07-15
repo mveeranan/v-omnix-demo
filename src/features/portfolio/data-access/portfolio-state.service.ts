@@ -173,7 +173,8 @@ export class PortfolioStateService {
           }
           this.refreshTenantAggregate();
         },
-        error: () => {
+        error: (err) => {
+          this.notifications.errorFromApi(err, 'Could not save your changes.');
           this.isSaving.set(false);
         }
       })
@@ -216,9 +217,9 @@ export class PortfolioStateService {
             this.notifications.success('Store published!', `Live at /store/${published.slug}`);
           }
         },
-        error: () => {
+        error: (err) => {
           this.isSaving.set(false);
-          this.notifications.error('Could not publish store.');
+          this.notifications.errorFromApi(err, 'Could not publish store.');
         }
       });
   }

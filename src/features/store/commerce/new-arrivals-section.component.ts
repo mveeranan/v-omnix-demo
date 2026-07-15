@@ -14,12 +14,11 @@ import { ScrollRevealDirective } from '@features/portfolio/shared/directives/scr
     @if (portfolio().newArrivals.enabled) {
       <section class="mox-section" id="new-arrivals">
         <div class="container mx-auto px-6">
-          <header class="mb-8 flex flex-wrap items-end justify-between gap-4" appScrollReveal>
-            <div>
-              <p class="mox-hero__eyebrow">Just landed</p>
-              <h2 class="mox-sale-section__title">{{ portfolio().newArrivals.title }}</h2>
-            </div>
-            <a [routerLink]="['/store', storeSlug(), 'products']" class="mox-btn mox-btn--outline text-sm">View all</a>
+          <!-- Centered heading matches the reference's .heading-section.text-center
+               pattern used for every product-grid section (no eyebrow on this one —
+               the reference's "New Shoes Arrival" heading skips it too). -->
+          <header class="mb-8 text-center" appScrollReveal>
+            <h2 class="mox-sale-section__title">{{ portfolio().newArrivals.title }}</h2>
           </header>
 
           @if (loading()) {

@@ -18,6 +18,7 @@ import { AdminDetailMediaComponent } from '@features/admin/shared/admin-detail-m
 import { MediaUploadZoneComponent } from '@shared/ui/media-upload-zone.component';
 import { AdminProfileStateService } from '../data-access/admin-profile-state.service';
 import { DocumentUploadService } from '../data-access/document-upload.service';
+import { NotificationService } from '@core/notifications/notification.service';
 import { BusinessTypesService } from '../data-access/business-types.service';
 import { BusinessTypeDto } from '../models/business-type.model';
 import {
@@ -357,6 +358,7 @@ export class BusinessProfileFormSectionComponent implements OnInit {
   private readonly businessTypesService = inject(BusinessTypesService);
   private readonly countriesService = inject(CountriesService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly notifications = inject(NotificationService);
 
   readonly sectionIcon = Building2;
   readonly businessNameIcon = UserRound;
@@ -427,7 +429,7 @@ export class BusinessProfileFormSectionComponent implements OnInit {
             this.patchPhoneFieldsFromProfile();
           }
         },
-        error: () => undefined
+        error: (err) => this.notifications.errorFromApi(err, 'Could not load countries.')
       });
 
     this.businessTypesService.list().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -438,7 +440,7 @@ export class BusinessProfileFormSectionComponent implements OnInit {
         }
         this.syncSelectEnableState();
       },
-      error: () => undefined
+      error: (err) => this.notifications.errorFromApi(err, 'Could not load business types.')
     });
   }
 

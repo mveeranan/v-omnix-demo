@@ -1,7 +1,14 @@
-import { Component, effect, input, output, signal } from '@angular/core';
+import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CatalogBrandDto, CatalogCategoryDto } from '@features/catalog/models/catalog-storefront.model';
+
+interface FlatCategory {
+  id: string;
+  slug: string;
+  name: string;
+  indent: string;
+}
 
 export interface ShopSidebarFilters {
   categorySlug?: string;
@@ -23,51 +30,14 @@ export interface ShopSidebarFilters {
     <aside class="msp-sidebar">
       <div class="msp-sidebar__box">
         <p class="msp-sidebar__heading">Categories</p>
-        <ul class="msp-sidebar__accordion">
-          <li>
-            <button
-              type="button"
-              class="msp-sidebar__item"
-              [class.msp-sidebar__item--active]="!selectedCategorySlug()"
-              (click)="selectCategory(undefined)"
-            >
-              All products
-            </button>
-          </li>
-          @for (category of categories(); track category.id) {
-            <li>
-              <button
-                type="button"
-                class="msp-sidebar__item"
-                [class.msp-sidebar__item--active]="selectedCategorySlug() === category.slug"
-                (click)="selectCategory(category.slug)"
-              >
-                <span>{{ category.name }}</span>
-                @if (category.children.length) {
-                  <span class="msp-sidebar__toggle" (click)="toggleExpanded($event, category.id)">
-                    {{ expanded().has(category.id) ? '−' : '+' }}
-                  </span>
-                }
-              </button>
-              @if (category.children.length && expanded().has(category.id)) {
-                <ul class="msp-sidebar__children">
-                  @for (child of category.children; track child.id) {
-                    <li>
-                      <button
-                        type="button"
-                        class="msp-sidebar__item msp-sidebar__item--child"
-                        [class.msp-sidebar__item--active]="selectedCategorySlug() === child.slug"
-                        (click)="selectCategory(child.slug)"
-                      >
-                        {{ child.name }}
-                      </button>
-                    </li>
-                  }
-                </ul>
-              }
-            </li>
+        <select class="msp-sidebar__select msp-sidebar__select--full" [(ngModel)]="selectedCategoryValue" (ngModelChange)="selectCategory($event)">
+          <option [ngValue]="undefined">All products</option>
+          @for (category of flattenedCategories(); track category.id) {
+            <option [ngValue]="category.slug">
+              {{ category.indent }}{{ category.name }}
+            </option>
           }
-        </ul>
+        </select>
       </div>
 
       <div class="msp-sidebar__box">
@@ -92,30 +62,12 @@ export interface ShopSidebarFilters {
       @if (brands().length) {
         <div class="msp-sidebar__box">
           <p class="msp-sidebar__heading">Brand</p>
-          <ul class="msp-sidebar__accordion">
-            <li>
-              <button
-                type="button"
-                class="msp-sidebar__item"
-                [class.msp-sidebar__item--active]="!selectedBrandSlug()"
-                (click)="selectBrand(undefined)"
-              >
-                All brands
-              </button>
-            </li>
+          <select class="msp-sidebar__select msp-sidebar__select--full" [(ngModel)]="selectedBrandValue" (ngModelChange)="selectBrand($event)">
+            <option [ngValue]="undefined">All brands</option>
             @for (brand of brands(); track brand.id) {
-              <li>
-                <button
-                  type="button"
-                  class="msp-sidebar__item"
-                  [class.msp-sidebar__item--active]="selectedBrandSlug() === brand.slug"
-                  (click)="selectBrand(brand.slug)"
-                >
-                  {{ brand.name }} ({{ brand.productCount }})
-                </button>
-              </li>
+              <option [ngValue]="brand.slug">{{ brand.name }} ({{ brand.productCount }})</option>
             }
-          </ul>
+          </select>
         </div>
       }
     </aside>
@@ -124,48 +76,19 @@ export interface ShopSidebarFilters {
     .msp-sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
     .msp-sidebar__box {
       background: var(--mox-surface, #fff);
-      padding: 1.5rem;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+      padding: 1.25rem;
+      border: 1px solid var(--mox-border, #e8e8e8);
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
     .msp-sidebar__heading {
-      margin: 0 0 1rem;
-      font-size: 0.95rem;
+      margin: 0 0 0.8rem;
+      font-size: 0.85rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
       color: var(--mox-text, #23232d);
     }
-    .msp-sidebar__accordion { list-style: none; margin: 0; padding: 0; }
-    .msp-sidebar__accordion li { border-bottom: 1px dotted var(--mox-border, #d9d9d9); }
-    .msp-sidebar__accordion li:last-child { border-bottom: none; }
-    .msp-sidebar__item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 0.65rem 0;
-      background: none;
-      border: none;
-      cursor: pointer;
-      text-align: left;
-      font-size: 0.85rem;
-      color: var(--mox-muted, #808080);
-      transition: color 0.2s ease;
-    }
-    .msp-sidebar__item:hover,
-    .msp-sidebar__item--active {
-      color: var(--mox-accent, #dbcc8f);
-    }
-    .msp-sidebar__item--child { padding-left: 1rem; font-size: 0.8rem; }
-    .msp-sidebar__toggle {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 1.25rem;
-      height: 1.25rem;
-      font-size: 0.9rem;
-    }
-    .msp-sidebar__children { list-style: none; margin: 0; padding: 0 0 0.4rem; }
 
     .msp-sidebar__price-row {
       display: flex;
@@ -173,12 +96,25 @@ export interface ShopSidebarFilters {
       gap: 0.5rem;
     }
     .msp-sidebar__select {
-      flex: 1 1 0;
-      padding: 0.5rem 0.6rem;
+      padding: 0.6rem 0.75rem 0.6rem 0.75rem;
       border: 1px solid var(--mox-border, #d9d9d9);
       background: var(--mox-surface, #fff);
       color: var(--mox-text, #23232d);
-      font-size: 0.85rem;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .msp-sidebar__select:hover {
+      border-color: var(--mox-accent, #ff6f00);
+    }
+    .msp-sidebar__select:focus {
+      outline: none;
+      border-color: var(--mox-accent, #ff6f00);
+      box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.1);
+    }
+    .msp-sidebar__select--full {
+      width: 100%;
     }
     .msp-sidebar__price-sep { color: var(--mox-muted, #808080); }
   `
@@ -195,15 +131,31 @@ export class MspShopSidebarComponent {
 
   readonly filtersChange = output<ShopSidebarFilters>();
 
-  readonly expanded = signal<Set<string>>(new Set());
+  readonly selectedCategoryValue = signal<string | undefined>(undefined);
+  readonly selectedBrandValue = signal<string | undefined>(undefined);
 
   minPriceValue: number | undefined;
   maxPriceValue: number | undefined;
 
+  readonly flattenedCategories = computed(() => {
+    const result: FlatCategory[] = [];
+    const flatten = (cats: CatalogCategoryDto[], level: number) => {
+      cats.forEach(cat => {
+        const indent = level > 0 ? '   ' : '';
+        result.push({ id: cat.id, slug: cat.slug, name: cat.name, indent });
+        if (cat.children && cat.children.length > 0) {
+          flatten(cat.children, level + 1);
+        }
+      });
+    };
+    flatten(this.categories(), 0);
+    return result;
+  });
+
   constructor() {
-    // Keep the local select values in sync when the parent resets filters externally
-    // (e.g. a "clear filters" action), without fighting the user's own selections.
     effect(() => {
+      this.selectedCategoryValue.set(this.selectedCategorySlug());
+      this.selectedBrandValue.set(this.selectedBrandSlug());
       this.minPriceValue = this.minPrice();
       this.maxPriceValue = this.maxPrice();
     });
@@ -215,14 +167,6 @@ export class MspShopSidebarComponent {
     const opts: number[] = [];
     for (let v = step; v <= ceiling; v += step) opts.push(v);
     return opts;
-  }
-
-  toggleExpanded(event: Event, categoryId: string): void {
-    event.stopPropagation();
-    const next = new Set(this.expanded());
-    if (next.has(categoryId)) next.delete(categoryId);
-    else next.add(categoryId);
-    this.expanded.set(next);
   }
 
   selectCategory(slug: string | undefined): void {

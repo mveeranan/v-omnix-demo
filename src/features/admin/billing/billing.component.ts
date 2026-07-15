@@ -110,7 +110,10 @@ export class BillingComponent implements OnInit {
         });
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not load billing details.');
+        this.loading.set(false);
+      }
     });
   }
 
@@ -143,10 +146,16 @@ export class BillingComponent implements OnInit {
             this.saving.set(false);
             this.notifications.success('Billing preferences updated');
           },
-          error: () => this.saving.set(false)
+          error: (err) => {
+            this.notifications.errorFromApi(err, 'Could not update billing preferences.');
+            this.saving.set(false);
+          }
         });
       },
-      error: () => this.saving.set(false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not update billing preferences.');
+        this.saving.set(false);
+      }
     });
   }
 }

@@ -1,13 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map, of } from 'rxjs';
+import { Observable, map, switchMap } from 'rxjs';
 import { API_ENDPOINTS } from '@env/api.constants';
 import { ApiResponse } from '@shared/models/api-response.model';
 import {
   Order,
   OrderListFilters,
   OrderListResult,
-  OrderNote,
   OrderStatus,
   PaymentMethod
 } from '../models/order.model';
@@ -33,6 +32,19 @@ interface BackendOrderItem {
   totalPrice: number;
 }
 
+interface BackendOrderNote {
+  id: string;
+  text: string;
+  authorName: string;
+  createdAt: string;
+}
+
+interface BackendOrderStatusHistory {
+  oldStatus?: string | null;
+  newStatus: string;
+  changedAt: string;
+}
+
 interface BackendOrderDetail {
   id: string;
   orderNumber: string;
@@ -46,6 +58,10 @@ interface BackendOrderDetail {
   currency: string;
   paymentMethod?: string | null;
   placedAt: string;
+  confirmedAt?: string | null;
+  shippedAt?: string | null;
+  deliveredAt?: string | null;
+  cancelledAt?: string | null;
   createdAt: string;
   updatedAt: string;
   customerId?: string | null;
@@ -54,6 +70,8 @@ interface BackendOrderDetail {
   customerPhone?: string | null;
   shippingAddress?: BackendOrderAddress | null;
   items: BackendOrderItem[];
+  notes: BackendOrderNote[];
+  timeline: BackendOrderStatusHistory[];
 }
 
 interface BackendOrderSummary {
@@ -160,11 +178,14 @@ function mapDetailToOrder(d: BackendOrderDetail): Order {
     paymentMethod: mapPaymentMethod(d.paymentMethod),
     timeline: [
       { id: 'placed', label: 'Order placed', at: d.placedAt, completed: true },
-      ...(d.status.toLowerCase() !== 'pending'
-        ? [{ id: 'status', label: `Status: ${d.status}`, at: d.updatedAt, completed: true }]
-        : [])
+      ...d.timeline.map((h, i) => ({
+        id: `hist-${i}`,
+        label: `${h.oldStatus ? `${h.oldStatus} → ` : ''}${h.newStatus}`,
+        at: h.changedAt,
+        completed: true
+      }))
     ],
-    notes: [],
+    notes: d.notes.map((n) => ({ id: n.id, text: n.text, author: n.authorName, at: n.createdAt })),
     createdAt: d.createdAt,
     updatedAt: d.updatedAt
   };
@@ -205,19 +226,33 @@ export class OrderService {
     );
   }
 
-  /** TODO(Phase 5 — order lifecycle): no backend status-transition endpoint exists yet; updates locally only. */
-  updateStatus(id: string, status: OrderStatus): Observable<Order | null> {
-    return this.getById(id).pipe(map((o) => (o ? { ...o, status } : null)));
+  /**
+   * Transitions an order's status. Validated + persisted server-side
+   * (Pending→Confirmed→Processing→Shipped→Delivered, or →Cancelled from Pending/Confirmed/Processing).
+   * An optional note is recorded atomically with the status change (single backend transaction —
+   * not two separate calls, so the note and the status change can't drift apart).
+   */
+  updateStatus(
+    id: string,
+    status: OrderStatus,
+    trackingNumber?: string,
+    carrier?: string,
+    note?: string
+  ): Observable<Order | null> {
+    return this.http
+      .patch<ApiResponse<BackendOrderDetail>>(API_ENDPOINTS.orders.updateStatus(id), {
+        status,
+        trackingNumber: trackingNumber || undefined,
+        carrier: carrier || undefined,
+        note: note || undefined
+      })
+      .pipe(map((r) => (r.data ? mapDetailToOrder(r.data) : null)));
   }
 
-  /** TODO(Phase 5 — order lifecycle): notes are not persisted to the backend yet. */
-  addNote(id: string, text: string, author = 'Admin'): Observable<Order | null> {
-    return this.getById(id).pipe(
-      map((o) => {
-        if (!o) return null;
-        const note: OrderNote = { id: `n-${Date.now()}`, text, author, at: new Date().toISOString() };
-        return { ...o, notes: [...o.notes, note] };
-      })
-    );
+  /** Adds a persisted note to the order, then returns the refreshed order with the new note included. */
+  addNote(id: string, text: string): Observable<Order | null> {
+    return this.http
+      .post<ApiResponse<BackendOrderNote>>(API_ENDPOINTS.orders.addNote(id), { text })
+      .pipe(switchMap(() => this.getById(id)));
   }
 }

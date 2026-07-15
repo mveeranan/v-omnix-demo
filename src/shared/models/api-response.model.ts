@@ -14,5 +14,11 @@ export interface PagedResponse<T> extends ApiResponse<T[]> {
 }
 
 export function getFirstApiError(errors?: string[]): string | undefined {
-  return errors?.find((e) => e.trim().length > 0);
+  // Defensive: `errors` is typed as string[], but any response path that doesn't go through
+  // this app's ApiResponse contract (e.g. a raw framework error body) could still hand us
+  // something else at runtime. Guard against that instead of throwing on `.find`.
+  if (!Array.isArray(errors)) {
+    return undefined;
+  }
+  return errors.find((e) => typeof e === 'string' && e.trim().length > 0);
 }

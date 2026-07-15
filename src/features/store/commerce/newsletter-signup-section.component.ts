@@ -39,7 +39,10 @@ import { Portfolio } from '../../portfolio/models/portfolio.model';
   styles: `
     .mox-newsletter {
       padding: 60px 20px;
-      background: linear-gradient(135deg, var(--mox-accent, #e8d15e) 0%, color-mix(in srgb, var(--mox-accent, #e8d15e) 85%, #1a1a1a) 100%);
+      /* Fallback first: without color-mix() support the whole gradient would be
+         rejected, leaving white text on a transparent section. */
+      background: var(--mox-accent, #ff6f00);
+      background: linear-gradient(135deg, var(--mox-accent, #ff6f00) 0%, color-mix(in srgb, var(--mox-accent, #ff6f00) 85%, #1a1a1a) 100%);
       width: 100%;
     }
 
@@ -159,8 +162,8 @@ export class NewsletterSignupSectionComponent {
           this.email = '';
           this.submitting.set(false);
         },
-        error: () => {
-          this.notifications.error('Could not subscribe. Please try again.');
+        error: (err) => {
+          this.notifications.errorFromApi(err, 'Could not subscribe. Please try again.');
           this.submitting.set(false);
         }
       });
