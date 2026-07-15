@@ -12,10 +12,9 @@ export class BrandApiService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
 
-  list(tenantId?: string): Observable<BrandDto[]> {
-    const id = tenantId ?? requireTenantId(this.auth);
+  list(): Observable<BrandDto[]> {
     return this.http
-      .get<ApiResponse<BrandDto[]>>(API_ENDPOINTS.brands.list(id))
+      .get<ApiResponse<BrandDto[]>>(API_ENDPOINTS.brands.list())
       .pipe(map(unwrapApiResponse));
   }
 
@@ -31,10 +30,9 @@ export class BrandApiService {
       .pipe(map(unwrapApiResponse));
   }
 
-  delete(id: string, tenantId?: string): Observable<void> {
-    const tid = tenantId ?? requireTenantId(this.auth);
+  delete(id: string): Observable<void> {
     return this.http
-      .delete<ApiResponse<null>>(API_ENDPOINTS.brands.delete(id, tid))
+      .delete<ApiResponse<null>>(API_ENDPOINTS.brands.delete(id))
       .pipe(map(unwrapApiResponse))
       .pipe(map(() => undefined));
   }

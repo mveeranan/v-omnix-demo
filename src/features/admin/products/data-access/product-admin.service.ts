@@ -34,7 +34,7 @@ export class ProductAdminService {
   }
 
   private refreshProduct(productId: string): Observable<ProductDetailDto> {
-    return this.api.get(productId, this.tenantId());
+    return this.api.get(productId);
   }
 
   list(filters: ProductListFilters = {}): Observable<ProductListResponse> {
@@ -119,12 +119,13 @@ export class ProductAdminService {
 
   duplicate(id: string): Observable<ProductDetailDto | null> {
     const tenantId = requireTenantId(this.auth);
-    return this.api.get(id, tenantId).pipe(
+    return this.api.get(id).pipe(
       switchMap((source) => {
         const core: SaveProductRequest = {
           tenantId,
           categoryId: source.categoryId,
           brandId: source.brandId,
+          productTypeId: source.productTypeId,
           name: `${source.name} (Copy)`,
           shortDescription: source.shortDescription,
           description: source.description,
@@ -135,6 +136,8 @@ export class ProductAdminService {
           costPrice: source.costPrice,
           weight: source.weight,
           trackInventory: source.trackInventory,
+          isNew: source.isNew,
+          displayOrder: source.displayOrder,
           status: ProductStatus.Draft
         };
         const payload: ProductSavePayload = {
@@ -146,12 +149,7 @@ export class ProductAdminService {
             barcode: v.barcode,
             weight: v.weight,
             isActive: v.isActive,
-            attributes: v.attributes.map((a) => ({
-              attributeId: a.attributeId,
-              attributeName: a.attributeName,
-              valueId: a.valueId,
-              value: a.value
-            }))
+            attributes: { ...v.attributes }
           })),
           existingImages: [],
           pendingImages: [],

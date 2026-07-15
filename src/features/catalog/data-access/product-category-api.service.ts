@@ -15,10 +15,9 @@ export class ProductCategoryApiService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
 
-  list(tenantId?: string): Observable<ProductCategoryDto[]> {
-    const id = tenantId ?? requireTenantId(this.auth);
+  list(): Observable<ProductCategoryDto[]> {
     return this.http
-      .get<ApiResponse<ProductCategoryDto[]>>(API_ENDPOINTS.productCategories.list(id))
+      .get<ApiResponse<ProductCategoryDto[]>>(API_ENDPOINTS.productCategories.list())
       .pipe(map(unwrapApiResponse));
   }
 
@@ -34,10 +33,9 @@ export class ProductCategoryApiService {
       .pipe(map(unwrapApiResponse));
   }
 
-  delete(id: string, tenantId?: string): Observable<void> {
-    const tid = tenantId ?? requireTenantId(this.auth);
+  delete(id: string): Observable<void> {
     return this.http
-      .delete<ApiResponse<null>>(API_ENDPOINTS.productCategories.delete(id, tid))
+      .delete<ApiResponse<null>>(API_ENDPOINTS.productCategories.delete(id))
       .pipe(map(unwrapApiResponse))
       .pipe(map(() => undefined));
   }

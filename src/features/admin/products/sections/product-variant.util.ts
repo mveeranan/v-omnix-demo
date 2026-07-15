@@ -1,4 +1,4 @@
-import { ProductAttributeDto } from '@features/catalog/models/product-attribute.model';
+import { ProductTypeAttributeDto } from '@features/catalog/models/product-type.model';
 import { InventoryItemDto, ProductDetailDto } from '@features/catalog/models/product-admin.model';
 
 export interface VariantRow {
@@ -9,6 +9,7 @@ export interface VariantRow {
   barcode: string;
   weight: number | null;
   isActive: boolean;
+  /** Attribute name to selected value, e.g. { Size: '10', Color: 'Red' }. */
   attributeSelections: Record<string, string>;
 }
 
@@ -28,13 +29,8 @@ export interface VariantStockRow {
   lowStockThreshold: number;
 }
 
-export function variantAttributesFromProductVariant(
-  attributes: { attributeName: string; value: string }[]
-): VariantAttributeDisplay[] {
-  return attributes.map((a) => ({
-    name: a.attributeName,
-    value: a.value
-  }));
+export function variantAttributesFromRecord(attributes: Record<string, string>): VariantAttributeDisplay[] {
+  return Object.entries(attributes).map(([name, value]) => ({ name, value }));
 }
 
 export function previewVariantAttributes(
@@ -61,27 +57,27 @@ export function variantRowsFromProduct(p: ProductDetailDto): VariantRow[] {
     barcode: v.barcode ?? '',
     weight: v.weight,
     isActive: v.isActive,
-    attributeSelections: Object.fromEntries(v.attributes.map((a) => [a.attributeId, a.valueId]))
+    attributeSelections: { ...v.attributes }
   }));
 }
 
-export function selectedAttributeIdsFromProduct(p: ProductDetailDto): Set<string> {
-  const ids = new Set<string>();
-  p.variants.forEach((v) => v.attributes.forEach((a) => ids.add(a.attributeId)));
-  return ids;
+export function selectedAttributeNamesFromProduct(p: ProductDetailDto): Set<string> {
+  const names = new Set<string>();
+  p.variants.forEach((v) => Object.keys(v.attributes).forEach((name) => names.add(name)));
+  return names;
 }
 
-export function attributeIdsFromRows(rows: VariantRow[]): Set<string> {
-  const ids = new Set<string>();
-  rows.forEach((row) => Object.keys(row.attributeSelections).forEach((id) => ids.add(id)));
-  return ids;
+export function attributeNamesFromRows(rows: VariantRow[]): Set<string> {
+  const names = new Set<string>();
+  rows.forEach((row) => Object.keys(row.attributeSelections).forEach((name) => names.add(name)));
+  return names;
 }
 
 export function variantSelectionsKey(selections: Record<string, string>): string {
   return Object.entries(selections)
-    .filter(([, valueId]) => !!valueId)
+    .filter(([, value]) => !!value)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([attributeId, valueId]) => `${attributeId}:${valueId}`)
+    .map(([name, value]) => `${name}:${value}`)
     .join('|');
 }
 
@@ -91,7 +87,7 @@ export function addVariantRow(
   defaults: { price: number; compareAtPrice: number | null; weight: number | null }
 ): VariantRow[] {
   const selections = Object.fromEntries(
-    Object.entries(attributeSelections).filter(([, valueId]) => !!valueId)
+    Object.entries(attributeSelections).filter(([, value]) => !!value)
   );
   if (!Object.keys(selections).length) return rows;
 
@@ -118,21 +114,22 @@ export function removeVariantRow(rows: VariantRow[], index: number): VariantRow[
   return rows.filter((_, i) => i !== index);
 }
 
+/** Cartesian product of every attribute's possible values, for products where the type defines dropdown attributes. */
 export function generateVariantRows(
-  attributes: ProductAttributeDto[],
-  selectedAttributeIds: Set<string>,
+  attributes: ProductTypeAttributeDto[],
+  selectedAttributeNames: Set<string>,
   defaults: { price: number; compareAtPrice: number | null; weight: number | null },
   existingRows: VariantRow[]
 ): VariantRow[] {
-  const selected = attributes.filter((a) => selectedAttributeIds.has(a.id));
+  const selected = attributes.filter((a) => selectedAttributeNames.has(a.name) && a.possibleValues.length > 0);
   if (!selected.length) return [];
 
   const combos: Record<string, string>[] = [{}];
   for (const attr of selected) {
     const next: Record<string, string>[] = [];
     for (const combo of combos) {
-      for (const val of attr.values) {
-        next.push({ ...combo, [attr.id]: val.id });
+      for (const val of attr.possibleValues) {
+        next.push({ ...combo, [attr.name]: val });
       }
     }
     combos.splice(0, combos.length, ...next);
@@ -155,14 +152,10 @@ export function generateVariantRows(
   });
 }
 
-export function variantLabel(row: VariantRow, attributes: ProductAttributeDto[]): string {
+export function variantLabel(row: VariantRow): string {
   return Object.entries(row.attributeSelections)
-    .map(([attrId, valId]) => {
-      const attr = attributes.find((a) => a.id === attrId);
-      const val = attr?.values.find((v) => v.id === valId);
-      return val ? `${attr?.name}: ${val.value}` : '';
-    })
-    .filter(Boolean)
+    .filter(([, value]) => !!value)
+    .map(([name, value]) => `${name}: ${value}`)
     .join(', ');
 }
 
@@ -177,7 +170,7 @@ export function inventoryRowForVariant(
   return p.inventory.find((i) => i.variantId === variantId);
 }
 
-export function stockRowsFromProduct(p: ProductDetailDto, attributes: ProductAttributeDto[]): VariantStockRow[] {
+export function stockRowsFromProduct(p: ProductDetailDto): VariantStockRow[] {
   const activeVariants = p.variants.filter((v) => v.isActive);
 
   if (activeVariants.length === 0) {
@@ -205,14 +198,14 @@ export function stockRowsFromProduct(p: ProductDetailDto, attributes: ProductAtt
       barcode: v.barcode ?? '',
       weight: v.weight,
       isActive: v.isActive,
-      attributeSelections: Object.fromEntries(v.attributes.map((a) => [a.attributeId, a.valueId]))
+      attributeSelections: { ...v.attributes }
     };
     const inv = inventoryRowForVariant(p, v.id);
-    const attributeItems = variantAttributesFromProductVariant(v.attributes);
+    const attributeItems = variantAttributesFromRecord(v.attributes);
     return {
       variantId: v.id,
       sku: v.sku,
-      label: formatVariantAttributes(attributeItems) || variantLabel(row, attributes),
+      label: formatVariantAttributes(attributeItems) || variantLabel(row),
       attributes: attributeItems,
       inventoryId: inv?.id ?? null,
       quantityAvailable: inv?.quantityAvailable ?? 0,

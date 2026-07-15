@@ -69,29 +69,43 @@ import { CartStateService } from '../data-access/cart-state.service';
       display: block;
       aspect-ratio: 1 / 1.1;
       overflow: hidden;
-      background: color-mix(in srgb, var(--mox-border, #eaeaea) 30%, var(--mox-surface, #fff));
+      background: var(--mox-surface, #fff);
+      z-index: 1;
+      /* Exact match to the Minishop reference's .img-prod vignette. */
+      box-shadow: inset 0 0 101px 21px rgba(0, 0, 0, 0.09);
     }
     .msp-card__media img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      background: white;
       transform: scale(1);
       transition: transform 1s ease;
     }
     .msp-card:hover .msp-card__media img {
       transform: scale(1.1);
     }
+    /* Reference's hover overlay is a centered accent-colored CIRCLE fading in
+       behind the product (not a full-rectangle tint) — exact 230px/50% size. */
     .msp-card__media::after {
       content: '';
       position: absolute;
-      inset: 0;
+      top: 50%;
+      left: 0;
+      right: 0;
+      width: 230px;
+      height: 230px;
+      margin: 0 auto;
+      transform: translateY(-50%);
       background: var(--mox-accent, #dbcc8f);
+      border-radius: 50%;
       opacity: 0;
+      z-index: -1;
       transition: opacity 0.3s ease;
       pointer-events: none;
     }
     .msp-card:hover .msp-card__media::after {
-      opacity: 0.12;
+      opacity: 1;
     }
 
     .msp-card__badge {
@@ -100,7 +114,7 @@ import { CartStateService } from '../data-access/cart-state.service';
       left: 1rem;
       z-index: 2;
       padding: 0.6rem 0.35rem;
-      background: var(--mox-accent, #dbcc8f);
+      background: var(--mox-accent, #ff6f00);
       color: #000;
       font-size: 0.7rem;
       font-weight: 700;
@@ -127,11 +141,11 @@ import { CartStateService } from '../data-access/cart-state.service';
     }
     .msp-card__action {
       flex: 1 1 50%;
-      padding: 0.75rem 0.5rem;
-      font-size: 0.72rem;
-      font-weight: 700;
+      padding: 0.5rem 0.5rem;
+      /* Exact reference typography — thin (300) uppercase, not bold. */
+      font-size: 0.8125rem;
+      font-weight: 300;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
       border: none;
       cursor: pointer;
       transition: background 0.2s ease, color 0.2s ease;
@@ -142,7 +156,7 @@ import { CartStateService } from '../data-access/cart-state.service';
     }
     .msp-card__action--cart:hover {
       background: var(--mox-accent, #dbcc8f);
-      color: #000;
+      color: #fff;
     }
     .msp-card__action--buy {
       background: #fff;
@@ -150,6 +164,7 @@ import { CartStateService } from '../data-access/cart-state.service';
     }
     .msp-card__action--buy:hover {
       background: var(--mox-accent, #dbcc8f);
+      color: #fff;
     }
 
     .msp-card__body {
@@ -157,16 +172,18 @@ import { CartStateService } from '../data-access/cart-state.service';
     }
     .msp-card__overline {
       margin: 0 0 0.3rem;
-      font-size: 0.72rem;
+      /* Exact reference: 12px, 1px letter-spacing, 30%-opacity black. */
+      font-size: 0.75rem;
       color: var(--mox-muted, #8a8a8a);
+      color: color-mix(in srgb, var(--mox-text, #000) 30%, transparent);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 1px;
     }
     .msp-card__stars {
       display: flex;
       gap: 0.15rem;
       margin-bottom: 0.4rem;
-      color: var(--mox-accent, #dbcc8f);
+      color: var(--mox-accent, #ff6f00);
     }
     .msp-card__star {
       width: 0.8rem;
@@ -174,7 +191,7 @@ import { CartStateService } from '../data-access/cart-state.service';
     }
     .msp-card__title {
       display: block;
-      margin: 0 0 0.4rem;
+      margin: 0 0 0.3125rem;
       font-size: 0.875rem;
       font-weight: 700;
       text-transform: uppercase;
@@ -182,7 +199,7 @@ import { CartStateService } from '../data-access/cart-state.service';
       text-decoration: none;
     }
     .msp-card__title:hover {
-      color: var(--mox-accent, #dbcc8f);
+      color: var(--mox-accent, #ff6f00);
     }
     .msp-card__price-row {
       display: flex;

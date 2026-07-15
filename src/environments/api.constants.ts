@@ -58,38 +58,35 @@ export const API_ENDPOINTS = {
     createOrder: `${base}/orders`
   },
   productCategories: {
-    list: (tenantId: string) => `${base}/product-categories?tenantId=${encodeURIComponent(tenantId)}`,
+    list: () => `${base}/product-categories`,
     create: `${base}/product-categories`,
     update: (id: string) => `${base}/product-categories/${encodeURIComponent(id)}`,
-    delete: (id: string, tenantId: string) =>
-      `${base}/product-categories/${encodeURIComponent(id)}?tenantId=${encodeURIComponent(tenantId)}`
+    delete: (id: string) => `${base}/product-categories/${encodeURIComponent(id)}`
   },
   brands: {
-    list: (tenantId: string) => `${base}/brands?tenantId=${encodeURIComponent(tenantId)}`,
+    list: () => `${base}/brands`,
     create: `${base}/brands`,
     update: (id: string) => `${base}/brands/${encodeURIComponent(id)}`,
-    delete: (id: string, tenantId: string) =>
-      `${base}/brands/${encodeURIComponent(id)}?tenantId=${encodeURIComponent(tenantId)}`
+    delete: (id: string) => `${base}/brands/${encodeURIComponent(id)}`
   },
   productTags: {
-    list: (tenantId: string) => `${base}/product-tags?tenantId=${encodeURIComponent(tenantId)}`,
+    list: () => `${base}/product-tags`,
     create: `${base}/product-tags`,
     update: (id: string) => `${base}/product-tags/${encodeURIComponent(id)}`,
     delete: (id: string) => `${base}/product-tags/${encodeURIComponent(id)}`
   },
-  productAttributes: {
-    list: (tenantId: string) => `${base}/product-attributes?tenantId=${encodeURIComponent(tenantId)}`,
-    create: `${base}/product-attributes`,
-    update: (id: string) => `${base}/product-attributes/${encodeURIComponent(id)}`
+  productTypes: {
+    list: () => `${base}/product-types`,
+    create: `${base}/product-types`,
+    update: (id: string) => `${base}/product-types/${encodeURIComponent(id)}`,
+    delete: (id: string) => `${base}/product-types/${encodeURIComponent(id)}`
   },
   products: {
     list: `${base}/products`,
-    get: (id: string, tenantId: string) =>
-      `${base}/products/${encodeURIComponent(id)}?tenantId=${encodeURIComponent(tenantId)}`,
+    get: (id: string) => `${base}/products/${encodeURIComponent(id)}`,
     create: `${base}/products`,
     update: (id: string) => `${base}/products/${encodeURIComponent(id)}`,
-    delete: (id: string, tenantId: string) =>
-      `${base}/products/${encodeURIComponent(id)}?tenantId=${encodeURIComponent(tenantId)}`,
+    delete: (id: string) => `${base}/products/${encodeURIComponent(id)}`,
     patchStatus: (id: string) => `${base}/products/${encodeURIComponent(id)}/status`,
     bulkStatus: `${base}/products/status`,
     createVariant: (productId: string) =>
@@ -99,8 +96,7 @@ export const API_ENDPOINTS = {
     deleteVariant: (productId: string, variantId: string) =>
       `${base}/products/${encodeURIComponent(productId)}/variants/${encodeURIComponent(variantId)}`,
     images: (id: string) => `${base}/products/${encodeURIComponent(id)}/images`,
-    inventory: (id: string, tenantId: string) =>
-      `${base}/products/${encodeURIComponent(id)}/inventory?tenantId=${encodeURIComponent(tenantId)}`,
+    inventory: (id: string) => `${base}/products/${encodeURIComponent(id)}/inventory`,
     createInventory: (productId: string) =>
       `${base}/products/${encodeURIComponent(productId)}/inventory`,
     updateInventory: (productId: string, inventoryId: string) =>
@@ -120,10 +116,11 @@ export const API_ENDPOINTS = {
     feedback: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/feedback`,
     newsletterSubscribe: (tenantSlug: string) =>
       `${base}/catalog/${encodeURIComponent(tenantSlug)}/newsletter/subscribe`,
-    dealOfWeek: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/deal-of-week`
+    dealOfWeek: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/deal-of-week`,
+    dealsCarousel: (tenantSlug: string) => `${base}/catalog/${encodeURIComponent(tenantSlug)}/deals-carousel`
   },
   storeFeedback: {
-    list: (tenantId: string) => `${base}/store-feedback?tenantId=${encodeURIComponent(tenantId)}`,
+    list: () => `${base}/store-feedback`,
     create: `${base}/store-feedback`,
     update: (id: string) => `${base}/store-feedback/${encodeURIComponent(id)}`,
     delete: (id: string) => `${base}/store-feedback/${encodeURIComponent(id)}`
@@ -131,8 +128,19 @@ export const API_ENDPOINTS = {
   orders: {
     list: `${base}/orders`,
     get: (id: string) => `${base}/orders/${encodeURIComponent(id)}`,
-    create: `${base}/orders`,
-    updateStatus: (id: string) => `${base}/orders/${id}/status`
+    updateStatus: (id: string) => `${base}/orders/${id}/status`,
+    addNote: (id: string) => `${base}/orders/${id}/notes`
+  },
+  checkout: {
+    quote: `${base}/checkout/quote`,
+    placeOrder: `${base}/checkout/place-order`,
+    myOrders: `${base}/checkout/my-orders`,
+    myProfile: `${base}/checkout/my-profile`
+  },
+  payments: {
+    methods: `${base}/payments/methods`,
+    initiate: `${base}/payments/initiate`,
+    capture: `${base}/payments/capture`
   },
   returns: {
     list: `${base}/returns`,
@@ -159,10 +167,9 @@ export const API_ENDPOINTS = {
     get: `${base}/website`,
     saveSection: `${base}/website/sections`,
     publish: `${base}/website/publish`,
-    listSections: (tenantId: string) => `${base}/website/sections?tenantId=${encodeURIComponent(tenantId)}`,
+    listSections: () => `${base}/website/sections`,
     reorderSections: `${base}/website/sections/reorder`,
-    deleteSection: (sectionType: string, tenantId: string) =>
-      `${base}/website/sections/${encodeURIComponent(sectionType)}?tenantId=${encodeURIComponent(tenantId)}`,
+    deleteSection: (sectionType: string) => `${base}/website/sections/${encodeURIComponent(sectionType)}`,
     theme: `${base}/website/theme`
   },
   newsletter: {

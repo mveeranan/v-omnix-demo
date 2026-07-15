@@ -11,6 +11,7 @@ import { Observable, BehaviorSubject, catchError, filter, switchMap, take, throw
 import { AuthService } from './auth.service';
 import { LoggerService } from '../logging/logger.service';
 import { PortfolioTenantStateService } from '@features/portfolio/data-access/portfolio-tenant-state.service';
+import { StoreAuthService } from '@features/store/data-access/store-auth.service';
 import { API_ENDPOINTS } from '@env/api.constants';
 
 const authEndpoints = [API_ENDPOINTS.auth.login, API_ENDPOINTS.auth.refresh];
@@ -28,10 +29,24 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  const accessToken = authService.getAccessToken();
-  const authReq = accessToken ? addAuthorizationHeader(req, accessToken) : req;
+  // Guest storefront endpoints (checkout, etc.) resolve their tenant from the request body
+  // (storeSlug), not from an admin session. They must never carry a stale ADMIN token from the
+  // same browser — attaching one risks a spurious 401 that triggers the retry-after-refresh
+  // flow below, which would resubmit a non-idempotent POST (e.g. placing the same order twice).
+  // If a CUSTOMER is logged in (separate token, separate storage — see StoreAuthService), attach
+  // that instead so the backend can recognize a returning customer's checkout. Never enters the
+  // admin refresh-retry loop below, since customer tokens use a different auth lifecycle.
+  if (isGuestStorefrontRequest(req.url)) {
+    const storeToken = inject(StoreAuthService).getAccessToken();
+    return next(storeToken ? addAuthorizationHeader(req, storeToken) : req);
+  }
 
-  return next(authReq).pipe(
+  const accessToken = authService.getAccessToken();
+  const tenantId = authService.getTenantId();
+  let finalReq = accessToken ? addAuthorizationHeader(req, accessToken) : req;
+  finalReq = tenantId ? addTenantIdHeader(finalReq, tenantId) : finalReq;
+
+  return next(finalReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status !== 401) {
         return throwError(() => error);
@@ -58,6 +73,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
 function isPortfolioRequest(url: string): boolean {
   return /\/portfolio\//i.test(url);
+}
+
+/**
+ * Anonymous storefront endpoints that resolve tenant from the request body (storeSlug) or a
+ * public slug, never from a logged-in session. Must be excluded from auth-header attachment —
+ * see the guard in authInterceptor for why.
+ */
+function isGuestStorefrontRequest(url: string): boolean {
+  return /\/checkout\//i.test(url);
 }
 
 function handleUnauthorized(
@@ -101,6 +125,14 @@ function addAuthorizationHeader(req: HttpRequest<unknown>, token: string): HttpR
   return req.clone({
     setHeaders: {
       Authorization: `Bearer ${token}`
+    }
+  });
+}
+
+function addTenantIdHeader(req: HttpRequest<unknown>, tenantId: string): HttpRequest<unknown> {
+  return req.clone({
+    setHeaders: {
+      'X-Tenant-Id': tenantId
     }
   });
 }

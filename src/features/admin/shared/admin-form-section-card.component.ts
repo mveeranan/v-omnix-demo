@@ -47,7 +47,7 @@ import {
         </button>
 
         <div class="admin-form-section-card__actions" (click)="$event.stopPropagation()">
-          @if (!editing()) {
+          @if (!editing() && !readOnly()) {
             <button
               type="button"
               class="admin-form-section-card__action"
@@ -57,7 +57,7 @@ import {
             >
               <lucide-icon [img]="editIcon" class="h-4 w-4" />
             </button>
-          } @else {
+          } @else if (editing()) {
             @if (showClear()) {
               <button
                 type="button"
@@ -252,6 +252,7 @@ export class AdminFormSectionCardComponent {
   readonly showClear = input(false);
   readonly lastSavedAt = input<Date | null>(null);
   readonly noCollapse = input(false);
+  readonly readOnly = input(false);
 
   readonly save = output<void>();
   readonly cancel = output<void>();

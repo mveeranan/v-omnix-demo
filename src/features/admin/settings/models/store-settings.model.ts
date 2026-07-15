@@ -1,21 +1,14 @@
-export type SettingsCategory =
-  | 'general'
-  | 'shipping'
-  | 'payment'
-  | 'email'
-  | 'tax'
-  | 'policies'
-  | 'team'
-  | 'integrations';
+export type SettingsCategory = 'general' | 'shipping' | 'tax' | 'payment' | 'policies';
 
 export interface GeneralSettings {
-  storeName: string;
-  tagline: string;
-  logoUrl: string;
-  coverImageUrl: string;
-  description: string;
-  timezone: string;
-  currency: string;
+  storeName?: string;
+  tagline?: string;
+  description?: string;
+  timezone?: string;
+  currency?: string;
+  storeUrl?: string;
+  supportEmail?: string;
+  supportPhone?: string;
 }
 
 export interface ShippingSettings {
@@ -23,7 +16,14 @@ export interface ShippingSettings {
   defaultShippingCost: number;
   freeShippingEnabled: boolean;
   freeShippingThreshold: number;
-  zones: { id: string; name: string; baseCost: number; deliveryDays: number }[];
+  zones: ShippingZone[];
+}
+
+export interface ShippingZone {
+  id?: string;
+  name?: string;
+  baseCost: number;
+  deliveryDays: number;
 }
 
 export interface PaymentSettings {
@@ -34,57 +34,42 @@ export interface PaymentSettings {
   wallet: boolean;
   cod: boolean;
   stripeTestMode: boolean;
-  stripePublicKey: string;
+  stripePublicKey?: string;
+  stripeSecretKey?: string;
+  razorpayApiKey?: string;
+  razorpaySecretKey?: string;
   codMinOrder: number;
-}
-
-export interface EmailSettings {
-  smtpServer: string;
-  smtpPort: number;
-  username: string;
-  password: string;
-  fromEmail: string;
-  fromName: string;
 }
 
 export interface TaxSettings {
   calculateTax: boolean;
   taxType: 'GST' | 'VAT' | 'Sales Tax';
   taxRate: number;
-  taxId: string;
+  taxId?: string;
   applyTaxToShipping: boolean;
   pricesIncludeTax: boolean;
-  rules: { id: string; region: string; rate: number }[];
+  rules: TaxRule[];
+}
+
+export interface TaxRule {
+  id?: string;
+  region?: string;
+  rate: number;
 }
 
 export interface PolicySettings {
-  returnPolicy: string;
-  refundPolicy: string;
-  shippingPolicy: string;
-  privacyPolicy: string;
-  termsAndConditions: string;
-  warrantyInfo: string;
-}
-
-export interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'manager' | 'viewer';
-}
-
-export interface IntegrationSettings {
-  stripeConnected: boolean;
-  razorpayConnected: boolean;
+  returnPolicy?: string;
+  refundPolicy?: string;
+  shippingPolicy?: string;
+  privacyPolicy?: string;
+  termsAndConditions?: string;
+  warrantyInfo?: string;
 }
 
 export interface StoreSettings {
   general: GeneralSettings;
   shipping: ShippingSettings;
   payment: PaymentSettings;
-  email: EmailSettings;
   tax: TaxSettings;
   policies: PolicySettings;
-  team: TeamMember[];
-  integrations: IntegrationSettings;
 }

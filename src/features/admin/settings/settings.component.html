@@ -1,0 +1,190 @@
+<app-admin-page-shell eyebrow="Configuration" title="Settings" description="Configure store settings. Branding also available in Website builder.">
+  <div class="space-y-3">
+    <!-- Store Setup -->
+    <app-admin-form-section-card title="Store Setup" [icon]="icons.general" [expanded]="expandedSections()['general']" [editing]="editingStates()['general']" [saving]="savingStates()['general']" (edit)="toggleEdit('general')" (save)="saveGeneral()" (cancel)="cancelEdit('general')">
+      @if (!editingStates()['general']) {
+        <dl class="grid gap-3 sm:grid-cols-2 text-sm">
+          <div><dt class="text-[var(--text-muted)]">Store name</dt><dd>{{ settings()?.general?.storeName || '—' }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Timezone</dt><dd>{{ settings()?.general?.timezone || '—' }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Currency</dt><dd>{{ settings()?.general?.currency || '—' }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Store URL</dt><dd class="text-xs text-[var(--text-muted)]">{{ settings()?.general?.storeUrl || '—' }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Support email</dt><dd>{{ settings()?.general?.supportEmail || '—' }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Support phone</dt><dd>{{ settings()?.general?.supportPhone || '—' }}</dd></div>
+        </dl>
+      } @else {
+        <form class="space-y-4" [formGroup]="generalForm">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block space-y-1"><span class="text-sm font-medium">Store name</span><input class="pf-editor-input w-full" formControlName="storeName" /></label>
+            <label class="block space-y-1"><span class="text-sm font-medium">Tagline</span><input class="pf-editor-input w-full" formControlName="tagline" /></label>
+            <label class="block space-y-1"><span class="text-sm font-medium">Timezone</span><input class="pf-editor-input w-full" formControlName="timezone" /></label>
+            <label class="block space-y-1"><span class="text-sm font-medium">Currency</span><input class="pf-editor-input w-full" formControlName="currency" /></label>
+            <label class="block space-y-1"><span class="text-sm font-medium">Store URL</span><input class="pf-editor-input w-full" formControlName="storeUrl" type="url" /></label>
+            <label class="block space-y-1"><span class="text-sm font-medium">Support email</span><input class="pf-editor-input w-full" formControlName="supportEmail" type="email" /></label>
+            <label class="block space-y-1"><span class="text-sm font-medium">Support phone</span><input class="pf-editor-input w-full" formControlName="supportPhone" type="tel" /></label>
+          </div>
+        </form>
+      }
+    </app-admin-form-section-card>
+
+    <!-- Shipping -->
+    <app-admin-form-section-card title="Shipping" [icon]="icons.shipping" [expanded]="expandedSections()['shipping']" [editing]="editingStates()['shipping']" [saving]="savingStates()['shipping']" (edit)="toggleEdit('shipping')" (save)="saveShipping()" (cancel)="cancelEdit('shipping')">
+      @if (!editingStates()['shipping']) {
+        <dl class="grid gap-3 sm:grid-cols-2 text-sm">
+          <div><dt class="text-[var(--text-muted)]">Shipping</dt><dd class="font-medium">{{ settings()?.shipping?.enabled ? 'Enabled' : 'Disabled' }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Default cost</dt><dd>{{ settings()?.shipping?.defaultShippingCost }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Free shipping</dt><dd>{{ settings()?.shipping?.freeShippingEnabled ? 'Enabled' : 'Disabled' }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Free shipping threshold</dt><dd>{{ settings()?.shipping?.freeShippingThreshold }}</dd></div>
+        </dl>
+      } @else {
+        <form class="space-y-4" [formGroup]="shippingForm">
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="enabled" /> Enable shipping</label>
+          <label class="block space-y-1"><span class="text-sm font-medium">Default cost</span><input class="pf-editor-input w-full" type="number" formControlName="defaultShippingCost" /></label>
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="freeShippingEnabled" /> Free shipping over amount</label>
+          <label class="block space-y-1"><span class="text-sm font-medium">Free shipping threshold</span><input class="pf-editor-input w-full" type="number" formControlName="freeShippingThreshold" /></label>
+        </form>
+      }
+    </app-admin-form-section-card>
+
+    <!-- Payment -->
+    <app-admin-form-section-card title="Payment methods" [icon]="icons.payment" [expanded]="expandedSections()['payment']" [editing]="editingStates()['payment']" [saving]="savingStates()['payment']" (edit)="toggleEdit('payment')" (save)="savePayment()" (cancel)="cancelEdit('payment')">
+      @if (!editingStates()['payment']) {
+        <dl class="grid gap-3 sm:grid-cols-2 text-sm">
+          <div><dt class="text-[var(--text-muted)]">Enabled methods</dt><dd class="font-medium">{{ getPaymentMethodsDisplay() }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Stripe test mode</dt><dd>{{ settings()?.payment?.stripeTestMode ? 'On' : 'Off' }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Stripe public key</dt><dd>{{ settings()?.payment?.stripePublicKey || '—' }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">COD minimum order</dt><dd>{{ settings()?.payment?.codMinOrder }}</dd></div>
+        </dl>
+        <div class="border-t pt-4 mt-4">
+          <h4 class="text-sm font-semibold mb-3">Webhook Configuration</h4>
+          @if (settings()?.general?.storeUrl) {
+            <div class="space-y-3">
+              <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <p class="text-xs font-medium text-amber-900 mb-2">Stripe Webhook URL</p>
+                <code class="block text-xs break-all bg-white p-2 rounded border border-amber-200">{{ getWebhookUrl('stripe') }}</code>
+              </div>
+              <div class="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                <p class="text-xs font-medium text-blue-900 mb-2">Razorpay Webhook URL</p>
+                <code class="block text-xs break-all bg-white p-2 rounded border border-blue-200">{{ getWebhookUrl('razorpay') }}</code>
+              </div>
+            </div>
+          } @else {
+            <p class="text-sm text-[var(--text-muted)]">Set your store domain URL in General settings to view webhook URLs</p>
+          }
+        </div>
+      } @else {
+        <form class="space-y-4" [formGroup]="paymentForm">
+          <div class="grid gap-2 sm:grid-cols-2">
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="stripe" /> Stripe</label>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="razorpay" /> Razorpay</label>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="upi" /> UPI</label>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="card" /> Card</label>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="wallet" /> Wallet</label>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="cod" /> COD</label>
+          </div>
+
+          <!-- Stripe Settings -->
+          <fieldset class="border rounded p-3 space-y-3">
+            <legend class="text-sm font-semibold">Stripe Configuration</legend>
+            @if (stripeNeedsKeys) {
+              <p class="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                Stripe is enabled but missing credentials. Enter both the public and secret keys, or it won't work at checkout.
+              </p>
+            }
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="stripeTestMode" /> Test mode</label>
+            <label class="block space-y-1"><span class="text-sm font-medium">Public key</span><input class="pf-editor-input w-full" formControlName="stripePublicKey" placeholder="pk_live_..." /></label>
+            <label class="block space-y-1"><span class="text-sm font-medium">Secret key</span><input class="pf-editor-input w-full" type="password" formControlName="stripeSecretKey" placeholder="sk_live_..." /></label>
+          </fieldset>
+
+          <!-- Razorpay Settings -->
+          <fieldset class="border rounded p-3 space-y-3">
+            <legend class="text-sm font-semibold">Razorpay Configuration</legend>
+            @if (razorpayNeedsKeys) {
+              <p class="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                Razorpay is enabled but missing credentials. Enter both the API key and secret key, or it won't work at checkout.
+              </p>
+            }
+            <label class="block space-y-1"><span class="text-sm font-medium">API Key</span><input class="pf-editor-input w-full" formControlName="razorpayApiKey" placeholder="rzp_live_..." /></label>
+            <label class="block space-y-1"><span class="text-sm font-medium">Secret Key</span><input class="pf-editor-input w-full" type="password" formControlName="razorpaySecretKey" placeholder="secret..." /></label>
+          </fieldset>
+
+          <!-- COD Settings -->
+          <label class="block space-y-1"><span class="text-sm font-medium">COD minimum order amount</span><input class="pf-editor-input w-full" type="number" formControlName="codMinOrder" /></label>
+
+          <div class="border-t pt-4">
+            <h4 class="text-sm font-semibold mb-3">Webhook Configuration</h4>
+            <p class="text-xs text-[var(--text-muted)] mb-4">Add these URLs to your payment gateway webhooks settings. Set content type to application/json.</p>
+            @if (settings()?.general?.storeUrl) {
+              <div class="space-y-3">
+                <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                  <p class="text-xs font-medium text-amber-900 mb-2">Stripe Webhook URL</p>
+                  <code class="block text-xs break-all bg-white p-2 rounded border border-amber-200">{{ getWebhookUrl('stripe') }}</code>
+                </div>
+                <div class="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                  <p class="text-xs font-medium text-blue-900 mb-2">Razorpay Webhook URL</p>
+                  <code class="block text-xs break-all bg-white p-2 rounded border border-blue-200">{{ getWebhookUrl('razorpay') }}</code>
+                </div>
+              </div>
+            } @else {
+              <div class="rounded-lg bg-gray-100 p-4 text-center">
+                <p class="text-sm text-[var(--text-muted)]">Set your store domain URL in General settings to view webhook URLs</p>
+              </div>
+            }
+          </div>
+        </form>
+      }
+    </app-admin-form-section-card>
+
+    <!-- Tax -->
+    <app-admin-form-section-card title="Tax" [icon]="icons.tax" [expanded]="expandedSections()['tax']" [editing]="editingStates()['tax']" [saving]="savingStates()['tax']" (edit)="toggleEdit('tax')" (save)="saveTax()" (cancel)="cancelEdit('tax')">
+      @if (!editingStates()['tax']) {
+        <dl class="grid gap-3 sm:grid-cols-2 text-sm">
+          <div><dt class="text-[var(--text-muted)]">Calculate tax</dt><dd class="font-medium">{{ settings()?.tax?.calculateTax ? 'Enabled' : 'Disabled' }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Tax type</dt><dd>{{ settings()?.tax?.taxType }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Tax rate</dt><dd>{{ settings()?.tax?.taxRate }}%</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Tax ID</dt><dd>{{ settings()?.tax?.taxId || '—' }}</dd></div>
+        </dl>
+      } @else {
+        <form class="space-y-4" [formGroup]="taxForm">
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="calculateTax" /> Calculate tax automatically</label>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="applyTaxToShipping" /> Apply tax to shipping cost</label>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="pricesIncludeTax" /> Prices include tax</label>
+          </div>
+          <label class="block space-y-1"><span class="text-sm font-medium">Tax type</span>
+            <select class="pf-editor-input w-full" formControlName="taxType">
+              <option value="GST">GST (India)</option>
+              <option value="VAT">VAT (EU)</option>
+              <option value="Sales Tax">Sales Tax (US)</option>
+            </select>
+          </label>
+          <label class="block space-y-1"><span class="text-sm font-medium">Tax rate %</span><input class="pf-editor-input w-full" type="number" step="0.01" formControlName="taxRate" /></label>
+          <label class="block space-y-1"><span class="text-sm font-medium">Tax ID / GST Number</span><input class="pf-editor-input w-full" formControlName="taxId" placeholder="e.g., 27AAPCT1234H1Z0" /></label>
+        </form>
+      }
+    </app-admin-form-section-card>
+
+    <!-- Policies -->
+    <app-admin-form-section-card title="Store policies" [icon]="icons.policies" [expanded]="expandedSections()['policies']" [editing]="editingStates()['policies']" [saving]="savingStates()['policies']" (edit)="toggleEdit('policies')" (save)="savePolicies()" (cancel)="cancelEdit('policies')">
+      @if (!editingStates()['policies']) {
+        <dl class="grid gap-3 text-sm">
+          @for (field of policyFields; track field.key) {
+            <div>
+              <dt class="text-[var(--text-muted)]">{{ field.label }}</dt>
+              <dd class="mt-1 text-[var(--text-secondary)]">{{ getPolicyValue(field.key) || '—' }}</dd>
+            </div>
+          }
+        </dl>
+      } @else {
+        <form class="space-y-4" [formGroup]="policiesForm">
+          @for (field of policyFields; track field.key) {
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">{{ field.label }}</span>
+              <textarea class="pf-editor-input w-full min-h-[80px]" [formControlName]="field.key"></textarea>
+            </label>
+          }
+        </form>
+      }
+    </app-admin-form-section-card>
+
+  </div>
+</app-admin-page-shell>

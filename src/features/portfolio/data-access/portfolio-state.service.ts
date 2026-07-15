@@ -52,7 +52,14 @@ export class PortfolioStateService {
           this.isLoading.set(false);
           this.portfolioService.saveDraft(portfolio).subscribe({ error: () => undefined });
         },
-        error: () => this.isLoading.set(false)
+        error: (err) => {
+          console.error('Failed to load portfolio draft:', err);
+          // Load default/fallback portfolio so editor is still usable
+          const defaultPortfolio = createDefaultWebsitePortfolio();
+          this.draft.set(defaultPortfolio);
+          this.isLoading.set(false);
+          this.notifications.error('Could not load all website data. Loading defaults. Changes may not sync.');
+        }
       });
   }
 
@@ -166,7 +173,8 @@ export class PortfolioStateService {
           }
           this.refreshTenantAggregate();
         },
-        error: () => {
+        error: (err) => {
+          this.notifications.errorFromApi(err, 'Could not save your changes.');
           this.isSaving.set(false);
         }
       })
@@ -209,9 +217,9 @@ export class PortfolioStateService {
             this.notifications.success('Store published!', `Live at /store/${published.slug}`);
           }
         },
-        error: () => {
+        error: (err) => {
           this.isSaving.set(false);
-          this.notifications.error('Could not publish store.');
+          this.notifications.errorFromApi(err, 'Could not publish store.');
         }
       });
   }

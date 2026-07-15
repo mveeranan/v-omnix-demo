@@ -1,18 +1,18 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HeroSectionComponent } from '../../portfolio/public/sections/hero-section.component';
-import { GallerySectionComponent } from '../../portfolio/public/sections/gallery-section.component';
-import { ReviewsSectionComponent } from '../../portfolio/public/sections/reviews-section.component';
+import { ReviewsSectionComponent as PortfolioReviewsComponent } from '../../portfolio/public/sections/reviews-section.component';
 import { FeaturedProductsSectionComponent } from '../commerce/featured-products-section.component';
 import { NewArrivalsSectionComponent } from '../commerce/new-arrivals-section.component';
 import { CategoryShowcaseSectionComponent } from '../commerce/category-showcase-section.component';
 import { TrustBadgesStripComponent } from '../commerce/trust-badges-strip.component';
 import { DealOfWeekSectionComponent } from '../commerce/deal-of-week-section.component';
+import { ProductReviewsSectionComponent } from '../commerce/product-reviews-section.component';
 import { StoreContextService } from '../data-access/store-context.service';
 
 /**
  * Store home page — hero -> trust strip -> new arrivals -> categories ->
- * deal of week -> featured products -> reviews -> gallery -> shop CTA.
+ * deal of week -> featured products -> reviews.
  * One design, wired entirely to real portfolio/catalog data.
  */
 @Component({
@@ -26,8 +26,8 @@ import { StoreContextService } from '../data-access/store-context.service';
     CategoryShowcaseSectionComponent,
     DealOfWeekSectionComponent,
     FeaturedProductsSectionComponent,
-    ReviewsSectionComponent,
-    GallerySectionComponent
+    ProductReviewsSectionComponent,
+    PortfolioReviewsComponent
   ],
   template: `
     @if (portfolio(); as p) {
@@ -58,29 +58,17 @@ import { StoreContextService } from '../data-access/store-context.service';
         />
       }
 
+      @if (p.reviewsSection?.enabled) {
+        <app-product-reviews-section />
+      }
+
       @if (p.reviewsSection.enabled) {
         <app-pf-reviews-section [storeSlug]="ctx.slug()" />
       }
-
-      @if (p.gallery.length) {
-        <app-pf-gallery-section [portfolio]="p" />
-      }
-
-      <section class="mox-section border-t" style="border-color: var(--mox-border)">
-        <div class="container mx-auto px-6 text-center">
-          <h2 class="mox-sale-section__title">Ready to shop?</h2>
-          <p class="mox-sale-section__subtitle mt-2">Browse our full catalog, add items to cart, and checkout securely.</p>
-          <a [routerLink]="shopLink()" class="mox-btn mox-btn--primary mt-6 inline-flex">Go to shop</a>
-        </div>
-      </section>
     }
   `
 })
 export class StoreHomePageComponent {
   readonly ctx = inject(StoreContextService);
   readonly portfolio = this.ctx.portfolio;
-
-  shopLink(): string[] {
-    return ['/store', this.ctx.slug(), 'products'];
-  }
 }

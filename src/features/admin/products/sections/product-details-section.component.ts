@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { afterNextRender, Component, computed, effect, inject, Injector, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Package } from 'lucide-angular';
 import { AdminFormSectionCardComponent } from '@features/admin/shared/admin-form-section-card.component';
 import { NotificationService } from '@core/notifications/notification.service';
@@ -17,7 +17,7 @@ import { RichTextEditorComponent } from '@shared/ui/rich-text-editor.component';
 @Component({
   selector: 'app-product-details-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AdminFormSectionCardComponent, RichTextEditorComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, AdminFormSectionCardComponent, RichTextEditorComponent],
   template: `
     <app-admin-form-section-card
       title="Product details"
@@ -26,7 +26,7 @@ import { RichTextEditorComponent } from '@shared/ui/rich-text-editor.component';
       [(expanded)]="expanded"
       [editing]="editing()"
       [saving]="state.isSectionSaving('details')"
-      [canSave]="form.valid && state.categories().length > 0"
+      [canSave]="form.valid && state.categories().length > 0 && state.productTypes().length > 0"
       [lastSavedAt]="state.sectionLastSaved('details')"
       (edit)="startEdit()"
       (save)="save()"
@@ -37,11 +37,17 @@ import { RichTextEditorComponent } from '@shared/ui/rich-text-editor.component';
           Create at least one category before saving a product.
         </p>
       }
+      @if (!state.productTypes().length) {
+        <p class="text-sm text-amber-700 dark:text-amber-200">
+          Create at least one <a routerLink="/admin/product-types" class="underline">product type</a> before saving a product.
+        </p>
+      }
 
       @if (!editing() && state.product()) {
         <dl class="grid gap-3 sm:grid-cols-2 text-sm">
           <div><dt class="text-[var(--text-muted)]">Name</dt><dd class="font-medium">{{ state.product()!.name }}</dd></div>
           <div><dt class="text-[var(--text-muted)]">Category</dt><dd>{{ state.product()!.categoryName }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Product type</dt><dd>{{ state.product()!.productTypeName }}</dd></div>
           <div><dt class="text-[var(--text-muted)]">Price</dt><dd>{{ formatPrice(state.product()!.price) }}</dd></div>
           <div><dt class="text-[var(--text-muted)]">Status</dt><dd>{{ statusLabel(state.product()!.status) }}</dd></div>
           @if (state.product()!.shortDescription) {
@@ -100,6 +106,16 @@ import { RichTextEditorComponent } from '@shared/ui/rich-text-editor.component';
                 <option value="">Select category</option>
                 @for (c of state.categories(); track c.id) {
                   <option [value]="c.id">{{ c.name }}</option>
+                }
+              </select>
+            </label>
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Product type *</span>
+              <p class="text-xs text-[var(--text-muted)]">Determines which variant attributes (Size, Color, RAM, etc.) apply to this product.</p>
+              <select class="pf-editor-input w-full" formControlName="productTypeId">
+                <option value="">Select product type</option>
+                @for (t of state.productTypes(); track t.id) {
+                  <option [value]="t.id">{{ t.name }}</option>
                 }
               </select>
             </label>
@@ -281,6 +297,7 @@ export class ProductDetailsSectionComponent {
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     categoryId: ['', Validators.required],
+    productTypeId: ['', Validators.required],
     brandId: [''],
     shortDescription: [''],
     description: [''],
@@ -290,6 +307,8 @@ export class ProductDetailsSectionComponent {
     costPrice: [null as number | null],
     weight: [null as number | null],
     trackInventory: [true],
+    isNew: [false],
+    displayOrder: [0],
     metaTitle: [''],
     metaDescription: ['']
   });
@@ -335,6 +354,7 @@ export class ProductDetailsSectionComponent {
       this.form.reset({
         name: '',
         categoryId: '',
+        productTypeId: '',
         brandId: '',
         shortDescription: '',
         description: '',
@@ -344,6 +364,8 @@ export class ProductDetailsSectionComponent {
         costPrice: null,
         weight: null,
         trackInventory: true,
+        isNew: false,
+        displayOrder: 0,
         metaTitle: '',
         metaDescription: ''
       });
@@ -351,7 +373,7 @@ export class ProductDetailsSectionComponent {
   }
 
   save(): void {
-    if (this.form.invalid || !this.state.categories().length) {
+    if (this.form.invalid || !this.state.categories().length || !this.state.productTypes().length) {
       this.form.markAllAsTouched();
       return;
     }
@@ -363,6 +385,7 @@ export class ProductDetailsSectionComponent {
       tenantId,
       categoryId: v.categoryId,
       brandId: v.brandId || null,
+      productTypeId: v.productTypeId,
       name: v.name.trim(),
       shortDescription: v.shortDescription || null,
       description: v.description || null,
@@ -373,6 +396,8 @@ export class ProductDetailsSectionComponent {
       costPrice: v.costPrice,
       weight: v.weight,
       trackInventory: v.trackInventory,
+      isNew: v.isNew,
+      displayOrder: v.displayOrder,
       status
     };
 
@@ -404,6 +429,7 @@ export class ProductDetailsSectionComponent {
     this.form.patchValue({
       name: p.name,
       categoryId: p.categoryId,
+      productTypeId: p.productTypeId,
       brandId: p.brandId ?? '',
       shortDescription: p.shortDescription ?? '',
       description: p.description ?? '',
@@ -413,6 +439,8 @@ export class ProductDetailsSectionComponent {
       costPrice: p.costPrice,
       weight: p.weight,
       trackInventory: p.trackInventory,
+      isNew: p.isNew,
+      displayOrder: p.displayOrder,
       metaTitle: p.metaTitle ?? '',
       metaDescription: p.metaDescription ?? ''
     });

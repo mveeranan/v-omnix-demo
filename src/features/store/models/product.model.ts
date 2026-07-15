@@ -63,5 +63,5 @@ export function productInStock(product: CatalogProductDetailDto): boolean {
 }
 
 export function variantLabel(variant: CatalogProductDetailDto['variants'][number]): string {
-  return variant.attributes.map((a) => a.value).join(' / ') || variant.sku;
+  return Object.values(variant.attributes).join(' / ') || variant.sku;
 }

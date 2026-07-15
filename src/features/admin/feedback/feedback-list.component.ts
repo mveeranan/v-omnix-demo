@@ -202,8 +202,7 @@ export class FeedbackListComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
-    const tenantId = requireTenantId(this.auth);
-    this.http.get<ApiResponse<StoreFeedbackDto[]>>(API_ENDPOINTS.storeFeedback.list(tenantId)).subscribe({
+    this.http.get<ApiResponse<StoreFeedbackDto[]>>(API_ENDPOINTS.storeFeedback.list()).subscribe({
       next: (r) => {
         this.items.set(r.data ?? []);
         this.loading.set(false);
@@ -275,8 +274,7 @@ export class FeedbackListComponent implements OnInit {
   doDelete(): void {
     const item = this.deleteTarget();
     if (!item) return;
-    const tenantId = requireTenantId(this.auth);
-    this.http.delete<ApiResponse<boolean>>(`${API_ENDPOINTS.storeFeedback.delete(item.id)}?tenantId=${tenantId}`).subscribe({
+    this.http.delete<ApiResponse<boolean>>(API_ENDPOINTS.storeFeedback.delete(item.id)).subscribe({
       next: () => {
         this.deleteTarget.set(null);
         this.load();

@@ -9,6 +9,14 @@ export interface CustomerAddress {
   isDefault: boolean;
 }
 
+export interface CustomerOrderSummary {
+  id: string;
+  orderNumber: string;
+  status: string;
+  grandTotal: number;
+  placedAt: string;
+}
+
 export interface Customer {
   id: string;
   name: string;
@@ -20,6 +28,7 @@ export interface Customer {
   lastOrderDate: string;
   signupDate: string;
   addresses: CustomerAddress[];
+  orders: CustomerOrderSummary[];
   notes: { id: string; text: string; at: string }[];
 }
 

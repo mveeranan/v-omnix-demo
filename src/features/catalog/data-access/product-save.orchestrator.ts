@@ -36,11 +36,11 @@ export class ProductSaveOrchestrator {
   ): Observable<ProductDetailDto> {
     if (pendingImages.length > 0) {
       return this.uploadAndSaveImages(productId, tenantId, existingImages, pendingImages).pipe(
-        switchMap(() => this.productApi.get(productId, tenantId))
+        switchMap(() => this.productApi.get(productId))
       );
     }
     return this.productApi.saveImages(productId, { tenantId, images: existingImages }).pipe(
-      switchMap(() => this.productApi.get(productId, tenantId))
+      switchMap(() => this.productApi.get(productId))
     );
   }
 
@@ -81,7 +81,7 @@ export class ProductSaveOrchestrator {
                   });
 
                   if (!payload.core.trackInventory || payload.inventory.length === 0) {
-                    return this.productApi.get(productId, tenantId);
+                    return this.productApi.get(productId);
                   }
 
                   return from(payload.inventory).pipe(
@@ -96,7 +96,7 @@ export class ProductSaveOrchestrator {
                       })
                     ),
                     toArray(),
-                    switchMap(() => this.productApi.get(productId, tenantId))
+                    switchMap(() => this.productApi.get(productId))
                   );
                 })
               )
@@ -115,7 +115,7 @@ export class ProductSaveOrchestrator {
                   })
                 ),
                 toArray(),
-                switchMap(() => this.productApi.get(productId, tenantId))
+                switchMap(() => this.productApi.get(productId))
               )
             )
           );
@@ -125,7 +125,7 @@ export class ProductSaveOrchestrator {
           chain$ = chain$.pipe(
             switchMap(() =>
               this.uploadAndSaveImages(productId, tenantId, payload.existingImages, payload.pendingImages).pipe(
-                switchMap(() => this.productApi.get(productId, tenantId))
+                switchMap(() => this.productApi.get(productId))
               )
             )
           );
@@ -134,7 +134,7 @@ export class ProductSaveOrchestrator {
             switchMap(() =>
               this.productApi
                 .saveImages(productId, { tenantId, images: payload.existingImages })
-                .pipe(switchMap(() => this.productApi.get(productId, tenantId)))
+                .pipe(switchMap(() => this.productApi.get(productId)))
             )
           );
         }
@@ -143,7 +143,7 @@ export class ProductSaveOrchestrator {
           switchMap(() =>
             this.productApi
               .saveTags(productId, { tenantId, tagIds: payload.tagIds })
-              .pipe(switchMap(() => this.productApi.get(productId, tenantId)))
+              .pipe(switchMap(() => this.productApi.get(productId)))
           )
         );
 
@@ -152,7 +152,7 @@ export class ProductSaveOrchestrator {
             switchMap(() =>
               this.productApi
                 .patchStatus(productId, { tenantId, status: ProductStatus.Active })
-                .pipe(switchMap(() => this.productApi.get(productId, tenantId)))
+                .pipe(switchMap(() => this.productApi.get(productId)))
             )
           );
         }

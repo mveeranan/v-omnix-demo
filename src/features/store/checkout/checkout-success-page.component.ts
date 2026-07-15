@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { OrderService } from '../../admin/orders/data-access/order.service';
 import { Order } from '../../admin/orders/models/order.model';
+import { CartStateService } from '../data-access/cart-state.service';
 
 @Component({
   selector: 'app-checkout-success-page',
@@ -35,18 +36,20 @@ import { Order } from '../../admin/orders/models/order.model';
 export class CheckoutSuccessPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly orderService = inject(OrderService);
+  private readonly cart = inject(CartStateService);
 
   readonly order = signal<Order | null>(null);
   readonly storeSlug = signal('');
 
   ngOnInit(): void {
+    // The backend order detail doesn't carry storeSlug — read it from cart state instead,
+    // which StoreContextService populates for the whole /store/:slug layout (survives cart.clear()).
+    this.storeSlug.set(this.cart.storeSlug() ?? '');
+
     const orderId = this.route.snapshot.queryParamMap.get('order');
     if (orderId) {
       this.orderService.getById(orderId).subscribe((o) => {
-        if (o) {
-          this.order.set(o);
-          this.storeSlug.set(o.storeSlug);
-        }
+        if (o) this.order.set(o);
       });
     }
   }

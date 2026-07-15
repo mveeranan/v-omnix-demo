@@ -4,9 +4,11 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
 import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
 
 /**
- * Full-bleed rotating hero: image with Ken Burns zoom, left-aligned content
- * block (eyebrow, headline, subheadline, CTA), dot navigation bottom-center.
- * Colors come from the store theme CSS variables.
+ * Rotating hero, matching the Minishop reference exactly: a solid-color band
+ * with left-aligned text content (eyebrow, headline, subheadline, CTA)
+ * absolutely positioned over the left ~35%, and a right-floating product
+ * cutout image at 65% width — not a full-bleed cover photo. Dot navigation
+ * bottom-center. Colors come from the store theme CSS variables.
  */
 @Component({
   selector: 'app-pf-hero-section',
@@ -26,127 +28,123 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
     ])
   ],
   styles: `
+    /* Exact match to the Minishop reference's actual hero markup (verified
+       against the live DOM, not just the stylesheet): a SOLID-color 750px
+       band with left-aligned text and a right-floating product cutout image
+       at 65% width — NOT a full-bleed cover photo with a dark overlay. An
+       earlier pass here built the cover-photo version from a misread of the
+       .slider-item CSS rule before checking the rendered markup; corrected. */
     .msp-hero {
       position: relative;
-      min-height: clamp(26rem, 68vh, 42rem);
       overflow: hidden;
-      background: color-mix(in srgb, var(--mox-border, #eaeaea) 30%, var(--mox-surface, #fff));
-    }
-    .msp-hero__slide {
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      background-position: center;
-      opacity: 0;
-      transform: scale(1);
-      transition: opacity 1.2s ease;
-    }
-    .msp-hero__slide--active {
-      opacity: 1;
-      animation: msp-hero-kenburns 8s ease-out forwards;
-    }
-    @keyframes msp-hero-kenburns {
-      from { transform: scale(1.08); }
-      to { transform: scale(1); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .msp-hero__slide--active { animation: none; }
-    }
-    .msp-hero__slide--gradient {
-      background: linear-gradient(
-        120deg,
-        color-mix(in srgb, var(--mox-accent, #fe4c50) 14%, var(--mox-surface, #fff)),
-        var(--mox-surface, #fff) 60%
-      );
-    }
-    .msp-hero__scrim {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(100deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.28) 45%, rgba(0, 0, 0, 0.05) 75%);
-      pointer-events: none;
-    }
-    /* On gradient (no-image) slides the scrim would gray the design out */
-    .msp-hero:has(.msp-hero__slide--gradient.msp-hero__slide--active) .msp-hero__scrim {
-      background: none;
-    }
-    .msp-hero:has(.msp-hero__slide--gradient.msp-hero__slide--active) .msp-hero__title,
-    .msp-hero:has(.msp-hero__slide--gradient.msp-hero__slide--active) .msp-hero__subtitle {
-      color: var(--mox-text, #23232d);
-      text-shadow: none;
+      height: clamp(28rem, 82vh, 46.875rem);
+      background: var(--mox-hero-bg, var(--mox-accent, #dbcc8f));
     }
 
-    .msp-hero__overlay {
+    .msp-hero__grid {
       position: relative;
       z-index: 2;
       display: flex;
       align-items: center;
-      min-height: inherit;
-      padding: 4.5rem 0;
+      justify-content: flex-end;
+      height: 100%;
     }
+
     .msp-hero__content {
-      max-width: 36rem;
+      position: absolute;
+      left: 0;
+      max-width: 26rem;
+      padding-left: 1.5rem;
       text-align: left;
     }
-    .msp-hero__eyebrow {
-      margin: 0 0 0.9rem;
-      font-size: 0.8rem;
+    @media (min-width: 640px) {
+      .msp-hero__content { padding-left: 3rem; }
+    }
+    .msp-hero__badge {
+      display: block;
+      margin: 0 0 0.5rem;
+      font-size: 0.75rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.22em;
-      color: var(--mox-accent, #fe4c50);
+      letter-spacing: 4px;
+      color: #fff;
     }
     .msp-hero__title {
-      margin: 0;
+      margin: 0.75rem 0;
       font-family: var(--mox-font-heading, inherit);
-      font-size: clamp(2.1rem, 5.2vw, 3.5rem);
-      font-weight: 700;
-      line-height: 1.1;
-      color: #fff;
-      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+      /* Exact reference: 44px / weight 300 (thin) — deliberately not bold. */
+      font-size: 2.75rem;
+      font-weight: 300;
+      line-height: 1.3;
+      text-transform: uppercase;
+      color: #000;
     }
     .msp-hero__subtitle {
-      margin: 1.1rem 0 0;
-      max-width: 28rem;
-      font-size: 1.05rem;
-      line-height: 1.65;
-      color: rgba(255, 255, 255, 0.94);
-      text-shadow: 0 1px 10px rgba(0, 0, 0, 0.25);
+      margin: 0 0 1rem;
+      max-width: 26rem;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: rgba(0, 0, 0, 0.8);
     }
     .msp-hero__cta {
       display: inline-flex;
       align-items: center;
-      margin-top: 2rem;
-      padding: 0.9rem 2.3rem;
-      font-size: 0.82rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
+      /* Exact reference .btn-custom: plain rectangle, larger text, no tracking —
+         deliberately different from the pill CTAs used elsewhere on the site. */
+      padding: 0.625rem 1.25rem;
+      font-size: 1.4375rem;
+      font-weight: 400;
       color: #fff;
-      background: var(--mox-accent, #fe4c50);
-      border-radius: var(--mox-btn-radius, 2px);
+      background: var(--mox-accent, #c2a942);
+      border-radius: 0;
       text-decoration: none;
-      transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      transition: background 0.2s ease;
     }
     .msp-hero__cta:hover {
-      background: color-mix(in srgb, var(--mox-accent, #fe4c50) 85%, #000);
-      transform: translateY(-2px);
-      box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.4);
+      background: color-mix(in srgb, var(--mox-accent, #c2a942) 85%, #000);
+    }
+
+    .msp-hero__media {
+      position: relative;
+      z-index: -1;
+      width: 65%;
+      height: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .msp-hero__image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      opacity: 0;
+      transform: translateX(6%) scale(0.96);
+      transition: opacity 0.7s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+    .msp-hero__image--active {
+      opacity: 1;
+      transform: translateX(0) scale(1);
     }
 
     .msp-hero__dots {
       position: absolute;
-      bottom: 1.5rem;
-      left: 50%;
-      z-index: 3;
+      left: 0;
+      right: 0;
+      bottom: 1.75rem;
+      z-index: 2;
       display: flex;
+      justify-content: center;
       gap: 0.5rem;
-      transform: translateX(-50%);
     }
     .msp-hero__dot {
       width: 0.6rem;
       height: 0.6rem;
       padding: 0;
-      background: rgba(255, 255, 255, 0.55);
+      background: rgba(0, 0, 0, 0.25);
       border: none;
       border-radius: 999px;
       cursor: pointer;
@@ -154,7 +152,7 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
     }
     .msp-hero__dot--active {
       width: 1.6rem;
-      background: var(--mox-accent, #fe4c50);
+      background: #000;
     }
   `
 })
@@ -212,10 +210,6 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
     this.activeIndex.set(index);
     this.stopRotation();
     this.startRotation();
-  }
-
-  slideBackground(slide: PortfolioHeroSlide): string | null {
-    return slide.imageUrl?.trim() ? `url(${slide.imageUrl})` : null;
   }
 
   private startRotation(): void {

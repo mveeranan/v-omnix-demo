@@ -1,62 +1,97 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, catchError, of, switchMap } from 'rxjs';
 import {
-  EmailSettings,
   GeneralSettings,
-  IntegrationSettings,
   PaymentSettings,
   PolicySettings,
   SettingsCategory,
   ShippingSettings,
   StoreSettings,
-  TaxSettings,
-  TeamMember
+  TaxSettings
 } from '../models/store-settings.model';
 import { ecommerceConfigStore } from '../../data-access/ecommerce-config.store';
+import { ApiResponse } from '@shared/models/api-response.model';
+import { environment } from '@env/environment';
 
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
+  private readonly apiUrl = `${environment.apiBaseUrl}/ecommerce/settings`;
+  private readonly ALLOWED_CATEGORIES: SettingsCategory[] = [
+    'general',
+    'shipping',
+    'tax',
+    'payment',
+    'policies'
+  ];
+
+  constructor(private http: HttpClient) {}
+
   getAll(): Observable<StoreSettings> {
-    return of(ecommerceConfigStore.get()).pipe(delay(150));
+    return this.http.get<ApiResponse<StoreSettings>>(this.apiUrl).pipe(
+      switchMap(response => of(response.data!)),
+      catchError(() => of(ecommerceConfigStore.get()))
+    );
   }
 
   getShipping(): Observable<ShippingSettings> {
-    return of(structuredClone(ecommerceConfigStore.get().shipping)).pipe(delay(50));
+    return this.getAll().pipe(
+      switchMap(settings => of(settings.shipping)),
+      catchError(() => of(ecommerceConfigStore.get().shipping))
+    );
   }
 
   getTax(): Observable<TaxSettings> {
-    return of(structuredClone(ecommerceConfigStore.get().tax)).pipe(delay(50));
+    return this.getAll().pipe(
+      switchMap(settings => of(settings.tax)),
+      catchError(() => of(ecommerceConfigStore.get().tax))
+    );
   }
 
   getPayment(): Observable<PaymentSettings> {
-    return of(structuredClone(ecommerceConfigStore.get().payment)).pipe(delay(50));
+    return this.getAll().pipe(
+      switchMap(settings => of(settings.payment)),
+      catchError(() => of(ecommerceConfigStore.get().payment))
+    );
   }
 
-  updateCategory<K extends SettingsCategory>(
-    category: K,
-    data: StoreSettings[K]
+  updateCategory(
+    category: SettingsCategory,
+    data: unknown
   ): Observable<StoreSettings> {
-    ecommerceConfigStore.updateSection(category, structuredClone(data) as StoreSettings[K]);
-    return of(ecommerceConfigStore.get()).pipe(delay(200));
+    if (!this.ALLOWED_CATEGORIES.includes(category)) {
+      throw new Error(`Invalid settings category: ${category}. Allowed categories: ${this.ALLOWED_CATEGORIES.join(', ')}`);
+    }
+
+    return this.http.patch<ApiResponse<StoreSettings>>(
+      `${this.apiUrl}/${category}`,
+      { category, data }
+    ).pipe(
+      switchMap(response => {
+        // Also update local cache
+        ecommerceConfigStore.updateSection(category, structuredClone(data) as never);
+        return of(response.data!);
+      }),
+      catchError(() => {
+        // Fallback to local store
+        ecommerceConfigStore.updateSection(category, structuredClone(data) as never);
+        return of(ecommerceConfigStore.get());
+      })
+    );
   }
 
   getGeneral(): Observable<GeneralSettings> {
-    return of(structuredClone(ecommerceConfigStore.get().general)).pipe(delay(50));
-  }
-
-  getEmail(): Observable<EmailSettings> {
-    return of(structuredClone(ecommerceConfigStore.get().email)).pipe(delay(50));
+    return this.getAll().pipe(
+      switchMap(settings => of(settings.general)),
+      catchError(() => of(ecommerceConfigStore.get().general))
+    );
   }
 
   getPolicies(): Observable<PolicySettings> {
-    return of(structuredClone(ecommerceConfigStore.get().policies)).pipe(delay(50));
+    return this.getAll().pipe(
+      switchMap(settings => of(settings.policies)),
+      catchError(() => of(ecommerceConfigStore.get().policies))
+    );
   }
 
-  getTeam(): Observable<TeamMember[]> {
-    return of(structuredClone(ecommerceConfigStore.get().team)).pipe(delay(50));
-  }
-
-  getIntegrations(): Observable<IntegrationSettings> {
-    return of(structuredClone(ecommerceConfigStore.get().integrations)).pipe(delay(50));
-  }
 }

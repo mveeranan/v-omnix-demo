@@ -164,13 +164,18 @@ export interface PortfolioPaymentMethodsDto {
   wallet: boolean;
 }
 
+export interface TrustBadgeItemDto {
+  id: string;
+  persistedId?: string;
+  title: string;
+  icon: string;
+  enabled: boolean;
+  order: number;
+}
+
 export interface PortfolioTrustBadgesDto {
   enabled: boolean;
-  freeShipping: boolean;
-  securePayment: boolean;
-  moneyBack: boolean;
-  fastDelivery: boolean;
-  customerCountLabel: string;
+  badges: TrustBadgeItemDto[];
 }
 
 export interface PortfolioNewsletterDto {
@@ -275,11 +280,19 @@ export interface PortfolioBrandStripDto {
   logos: PortfolioBrandLogoDto[];
 }
 
+export interface DealOfWeekItemDto {
+  id: string;
+  persistedId?: string;
+  productId: string;
+  headline: string;
+  endDate: string;
+  enabled: boolean;
+  order: number;
+}
+
 export interface PortfolioDealOfWeekDto {
   enabled: boolean;
-  productId?: string;
-  headline?: string;
-  endDate?: string;
+  deals: DealOfWeekItemDto[];
 }
 
 export interface PortfolioDto {

@@ -169,11 +169,21 @@ export interface PortfolioFeaturedProducts {
   showQtyControls: boolean;
 }
 
+export interface DealOfWeekItem {
+  /** Local id for editor tracking (always present). */
+  id: string;
+  /** Server id — set when loaded from API; omitted on create/upsert. */
+  persistedId?: string;
+  productId: string;
+  headline: string;
+  endDate: string;
+  enabled: boolean;
+  order: number;
+}
+
 export interface PortfolioDealOfWeek {
   enabled: boolean;
-  productId?: string;
-  headline?: string;
-  endDate?: string;
+  deals: DealOfWeekItem[];
 }
 
 export interface PortfolioStorePolicies {
@@ -198,13 +208,20 @@ export interface PortfolioPaymentMethods {
   wallet: boolean;
 }
 
+export interface TrustBadgeItem {
+  /** Local id for editor tracking (always present). */
+  id: string;
+  /** Server id — set when loaded from API; omitted on create/upsert. */
+  persistedId?: string;
+  title: string;
+  icon: string;
+  enabled: boolean;
+  order: number;
+}
+
 export interface PortfolioTrustBadges {
   enabled: boolean;
-  freeShipping: boolean;
-  securePayment: boolean;
-  moneyBack: boolean;
-  fastDelivery: boolean;
-  customerCountLabel: string;
+  badges: TrustBadgeItem[];
 }
 
 export interface PortfolioNewsletter {
@@ -428,9 +445,7 @@ export function createEmptyPortfolio(): Portfolio {
     },
     dealOfWeek: {
       enabled: true,
-      productId: '',
-      headline: 'Deal of the Week',
-      endDate: ''
+      deals: []
     },
     lookbook: {
       enabled: true,
@@ -463,7 +478,7 @@ export function createEmptyPortfolio(): Portfolio {
     gallery: [],
     featuredProducts: {
       enabled: true,
-      maxCount: 12,
+      maxCount: 8,
       productIds: [],
       promoMarqueeText: 'Limited Time Offer: 5% off',
       showQtyControls: true
@@ -491,11 +506,12 @@ export function createEmptyPortfolio(): Portfolio {
     },
     trustBadges: {
       enabled: true,
-      freeShipping: true,
-      securePayment: true,
-      moneyBack: false,
-      fastDelivery: true,
-      customerCountLabel: ''
+      badges: [
+        { id: 'badge-free-shipping', title: 'Free Shipping', icon: 'Truck', enabled: true, order: 0 },
+        { id: 'badge-secure-payment', title: 'Secure Payments', icon: 'Lock', enabled: true, order: 1 },
+        { id: 'badge-money-back', title: 'Money-Back Guarantee', icon: 'RefreshCw', enabled: false, order: 2 },
+        { id: 'badge-fast-delivery', title: 'Fast Delivery', icon: 'Zap', enabled: true, order: 3 }
+      ]
     },
     newsletter: {
       enabled: true,

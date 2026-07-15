@@ -10,6 +10,7 @@ import { PortfolioStateService } from '../../data-access/portfolio-state.service
 import { PortfolioCategoryShowcase } from '../../models/portfolio.model';
 import { CategoryAdminService } from '@features/admin/data-access/category-admin.service';
 import { ProductCategoryDto } from '@features/catalog/models/product-category.model';
+import { NotificationService } from '@core/notifications/notification.service';
 
 @Component({
   selector: 'app-category-showcase-editor-section',
@@ -19,19 +20,14 @@ import { ProductCategoryDto } from '@features/catalog/models/product-category.mo
   template: `
     <app-website-section-shell sectionId="categoryShowcase" title="Shop by category" [icon]="icon" [complete]="true">
 
-      <!-- View mode — uses draft (not buffer) so counts are correct when not editing -->
+      <!-- View mode -->
       <div view class="admin-detail-view admin-detail-view--rich">
-        <div class="admin-detail-view__grid admin-detail-view__grid--2">
-          <app-admin-detail-card>
-            <app-admin-detail-item label="Display limit" [value]="(draftShowcase()?.maxCount ?? 4).toString()" />
-          </app-admin-detail-card>
-          <app-admin-detail-card>
-            <app-admin-detail-item
-              label="Selected categories"
-              [value]="draftSelectedCount() + ' of ' + (draftShowcase()?.maxCount ?? 4) + (draftSelectedCount() === 0 ? ' (auto if none)' : ' selected')"
-            />
-          </app-admin-detail-card>
-        </div>
+        <app-admin-detail-card>
+          <app-admin-detail-item
+            label="Selected categories"
+            [value]="draftSelectedCount() + ' of 4 selected' + (draftSelectedCount() === 0 ? ' (auto if none)' : '')"
+          />
+        </app-admin-detail-card>
       </div>
 
       <!-- Edit mode -->
@@ -43,69 +39,116 @@ import { ProductCategoryDto } from '@features/catalog/models/product-category.mo
             (enabledChange)="patch({ enabled: $event })"
           />
 
-          <!-- Display limit -->
+          <!-- Dropdown selector (Max 4) -->
           <div class="pf-editor-field">
-            <span class="pf-editor-label">Display limit (how many categories to show)</span>
-            <input
-              type="number" min="1" max="8" class="pf-editor-input w-28"
-              [ngModel]="b.maxCount"
-              (ngModelChange)="onLimitChange(+$event, b)"
-            />
+            <label class="pf-editor-label">
+              Select categories (max 4)
+              <span class="ml-1 text-[var(--text-muted)]">({{ selectedCount() }}/4)</span>
+            </label>
+            <select
+              class="pf-editor-input"
+              (change)="addCategory($any($event.target).value); $any($event.target).value = ''"
+              [disabled]="selectedCount() >= 4"
+            >
+              <option value="">+ Add category...</option>
+              @for (cat of availableCategories(b); track cat.id) {
+                <option [value]="cat.name">{{ cat.name }}</option>
+              }
+            </select>
+            <p class="pf-editor-hint mt-2">Select up to 4 categories to feature. Leave empty to show top categories automatically.</p>
           </div>
 
-          <!-- Category selection (restricted to limit) -->
-          <div class="space-y-1">
-            <p class="pf-editor-label">
-              Choose categories to feature
-              <span class="ml-1 text-[var(--text-muted)]">({{ selectedCount() }}/{{ b.maxCount }} selected)</span>
-            </p>
-            <p class="pf-editor-hint">Leave all unselected to automatically show the top active categories.</p>
-
-            @if (loading()) {
-              <p class="text-xs text-[var(--text-muted)]">Loading categories…</p>
-            } @else if (!allCategories().length) {
-              <p class="text-xs text-[var(--text-muted)]">No categories found. Create categories first.</p>
-            } @else {
-              <div class="pf-cat-pin-list">
-                @for (cat of allCategories(); track cat.id) {
-                  <label
-                    class="pf-cat-pin-item"
-                    [class.pf-cat-pin-item--disabled]="!isSelected(cat.name, b) && selectedCount() >= b.maxCount"
-                  >
-                    <input
-                      type="checkbox"
-                      [checked]="isSelected(cat.name, b)"
-                      [disabled]="!isSelected(cat.name, b) && selectedCount() >= b.maxCount"
-                      (change)="toggleCategory(cat.name, $any($event.target).checked)"
-                    />
-                    @if (cat.imageDocumentUrl) {
-                      <img [src]="cat.imageDocumentUrl" [alt]="cat.name" class="h-8 w-8 rounded object-cover" />
+          <!-- Selected categories preview -->
+          @if (selectedCount() > 0) {
+            <div class="pf-category-preview">
+              <p class="pf-editor-label mb-3">Selected Categories</p>
+              <div class="pf-preview-grid">
+                @for (name of b.categoryNames; track name; let idx = $index) {
+                  <div class="pf-preview-card">
+                    @if (getCategoryImage(name); as img) {
+                      <img [src]="img" [alt]="name" class="pf-preview-card__image" />
+                    } @else {
+                      <div class="pf-preview-card__image pf-preview-card__image--empty"></div>
                     }
-                    <span class="pf-cat-pin-item__name">{{ cat.name }}</span>
-                  </label>
+                    <div class="pf-preview-card__info">
+                      <p class="pf-preview-card__name">{{ name }}</p>
+                      <button
+                        type="button"
+                        (click)="removeCategory(name)"
+                        class="pf-preview-card__remove"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
                 }
               </div>
-            }
-          </div>
+            </div>
+          }
         }
       </div>
 
     </app-website-section-shell>
   `,
   styles: `
-    .pf-cat-pin-list { display: flex; flex-direction: column; gap: 0.375rem; }
-    .pf-cat-pin-item {
-      display: flex; align-items: center; gap: 0.625rem; padding: 0.5rem 0.625rem;
-      border-radius: 0.5rem; border: 1px solid var(--border-subtle); cursor: pointer;
+    .pf-category-preview {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: color-mix(in srgb, var(--border-subtle, #e5e7eb) 50%, transparent);
+      border-radius: 0.5rem;
     }
-    .pf-cat-pin-item--disabled { opacity: 0.4; cursor: not-allowed; }
-    .pf-cat-pin-item__name { flex: 1; font-size: 0.875rem; }
+    .pf-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1rem;
+    }
+    .pf-preview-card {
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: white;
+    }
+    .pf-preview-card__image {
+      width: 100%;
+      height: 100px;
+      object-fit: contain;
+      background: white;
+      display: block;
+    }
+    .pf-preview-card__image--empty {
+      width: 100%;
+      height: 100px;
+      background: var(--border-subtle);
+    }
+    .pf-preview-card__info {
+      padding: 0.75rem;
+    }
+    .pf-preview-card__name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin: 0 0 0.5rem;
+    }
+    .pf-preview-card__remove {
+      width: 100%;
+      padding: 0.4rem;
+      font-size: 0.75rem;
+      background: #fee2e2;
+      color: #991b1b;
+      border: none;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .pf-preview-card__remove:hover {
+      background: #fecaca;
+    }
   `
 })
 export class CategoryShowcaseEditorSectionComponent implements OnInit {
   private readonly sectionState = inject(WebsiteSectionStateService);
   private readonly portfolioState = inject(PortfolioStateService);
   private readonly categoryApi = inject(CategoryAdminService);
+  private readonly notifications = inject(NotificationService);
 
   readonly icon = Grid3x3;
   readonly buffer = computed(() => this.sectionState.buffer<PortfolioCategoryShowcase>('categoryShowcase'));
@@ -124,7 +167,10 @@ export class CategoryShowcaseEditorSectionComponent implements OnInit {
         this.allCategories.set(cats.filter((c) => c.isActive).sort((a, b) => a.name.localeCompare(b.name)));
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not load categories.');
+        this.loading.set(false);
+      }
     });
   }
 
@@ -150,5 +196,29 @@ export class CategoryShowcaseEditorSectionComponent implements OnInit {
       else if (!checked) names.delete(name);
       return { ...b, categoryNames: [...names] };
     });
+  }
+
+  // New methods for dropdown selector
+  availableCategories(b: PortfolioCategoryShowcase) {
+    return this.allCategories().filter(cat => !b.categoryNames.includes(cat.name));
+  }
+
+  addCategory(name: string): void {
+    if (!name) return;
+    this.sectionState.patchBuffer<PortfolioCategoryShowcase>('categoryShowcase', (b) => {
+      if (b.categoryNames.length >= 4) return b;
+      return { ...b, categoryNames: [...b.categoryNames, name] };
+    });
+  }
+
+  removeCategory(name: string): void {
+    this.sectionState.patchBuffer<PortfolioCategoryShowcase>('categoryShowcase', (b) => {
+      return { ...b, categoryNames: b.categoryNames.filter(n => n !== name) };
+    });
+  }
+
+  getCategoryImage(name: string): string | null {
+    const cat = this.allCategories().find(c => c.name === name);
+    return cat?.imageDocumentUrl || null;
   }
 }

@@ -114,7 +114,7 @@ export function createDefaultWebsitePortfolio(): Portfolio {
       enabled: true,
       title: 'Shop by category',
       subtitle: 'Browse our most popular collections',
-      categoryNames: ['Apparel', 'Home', 'Accessories', 'Electronics'],
+      categoryNames: [],
       maxCount: 4
     },
     storeDescription: {
@@ -126,19 +126,19 @@ export function createDefaultWebsitePortfolio(): Portfolio {
     featuredProducts: {
       enabled: true,
       maxCount: 8,
-      productIds: ['p1', 'p2', 'p3'],
+      productIds: [],
       promoMarqueeText: 'Limited time — free shipping on orders over $50',
       showQtyControls: false
     },
     offerBanner: {
       enabled: true,
-      productIds: ['p4', 'p6']
+      productIds: []
     },
     saleCollection: {
       enabled: true,
       title: 'Biggest offers this week',
       subtitle: 'Save on bestsellers while stock lasts.',
-      productIds: ['p5', 'p6'],
+      productIds: [],
       maxCount: 4
     },
     lookbook: {
@@ -246,23 +246,17 @@ export function mergeWithWebsiteDefaults(portfolio: Portfolio): Portfolio {
     featuredProducts: {
       ...defaults.featuredProducts,
       ...portfolio.featuredProducts,
-      productIds: portfolio.featuredProducts.productIds?.length
-        ? portfolio.featuredProducts.productIds
-        : defaults.featuredProducts.productIds
+      productIds: portfolio.featuredProducts.productIds ?? defaults.featuredProducts.productIds
     },
     offerBanner: {
       ...defaults.offerBanner,
       ...portfolio.offerBanner,
-      productIds: portfolio.offerBanner.productIds?.length
-        ? portfolio.offerBanner.productIds
-        : defaults.offerBanner.productIds
+      productIds: portfolio.offerBanner.productIds ?? defaults.offerBanner.productIds
     },
     saleCollection: {
       ...defaults.saleCollection,
       ...portfolio.saleCollection,
-      productIds: portfolio.saleCollection.productIds?.length
-        ? portfolio.saleCollection.productIds
-        : defaults.saleCollection.productIds
+      productIds: portfolio.saleCollection.productIds ?? defaults.saleCollection.productIds
     },
     gallery: portfolio.gallery?.length ? portfolio.gallery : defaults.gallery,
     reviews: portfolio.reviews?.length ? portfolio.reviews : defaults.reviews,
@@ -296,6 +290,10 @@ export function mergeWithWebsiteDefaults(portfolio: Portfolio): Portfolio {
       ...defaults.promoStrip,
       ...portfolio.promoStrip,
       text: portfolio.promoStrip.text?.trim() || defaults.promoStrip.text
+    },
+    trustBadges: {
+      enabled: portfolio.trustBadges.enabled,
+      badges: portfolio.trustBadges.badges?.length ? portfolio.trustBadges.badges : defaults.trustBadges.badges
     },
     social: {
       links: portfolio.social.links?.length ? portfolio.social.links : defaults.social.links

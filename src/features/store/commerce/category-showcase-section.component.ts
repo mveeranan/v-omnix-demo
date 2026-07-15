@@ -47,7 +47,11 @@ interface CategoryCard {
                 [style.background-image]="'url(' + categories()[0].imageUrl + ')'"
                 appScrollReveal="slide-right"
               >
-                <span class="msp-mosaic__label">{{ categories()[0].name }}</span>
+                <div class="msp-mosaic__text">
+                  <span class="msp-mosaic__eyebrow">Shop</span>
+                  <span class="msp-mosaic__label">{{ categories()[0].name }}</span>
+                  <span class="msp-mosaic__cta">Shop now</span>
+                </div>
               </a>
               <div class="msp-mosaic__stack">
                 <a
@@ -57,7 +61,11 @@ interface CategoryCard {
                   [style.background-image]="'url(' + categories()[1].imageUrl + ')'"
                   appScrollReveal="slide-left"
                 >
-                  <span class="msp-mosaic__label">{{ categories()[1].name }}</span>
+                  <div class="msp-mosaic__text">
+                    <span class="msp-mosaic__eyebrow">Shop</span>
+                    <span class="msp-mosaic__label">{{ categories()[1].name }}</span>
+                    <span class="msp-mosaic__cta">Shop now</span>
+                  </div>
                 </a>
                 <div class="msp-mosaic__row">
                   @for (cat of categories().slice(2, 4); track cat.slug; let i = $index) {
@@ -69,7 +77,11 @@ interface CategoryCard {
                       appScrollReveal="scale-in"
                       [appScrollRevealDelay]="i * 100"
                     >
-                      <span class="msp-mosaic__label">{{ cat.name }}</span>
+                      <div class="msp-mosaic__text">
+                        <span class="msp-mosaic__eyebrow">Shop</span>
+                        <span class="msp-mosaic__label">{{ cat.name }}</span>
+                        <span class="msp-mosaic__cta">Shop now</span>
+                      </div>
                     </a>
                   }
                 </div>
@@ -84,7 +96,12 @@ interface CategoryCard {
                   [queryParams]="{ category: cat.slug }"
                 >
                   <span class="msp-cat-card__media">
-                    <img [src]="cat.imageUrl" [alt]="cat.name" loading="lazy" />
+                    <img
+                      [src]="cat.imageUrl"
+                      [alt]="cat.name"
+                      loading="lazy"
+                      onerror="this.style.display='none'; this.parentElement.style.backgroundImage='url(data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2220%22%3ENo Image%3C/text%3E%3C/svg%3E)'"
+                    />
                   </span>
                   <span class="msp-cat-card__label">{{ cat.name }}</span>
                 </a>
@@ -109,14 +126,14 @@ interface CategoryCard {
     .msp-section-head__title {
       margin: 0;
       font-family: var(--mox-font-heading, inherit);
-      font-size: clamp(1.6rem, 3.2vw, 2.1rem);
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
       font-weight: 700;
       color: var(--mox-text, #23232d);
     }
     .msp-section-head__rule {
       width: 3.5rem;
       height: 3px;
-      background: var(--mox-accent, #fe4c50);
+      background: var(--mox-accent, #ff6f00);
       border-radius: 999px;
     }
     .msp-section-head__subtitle {
@@ -150,14 +167,20 @@ interface CategoryCard {
       transform: translateY(-2px);
     }
     .msp-cat-card__media {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       aspect-ratio: 4 / 3;
       overflow: hidden;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+      background-size: cover;
+      background-position: center;
     }
     .msp-cat-card__media img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      background: white;
       transition: transform 0.4s ease;
     }
     .msp-cat-card:hover .msp-cat-card__media img { transform: scale(1.06); }
@@ -172,31 +195,33 @@ interface CategoryCard {
       border-top: 1px solid var(--mox-border, #eaeaea);
       transition: color 0.2s ease;
     }
-    .msp-cat-card:hover .msp-cat-card__label { color: var(--mox-accent, #fe4c50); }
+    .msp-cat-card:hover .msp-cat-card__label { color: var(--mox-accent, #ff6f00); }
 
+    /* Matches the reference's asymmetric "choose" bento layout exactly:
+       a 1/3-width tall card on the left, a 2/3-width stack on the right
+       (one wide card over two half cards) — total height ~700px. */
     .msp-mosaic {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 1.5rem;
+      gap: 0;
     }
     @media (min-width: 900px) {
-      .msp-mosaic { grid-template-columns: 1.6fr 1fr; align-items: stretch; }
+      .msp-mosaic { grid-template-columns: 1fr 2fr; align-items: stretch; }
     }
     .msp-mosaic__stack {
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
     }
     .msp-mosaic__row {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
       flex: 1;
     }
     .msp-mosaic__tile {
       position: relative;
       display: flex;
-      align-items: flex-end;
+      align-items: center;
+      justify-content: center;
       background-size: cover;
       background-position: center;
       overflow: hidden;
@@ -219,26 +244,54 @@ interface CategoryCard {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(0deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.05) 55%);
+      background: rgba(0, 0, 0, 0.32);
       transition: background 0.3s ease;
     }
-    .msp-mosaic__tile:hover::before { background: rgba(0, 0, 0, 0.4); }
-    .msp-mosaic__label {
-      transition: transform 0.3s ease;
-    }
-    .msp-mosaic__tile:hover .msp-mosaic__label { transform: translateY(-4px); }
-    .msp-mosaic__tile--main { min-height: 22rem; }
-    .msp-mosaic__tile--top { min-height: 10rem; }
-    .msp-mosaic__tile--half { min-height: 10rem; }
-    .msp-mosaic__label {
+    .msp-mosaic__tile:hover::before { background: rgba(0, 0, 0, 0.42); }
+    .msp-mosaic__tile--main { min-height: 43.75rem; }
+    .msp-mosaic__tile--top { min-height: 21.875rem; }
+    .msp-mosaic__tile--half { min-height: 21.875rem; }
+
+    .msp-mosaic__text {
       position: relative;
       z-index: 1;
-      padding: 1.5rem;
-      font-size: 1rem;
-      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 2rem;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    .msp-mosaic__tile:hover .msp-mosaic__text { transform: translateY(-4px); }
+    /* Exact reference typography: .subheading (12px/600/4px tracking) + h2 (28px/700). */
+    .msp-mosaic__eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 4px;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
       color: #fff;
+    }
+    .msp-mosaic__label {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .msp-mosaic__cta {
+      display: inline-flex;
+      margin-top: 0.5rem;
+      padding: 0.5rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: #fff;
+      background: #000;
+      border: 1px solid #000;
+      border-radius: 999px;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .msp-mosaic__tile:hover .msp-mosaic__cta {
+      background: var(--mox-accent, #dbcc8f);
+      border-color: var(--mox-accent, #dbcc8f);
     }
   `
 })
@@ -283,6 +336,12 @@ export class CategoryShowcaseSectionComponent implements OnInit {
       const slug = meta?.slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       // Use real category image if set, else fallback by index
       const imageUrl = meta?.imageUrl || CATEGORY_FALLBACKS[index % CATEGORY_FALLBACKS.length];
+
+      // Debug: Log categories with missing images
+      if (!meta?.imageUrl) {
+        console.debug(`Category "${name}" has no API image, using fallback:`, imageUrl);
+      }
+
       return { name, slug, imageUrl };
     });
   });

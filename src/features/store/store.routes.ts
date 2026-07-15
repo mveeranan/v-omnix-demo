@@ -8,6 +8,7 @@ import { ProductDetailPageComponent } from './pages/product-detail-page.componen
 import { CartPageComponent } from './cart/cart-page.component';
 import { CheckoutPageComponent } from './checkout/checkout-page.component';
 import { CheckoutSuccessPageComponent } from './checkout/checkout-success-page.component';
+import { StoreAccountPageComponent } from './account/store-account-page.component';
 import {
   redirectLegacyCart,
   redirectLegacyCheckout,
@@ -26,7 +27,8 @@ export const storeRoutes: Routes = [
       { path: 'products/:productSlug', component: ProductDetailPageComponent },
       { path: 'cart', component: CartPageComponent },
       { path: 'checkout', component: CheckoutPageComponent },
-      { path: 'checkout/success', component: CheckoutSuccessPageComponent }
+      { path: 'checkout/success', component: CheckoutSuccessPageComponent },
+      { path: 'account', component: StoreAccountPageComponent }
     ]
   },
   {

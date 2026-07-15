@@ -7,6 +7,7 @@ import {
   CatalogBrandDto,
   CatalogCategoryDto,
   CatalogDealOfWeekDto,
+  CatalogDealsCarouselDto,
   CatalogProductDetailDto,
   CatalogProductListFilters,
   CatalogProductListItemDto,
@@ -57,6 +58,12 @@ export class CatalogStorefrontApiService {
   getDealOfWeek(tenantSlug: string): Observable<CatalogDealOfWeekDto> {
     return this.http
       .get<ApiResponse<CatalogDealOfWeekDto>>(API_ENDPOINTS.catalog.dealOfWeek(tenantSlug))
+      .pipe(map(unwrapApiResponse));
+  }
+
+  getDealsCarousel(tenantSlug: string): Observable<CatalogDealsCarouselDto> {
+    return this.http
+      .get<ApiResponse<CatalogDealsCarouselDto>>(API_ENDPOINTS.catalog.dealsCarousel(tenantSlug))
       .pipe(map(unwrapApiResponse));
   }
 

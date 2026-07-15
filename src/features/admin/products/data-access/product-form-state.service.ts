@@ -3,13 +3,13 @@ import { forkJoin, Observable, tap } from 'rxjs';
 import { CategoryAdminService } from '../../data-access/category-admin.service';
 import { BrandAdminService } from '../../data-access/brand-admin.service';
 import { ProductTagApiService } from '@features/catalog/data-access/product-tag-api.service';
-import { ProductAttributeApiService } from '@features/catalog/data-access/product-attribute-api.service';
+import { ProductTypeApiService } from '@features/catalog/data-access/product-type-api.service';
 import { ProductAdminService } from './product-admin.service';
 import { ProductDetailDto } from '@features/catalog/models/product-admin.model';
 import { ProductCategoryDto } from '@features/catalog/models/product-category.model';
 import { BrandDto } from '@features/catalog/models/brand.model';
 import { ProductTagDto } from '@features/catalog/models/product-tag.model';
-import { ProductAttributeDto } from '@features/catalog/models/product-attribute.model';
+import { ProductTypeDto } from '@features/catalog/models/product-type.model';
 import { getApiErrorMessage } from '@shared/utils/api-error.util';
 
 export type ProductFormSection = 'details' | 'tags' | 'images' | 'variants' | 'inventory';
@@ -20,7 +20,7 @@ export class ProductFormStateService {
   private readonly categoryApi = inject(CategoryAdminService);
   private readonly brandApi = inject(BrandAdminService);
   private readonly tagApi = inject(ProductTagApiService);
-  private readonly attributeApi = inject(ProductAttributeApiService);
+  private readonly productTypeApi = inject(ProductTypeApiService);
 
   readonly product = signal<ProductDetailDto | null>(null);
   readonly productId = signal('');
@@ -31,7 +31,14 @@ export class ProductFormStateService {
   readonly categories = signal<ProductCategoryDto[]>([]);
   readonly brands = signal<BrandDto[]>([]);
   readonly tags = signal<ProductTagDto[]>([]);
-  readonly attributes = signal<ProductAttributeDto[]>([]);
+  readonly productTypes = signal<ProductTypeDto[]>([]);
+
+  /** Attribute definitions for the currently selected product's type, or [] if none selected yet. */
+  readonly currentTypeAttributes = computed(() => {
+    const typeId = this.product()?.productTypeId;
+    if (!typeId) return [];
+    return this.productTypes().find((t) => t.id === typeId)?.attributes ?? [];
+  });
   readonly sectionSaving = signal<Record<ProductFormSection, boolean>>({
     details: false,
     tags: false,
@@ -71,13 +78,13 @@ export class ProductFormStateService {
       categories: this.categoryApi.listFlat(),
       brands: this.brandApi.list(),
       tags: this.tagApi.list(),
-      attributes: this.attributeApi.list()
+      productTypes: this.productTypeApi.list()
     }).subscribe({
-      next: ({ categories, brands, tags, attributes }) => {
+      next: ({ categories, brands, tags, productTypes }) => {
         this.categories.set(categories);
         this.brands.set(brands);
         this.tags.set(tags);
-        this.attributes.set(attributes);
+        this.productTypes.set(productTypes);
         this.referenceLoading.set(false);
       },
       error: () => {

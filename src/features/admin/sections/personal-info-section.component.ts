@@ -512,7 +512,7 @@ export class PersonalInfoSectionComponent implements OnInit {
             this.patchPhoneFieldsFromUser();
           }
         },
-        error: () => undefined
+        error: (err) => this.notifications.errorFromApi(err, 'Could not load countries.')
       });
   }
 
@@ -611,7 +611,7 @@ export class PersonalInfoSectionComponent implements OnInit {
             this.patchFromUser();
             this.editing.set(false);
           },
-          error: () => undefined
+          error: (err) => this.notifications.errorFromApi(err, 'Could not save profile.')
         });
 
     }).catch(() => {

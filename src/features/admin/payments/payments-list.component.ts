@@ -8,6 +8,7 @@ import { AdminTableActionComponent } from '@shared/ui/admin-table-action.compone
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { PaymentService } from './data-access/payment.service';
 import { PaymentListResult } from './models/payment.model';
+import { NotificationService } from '@core/notifications/notification.service';
 
 @Component({
   selector: 'app-payments-list',
@@ -106,6 +107,7 @@ import { PaymentListResult } from './models/payment.model';
 })
 export class PaymentsListComponent implements OnInit {
   private readonly api = inject(PaymentService);
+  private readonly notifications = inject(NotificationService);
   readonly loading = signal(true);
   readonly result = signal<PaymentListResult | null>(null);
   readonly metrics = signal<PaymentListResult | null>(null);
@@ -125,7 +127,10 @@ export class PaymentsListComponent implements OnInit {
         this.metrics.set(r);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not load payments.');
+        this.loading.set(false);
+      }
     });
   }
 

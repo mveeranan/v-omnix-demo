@@ -1,14 +1,11 @@
 export type {
-  EmailSettings,
   GeneralSettings,
-  IntegrationSettings,
   PaymentSettings,
   PolicySettings,
   SettingsCategory,
   ShippingSettings,
   StoreSettings,
-  TaxSettings,
-  TeamMember
+  TaxSettings
 } from '../settings/models/store-settings.model';
 
 import type { StoreSettings } from '../settings/models/store-settings.model';

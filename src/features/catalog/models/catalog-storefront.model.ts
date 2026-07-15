@@ -22,7 +22,7 @@ export interface CatalogProductVariantDto {
   sku: string;
   price: number;
   compareAtPrice: number | null;
-  attributes: { attributeName: string; value: string }[];
+  attributes: Record<string, string>;
   stockAvailable: number;
 }
 
@@ -44,6 +44,19 @@ export interface CatalogProductDetailDto {
   tags: string[];
   trackInventory: boolean;
   stockAvailable: number;
+  // ProductType metadata for variant attribute rendering
+  productTypeId?: string;
+  productTypeName?: string;
+  productTypeAttributes?: ProductTypeAttributeDto[];
+}
+
+export interface ProductTypeAttributeDto {
+  id: string;
+  name: string;
+  dataType: string; // Text, Number, Dropdown (from ProductAttributeDataType enum)
+  isRequired: boolean;
+  displayOrder: number;
+  possibleValues: string[]; // Available values for this attribute
 }
 
 export interface CatalogCategoryDto {
@@ -90,6 +103,11 @@ export interface CatalogDealOfWeekDto {
   badgeText: string | null;
   endDateUtc: string | null;
   product: CatalogProductListItemDto | null;
+}
+
+export interface CatalogDealsCarouselDto {
+  enabled: boolean;
+  deals: CatalogDealOfWeekDto[];
 }
 
 export function catalogDiscountPercent(product: {

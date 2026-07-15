@@ -4,6 +4,7 @@ import { AdminPageShellComponent } from '@features/admin/shared/admin-page-shell
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { CustomerService } from './data-access/customer.service';
 import { Customer } from './models/customer.model';
+import { NotificationService } from '@core/notifications/notification.service';
 
 @Component({
   selector: 'app-customer-detail',
@@ -33,10 +34,27 @@ import { Customer } from './models/customer.model';
               <h2 class="font-semibold">Addresses</h2>
               @if (c.addresses.length) {
                 @for (a of c.addresses; track a.id) {
-                  <p class="mt-2 text-sm">{{ a.label }}: {{ a.street }}, {{ a.city }}</p>
+                  <p class="mt-2 text-sm">{{ a.label }}: {{ a.street }}, {{ a.city }}@if (a.state) {, {{ a.state }}}@if (a.zip) { {{ a.zip }}}@if (a.country) {, {{ a.country }}}</p>
                 }
               } @else {
                 <p class="mt-2 text-sm text-[var(--text-muted)]">No addresses on file.</p>
+              }
+            </section>
+            <section class="admin-glass-card rounded-xl p-6 lg:col-span-2">
+              <h2 class="font-semibold">Order history</h2>
+              @if (c.orders.length) {
+                <ul class="mt-3 divide-y">
+                  @for (o of c.orders; track o.id) {
+                    <li class="flex items-center justify-between py-3 text-sm">
+                      <a [routerLink]="['/admin/orders', o.id]" class="font-medium text-indigo-600 hover:underline">#{{ o.orderNumber }}</a>
+                      <span class="text-[var(--text-muted)]">{{ formatDate(o.placedAt) }}</span>
+                      <span class="capitalize">{{ o.status }}</span>
+                      <span class="font-semibold">{{ format(o.grandTotal, c.currency) }}</span>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="mt-2 text-sm text-[var(--text-muted)]">No orders yet.</p>
               }
             </section>
           </div>
@@ -48,6 +66,7 @@ import { Customer } from './models/customer.model';
 export class CustomerDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(CustomerService);
+  private readonly notifications = inject(NotificationService);
   readonly loading = signal(true);
   readonly customer = signal<Customer | null>(null);
 
@@ -62,7 +81,10 @@ export class CustomerDetailComponent implements OnInit {
         this.customer.set(c);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: (err) => {
+        this.notifications.errorFromApi(err, 'Could not load customer.');
+        this.loading.set(false);
+      }
     });
   }
 
