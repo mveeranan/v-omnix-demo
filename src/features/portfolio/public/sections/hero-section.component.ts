@@ -95,13 +95,16 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
       font-size: 1.4375rem;
       font-weight: 400;
       color: #fff;
-      background: var(--mox-accent, #c2a942);
+      /* Always a shade darker than the hero band itself (which uses the same
+         --mox-accent variable) so the button reads as a distinct control
+         instead of blending into the background until hovered. */
+      background: color-mix(in srgb, var(--mox-accent, #c2a942) 85%, #000);
       border-radius: 0;
       text-decoration: none;
       transition: background 0.2s ease;
     }
     .msp-hero__cta:hover {
-      background: color-mix(in srgb, var(--mox-accent, #c2a942) 85%, #000);
+      background: color-mix(in srgb, var(--mox-accent, #c2a942) 70%, #000);
     }
 
     .msp-hero__media {

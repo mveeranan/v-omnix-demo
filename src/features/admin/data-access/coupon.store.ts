@@ -5,26 +5,28 @@ const SEED: Coupon[] = [
     id: 'cpn-save10',
     tenantId: 'default',
     code: 'SAVE10',
-    description: '10% off entire order',
     discountType: 'Percentage',
     discountValue: 10,
-    minOrderAmount: 0,
-    maxUses: 1000,
-    useCount: 42,
+    minimumOrderAmount: 0,
+    usageLimit: 1000,
+    usageCount: 42,
     isActive: true,
+    startDate: new Date(Date.now() - 86400000 * 30).toISOString(),
+    endDate: new Date(Date.now() + 86400000 * 365).toISOString(),
     createdAt: new Date(Date.now() - 86400000 * 30).toISOString()
   },
   {
     id: 'cpn-welcome5',
     tenantId: 'default',
     code: 'WELCOME5',
-    description: '5% welcome discount for new customers',
     discountType: 'Percentage',
     discountValue: 5,
-    minOrderAmount: 25,
-    maxUses: undefined,
-    useCount: 128,
+    minimumOrderAmount: 25,
+    usageLimit: undefined,
+    usageCount: 128,
     isActive: true,
+    startDate: new Date(Date.now() - 86400000 * 60).toISOString(),
+    endDate: new Date(Date.now() + 86400000 * 365).toISOString(),
     createdAt: new Date(Date.now() - 86400000 * 60).toISOString()
   }
 ];
@@ -44,12 +46,12 @@ class CouponStore {
     return this.coupons.find((c) => c.code.toUpperCase() === code.toUpperCase());
   }
 
-  create(input: Omit<Coupon, 'id' | 'createdAt' | 'useCount'>): Coupon {
+  create(input: Omit<Coupon, 'id' | 'createdAt' | 'usageCount'>): Coupon {
     const item: Coupon = {
       ...input,
       id: `cpn-${crypto.randomUUID().slice(0, 8)}`,
       code: input.code.toUpperCase(),
-      useCount: 0,
+      usageCount: 0,
       createdAt: new Date().toISOString()
     };
     this.coupons.push(item);

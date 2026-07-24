@@ -6,7 +6,6 @@ import { CircleDot, ExternalLink, Link, MousePointerClick, Rocket, Tag, Target }
 import { LucideAngularModule } from 'lucide-angular';
 import { AdminDetailCardComponent } from '@features/admin/shared/admin-detail-card.component';
 import { AdminDetailItemComponent } from '@features/admin/shared/admin-detail-item.component';
-import { AdminDetailMediaComponent } from '@features/admin/shared/admin-detail-media.component';
 import { WebsiteSectionShellComponent } from '@features/portfolio/editor/shared/website-section-shell.component';
 import { PortfolioStateService } from '../../data-access/portfolio-state.service';
 import { WebsiteSectionStateService, PublishSectionBuffer } from '../../data-access/website-section-state.service';
@@ -22,8 +21,7 @@ import { normalizeSlug } from '../../data-access/website-section.validators';
     LucideAngularModule,
     WebsiteSectionShellComponent,
     AdminDetailCardComponent,
-    AdminDetailItemComponent,
-    AdminDetailMediaComponent
+    AdminDetailItemComponent
   ],
   template: `
     <app-website-section-shell

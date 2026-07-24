@@ -1,31 +1,21 @@
 import { CurrencyPipe, NgClass } from '@angular/common';
-import { Component, computed, inject, OnDestroy, OnInit, signal, HostListener } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CatalogStorefrontApiService } from '@features/catalog/data-access/catalog-storefront-api.service';
-import { CatalogDealOfWeekDto, catalogPrimaryImage, catalogDiscountPercent } from '@features/catalog/models/catalog-storefront.model';
-import { StoreContextService } from '../data-access/store-context.service';
-import { CartStateService } from '../data-access/cart-state.service';
 import { ScrollRevealDirective } from '@features/portfolio/shared/directives/scroll-reveal.directive';
+import { DealOfWeekBase } from './deal-of-week-layouts/deal-of-week-base';
 
-interface CountdownParts {
-  days: string;
-  hours: string;
-  minutes: string;
-  seconds: string;
-}
-
-/** Minishop "Deal of the Month": carousel with multiple deals, auto-rotation, navigation buttons, and swipe support. */
+/** Minishop "Deal of the Month": carousel with multiple deals, auto-rotation, navigation buttons, and swipe support (default "carousel" layout). */
 @Component({
   selector: 'app-deal-of-week-section',
   standalone: true,
   imports: [RouterLink, CurrencyPipe, NgClass, ScrollRevealDirective],
   template: `
-    @if (dealsCarousel(); as carousel) {
+    @if (deals().length) {
       <section class="msp-deal" [appScrollReveal]="'slide-up'">
         <div class="container mx-auto px-6 msp-deal__wrapper">
           <div class="msp-deal__carousel" (mousedown)="onDragStart($event)" (touchstart)="onDragStart($event)">
             <!-- Slides -->
-            @for (deal of carousel; let idx = $index; track idx) {
+            @for (deal of deals(); let idx = $index; track idx) {
               @if (deal.product) {
                 <div class="msp-deal__slide" [ngClass]="{ 'msp-deal__slide--active': idx === currentSlideIndex() }">
                   <div class="msp-deal__grid">
@@ -33,24 +23,24 @@ interface CountdownParts {
                       <img [src]="getPrimaryImage(deal.product)" [alt]="deal.product.name" loading="lazy" />
                     </div>
                     <div class="msp-deal__content">
-                      <p class="msp-deal__eyebrow">{{ deal.badgeText || 'Deal Of The Month' }}</p>
+                      <p class="msp-deal__eyebrow">{{ deal.badgeText || heading || 'Deal Of The Month' }}</p>
                       <h2 class="msp-deal__title">{{ deal.title || deal.product.name }}</h2>
 
                       <div class="msp-deal__countdown">
                         <div class="msp-deal__unit">
-                          <span class="msp-deal__num">{{ getCountdown(idx).days }}</span>
+                          <span class="msp-deal__num">{{ getCountdown(deal).days }}</span>
                           <span class="msp-deal__label">Days</span>
                         </div>
                         <div class="msp-deal__unit">
-                          <span class="msp-deal__num">{{ getCountdown(idx).hours }}</span>
+                          <span class="msp-deal__num">{{ getCountdown(deal).hours }}</span>
                           <span class="msp-deal__label">Hours</span>
                         </div>
                         <div class="msp-deal__unit">
-                          <span class="msp-deal__num">{{ getCountdown(idx).minutes }}</span>
+                          <span class="msp-deal__num">{{ getCountdown(deal).minutes }}</span>
                           <span class="msp-deal__label">Mins</span>
                         </div>
                         <div class="msp-deal__unit">
-                          <span class="msp-deal__num">{{ getCountdown(idx).seconds }}</span>
+                          <span class="msp-deal__num">{{ getCountdown(deal).seconds }}</span>
                           <span class="msp-deal__label">Secs</span>
                         </div>
                       </div>
@@ -73,7 +63,7 @@ interface CountdownParts {
           </div>
 
           <!-- Navigation Controls -->
-          @if (carousel.length > 1) {
+          @if (deals().length > 1) {
             <div class="msp-deal__controls">
               <button type="button" class="msp-deal__nav-btn msp-deal__nav-btn--prev" (click)="previousSlide()" aria-label="Previous deal">
                 <span class="msp-deal__nav-icon">❮</span>
@@ -202,7 +192,6 @@ interface CountdownParts {
       color: #000;
     }
     .msp-deal__price {
-      /* Exact reference: .text-deal .price { font-size:24px; font-weight:800 }. */
       font-size: 1.5rem;
       font-weight: 800;
       color: #fff;
@@ -274,147 +263,36 @@ interface CountdownParts {
     }
   `
 })
-export class DealOfWeekSectionComponent implements OnInit, OnDestroy {
-  private readonly catalogApi = inject(CatalogStorefrontApiService);
-  private readonly ctx = inject(StoreContextService);
-  private readonly cart = inject(CartStateService);
-
-  private readonly deals = signal<CatalogDealOfWeekDto[]>([]);
+export class DealOfWeekSectionComponent extends DealOfWeekBase {
   readonly currentSlideIndex = signal(0);
   private autoRotateTimer?: ReturnType<typeof setInterval>;
-  private tickTimer?: ReturnType<typeof setInterval>;
-  private readonly now = signal(Date.now());
 
-  // Track countdowns per deal
-  private countdownCache = new Map<string, CountdownParts>();
-
-  // Swipe/drag tracking
   private dragStartX = 0;
   private dragStartY = 0;
   private isDragging = false;
 
-  readonly dealsCarousel = computed(() => {
-    const d = this.deals();
-    const validDeals = d.filter(deal => deal && deal.enabled && deal.product);
-    return validDeals.length > 0 ? validDeals : null;
-  });
-
-  ngOnInit(): void {
-    this.loadDeals();
-
-    // Start countdown ticker
-    this.tickTimer = setInterval(() => this.now.set(Date.now()), 1000);
-
-    // Auto-rotate carousel every 9 seconds
+  override ngOnInit(): void {
+    super.ngOnInit();
     this.autoRotateTimer = setInterval(() => {
-      const carousel = this.dealsCarousel();
-      if (carousel && carousel.length > 1) {
-        this.nextSlide();
-      }
+      if (this.deals().length > 1) this.nextSlide();
     }, 9000);
   }
 
-  private loadDeals(): void {
-    // Try to fetch multiple deals first, fall back to single deal
-    this.catalogApi.getDealsCarousel(this.ctx.slug()).subscribe({
-      next: (carousel) => {
-        if (carousel && carousel.enabled && carousel.deals && carousel.deals.length > 0) {
-          const validDeals = carousel.deals.filter(d => d && d.product);
-          if (validDeals.length > 0) {
-            this.deals.set(validDeals);
-            return;
-          }
-        }
-        this.fetchSingleDeal();
-      },
-      error: (err) => {
-        console.warn('Failed to load deals carousel, trying single deal:', err);
-        this.fetchSingleDeal();
-      }
-    });
-  }
-
-  ngOnDestroy(): void {
-    if (this.tickTimer) clearInterval(this.tickTimer);
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
     if (this.autoRotateTimer) clearInterval(this.autoRotateTimer);
   }
 
-  private fetchSingleDeal(): void {
-    this.catalogApi.getDealOfWeek(this.ctx.slug()).subscribe({
-      next: (dto) => {
-        if (dto && dto.enabled && dto.product) {
-          this.deals.set([dto]);
-        } else {
-          this.deals.set([]);
-        }
-      },
-      error: (err) => {
-        console.warn('Failed to load deal of week:', err);
-        this.deals.set([]);
-      }
-    });
-  }
-
   nextSlide(): void {
-    const carousel = this.dealsCarousel();
-    if (carousel) {
-      this.currentSlideIndex.update(idx => (idx + 1) % carousel.length);
-    }
+    const len = this.deals().length;
+    if (len) this.currentSlideIndex.update((i) => (i + 1) % len);
   }
 
   previousSlide(): void {
-    const carousel = this.dealsCarousel();
-    if (carousel) {
-      this.currentSlideIndex.update(idx => (idx - 1 + carousel.length) % carousel.length);
-    }
+    const len = this.deals().length;
+    if (len) this.currentSlideIndex.update((i) => (i - 1 + len) % len);
   }
 
-  getCountdown(dealIndex: number): CountdownParts {
-    const deals = this.deals();
-    if (dealIndex >= deals.length) {
-      return { days: '00', hours: '00', minutes: '00', seconds: '00' };
-    }
-
-    const deal = deals[dealIndex];
-    const pad = (n: number) => n.toString().padStart(2, '0');
-
-    if (!deal?.endDateUtc) {
-      return { days: '00', hours: '00', minutes: '00', seconds: '00' };
-    }
-
-    const diff = Math.max(0, new Date(deal.endDateUtc).getTime() - this.now());
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const minutes = Math.floor((diff % 3600000) / 60000);
-    const seconds = Math.floor((diff % 60000) / 1000);
-
-    return {
-      days: pad(days),
-      hours: pad(hours),
-      minutes: pad(minutes),
-      seconds: pad(seconds)
-    };
-  }
-
-  getPrimaryImage(product: any): string {
-    return catalogPrimaryImage(product);
-  }
-
-  getDiscount(product: any): number | null {
-    return catalogDiscountPercent(product);
-  }
-
-  getProductLink(deal: CatalogDealOfWeekDto): string[] {
-    return ['/store', this.ctx.slug(), 'products', deal.product!.slug];
-  }
-
-  addToCart(deal: CatalogDealOfWeekDto): void {
-    if (deal?.product) {
-      this.cart.addListItem(deal.product, 1);
-    }
-  }
-
-  // Swipe/drag handlers
   onDragStart(event: MouseEvent | TouchEvent): void {
     this.isDragging = true;
     this.dragStartX = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
@@ -422,20 +300,15 @@ export class DealOfWeekSectionComponent implements OnInit, OnDestroy {
 
     const handleDragMove = (moveEvent: MouseEvent | TouchEvent) => {
       if (!this.isDragging) return;
-
       const currentX = moveEvent instanceof TouchEvent ? moveEvent.touches[0].clientX : moveEvent.clientX;
       const currentY = moveEvent instanceof TouchEvent ? moveEvent.touches[0].clientY : moveEvent.clientY;
       const diffX = currentX - this.dragStartX;
       const diffY = currentY - this.dragStartY;
 
-      // Only handle horizontal swipe if horizontal movement > vertical movement
       if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
         this.isDragging = false;
-        if (diffX > 0) {
-          this.previousSlide();
-        } else {
-          this.nextSlide();
-        }
+        if (diffX > 0) this.previousSlide();
+        else this.nextSlide();
         document.removeEventListener('mousemove', handleDragMove as any);
         document.removeEventListener('touchmove', handleDragMove as any);
       }

@@ -9,6 +9,10 @@ export interface WebsiteSectionSaveRequest {
   enabled?: boolean;
   title?: string | null;
   subtitle?: string | null;
+  /** Chosen layout style id, e.g. "circular-cards". Stored on WebsiteSection.LayoutStyle. */
+  layoutStyle?: string | null;
+  /** How many configured items to display on the live site. Stored on WebsiteSection.ItemLimit. */
+  itemLimit?: number | null;
   // Sent as a plain object; the backend DTO accepts JsonElement
   contentJson: Record<string, unknown>;
 }
@@ -80,15 +84,47 @@ function readEnabled(partial: Partial<Portfolio>): boolean | undefined {
   return undefined;
 }
 
+/**
+ * Pulls the top-level presentation fields (display name, layout style, item
+ * limit) out of a section slice so they can be sent as first-class request
+ * fields — the backend stores them on dedicated WebsiteSection columns, not
+ * inside ContentJson.
+ */
+function readSectionMeta(partial: Partial<Portfolio>): {
+  title?: string | null;
+  layoutStyle?: string | null;
+  itemLimit?: number | null;
+} {
+  const keys = Object.keys(partial) as (keyof Portfolio)[];
+  for (const key of keys) {
+    const slice = partial[key];
+    if (slice && typeof slice === 'object') {
+      const s = slice as { displayName?: string; layoutStyle?: string; itemLimit?: number };
+      if ('displayName' in s || 'layoutStyle' in s || 'itemLimit' in s) {
+        return {
+          title: s.displayName?.trim() || null,
+          layoutStyle: s.layoutStyle || null,
+          itemLimit: typeof s.itemLimit === 'number' ? s.itemLimit : null
+        };
+      }
+    }
+  }
+  return {};
+}
+
 export function buildWebsiteSectionSaveRequest(
   tenantId: string,
   sectionId: WebsiteSectionId,
   partial: Partial<Portfolio>
 ): WebsiteSectionSaveRequest {
+  const meta = readSectionMeta(partial);
   return {
     tenantId,
     sectionType: websiteSectionApiType(sectionId),
     enabled: readEnabled(partial),
+    title: meta.title,
+    layoutStyle: meta.layoutStyle,
+    itemLimit: meta.itemLimit,
     contentJson: partial as Record<string, unknown>
   };
 }

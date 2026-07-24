@@ -1,25 +1,30 @@
 import { ReturnStatus } from '@shared/models/backend-enums';
 
-export interface ReturnLineItem {
-  productId: string;
-  productName: string;
-  quantity: number;
-  amount: number;
+export interface Return {
+  id: string;
+  orderId: string;
+  orderItemId: string;
+  customerId: string;
+  reason: string;
+  customerNotes?: string;
+  status: ReturnStatus;
+  requestedAt: string;
+  approvedAt?: string;
+  shippedAt?: string;
+  receivedAt?: string;
+  refundAmount: number;
+  referenceNumber: string;
 }
 
-export interface ReturnDto {
-  id: string;
-  tenantId: string;
+export interface CreateReturnRequest {
   orderId: string;
-  orderNumber: string;
-  customerName: string;
-  customerEmail: string;
+  orderItemId: string;
   reason: string;
+  customerNotes?: string;
+  storeSlug?: string;
+}
+
+export interface UpdateReturnStatusRequest {
   status: ReturnStatus;
-  items: ReturnLineItem[];
-  refundAmount: number;
-  currency: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
+  adminNotes?: string;
 }

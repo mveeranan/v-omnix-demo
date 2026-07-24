@@ -73,6 +73,12 @@ export interface PortfolioCategoryShowcase {
   subtitle: string;
   categoryNames: string[];
   maxCount: number;
+  /** Custom heading set by the admin (falls back to `title`). Injected by the backend. */
+  displayName?: string;
+  /** Chosen layout style id, e.g. "circular-cards". Null/absent = default. Injected by the backend. */
+  layoutStyle?: string;
+  /** How many categories to display on the live site (falls back to `maxCount`). Injected by the backend. */
+  itemLimit?: number;
 }
 
 export interface PortfolioLookbook {
@@ -110,6 +116,12 @@ export interface PortfolioStoreDescription {
 
 export interface PortfolioGallerySection {
   enabled: boolean;
+  /** Custom heading set by the admin (falls back to "Gallery"). Injected by the backend. */
+  displayName?: string;
+  /** Chosen layout style id, e.g. "masonry". Null/absent = default. Injected by the backend. */
+  layoutStyle?: string;
+  /** How many gallery items to display on the live site (falls back to showing all). Injected by the backend. */
+  itemLimit?: number;
 }
 
 export interface PortfolioServiceItem {
@@ -134,6 +146,12 @@ export interface PortfolioGalleryItem {
 
 export interface PortfolioReviewsSection {
   enabled: boolean;
+  /** Custom heading set by the admin (falls back to "What customers say"). Injected by the backend. */
+  displayName?: string;
+  /** Chosen layout style id, e.g. "card-grid". Null/absent = default. Injected by the backend. */
+  layoutStyle?: string;
+  /** How many testimonials to display on the live site (falls back to showing all fetched). Injected by the backend. */
+  itemLimit?: number;
 }
 
 export interface PortfolioReview {
@@ -167,6 +185,12 @@ export interface PortfolioFeaturedProducts {
   productIds: string[];
   promoMarqueeText: string;
   showQtyControls: boolean;
+  /** Custom heading set by the admin (falls back to "Featured products"). Injected by the backend. */
+  displayName?: string;
+  /** Chosen layout style id, e.g. "carousel". Null/absent = default. Injected by the backend. */
+  layoutStyle?: string;
+  /** How many products to display on the live site (falls back to maxCount). Injected by the backend. */
+  itemLimit?: number;
 }
 
 export interface DealOfWeekItem {
@@ -184,6 +208,9 @@ export interface DealOfWeekItem {
 export interface PortfolioDealOfWeek {
   enabled: boolean;
   deals: DealOfWeekItem[];
+  displayName?: string;
+  layoutStyle?: string;
+  itemLimit?: number;
 }
 
 export interface PortfolioStorePolicies {
@@ -222,6 +249,12 @@ export interface TrustBadgeItem {
 export interface PortfolioTrustBadges {
   enabled: boolean;
   badges: TrustBadgeItem[];
+  /** Custom heading set by the admin (no heading shown by default). Injected by the backend. */
+  displayName?: string;
+  /** Chosen layout style id, e.g. "icon-grid". Null/absent = default. Injected by the backend. */
+  layoutStyle?: string;
+  /** How many badges to display on the live site (falls back to showing all enabled). Injected by the backend. */
+  itemLimit?: number;
 }
 
 export interface PortfolioNewsletter {
@@ -257,6 +290,12 @@ export interface PortfolioNewArrivals {
   enabled: boolean;
   title: string;
   maxCount: number;
+  /** Custom heading set by the admin (falls back to `title`). Injected by the backend. */
+  displayName?: string;
+  /** Chosen layout style id, e.g. "carousel". Null/absent = default. Injected by the backend. */
+  layoutStyle?: string;
+  /** How many new arrivals to display on the live site (falls back to maxCount). Injected by the backend. */
+  itemLimit?: number;
 }
 
 export interface PortfolioBrandLogo {

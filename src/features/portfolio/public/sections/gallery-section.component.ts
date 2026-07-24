@@ -1,8 +1,8 @@
-import { Component, input, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { ScrollRevealDirective } from '@features/portfolio/shared/directives/scroll-reveal.directive';
-import { Portfolio, PortfolioGalleryItem } from '../../models/portfolio.model';
 import { GalleryLightboxComponent } from './gallery-lightbox.component';
 import { LucideAngularModule, Play, Instagram } from 'lucide-angular';
+import { GallerySectionBase } from './gallery-layouts/gallery-section-base';
 
 @Component({
   selector: 'app-pf-gallery-section',
@@ -59,21 +59,7 @@ import { LucideAngularModule, Play, Instagram } from 'lucide-angular';
     }
   `
 })
-export class GallerySectionComponent {
-  readonly portfolio = input.required<Portfolio>();
-  readonly lightboxItem = signal<PortfolioGalleryItem | null>(null);
+export class GallerySectionComponent extends GallerySectionBase {
   readonly playIcon = Play;
   readonly instagramIcon = Instagram;
-
-  sortedGallery(): PortfolioGalleryItem[] {
-    return [...this.portfolio().gallery].sort((a, b) => a.sortOrder - b.sortOrder);
-  }
-
-  openLightbox(item: PortfolioGalleryItem): void {
-    this.lightboxItem.set(item);
-  }
-
-  closeLightbox(): void {
-    this.lightboxItem.set(null);
-  }
 }

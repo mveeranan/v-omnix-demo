@@ -1,0 +1,149 @@
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-6) var(--space-8);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-0);
+
+  @media (max-width: 1024px) {
+    flex-wrap: wrap;
+    gap: var(--space-6);
+  }
+
+  @media (max-width: 640px) {
+    padding: var(--space-4) var(--space-6);
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-4);
+  }
+}
+
+.dashboard-header__quick-actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-shrink: 0;
+
+  @media (max-width: 1024px) {
+    order: -1;
+    flex-basis: 100%;
+  }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+.dashboard-header__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-semibold);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  lucide-icon {
+    flex-shrink: 0;
+  }
+}
+
+.dashboard-header__action-btn--primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+
+  &:hover {
+    background: var(--accent-dark);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.dashboard-header__action-btn--secondary {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+
+  &:hover {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.dashboard-header__plan-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-left: auto;
+  align-items: flex-end;
+
+  @media (max-width: 1024px) {
+    flex-basis: auto;
+    order: 1;
+  }
+
+  @media (max-width: 640px) {
+    width: 100%;
+    align-items: stretch;
+  }
+}
+
+.dashboard-header__plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: linear-gradient(135deg, var(--accent-muted) 0%, rgba(0, 102, 204, 0.05) 100%);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-semibold);
+
+  @media (max-width: 640px) {
+    justify-content: space-between;
+  }
+}
+
+.dashboard-header__plan-label {
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: var(--font-size-caption);
+}
+
+.dashboard-header__plan-name {
+  color: var(--accent);
+  font-size: var(--font-size-body-base);
+}
+
+.dashboard-header__renewal-info {
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+  text-align: right;
+
+  @media (max-width: 640px) {
+    text-align: left;
+  }
+}

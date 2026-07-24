@@ -23,8 +23,28 @@ export interface PortfolioBusinessProfileApiDto {
   BusinessTypeId?: string;
   businessTypeName?: string | null;
   BusinessTypeName?: string | null;
+  tagline?: string | null;
+  Tagline?: string | null;
   description?: string | null;
   Description?: string | null;
+  registrationNumber?: string | null;
+  RegistrationNumber?: string | null;
+  taxId?: string | null;
+  TaxId?: string | null;
+  street?: string | null;
+  Street?: string | null;
+  city?: string | null;
+  City?: string | null;
+  state?: string | null;
+  State?: string | null;
+  zipCode?: string | null;
+  ZipCode?: string | null;
+  countryId?: string | null;
+  CountryId?: string | null;
+  countryIsoCode?: string | null;
+  CountryIsoCode?: string | null;
+  countryName?: string | null;
+  CountryName?: string | null;
   logoDocumentId?: string | null;
   LogoDocumentId?: string | null;
   logoDocumentUrl?: string | null;
@@ -41,10 +61,6 @@ export interface PortfolioBusinessProfileApiDto {
   PresetId?: string | null;
   websiteUrl?: string | null;
   WebsiteUrl?: string | null;
-  timeZone?: string | null;
-  TimeZone?: string | null;
-  currency?: string | null;
-  Currency?: string | null;
 }
 
 export interface PortfolioApiDto {
@@ -105,7 +121,16 @@ export function mapPortfolioBusinessProfile(
     email: pickNullable(dto.email, dto.Email),
     phone: pickNullable(dto.phone, dto.Phone),
     businessTypeId,
+    tagline: pickNullable(dto.tagline, dto.Tagline),
     description: pickNullable(dto.description, dto.Description),
+    registrationNumber: pickNullable(dto.registrationNumber, dto.RegistrationNumber),
+    taxId: pickNullable(dto.taxId, dto.TaxId),
+    street: pickNullable(dto.street, dto.Street),
+    city: pickNullable(dto.city, dto.City),
+    state: pickNullable(dto.state, dto.State),
+    zipCode: pickNullable(dto.zipCode, dto.ZipCode),
+    countryIsoCode: pickNullable(dto.countryIsoCode, dto.CountryIsoCode),
+    countryName: pickNullable(dto.countryName, dto.CountryName),
     logoDocumentId: pickNullable(dto.logoDocumentId, dto.LogoDocumentId),
     coverImageDocumentId: pickNullable(
       dto.coverImageDocumentId,
@@ -121,8 +146,6 @@ export function mapPortfolioBusinessProfile(
       dto.StoryDocumentUrl
     ),
     websiteUrl: pickNullable(dto.websiteUrl, dto.WebsiteUrl),
-    timeZone: pickNullable(dto.timeZone, dto.TimeZone),
-    currency: pickNullable(dto.currency, dto.Currency),
     presetId: pickNullable(dto.presetId, dto.PresetId)
   };
 }

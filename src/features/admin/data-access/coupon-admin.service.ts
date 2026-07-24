@@ -1,34 +1,48 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, delay, throwError } from 'rxjs';
-import { couponStore } from './coupon.store';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { API_ENDPOINTS } from '@env/api.constants';
+import { ApiResponse } from '@shared/models/api-response.model';
 import { Coupon, createEmptyCoupon } from '../models/coupon.model';
+
+interface ListCouponsResponse {
+  items: Coupon[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class CouponAdminService {
+  private readonly http = inject(HttpClient);
+
   list(): Observable<Coupon[]> {
-    return of(couponStore.getAll()).pipe(delay(150));
+    return this.http.get<ApiResponse<ListCouponsResponse>>(API_ENDPOINTS.coupons.list)
+      .pipe(map(response => response.data?.items || []));
   }
 
   getById(id: string): Observable<Coupon | null> {
-    return of(couponStore.getById(id) ?? null).pipe(delay(100));
+    return this.http.get<ApiResponse<Coupon>>(API_ENDPOINTS.coupons.update(id))
+      .pipe(map(response => response.data || null));
   }
 
-  create(input: Omit<Coupon, 'id' | 'createdAt' | 'useCount'>): Observable<Coupon> {
-    return of(couponStore.create(input)).pipe(delay(200));
+  create(input: Omit<Coupon, 'id' | 'createdAt' | 'usageCount' | 'tenantId'>): Observable<Coupon> {
+    return this.http.post<ApiResponse<Coupon>>(API_ENDPOINTS.coupons.create, input)
+      .pipe(map(response => response.data));
   }
 
   update(id: string, patch: Partial<Coupon>): Observable<Coupon> {
-    const updated = couponStore.update(id, patch);
-    if (!updated) return throwError(() => new Error('NOT_FOUND'));
-    return of(updated).pipe(delay(200));
+    return this.http.put<ApiResponse<Coupon>>(API_ENDPOINTS.coupons.update(id), patch)
+      .pipe(map(response => response.data));
   }
 
   delete(id: string): Observable<void> {
-    couponStore.delete(id);
-    return of(undefined).pipe(delay(200));
+    return this.http.delete<ApiResponse<string>>(API_ENDPOINTS.coupons.delete(id))
+      .pipe(map(() => undefined));
   }
 
-  createEmpty(tenantId = 'default'): Omit<Coupon, 'id' | 'createdAt' | 'useCount'> {
-    return createEmptyCoupon(tenantId);
+  createEmpty(): Omit<Coupon, 'id' | 'createdAt' | 'usageCount' | 'tenantId'> {
+    return createEmptyCoupon();
   }
 }

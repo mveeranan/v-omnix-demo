@@ -5,8 +5,7 @@ const STORAGE_KEY = 'work-orbit.ecommerce.config';
 const DEFAULT: StoreSettings = {
   general: {
     timezone: 'America/Los_Angeles',
-    currency: 'USD',
-    storeUrl: 'https://mystore.com'
+    currency: 'USD'
   },
   shipping: {
     enabled: true,
@@ -65,7 +64,7 @@ class EcommerceConfigStore {
   }
 
   isConfigured(): boolean {
-    return Boolean(this.settings.general.storeUrl?.trim());
+    return Boolean(this.settings.general.timezone?.trim());
   }
 
   private load(): StoreSettings {

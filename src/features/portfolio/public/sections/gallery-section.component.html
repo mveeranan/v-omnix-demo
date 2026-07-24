@@ -1,16 +1,16 @@
-@if (sortedGallery().length) {
+@if (items().length) {
   <section class="pf-section" id="gallery">
     <div class="container mx-auto px-6">
       <div appScrollReveal class="text-center">
         <p class="pf-eyebrow">Gallery</p>
-        <h2 class="pf-display mt-2 text-3xl font-semibold md:text-4xl">Product showcase</h2>
+        <h2 class="pf-display mt-2 text-3xl font-semibold md:text-4xl">{{ heading }}</h2>
       </div>
     </div>
 
     <!-- Full-bleed 6-across grid — every image visible at once, exact match to
          the reference's "Follow Us On Instagram" gallery (not a rotating slide). -->
     <div class="pf-gallery-grid mt-12">
-      @for (item of sortedGallery(); track item.id) {
+      @for (item of items(); track item.id) {
         <button
           type="button"
           class="pf-gallery-tile"

@@ -1,27 +1,7 @@
-import { Component, computed, inject, input, signal, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Portfolio } from '../../portfolio/models/portfolio.model';
-import { CatalogStorefrontApiService } from '@features/catalog/data-access/catalog-storefront-api.service';
-import { CatalogCategoryDto } from '@features/catalog/models/catalog-storefront.model';
 import { ScrollRevealDirective } from '@features/portfolio/shared/directives/scroll-reveal.directive';
-
-// Fallback images shown when a category has no image set
-const CATEGORY_FALLBACKS = [
-  'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80',
-  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
-  'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=600&q=80',
-  'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&q=80',
-  'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&q=80',
-  'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600&q=80',
-  'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80',
-  'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&q=80'
-];
-
-interface CategoryCard {
-  name: string;
-  slug: string;
-  imageUrl: string;
-}
+import { CategorySectionBase } from './category-layouts/category-section-base';
 
 @Component({
   selector: 'app-category-showcase-section',
@@ -32,10 +12,10 @@ interface CategoryCard {
       <section class="msp-cats" id="categories">
         <div class="container mx-auto px-6">
           <header class="msp-section-head">
-            <h2 class="msp-section-head__title">{{ portfolio().categoryShowcase.title }}</h2>
+            <h2 class="msp-section-head__title">{{ heading }}</h2>
             <span class="msp-section-head__rule" aria-hidden="true"></span>
-            @if (portfolio().categoryShowcase.subtitle) {
-              <p class="msp-section-head__subtitle">{{ portfolio().categoryShowcase.subtitle }}</p>
+            @if (subtitle) {
+              <p class="msp-section-head__subtitle">{{ subtitle }}</p>
             }
           </header>
           @if (categories().length >= 3) {
@@ -295,54 +275,4 @@ interface CategoryCard {
     }
   `
 })
-export class CategoryShowcaseSectionComponent implements OnInit {
-  readonly portfolio = input.required<Portfolio>();
-  readonly storeSlug = input.required<string>();
-  readonly enabled = input(true);
-
-  private readonly catalogApi = inject(CatalogStorefrontApiService);
-  private readonly allCategories = signal<CatalogCategoryDto[]>([]);
-
-  ngOnInit(): void {
-    if (!this.enabled() || !this.portfolio().categoryShowcase.enabled) return;
-    this.catalogApi.listCategories(this.storeSlug()).subscribe({
-      next: (cats) => {
-        const flat: CatalogCategoryDto[] = [];
-        const walk = (items: CatalogCategoryDto[]) => {
-          for (const c of items) {
-            flat.push(c);
-            if (c.children?.length) walk(c.children);
-          }
-        };
-        walk(cats);
-        this.allCategories.set(flat);
-      }
-    });
-  }
-
-  readonly categories = computed((): CategoryCard[] => {
-    if (!this.enabled() || !this.portfolio().categoryShowcase.enabled) return [];
-
-    const available = this.allCategories();
-    const configured = this.portfolio().categoryShowcase.categoryNames.filter(Boolean);
-    const max = this.portfolio().categoryShowcase.maxCount || 4;
-
-    const names = configured.length > 0
-      ? configured.slice(0, max)
-      : available.map((c) => c.name).slice(0, max);
-
-    return names.map((name, index) => {
-      const meta = available.find((c) => c.name === name);
-      const slug = meta?.slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      // Use real category image if set, else fallback by index
-      const imageUrl = meta?.imageUrl || CATEGORY_FALLBACKS[index % CATEGORY_FALLBACKS.length];
-
-      // Debug: Log categories with missing images
-      if (!meta?.imageUrl) {
-        console.debug(`Category "${name}" has no API image, using fallback:`, imageUrl);
-      }
-
-      return { name, slug, imageUrl };
-    });
-  });
-}
+export class CategoryShowcaseSectionComponent extends CategorySectionBase {}

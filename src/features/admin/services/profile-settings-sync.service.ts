@@ -29,11 +29,12 @@ export interface ConsolidatedBusinessData {
   websiteUrl?: string | null;
   tenantId?: string;
 
+  // From Business Profile (extended)
+  tagline?: string | null;
+
   // From Settings - General
   timezone: string;
   currency: string;
-  storeUrl: string;
-  tagline?: string;
 
   // From Settings - Operational
   shipping: ShippingSettings;
@@ -116,8 +117,6 @@ export class ProfileSettingsSyncService {
     map(([general, shipping, payment, tax, policies]) => ({
       timezone: general.timezone,
       currency: general.currency,
-      storeUrl: general.storeUrl,
-      tagline: general.tagline,
       shipping,
       payment,
       tax,
@@ -129,8 +128,6 @@ export class ProfileSettingsSyncService {
     distinctUntilChanged((prev, curr) =>
       prev.timezone === curr.timezone &&
       prev.currency === curr.currency &&
-      prev.storeUrl === curr.storeUrl &&
-      prev.tagline === curr.tagline &&
       JSON.stringify(prev.shipping) === JSON.stringify(curr.shipping) &&
       JSON.stringify(prev.payment) === JSON.stringify(curr.payment) &&
       JSON.stringify(prev.tax) === JSON.stringify(curr.tax) &&
@@ -234,11 +231,10 @@ export class ProfileSettingsSyncService {
       websiteUrl: profile.websiteUrl,
       tenantId: profile.tenantId,
 
-      // Settings - General (timezone, currency, storeUrl from Settings take precedence)
-      timezone: general?.timezone || profile.timeZone || '',
-      currency: general?.currency || profile.currency || '',
-      storeUrl: general?.storeUrl || profile.websiteUrl || '',
-      tagline: general?.tagline,
+      // Settings - General (single source of truth for timezone and currency)
+      timezone: general?.timezone || '',
+      currency: general?.currency || '',
+      tagline: profile.tagline,
 
       // Settings - Operational
       shipping: shipping || {},
@@ -275,7 +271,6 @@ export class ProfileSettingsSyncService {
       prev.tenantId === curr.tenantId &&
       prev.timezone === curr.timezone &&
       prev.currency === curr.currency &&
-      prev.storeUrl === curr.storeUrl &&
       prev.tagline === curr.tagline &&
       JSON.stringify(prev.shipping) === JSON.stringify(curr.shipping) &&
       JSON.stringify(prev.payment) === JSON.stringify(curr.payment) &&
@@ -300,8 +295,6 @@ export class ProfileSettingsSyncService {
       prev.logoDocumentUrl === curr.logoDocumentUrl &&
       prev.coverImageDocumentUrl === curr.coverImageDocumentUrl &&
       prev.websiteUrl === curr.websiteUrl &&
-      prev.timeZone === curr.timeZone &&
-      prev.currency === curr.currency &&
       prev.tenantId === curr.tenantId
     );
   }

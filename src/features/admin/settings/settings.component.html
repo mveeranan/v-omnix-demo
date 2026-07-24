@@ -4,23 +4,30 @@
     <app-admin-form-section-card title="Store Setup" [icon]="icons.general" [expanded]="expandedSections()['general']" [editing]="editingStates()['general']" [saving]="savingStates()['general']" (edit)="toggleEdit('general')" (save)="saveGeneral()" (cancel)="cancelEdit('general')">
       @if (!editingStates()['general']) {
         <dl class="grid gap-3 sm:grid-cols-2 text-sm">
-          <div><dt class="text-[var(--text-muted)]">Store name</dt><dd>{{ settings()?.general?.storeName || '—' }}</dd></div>
-          <div><dt class="text-[var(--text-muted)]">Timezone</dt><dd>{{ settings()?.general?.timezone || '—' }}</dd></div>
-          <div><dt class="text-[var(--text-muted)]">Currency</dt><dd>{{ settings()?.general?.currency || '—' }}</dd></div>
-          <div><dt class="text-[var(--text-muted)]">Store URL</dt><dd class="text-xs text-[var(--text-muted)]">{{ settings()?.general?.storeUrl || '—' }}</dd></div>
-          <div><dt class="text-[var(--text-muted)]">Support email</dt><dd>{{ settings()?.general?.supportEmail || '—' }}</dd></div>
-          <div><dt class="text-[var(--text-muted)]">Support phone</dt><dd>{{ settings()?.general?.supportPhone || '—' }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Timezone</dt><dd>{{ timezoneLabel(settings()?.general?.timezone) }}</dd></div>
+          <div><dt class="text-[var(--text-muted)]">Currency</dt><dd>{{ currencyLabel(settings()?.general?.currency) }}</dd></div>
         </dl>
       } @else {
         <form class="space-y-4" [formGroup]="generalForm">
           <div class="grid gap-4 sm:grid-cols-2">
-            <label class="block space-y-1"><span class="text-sm font-medium">Store name</span><input class="pf-editor-input w-full" formControlName="storeName" /></label>
-            <label class="block space-y-1"><span class="text-sm font-medium">Tagline</span><input class="pf-editor-input w-full" formControlName="tagline" /></label>
-            <label class="block space-y-1"><span class="text-sm font-medium">Timezone</span><input class="pf-editor-input w-full" formControlName="timezone" /></label>
-            <label class="block space-y-1"><span class="text-sm font-medium">Currency</span><input class="pf-editor-input w-full" formControlName="currency" /></label>
-            <label class="block space-y-1"><span class="text-sm font-medium">Store URL</span><input class="pf-editor-input w-full" formControlName="storeUrl" type="url" /></label>
-            <label class="block space-y-1"><span class="text-sm font-medium">Support email</span><input class="pf-editor-input w-full" formControlName="supportEmail" type="email" /></label>
-            <label class="block space-y-1"><span class="text-sm font-medium">Support phone</span><input class="pf-editor-input w-full" formControlName="supportPhone" type="tel" /></label>
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Timezone</span>
+              <select class="pf-editor-input w-full" formControlName="timezone">
+                <option value="">— Select timezone —</option>
+                @for (tz of timezoneOptions; track tz.value) {
+                  <option [value]="tz.value">{{ tz.label }}</option>
+                }
+              </select>
+            </label>
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Currency</span>
+              <select class="pf-editor-input w-full" formControlName="currency">
+                <option value="">— Select currency —</option>
+                @for (c of currencyOptions; track c.value) {
+                  <option [value]="c.value">{{ c.value }} — {{ c.label }} ({{ c.symbol }})</option>
+                }
+              </select>
+            </label>
           </div>
         </form>
       }
@@ -56,20 +63,16 @@
         </dl>
         <div class="border-t pt-4 mt-4">
           <h4 class="text-sm font-semibold mb-3">Webhook Configuration</h4>
-          @if (settings()?.general?.storeUrl) {
-            <div class="space-y-3">
-              <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
-                <p class="text-xs font-medium text-amber-900 mb-2">Stripe Webhook URL</p>
-                <code class="block text-xs break-all bg-white p-2 rounded border border-amber-200">{{ getWebhookUrl('stripe') }}</code>
-              </div>
-              <div class="rounded-lg border border-blue-200 bg-blue-50 p-3">
-                <p class="text-xs font-medium text-blue-900 mb-2">Razorpay Webhook URL</p>
-                <code class="block text-xs break-all bg-white p-2 rounded border border-blue-200">{{ getWebhookUrl('razorpay') }}</code>
-              </div>
+          <div class="space-y-3">
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+              <p class="text-xs font-medium text-amber-900 mb-2">Stripe Webhook path</p>
+              <code class="block text-xs break-all bg-white p-2 rounded border border-amber-200">{{ getWebhookPath('stripe') }}</code>
             </div>
-          } @else {
-            <p class="text-sm text-[var(--text-muted)]">Set your store domain URL in General settings to view webhook URLs</p>
-          }
+            <div class="rounded-lg border border-blue-200 bg-blue-50 p-3">
+              <p class="text-xs font-medium text-blue-900 mb-2">Razorpay Webhook path</p>
+              <code class="block text-xs break-all bg-white p-2 rounded border border-blue-200">{{ getWebhookPath('razorpay') }}</code>
+            </div>
+          </div>
         </div>
       } @else {
         <form class="space-y-4" [formGroup]="paymentForm">
@@ -112,23 +115,17 @@
 
           <div class="border-t pt-4">
             <h4 class="text-sm font-semibold mb-3">Webhook Configuration</h4>
-            <p class="text-xs text-[var(--text-muted)] mb-4">Add these URLs to your payment gateway webhooks settings. Set content type to application/json.</p>
-            @if (settings()?.general?.storeUrl) {
-              <div class="space-y-3">
-                <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
-                  <p class="text-xs font-medium text-amber-900 mb-2">Stripe Webhook URL</p>
-                  <code class="block text-xs break-all bg-white p-2 rounded border border-amber-200">{{ getWebhookUrl('stripe') }}</code>
-                </div>
-                <div class="rounded-lg border border-blue-200 bg-blue-50 p-3">
-                  <p class="text-xs font-medium text-blue-900 mb-2">Razorpay Webhook URL</p>
-                  <code class="block text-xs break-all bg-white p-2 rounded border border-blue-200">{{ getWebhookUrl('razorpay') }}</code>
-                </div>
+            <p class="text-xs text-[var(--text-muted)] mb-4">Add these paths to your payment gateway webhook settings (prefix with your domain). Set content type to application/json.</p>
+            <div class="space-y-3">
+              <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <p class="text-xs font-medium text-amber-900 mb-2">Stripe Webhook path</p>
+                <code class="block text-xs break-all bg-white p-2 rounded border border-amber-200">{{ getWebhookPath('stripe') }}</code>
               </div>
-            } @else {
-              <div class="rounded-lg bg-gray-100 p-4 text-center">
-                <p class="text-sm text-[var(--text-muted)]">Set your store domain URL in General settings to view webhook URLs</p>
+              <div class="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                <p class="text-xs font-medium text-blue-900 mb-2">Razorpay Webhook path</p>
+                <code class="block text-xs break-all bg-white p-2 rounded border border-blue-200">{{ getWebhookPath('razorpay') }}</code>
               </div>
-            }
+            </div>
           </div>
         </form>
       }

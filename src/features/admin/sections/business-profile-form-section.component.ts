@@ -4,6 +4,7 @@ import { finalize } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CountriesService } from '@shared/data-access/countries.service';
 import { PhoneNumberFieldComponent } from '@shared/ui/phone-number-field.component';
+import { CountryDialCodePickerComponent } from '@shared/ui/country-dial-code-picker.component';
 import { EMPTY_PHONE_NUMBER, PhoneNumberValue } from '@shared/models/phone-number.model';
 import {
   displayPhoneValue,
@@ -40,8 +41,6 @@ interface BusinessProfileFormSnapshot {
     businessTypeId: string;
     description: string;
     tagline: string;
-    supportEmail: string;
-    supportPhone: PhoneNumberValue;
     registrationNumber: string;
     taxId: string;
     street: string;
@@ -64,7 +63,8 @@ interface BusinessProfileFormSnapshot {
     AdminDetailItemComponent,
     AdminDetailMediaComponent,
     MediaUploadZoneComponent,
-    PhoneNumberFieldComponent
+    PhoneNumberFieldComponent,
+    CountryDialCodePickerComponent
   ],
   template: `
     <app-admin-form-section-card
@@ -73,6 +73,7 @@ interface BusinessProfileFormSnapshot {
       [icon]="sectionIcon"
       [complete]="state.profileComplete()"
       [(expanded)]="expanded"
+      [noCollapse]="true"
       [editing]="editing()"
       [saving]="state.profileSaving() || uploading()"
       [canSave]="form.valid"
@@ -134,18 +135,6 @@ interface BusinessProfileFormSnapshot {
                 [icon]="phoneIcon"
                 label="Business Phone"
                 [value]="displayPhone()"
-                [divider]="true"
-              />
-              <app-admin-detail-item
-                [icon]="emailIcon"
-                label="Support Email"
-                [value]="displayValue('supportEmail')"
-                [divider]="true"
-              />
-              <app-admin-detail-item
-                [icon]="phoneIcon"
-                label="Support Phone"
-                [value]="displaySupportPhone()"
               />
             </app-admin-detail-card>
           </div>
@@ -254,16 +243,6 @@ interface BusinessProfileFormSnapshot {
             </div>
 
             <app-phone-number-field formControlName="phone" />
-
-            <div class="pf-editor-field">
-              <span class="pf-editor-label">Support Email</span>
-              <input class="pf-editor-input" type="email" formControlName="supportEmail" placeholder="support@example.com" />
-              @if (form.controls.supportEmail.touched && form.controls.supportEmail.invalid) {
-                <p class="pf-editor-error">Enter a valid email address.</p>
-              }
-            </div>
-
-            <app-phone-number-field formControlName="supportPhone" />
           </div>
 
           <!-- Legal & Registration -->
@@ -326,9 +305,13 @@ interface BusinessProfileFormSnapshot {
               </div>
               <div class="pf-editor-field">
                 <span class="pf-editor-label">Country</span>
-                <input class="pf-editor-input" formControlName="country" placeholder="Country" />
+                <app-country-dial-code-picker
+                  formControlName="country"
+                  [variant]="'pf-editor'"
+                  [layout]="'standalone'"
+                  [mode]="'iso'" />
                 @if (form.controls.country.touched && form.controls.country.invalid) {
-                  <p class="pf-editor-error">Max 100 characters.</p>
+                  <p class="pf-editor-error">Country is required.</p>
                 }
               </div>
             </div>
@@ -346,6 +329,7 @@ interface BusinessProfileFormSnapshot {
               }
             </div>
           </div>
+
         </form>
       }
     </app-admin-form-section-card>
@@ -368,7 +352,7 @@ export class BusinessProfileFormSectionComponent implements OnInit {
   readonly descriptionIcon = FileText;
   readonly globeIcon = Globe;
   readonly addressIcon = MapPin;
-  readonly expanded = signal(false);
+  readonly expanded = signal(true);
   readonly editing = signal(false);
   readonly uploading = signal(false);
   readonly businessTypes = signal<BusinessTypeDto[]>([]);
@@ -389,8 +373,6 @@ export class BusinessProfileFormSectionComponent implements OnInit {
     // Contact Information
     email: ['', [Validators.maxLength(320), Validators.email]],
     phone: [{ ...EMPTY_PHONE_NUMBER }],
-    supportEmail: ['', [Validators.maxLength(320), Validators.email]],
-    supportPhone: [{ ...EMPTY_PHONE_NUMBER }],
 
     // Brand & Storefront
     tagline: ['', Validators.maxLength(200)],
@@ -405,7 +387,8 @@ export class BusinessProfileFormSectionComponent implements OnInit {
     city: ['', Validators.maxLength(100)],
     state: ['', Validators.maxLength(100)],
     zipCode: ['', Validators.maxLength(20)],
-    country: ['', Validators.maxLength(100)]
+    country: ['', Validators.maxLength(100)],
+
   });
 
   constructor() {
@@ -455,10 +438,6 @@ export class BusinessProfileFormSectionComponent implements OnInit {
     return displayPhoneValue(formatted ?? this.state.profile()?.phone);
   }
 
-  displaySupportPhone(): string {
-    const formatted = formatPhoneWithDialCode(this.form.getRawValue().supportPhone);
-    return displayPhoneValue(formatted);
-  }
 
   selectedTypeName(): string {
     const typeId = this.form.getRawValue().businessTypeId;
@@ -467,7 +446,9 @@ export class BusinessProfileFormSectionComponent implements OnInit {
 
   displayAddress(): string {
     const raw = this.form.getRawValue();
-    const parts = [raw.street, raw.city, raw.state, raw.zipCode, raw.country]
+    const profile = this.state.profile();
+    const countryName = profile?.countryName || raw.country;
+    const parts = [raw.street, raw.city, raw.state, raw.zipCode, countryName]
       .filter((v) => v && v.trim());
     return parts.length > 0 ? parts.join(', ') : '—';
   }
@@ -519,8 +500,6 @@ export class BusinessProfileFormSectionComponent implements OnInit {
         // Contact Information
         email: raw.email.trim() || null,
         phone: formatPhoneWithDialCode(raw.phone),
-        supportEmail: raw.supportEmail.trim() || null,
-        supportPhone: formatPhoneWithDialCode(raw.supportPhone),
 
         // Brand & Storefront
         tagline: raw.tagline.trim() || null,
@@ -535,16 +514,13 @@ export class BusinessProfileFormSectionComponent implements OnInit {
         city: raw.city.trim() || null,
         state: raw.state.trim() || null,
         zipCode: raw.zipCode.trim() || null,
-        country: raw.country.trim() || null,
+        countryIsoCode: raw.country?.trim() || null,
+        websiteUrl: this.state.profile()?.websiteUrl ?? null,
 
         // Media
         logoDocumentId: this.logoDocumentId,
         coverImageDocumentId: this.coverDocumentId,
 
-        // Retained from profile
-        websiteUrl: this.state.profile()?.websiteUrl ?? null,
-        timeZone: this.state.profile()?.timeZone ?? null,
-        currency: this.state.profile()?.currency ?? null,
         ...(attachments.length > 0 ? { attachments } : {})
       };
 
@@ -571,12 +547,10 @@ export class BusinessProfileFormSectionComponent implements OnInit {
     if (!this.editing()) {
       this.form.controls.businessTypeId.disable({ emitEvent: false });
       this.form.controls.phone.disable({ emitEvent: false });
-      this.form.controls.supportPhone.disable({ emitEvent: false });
       return;
     }
     this.form.controls.businessTypeId.enable({ emitEvent: false });
     this.form.controls.phone.enable({ emitEvent: false });
-    this.form.controls.supportPhone.enable({ emitEvent: false });
   }
 
   private patchPhoneFieldsFromProfile(): void {
@@ -586,13 +560,11 @@ export class BusinessProfileFormSectionComponent implements OnInit {
     }
     this.form.patchValue(
       {
-        phone: parsePhoneNumberValue(profile.phone, this.countriesService.countries()),
-        supportPhone: parsePhoneNumberValue(profile.supportPhone, this.countriesService.countries())
+        phone: parsePhoneNumberValue(profile.phone, this.countriesService.countries())
       },
       { emitEvent: false }
     );
     this.form.controls.phone.updateValueAndValidity({ emitEvent: false });
-    this.form.controls.supportPhone.updateValueAndValidity({ emitEvent: false });
   }
 
   onLogoSelected(file: File, dataUrl: string): void {
@@ -660,7 +632,6 @@ export class BusinessProfileFormSectionComponent implements OnInit {
 
       // Contact Information
       email: profile.email ?? '',
-      supportEmail: profile.supportEmail ?? '',
 
       // Brand & Storefront
       tagline: profile.tagline ?? '',
@@ -675,7 +646,8 @@ export class BusinessProfileFormSectionComponent implements OnInit {
       city: profile.city ?? '',
       state: profile.state ?? '',
       zipCode: profile.zipCode ?? '',
-      country: profile.country ?? ''
+      country: profile.countryIsoCode ?? '',
+
     });
 
     this.logoDocumentId = profile.logoDocumentId ?? null;

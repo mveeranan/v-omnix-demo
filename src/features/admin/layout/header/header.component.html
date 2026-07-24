@@ -1,6 +1,14 @@
 <header class="admin-header sticky top-0 z-40 flex shrink-0 items-center gap-3 px-4 sm:gap-4 sm:px-6">
+  <button
+    type="button"
+    class="admin-header-action admin-header-action--mobile-only"
+    (click)="onMenuClick()"
+    aria-label="Open navigation menu">
+    <lucide-icon [img]="menuIcon" class="h-5 w-5" />
+  </button>
+
   <div class="ml-auto flex flex-1 items-center justify-end gap-2 sm:gap-3">
-    <label class="admin-header-search-wrap admin-header-search-wrap--desktop hidden md:inline-flex">
+    <label class="admin-header-search-wrap admin-header-search-wrap--desktop">
       <lucide-icon [img]="searchIcon" class="admin-header-search__icon" aria-hidden="true" />
       <input
         type="search"
@@ -11,7 +19,7 @@
 
     <button
       type="button"
-      class="admin-header-action md:hidden"
+      class="admin-header-action admin-header-action--mobile-only"
       (click)="searchExpanded.set(!searchExpanded())"
       aria-label="Toggle search">
       <lucide-icon [img]="searchIcon" class="h-5 w-5" />

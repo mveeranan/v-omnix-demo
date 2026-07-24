@@ -1,0 +1,160 @@
+.revenue-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-0);
+}
+
+.revenue-chart__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.revenue-chart__title {
+  margin: 0;
+  font-size: var(--font-size-body-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.revenue-chart__period-selector {
+  display: flex;
+  gap: var(--space-2);
+  background: var(--surface-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+}
+
+.revenue-chart__period-btn {
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+
+  &:hover {
+    background: var(--surface-2);
+    color: var(--text-primary);
+  }
+
+  &--active {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+}
+
+.revenue-chart__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border-radius: var(--radius-md);
+}
+
+.revenue-chart__stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.revenue-chart__stat-label {
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.revenue-chart__stat-value {
+  font-size: var(--font-size-body-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.revenue-chart__container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  background: var(--surface-1);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  overflow: hidden;
+
+  @media (max-width: 640px) {
+    min-height: 250px;
+  }
+}
+
+.revenue-chart__svg {
+  width: 100%;
+  height: 100%;
+}
+
+.revenue-chart__axis {
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+}
+
+.revenue-chart__line {
+  stroke: var(--accent);
+  fill: none;
+}
+
+.revenue-chart__point {
+  fill: var(--accent);
+  stroke: var(--surface-0);
+  stroke-width: 2;
+}
+
+.revenue-chart__label {
+  font-size: 0.75rem;
+  fill: var(--text-muted);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.revenue-chart__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--text-muted);
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .revenue-chart {
+    background: var(--surface-0);
+  }
+
+  .revenue-chart__period-selector {
+    background: var(--surface-1);
+  }
+
+  .revenue-chart__stats,
+  .revenue-chart__container {
+    background: var(--surface-1);
+  }
+}

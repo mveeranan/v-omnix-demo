@@ -93,6 +93,7 @@ export interface CheckoutAddressInput {
 }
 
 export interface MyOrderItem {
+  id: string;
   productName?: string;
   quantity: number;
   unitPrice: number;

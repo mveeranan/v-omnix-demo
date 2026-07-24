@@ -1,15 +1,19 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, signal, inject } from '@angular/core';
 import { CartLineItem, CartSummary } from '../models/cart.model';
 import {
   CatalogProductDetailDto,
   CatalogProductListItemDto
 } from '@features/catalog/models/catalog-storefront.model';
 import { catalogPrimaryImage, variantLabel } from '../models/product.model';
+import { CartApiService } from './cart-api.service';
+import { AuthService } from '@core/auth/auth.service';
 
 const STORAGE_KEY = 'work-orbit.cart';
 
 @Injectable({ providedIn: 'root' })
 export class CartStateService {
+  private readonly cartApi = inject(CartApiService);
+  private readonly auth = inject(AuthService);
   private readonly items = signal<CartLineItem[]>(this.loadFromStorage());
   readonly storeSlug = signal<string | null>(null);
 
@@ -25,6 +29,20 @@ export class CartStateService {
 
   setStoreSlug(slug: string): void {
     this.storeSlug.set(slug);
+  }
+
+  loadCartFromBackend(): void {
+    if (!this.auth.isLoggedIn()) return;
+
+    this.cartApi.getCart().subscribe({
+      next: (result) => {
+        this.items.set(result.lineItems);
+        this.persist();
+      },
+      error: () => {
+        // Fall back to localStorage if API fails
+      }
+    });
   }
 
   addListItem(product: CatalogProductListItemDto, quantity = 1): void {
@@ -62,29 +80,86 @@ export class CartStateService {
       this.removeItem(productId, variantId);
       return;
     }
-    this.items.update((lines) =>
-      lines.map((line) =>
-        line.productId === productId && (line.variantId ?? '') === (variantId ?? '')
-          ? { ...line, quantity }
-          : line
-      )
-    );
-    this.persist();
+
+    // Sync with backend if authenticated
+    if (this.auth.isLoggedIn()) {
+      this.cartApi.updateQuantity(productId, variantId, quantity).subscribe({
+        next: (items) => {
+          this.items.set(items);
+          this.persist();
+        },
+        error: () => {
+          // Fall back to local update if API fails
+          this.items.update((lines) =>
+            lines.map((line) =>
+              line.productId === productId && (line.variantId ?? '') === (variantId ?? '')
+                ? { ...line, quantity }
+                : line
+            )
+          );
+          this.persist();
+        }
+      });
+    } else {
+      this.items.update((lines) =>
+        lines.map((line) =>
+          line.productId === productId && (line.variantId ?? '') === (variantId ?? '')
+            ? { ...line, quantity }
+            : line
+        )
+      );
+      this.persist();
+    }
   }
 
   removeItem(productId: string, variantId?: string): void {
-    this.items.update((lines) =>
-      lines.filter(
-        (line) =>
-          !(line.productId === productId && (line.variantId ?? '') === (variantId ?? ''))
-      )
-    );
-    this.persist();
+    // Sync with backend if authenticated
+    if (this.auth.isLoggedIn()) {
+      this.cartApi.removeItem(productId, variantId).subscribe({
+        next: (items) => {
+          this.items.set(items);
+          this.persist();
+        },
+        error: () => {
+          // Fall back to local update if API fails
+          this.items.update((lines) =>
+            lines.filter(
+              (line) =>
+                !(line.productId === productId && (line.variantId ?? '') === (variantId ?? ''))
+            )
+          );
+          this.persist();
+        }
+      });
+    } else {
+      this.items.update((lines) =>
+        lines.filter(
+          (line) =>
+            !(line.productId === productId && (line.variantId ?? '') === (variantId ?? ''))
+        )
+      );
+      this.persist();
+    }
   }
 
   clear(): void {
-    this.items.set([]);
-    this.persist();
+    // Sync with backend if authenticated
+    if (this.auth.isLoggedIn()) {
+      this.cartApi.clearCart().subscribe({
+        next: () => {
+          this.items.set([]);
+          this.persist();
+        },
+        error: () => {
+          // Fall back to local clear if API fails
+          this.items.set([]);
+          this.persist();
+        }
+      });
+    } else {
+      this.items.set([]);
+      this.persist();
+    }
   }
 
   private addLine(line: CartLineItem): void {
@@ -99,8 +174,34 @@ export class CartStateService {
       return;
     }
 
-    this.items.update((lines) => [...lines, line]);
-    this.persist();
+    // Sync with backend if authenticated
+    if (this.auth.isLoggedIn()) {
+      this.cartApi
+        .addItem(
+          line.productId,
+          line.productName,
+          line.productSlug,
+          line.imageUrl,
+          line.unitPrice,
+          line.quantity,
+          line.variantId,
+          line.variantName
+        )
+        .subscribe({
+          next: (items) => {
+            this.items.set(items);
+            this.persist();
+          },
+          error: () => {
+            // Fall back to local update if API fails
+            this.items.update((lines) => [...lines, line]);
+            this.persist();
+          }
+        });
+    } else {
+      this.items.update((lines) => [...lines, line]);
+      this.persist();
+    }
   }
 
   private persist(): void {

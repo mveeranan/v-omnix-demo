@@ -37,7 +37,10 @@ function migrateLegacyTrustBadges(source: any): PortfolioTrustBadges {
         icon: b.icon || 'ShieldCheck',
         enabled: b.enabled ?? true,
         order: b.order ?? 0
-      }))
+      })),
+      displayName: source.displayName,
+      layoutStyle: source.layoutStyle,
+      itemLimit: source.itemLimit
     };
   }
 
@@ -66,7 +69,10 @@ function migrateLegacyTrustBadges(source: any): PortfolioTrustBadges {
 
   return {
     enabled: source.enabled ?? true,
-    badges
+    badges,
+    displayName: source.displayName,
+    layoutStyle: source.layoutStyle,
+    itemLimit: source.itemLimit
   };
 }
 
@@ -88,7 +94,10 @@ function migrateLegacyDealOfWeek(source: any): PortfolioDealOfWeek {
         endDate: d.endDate || '',
         enabled: d.enabled ?? true,
         order: d.order ?? 0
-      }))
+      })),
+      displayName: source.displayName,
+      layoutStyle: source.layoutStyle,
+      itemLimit: source.itemLimit
     };
   }
 
@@ -107,7 +116,10 @@ function migrateLegacyDealOfWeek(source: any): PortfolioDealOfWeek {
 
   return {
     enabled: source.enabled ?? true,
-    deals
+    deals,
+    displayName: source.displayName,
+    layoutStyle: source.layoutStyle,
+    itemLimit: source.itemLimit
   };
 }
 

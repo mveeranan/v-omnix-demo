@@ -85,6 +85,9 @@
 }
 
 .admin-header-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   height: 2.5rem;
   width: 2.5rem;
   border-radius: var(--radius-md);

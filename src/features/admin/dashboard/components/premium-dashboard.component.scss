@@ -1,0 +1,170 @@
+.premium-dashboard {
+  min-height: 100vh;
+  background: var(--surface-0);
+}
+
+.premium-dashboard__container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+
+  @media (max-width: 1024px) {
+    padding: var(--space-6);
+  }
+
+  @media (max-width: 768px) {
+    padding: var(--space-4);
+    gap: var(--space-6);
+  }
+}
+
+// Main KPI Cards Grid
+.premium-dashboard__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}
+
+// Secondary Metrics Grid
+.premium-dashboard__secondary-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-6);
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}
+
+// Charts Section
+.premium-dashboard__charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--space-6);
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.premium-dashboard__chart-card {
+  padding: var(--space-6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-0);
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.premium-dashboard__chart-title {
+  margin: 0 0 var(--space-4) 0;
+  font-size: var(--font-size-body-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+// Recent Activity Section
+.premium-dashboard__recent-activity {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--space-6);
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.premium-dashboard__section {
+  padding: var(--space-6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-0);
+}
+
+.premium-dashboard__section-title {
+  margin: 0 0 var(--space-4) 0;
+  font-size: var(--font-size-body-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+// Insights Section
+.premium-dashboard__insights {
+  padding: var(--space-6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-0);
+  grid-column: 1 / -1;
+}
+
+// Placeholder for future components
+.premium-dashboard__chart-placeholder {
+  margin: 0;
+  padding: var(--space-6);
+  border: 2px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-body-sm);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-1);
+}
+
+// Responsive breakpoint adjustments
+@media (max-width: 640px) {
+  .premium-dashboard__container {
+    padding: var(--space-3);
+    gap: var(--space-4);
+  }
+
+  .premium-dashboard__kpis,
+  .premium-dashboard__secondary-metrics,
+  .premium-dashboard__charts,
+  .premium-dashboard__recent-activity {
+    gap: var(--space-3);
+  }
+
+  .premium-dashboard__chart-card,
+  .premium-dashboard__section,
+  .premium-dashboard__insights {
+    padding: var(--space-4);
+    min-height: auto;
+  }
+
+  .premium-dashboard__chart-title,
+  .premium-dashboard__section-title {
+    font-size: var(--font-size-body-base);
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .premium-dashboard {
+    background: var(--surface-0);
+  }
+
+  .premium-dashboard__chart-placeholder {
+    background: var(--surface-1);
+  }
+}

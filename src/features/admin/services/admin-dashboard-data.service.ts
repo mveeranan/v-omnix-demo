@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { subscriptionStore } from '../data-access/subscription.store';
 import { ProductAdminService } from '../products/data-access/product-admin.service';
 import { OrderService } from '../orders/data-access/order.service';
@@ -10,19 +11,24 @@ import {
   RecentOrder,
   TenantBranding
 } from '../models/dashboard-view.model';
+import { PremiumDashboardData } from '../models/dashboard-analytics.model';
+import { DashboardAnalyticsService } from './dashboard-analytics.service';
 import { NotificationService } from '@core/notifications/notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class AdminDashboardDataService {
   private readonly productApi = inject(ProductAdminService);
   private readonly orderApi = inject(OrderService);
+  private readonly analyticsService = inject(DashboardAnalyticsService);
   private readonly notifications = inject(NotificationService);
   private readonly loading = signal(false);
   private readonly data = signal<DashboardData>(this.buildData(0, []));
   private readonly productCount = signal(0);
+  private readonly analyticsData = signal<PremiumDashboardData | null>(null);
 
   readonly isLoading = this.loading.asReadonly();
   readonly dashboardData = this.data.asReadonly();
+  readonly premiumAnalytics = this.analyticsData.asReadonly();
 
   readonly unreadNotificationCount = computed(
     () => this.data().notifications.filter((n) => !n.read).length
@@ -39,19 +45,24 @@ export class AdminDashboardDataService {
 
   refreshFromStores(): void {
     this.loading.set(true);
+
+    // Load both legacy and new analytics data in parallel
     forkJoin({
       products: this.productApi.list({ pageSize: 1 }),
-      orders: this.orderApi.list({ pageSize: 100 })
+      orders: this.orderApi.list({ pageSize: 100 }),
+      premiumAnalytics: this.analyticsService.loadDashboardData()
     }).subscribe({
-      next: ({ products, orders }) => {
+      next: ({ products, orders, premiumAnalytics }) => {
         this.productCount.set(products.totalCount);
         this.data.set(this.buildData(products.totalCount, orders.items));
+        this.analyticsData.set(premiumAnalytics);
         this.loading.set(false);
       },
       error: (err) => {
         this.notifications.errorFromApi(err, 'Could not load dashboard data.');
         this.data.set(this.buildData(0, []));
         this.loading.set(false);
+        // Continue with legacy data even if analytics fails
       }
     });
   }

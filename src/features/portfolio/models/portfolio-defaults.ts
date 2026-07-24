@@ -292,6 +292,7 @@ export function mergeWithWebsiteDefaults(portfolio: Portfolio): Portfolio {
       text: portfolio.promoStrip.text?.trim() || defaults.promoStrip.text
     },
     trustBadges: {
+      ...portfolio.trustBadges,
       enabled: portfolio.trustBadges.enabled,
       badges: portfolio.trustBadges.badges?.length ? portfolio.trustBadges.badges : defaults.trustBadges.badges
     },
