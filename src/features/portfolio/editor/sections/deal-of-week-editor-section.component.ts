@@ -13,6 +13,7 @@ import { WebsiteSectionStateService } from '../../data-access/website-section-st
 import { PortfolioDealOfWeek, DealOfWeekItem } from '../../models/portfolio.model';
 import { ProductAdminService } from '@features/admin/products/data-access/product-admin.service';
 import { ProductListItemDto } from '@features/catalog/models/product-admin.model';
+import { LAYOUT_STYLES } from '@features/store/section-layout/layout-styles.registry';
 
 @Component({
   selector: 'app-deal-of-week-editor-section',
@@ -50,6 +51,37 @@ import { ProductListItemDto } from '@features/catalog/models/product-admin.model
         @if (buffer(); as b) {
           <app-section-toggle label="Show deals carousel" [enabled]="b.enabled" (enabledChange)="patch({ enabled: $event })" />
           <p class="pf-editor-hint">Display a carousel of featured deals to your customers. Create multiple deals to showcase different products.</p>
+
+          <div class="pf-editor-field">
+            <label class="pf-editor-label" for="dow-display-name">Section heading (optional)</label>
+            <input id="dow-display-name" class="pf-editor-input"
+              [ngModel]="b.displayName ?? ''"
+              (ngModelChange)="patch({ displayName: $event })"
+              placeholder="e.g. Deal Of The Week" />
+          </div>
+
+          <div class="pf-editor-field">
+            <span class="pf-editor-label">Layout style</span>
+            <div class="pf-layout-picker">
+              @for (style of layoutStyles; track style.id) {
+                <button type="button" class="pf-layout-option"
+                  [class.pf-layout-option--active]="activeLayout(b) === style.id"
+                  (click)="patch({ layoutStyle: style.id })">
+                  <span class="pf-layout-option__name">{{ style.label }}</span>
+                  @if (style.hint) { <span class="pf-layout-option__hint">{{ style.hint }}</span> }
+                </button>
+              }
+            </div>
+            <p class="pf-editor-hint mt-2">Changes only how deals are presented — your deals stay the same.</p>
+          </div>
+
+          <div class="pf-editor-field">
+            <label class="pf-editor-label" for="dow-item-limit">Deals to display on website</label>
+            <input id="dow-item-limit" type="number" min="1" class="pf-editor-input pf-editor-input--narrow"
+              [ngModel]="b.itemLimit ?? ''" (ngModelChange)="onItemLimitChange($event)"
+              placeholder="All" />
+            <p class="pf-editor-hint mt-2">Leave blank to show all active deals.</p>
+          </div>
 
           @if (b.deals && b.deals.length > 0) {
             <div class="deals-list">
@@ -164,6 +196,35 @@ import { ProductListItemDto } from '@features/catalog/models/product-admin.model
     </app-website-section-shell>
   `,
   styles: `
+    .pf-editor-input--narrow { max-width: 8rem; }
+    .pf-layout-picker {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.75rem;
+    }
+    .pf-layout-option {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0.75rem 0.9rem;
+      text-align: left;
+      background: var(--surface, #fff);
+      border: 1px solid var(--border-subtle, #e5e7eb);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+    .pf-layout-option:hover {
+      border-color: color-mix(in srgb, var(--primary, #ff6f00) 50%, var(--border-subtle, #e5e7eb));
+    }
+    .pf-layout-option--active {
+      border-color: var(--primary, #ff6f00);
+      box-shadow: 0 0 0 1px var(--primary, #ff6f00) inset;
+      background: color-mix(in srgb, var(--primary, #ff6f00) 6%, transparent);
+    }
+    .pf-layout-option__name { font-size: 0.875rem; font-weight: 600; color: var(--text, #111827); }
+    .pf-layout-option__hint { font-size: 0.72rem; color: var(--text-muted, #6b7280); line-height: 1.3; }
+
     .deals-preview-list {
       display: flex;
       flex-direction: column;
@@ -555,6 +616,7 @@ export class DealOfWeekEditorSectionComponent implements OnInit {
   readonly draft = this.state.draft;
   readonly icon = Timer;
   readonly buffer = computed(() => this.sectionState.buffer<PortfolioDealOfWeek>('dealOfWeek'));
+  readonly layoutStyles = LAYOUT_STYLES['dealOfWeek'] ?? [];
   readonly products = signal<ProductListItemDto[]>([]);
 
   readonly upIcon = ChevronUp;
@@ -630,6 +692,19 @@ export class DealOfWeekEditorSectionComponent implements OnInit {
    */
   patch(partial: Partial<PortfolioDealOfWeek>): void {
     this.sectionState.patchBuffer<PortfolioDealOfWeek>('dealOfWeek', (b) => ({ ...b, ...partial }));
+  }
+
+  activeLayout(b: PortfolioDealOfWeek): string {
+    return b.layoutStyle || 'carousel';
+  }
+
+  onItemLimitChange(value: number | string): void {
+    if (value === '' || value === null || value === undefined) {
+      this.patch({ itemLimit: undefined });
+      return;
+    }
+    const n = Math.max(1, Math.floor(Number(value) || 1));
+    this.patch({ itemLimit: n });
   }
 
   /**

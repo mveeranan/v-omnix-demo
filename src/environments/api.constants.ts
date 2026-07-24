@@ -145,8 +145,11 @@ export const API_ENDPOINTS = {
   returns: {
     list: `${base}/returns`,
     create: `${base}/returns`,
+    get: (id: string) => `${base}/returns/${id}`,
     approve: (id: string) => `${base}/returns/${id}/approve`,
     reject: (id: string) => `${base}/returns/${id}/reject`,
+    markAsShipped: (id: string) => `${base}/returns/${id}/shipped`,
+    markAsReceived: (id: string) => `${base}/returns/${id}/received`,
     complete: (id: string) => `${base}/returns/${id}/complete`
   },
   customers: {
@@ -156,12 +159,6 @@ export const API_ENDPOINTS = {
   ecommerceConfiguration: {
     get: `${base}/ecommerce-configuration`,
     update: `${base}/ecommerce-configuration`
-  },
-  taxRules: {
-    list: `${base}/tax-rules`,
-    create: `${base}/tax-rules`,
-    update: (id: string) => `${base}/tax-rules/${id}`,
-    delete: (id: string) => `${base}/tax-rules/${id}`
   },
   website: {
     get: `${base}/website`,
@@ -185,6 +182,13 @@ export const API_ENDPOINTS = {
     update: (id: string) => `${base}/coupons/${id}`,
     delete: (id: string) => `${base}/coupons/${id}`,
     validate: `${base}/coupons/validate`
+  },
+  cart: {
+    get: `${base}/cart`,
+    addItem: `${base}/cart/items`,
+    updateItem: (productId: string) => `${base}/cart/items/${productId}`,
+    removeItem: (productId: string) => `${base}/cart/items/${productId}`,
+    clear: `${base}/cart`
   },
   reviews: {
     list: `${base}/reviews`,

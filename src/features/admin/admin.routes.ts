@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '@core/auth/auth.guard';
 import { AdminShellComponent } from './layout/admin-shell.component';
-import { AdminDashboardComponent } from './dashboard/admin-dashboard.component';
+import { PremiumDashboardComponent } from './dashboard/components/premium-dashboard.component';
 import { AdminProfileComponent } from './pages/admin-profile.component';
 import { PortfolioEditorComponent } from '../portfolio/editor/portfolio-editor.component';
 import { adminWorkspaceResolver } from './admin-workspace.resolver';
@@ -20,7 +20,7 @@ export const adminRoutes: Routes = [
       },
       {
         path: 'dashboard',
-        component: AdminDashboardComponent
+        component: PremiumDashboardComponent
       },
       {
         path: 'profile',
@@ -130,11 +130,6 @@ export const adminRoutes: Routes = [
         loadComponent: () =>
           import('./newsletter/newsletter-list.component').then((m) => m.NewsletterListComponent)
       },
-      {
-        path: 'tax',
-        loadComponent: () =>
-          import('./tax/tax-rules.component').then((m) => m.TaxRulesComponent)
-      }
     ]
   }
 ];

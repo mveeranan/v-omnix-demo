@@ -4,29 +4,31 @@ export interface Coupon {
   id: string;
   tenantId: string;
   code: string;
-  description?: string;
   discountType: DiscountType;
   discountValue: number;
-  minOrderAmount?: number;
-  maxUses?: number;
-  useCount: number;
+  minimumOrderAmount?: number;
+  maximumDiscountAmount?: number;
+  usageLimit?: number;
+  usageCount: number;
   isActive: boolean;
-  startsAt?: string;
-  expiresAt?: string;
+  startDate: string;
+  endDate: string;
   createdAt: string;
 }
 
-export function createEmptyCoupon(tenantId = 'default'): Omit<Coupon, 'id' | 'createdAt' | 'useCount'> {
+export function createEmptyCoupon(): Omit<Coupon, 'id' | 'createdAt' | 'usageCount' | 'tenantId'> {
+  const now = new Date();
+  const tomorrow = new Date(now.getTime() + 86400000);
+
   return {
-    tenantId,
     code: '',
-    description: '',
     discountType: 'Percentage',
     discountValue: 10,
-    minOrderAmount: 0,
-    maxUses: undefined,
+    minimumOrderAmount: undefined,
+    maximumDiscountAmount: undefined,
+    usageLimit: undefined,
     isActive: true,
-    startsAt: undefined,
-    expiresAt: undefined
+    startDate: now.toISOString(),
+    endDate: tomorrow.toISOString()
   };
 }

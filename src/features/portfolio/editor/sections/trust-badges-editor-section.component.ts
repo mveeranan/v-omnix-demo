@@ -9,6 +9,7 @@ import { PortfolioStateService } from '../../data-access/portfolio-state.service
 import { WebsiteSectionStateService } from '../../data-access/website-section-state.service';
 import { PortfolioTrustBadges, TrustBadgeItem } from '../../models/portfolio.model';
 import { TRUST_BADGE_ICON_OPTIONS, resolveTrustBadgeIcon } from '../../models/trust-badges-icons';
+import { LAYOUT_STYLES } from '@features/store/section-layout/layout-styles.registry';
 
 @Component({
   selector: 'app-trust-badges-editor-section',
@@ -44,6 +45,38 @@ import { TRUST_BADGE_ICON_OPTIONS, resolveTrustBadgeIcon } from '../../models/tr
         @if (buffer(); as b) {
           <app-section-toggle label="Show trust bar" [enabled]="b.enabled" (enabledChange)="patch({ enabled: $event })" />
           <p class="pf-editor-hint">The row of reassurance badges shown under your hero banner. Create custom badges to build trust with your customers.</p>
+
+          <div class="pf-editor-field">
+            <label class="pf-editor-label" for="tb-display-name">Section heading (optional)</label>
+            <input id="tb-display-name" class="pf-editor-input"
+              [ngModel]="b.displayName ?? ''"
+              (ngModelChange)="patch({ displayName: $event })"
+              placeholder="e.g. Why Shop With Us" />
+            <p class="pf-editor-hint mt-2">Leave blank for no heading (matches the original design).</p>
+          </div>
+
+          <div class="pf-editor-field">
+            <span class="pf-editor-label">Layout style</span>
+            <div class="pf-layout-picker">
+              @for (style of layoutStyles; track style.id) {
+                <button type="button" class="pf-layout-option"
+                  [class.pf-layout-option--active]="activeLayout(b) === style.id"
+                  (click)="patch({ layoutStyle: style.id })">
+                  <span class="pf-layout-option__name">{{ style.label }}</span>
+                  @if (style.hint) { <span class="pf-layout-option__hint">{{ style.hint }}</span> }
+                </button>
+              }
+            </div>
+            <p class="pf-editor-hint mt-2">Changes only how badges are presented — your badges stay the same.</p>
+          </div>
+
+          <div class="pf-editor-field">
+            <label class="pf-editor-label" for="tb-item-limit">Badges to display on website</label>
+            <input id="tb-item-limit" type="number" min="1" class="pf-editor-input pf-editor-input--narrow"
+              [ngModel]="b.itemLimit ?? ''" (ngModelChange)="onItemLimitChange($event)"
+              placeholder="All" />
+            <p class="pf-editor-hint mt-2">Leave blank to show all enabled badges.</p>
+          </div>
 
           @if (b.badges && b.badges.length > 0) {
             <div class="trust-badges-list">
@@ -139,6 +172,36 @@ import { TRUST_BADGE_ICON_OPTIONS, resolveTrustBadgeIcon } from '../../models/tr
     </app-website-section-shell>
   `,
   styles: `
+    .pf-editor-input--narrow { max-width: 8rem; }
+
+    .pf-layout-picker {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.75rem;
+    }
+    .pf-layout-option {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0.75rem 0.9rem;
+      text-align: left;
+      background: var(--surface, #fff);
+      border: 1px solid var(--border-subtle, #e5e7eb);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+    .pf-layout-option:hover {
+      border-color: color-mix(in srgb, var(--primary, #ff6f00) 50%, var(--border-subtle, #e5e7eb));
+    }
+    .pf-layout-option--active {
+      border-color: var(--primary, #ff6f00);
+      box-shadow: 0 0 0 1px var(--primary, #ff6f00) inset;
+      background: color-mix(in srgb, var(--primary, #ff6f00) 6%, transparent);
+    }
+    .pf-layout-option__name { font-size: 0.875rem; font-weight: 600; color: var(--text, #111827); }
+    .pf-layout-option__hint { font-size: 0.72rem; color: var(--text-muted, #6b7280); line-height: 1.3; }
+
     .trust-badges-preview-grid {
       display: flex;
       flex-wrap: wrap;
@@ -463,6 +526,7 @@ export class TrustBadgesEditorSectionComponent {
   readonly icon = ShieldCheck;
   readonly buffer = computed(() => this.sectionState.buffer<PortfolioTrustBadges>('trustBadges'));
   readonly iconOptions = TRUST_BADGE_ICON_OPTIONS;
+  readonly layoutStyles = LAYOUT_STYLES['trustBadges'] ?? [];
 
   readonly upIcon = ChevronUp;
   readonly downIcon = ChevronDown;
@@ -490,6 +554,19 @@ export class TrustBadgesEditorSectionComponent {
    */
   patch(partial: Partial<PortfolioTrustBadges>): void {
     this.sectionState.patchBuffer<PortfolioTrustBadges>('trustBadges', (b) => ({ ...b, ...partial }));
+  }
+
+  activeLayout(b: PortfolioTrustBadges): string {
+    return b.layoutStyle || 'icon-row';
+  }
+
+  onItemLimitChange(value: number | string): void {
+    if (value === '' || value === null || value === undefined) {
+      this.patch({ itemLimit: undefined });
+      return;
+    }
+    const n = Math.max(1, Math.floor(Number(value) || 1));
+    this.patch({ itemLimit: n });
   }
 
   /**

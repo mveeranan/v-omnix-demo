@@ -1,15 +1,9 @@
-import { Component, computed, input } from '@angular/core';
+import { Component } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
-import { Portfolio, PortfolioTrustBadges, TrustBadgeItem } from '../../portfolio/models/portfolio.model';
 import { ScrollRevealDirective } from '@features/portfolio/shared/directives/scroll-reveal.directive';
-import { resolveTrustBadgeIcon } from '../../portfolio/models/trust-badges-icons';
+import { TrustBadgesBase } from './trust-badges-layouts/trust-badges-base';
 
-interface BadgeDisplay {
-  icon: any;
-  title: string;
-}
-
-/** Minishop "services strip": responsive grid of trust badges. */
+/** Minishop "services strip": responsive grid of trust badges (default "icon-row" layout). */
 @Component({
   selector: 'app-trust-badges-strip',
   standalone: true,
@@ -85,29 +79,4 @@ interface BadgeDisplay {
     }
   `
 })
-export class TrustBadgesStripComponent {
-  readonly portfolio = input.required<Portfolio>();
-  readonly forceShow = input(false);
-
-  private readonly badges = computed((): PortfolioTrustBadges => {
-    const p = this.portfolio();
-    if (!p.trustBadges.enabled && !this.forceShow()) {
-      return { ...p.trustBadges, enabled: false };
-    }
-    return p.trustBadges;
-  });
-
-  readonly items = computed((): BadgeDisplay[] => {
-    const b = this.badges();
-    if (!b.enabled || !b.badges?.length) return [];
-
-    // Filter enabled badges, sort by order, and map to display format
-    return b.badges
-      .filter((badge: TrustBadgeItem) => badge.enabled)
-      .sort((a: TrustBadgeItem, b: TrustBadgeItem) => (a.order ?? 0) - (b.order ?? 0))
-      .map((badge: TrustBadgeItem) => ({
-        icon: resolveTrustBadgeIcon(badge.icon),
-        title: badge.title
-      }));
-  });
-}
+export class TrustBadgesStripComponent extends TrustBadgesBase {}

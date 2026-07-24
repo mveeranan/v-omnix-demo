@@ -1,37 +1,62 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, delay, throwError } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
 import { ReturnStatus } from '@shared/models/backend-enums';
-import { returnStore } from './return.store';
-import { ReturnDto } from '../models/return.model';
+import { Return, CreateReturnRequest } from '../models/return.model';
+import { ReturnApiService } from './return-api.service';
 
 @Injectable({ providedIn: 'root' })
 export class ReturnAdminService {
-  list(): Observable<ReturnDto[]> {
-    return of(returnStore.getAll()).pipe(delay(150));
+  private readonly api = inject(ReturnApiService);
+
+  list(page: number = 1, pageSize: number = 20): Observable<{ items: Return[]; total: number }> {
+    return this.api.list(page, pageSize);
   }
 
-  getById(id: string): Observable<ReturnDto | null> {
-    return of(returnStore.getById(id) ?? null).pipe(delay(100));
+  getById(id: string): Observable<Return> {
+    return this.api.get(id);
   }
 
-  create(input: Omit<ReturnDto, 'id' | 'createdAt' | 'updatedAt'>): Observable<ReturnDto> {
-    return of(returnStore.create(input)).pipe(delay(200));
+  create(input: CreateReturnRequest): Observable<Return> {
+    return this.api.create(input);
   }
 
-  update(id: string, patch: Partial<ReturnDto>): Observable<ReturnDto> {
-    const updated = returnStore.update(id, patch);
-    if (!updated) return throwError(() => new Error('NOT_FOUND'));
-    return of(updated).pipe(delay(200));
+  approve(id: string, adminNotes?: string): Observable<Return> {
+    return this.api.approve(id, adminNotes);
   }
 
-  updateStatus(id: string, status: ReturnStatus): Observable<ReturnDto> {
-    const updated = returnStore.update(id, { status });
-    if (!updated) return throwError(() => new Error('NOT_FOUND'));
-    return of(updated).pipe(delay(200));
+  reject(id: string, adminNotes?: string): Observable<Return> {
+    return this.api.reject(id, adminNotes);
+  }
+
+  markAsShipped(id: string): Observable<Return> {
+    return this.api.markAsShipped(id);
+  }
+
+  markAsReceived(id: string): Observable<Return> {
+    return this.api.markAsReceived(id);
+  }
+
+  complete(id: string, adminNotes?: string): Observable<Return> {
+    return this.api.complete(id, adminNotes);
+  }
+
+  updateStatus(id: string, status: ReturnStatus): Observable<Return> {
+    return this.api.approve(id);
+  }
+
+  update(id: string, patch: { status: ReturnStatus; adminNotes?: string }): Observable<Return> {
+    const notes = patch.adminNotes || undefined;
+    switch (patch.status) {
+      case 'Approved':  return this.api.approve(id, notes);
+      case 'Rejected':  return this.api.reject(id, notes);
+      case 'Shipped':   return this.api.markAsShipped(id);
+      case 'Received':  return this.api.markAsReceived(id);
+      case 'Completed': return this.api.complete(id, notes);
+      default:          return this.api.approve(id);
+    }
   }
 
   delete(id: string): Observable<void> {
-    returnStore.delete(id);
-    return of(undefined).pipe(delay(200));
+    throw new Error('Delete not supported for returns');
   }
 }

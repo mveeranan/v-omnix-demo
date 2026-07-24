@@ -1128,40 +1128,6 @@ textarea.pa-input.no-icon {
   box-shadow: 0 12px 30px rgba(56, 189, 248, 0.18);
 }
 
-.admin-header-action {
-  display: inline-flex;
-  height: 2.75rem;
-  width: 2.75rem;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  border: 1px solid rgb(228 228 231);
-  background: rgb(244 244 245);
-  color: rgb(39 39 42);
-  transition: all 300ms ease;
-}
-
-.admin-header-action:hover {
-  transform: scale(1.05);
-  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1);
-  background: rgb(244 244 245);
-}
-
-.admin-header-action:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px rgb(59 130 246);
-}
-
-.dark .admin-header-action {
-  border-color: rgb(82 82 91);
-  background: rgb(39 39 42);
-  color: rgb(244 244 245);
-}
-
-.dark .admin-header-action:hover {
-  background: rgb(39 39 42);
-}
-
 /* Admin section pages (shared header + empty state) */
 .admin-page__header {
   margin-bottom: 1rem;

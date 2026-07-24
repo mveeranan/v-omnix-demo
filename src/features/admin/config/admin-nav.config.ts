@@ -15,7 +15,6 @@
   Ticket,
   Mail,
   Receipt,
-  Percent,
   SlidersHorizontal,
   MessageSquareQuote
 } from 'lucide-angular';
@@ -196,14 +195,5 @@ export const ADMIN_NAV_ITEMS: AdminNavItemConfig[] = [
     description: 'Shipping, payments, tax, and checkout rules.',
     section: 'settings',
     featureKey: 'advanced_settings'
-  },
-  {
-    id: 'tax',
-    label: 'Tax Rules',
-    path: 'tax',
-    icon: Percent,
-    description: 'Tax rules by country/region.',
-    section: 'settings',
-    featureKey: 'tax_rules'
   }
 ];

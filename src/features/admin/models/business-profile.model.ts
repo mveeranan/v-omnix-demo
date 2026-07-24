@@ -11,8 +11,6 @@ export interface BusinessProfileDto {
   // Contact Information
   email?: string | null;
   phone?: string | null;
-  supportEmail?: string | null;
-  supportPhone?: string | null;
 
   // Brand & Storefront
   tagline?: string | null;
@@ -27,7 +25,8 @@ export interface BusinessProfileDto {
   city?: string | null;
   state?: string | null;
   zipCode?: string | null;
-  country?: string | null;
+  countryIsoCode?: string | null;
+  countryName?: string | null;
 
   // Media
   logoDocumentId?: string | null;
@@ -41,8 +40,6 @@ export interface BusinessProfileDto {
 
   // Store Configuration
   websiteUrl?: string | null;
-  timeZone?: string | null;
-  currency?: string | null;
   presetId?: string | null;
 }
 
@@ -56,8 +53,6 @@ export interface BusinessProfileUpsertRequest {
   // Contact Information
   email?: string | null;
   phone?: string | null;
-  supportEmail?: string | null;
-  supportPhone?: string | null;
 
   // Brand & Storefront
   tagline?: string | null;
@@ -72,7 +67,8 @@ export interface BusinessProfileUpsertRequest {
   city?: string | null;
   state?: string | null;
   zipCode?: string | null;
-  country?: string | null;
+  countryIsoCode?: string | null;
+  countryName?: string | null;
 
   // Media
   logoDocumentId?: string | null;
@@ -80,8 +76,6 @@ export interface BusinessProfileUpsertRequest {
 
   // Store Configuration
   websiteUrl?: string | null;
-  timeZone?: string | null;
-  currency?: string | null;
   presetId?: string | null;
   isActive?: boolean;
   attachments?: UploadDocumentRequest[];
@@ -99,8 +93,6 @@ export function createEmptyBusinessProfile(tenantId?: string): BusinessProfileDt
     // Contact Information
     email: null,
     phone: null,
-    supportEmail: null,
-    supportPhone: null,
     // Brand & Storefront
     tagline: null,
     description: null,
@@ -112,14 +104,13 @@ export function createEmptyBusinessProfile(tenantId?: string): BusinessProfileDt
     city: null,
     state: null,
     zipCode: null,
-    country: null,
+    countryIsoCode: null,
+    countryName: null,
     // Media
     logoDocumentId: null,
     coverImageDocumentId: null,
     // Store Configuration
-    websiteUrl: null,
-    timeZone: null,
-    currency: null
+    websiteUrl: null
   };
 }
 
@@ -164,8 +155,6 @@ export function hasBusinessProfileData(profile: BusinessProfileDto | null | unde
       profile.businessTypeId?.trim() ||
       profile.email?.trim() ||
       profile.phone?.trim() ||
-      profile.supportEmail?.trim() ||
-      profile.supportPhone?.trim() ||
       profile.tagline?.trim() ||
       profile.description?.trim() ||
       profile.street?.trim() ||

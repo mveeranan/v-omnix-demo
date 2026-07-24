@@ -1,14 +1,8 @@
 export type SettingsCategory = 'general' | 'shipping' | 'tax' | 'payment' | 'policies';
 
 export interface GeneralSettings {
-  storeName?: string;
-  tagline?: string;
-  description?: string;
   timezone?: string;
   currency?: string;
-  storeUrl?: string;
-  supportEmail?: string;
-  supportPhone?: string;
 }
 
 export interface ShippingSettings {

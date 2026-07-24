@@ -111,27 +111,9 @@ interface PaymentMethodOption {
                         </p>
                         <button type="button" class="text-sm underline" style="color: var(--mox-accent)" (click)="logout()">Log out</button>
                       </div>
-                    } @else if (showLoginForm()) {
-                      <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                          <h3 class="text-sm font-semibold" style="color: var(--mox-primary)">Log in</h3>
-                          <button type="button" class="text-sm underline" style="color: var(--mox-muted)" (click)="showLoginForm.set(false)">Checkout as guest instead</button>
-                        </div>
-                        @if (loginError()) {
-                          <p class="text-xs text-rose-600">{{ loginError() }}</p>
-                        }
-                        <div class="grid gap-3 sm:grid-cols-2">
-                          <input class="mox-input" type="email" [(ngModel)]="loginEmail" [ngModelOptions]="{standalone: true}" placeholder="Email" />
-                          <input class="mox-input" type="password" [(ngModel)]="loginPassword" [ngModelOptions]="{standalone: true}" placeholder="Password" />
-                        </div>
-                        <button type="button" class="mox-btn mox-btn--primary text-sm" [disabled]="loggingIn()" (click)="login()">
-                          {{ loggingIn() ? 'Logging in...' : 'Log in' }}
-                        </button>
-                      </div>
                     } @else {
-                      <p class="text-sm">
-                        <span style="color: var(--mox-muted)">Already have an account?</span>
-                        <button type="button" class="ml-1 underline" style="color: var(--mox-accent)" (click)="showLoginForm.set(true)">Log in</button>
+                      <p class="text-sm" style="color: var(--mox-text)">
+                        <strong>Create an account</strong> to place your order. You'll use these credentials to track your orders later.
                       </p>
                     }
                   </div>
@@ -404,13 +386,6 @@ export class CheckoutPageComponent implements OnInit {
   readonly submitting = signal(false);
   readonly error = signal('');
 
-  // Storefront login (separate from admin auth — see StoreAuthService).
-  readonly showLoginForm = signal(false);
-  readonly loggingIn = signal(false);
-  readonly loginError = signal('');
-  loginEmail = '';
-  loginPassword = '';
-
   // Returning customer with a saved address: the whole address form is skipped and checkout
   // collapses to Payment + Review. "Change" re-opens the form prefilled with the saved values.
   readonly savedProfile = signal<MyCheckoutProfile | null>(null);
@@ -525,28 +500,6 @@ export class CheckoutPageComponent implements OnInit {
     this.form.controls.confirmPassword.clearValidators();
     this.form.controls.password.updateValueAndValidity();
     this.form.controls.confirmPassword.updateValueAndValidity();
-  }
-
-  login(): void {
-    if (!this.loginEmail.trim() || !this.loginPassword.trim()) return;
-    this.loggingIn.set(true);
-    this.loginError.set('');
-    this.storeAuth.login(this.loginEmail.trim(), this.loginPassword).subscribe({
-      next: () => {
-        this.showLoginForm.set(false);
-        this.loginPassword = '';
-        this.applyLoggedInProfile();
-        this.loggingIn.set(false);
-        // A stale "please log in" checkout error no longer applies once logged in.
-        this.error.set('');
-        // Returning customer may have a saved address — if so the form disappears entirely.
-        this.loadSavedCheckoutProfile();
-      },
-      error: (err) => {
-        this.loginError.set(getApiErrorMessage(err, 'Invalid email or password.'));
-        this.loggingIn.set(false);
-      }
-    });
   }
 
   logout(): void {

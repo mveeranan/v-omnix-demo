@@ -76,8 +76,6 @@ export class BrandBusinessProfileService {
           logoDocumentId: hasNewLogo || logoCleared ? null : pending.logoDocumentId,
           coverImageDocumentId: hasNewStoryImage || storyCleared ? null : pending.coverDocumentId,
           websiteUrl: existing?.websiteUrl ?? null,
-          timeZone: existing?.timeZone ?? null,
-          currency: existing?.currency ?? null,
           presetId: buffer.presetId?.trim() || existing?.presetId || null,
           ...(attachments.length > 0 ? { attachments } : {})
         };

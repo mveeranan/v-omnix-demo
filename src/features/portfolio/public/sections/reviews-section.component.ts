@@ -1,20 +1,10 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ScrollRevealDirective } from '@features/portfolio/shared/directives/scroll-reveal.directive';
 import { LucideAngularModule, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-angular';
 import { StoreCardComponent } from '../../../store/shared/ui/store-card.component';
 import { StoreSectionHeaderComponent } from '../../../store/shared/ui/store-section-header.component';
 import { StarRatingComponent } from '../../../store/shared/ui/star-rating.component';
-import { API_ENDPOINTS } from '@env/api.constants';
-import { ApiResponse } from '@shared/models/api-response.model';
-
-interface FeedbackItem {
-  id: string;
-  authorName: string;
-  authorRole: string | null;
-  message: string;
-  rating: number | null;
-}
+import { ReviewsSectionBase } from './reviews-layouts/reviews-section-base';
 
 @Component({
   selector: 'app-pf-reviews-section',
@@ -31,7 +21,7 @@ interface FeedbackItem {
       <section class="pf-section pf-section-alt" id="reviews">
         <div class="container mx-auto px-6">
           <div appScrollReveal>
-            <app-store-section-header eyebrow="Reviews" title="What customers say" [icon]="sectionIcon" />
+            <app-store-section-header eyebrow="Reviews" [title]="heading" [icon]="sectionIcon" />
           </div>
           <div appScrollReveal="slide-right" [appScrollRevealDelay]="100" class="relative mx-auto mt-12 max-w-2xl">
             @for (item of feedbackItems(); track item.id; let i = $index) {
@@ -80,40 +70,16 @@ interface FeedbackItem {
     }
   `
 })
-export class ReviewsSectionComponent implements OnInit, OnDestroy {
-  /** Store slug used to fetch feedback from the public API. */
-  readonly storeSlug = input<string>('');
-
-  private readonly http = inject(HttpClient);
+export class ReviewsSectionComponent extends ReviewsSectionBase {
   readonly activeIndex = signal(0);
-  readonly feedbackItems = signal<FeedbackItem[]>([]);
   readonly chevronLeft = ChevronLeft;
   readonly chevronRight = ChevronRight;
   readonly sectionIcon = MessageSquare;
 
-  private intervalId?: ReturnType<typeof setInterval>;
-
-  ngOnInit(): void {
-    const slug = this.storeSlug();
-    if (!slug) return;
-
-    this.http
-      .get<ApiResponse<FeedbackItem[]>>(API_ENDPOINTS.catalog.feedback(slug))
-      .subscribe({
-        next: (r) => {
-          this.feedbackItems.set(r.data ?? []);
-          if ((r.data ?? []).length > 1) {
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-              this.intervalId = setInterval(() => this.next(), 6000);
-            }
-          }
-        },
-        error: () => this.feedbackItems.set([])
-      });
-  }
-
-  ngOnDestroy(): void {
-    if (this.intervalId) clearInterval(this.intervalId);
+  protected override onFeedbackLoaded(): void {
+    if (this.feedbackItems().length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.intervalId = setInterval(() => this.next(), 6000);
+    }
   }
 
   prev(): void {

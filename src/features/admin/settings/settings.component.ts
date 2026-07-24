@@ -7,6 +7,8 @@ import { AdminFormSectionCardComponent } from '@features/admin/shared/admin-form
 import { SettingsService } from './data-access/settings.service';
 import { SettingsCategory, StoreSettings } from './models/store-settings.model';
 import { NotificationService } from '@core/notifications/notification.service';
+import { TIMEZONE_OPTIONS } from '@shared/constants/timezones.constants';
+import { CURRENCY_OPTIONS } from '@shared/constants/currencies.constants';
 
 const SECTIONS: { id: SettingsCategory; label: string; icon: any }[] = [
   { id: 'general', label: 'Store Setup', icon: Settings },
@@ -30,6 +32,8 @@ export class SettingsComponent implements OnInit {
 
   readonly sections = SECTIONS;
   readonly settings = signal<StoreSettings | null>(null);
+  readonly timezoneOptions = TIMEZONE_OPTIONS;
+  readonly currencyOptions = CURRENCY_OPTIONS;
 
   readonly icons = {
     general: Settings,
@@ -77,13 +81,8 @@ export class SettingsComponent implements OnInit {
   ] as const;
 
   readonly generalForm = this.fb.nonNullable.group({
-    storeName: '',
-    tagline: '',
     timezone: '',
-    currency: '',
-    storeUrl: '',
-    supportEmail: '',
-    supportPhone: ''
+    currency: ''
   });
 
   readonly shippingForm = this.fb.nonNullable.group({
@@ -115,8 +114,7 @@ export class SettingsComponent implements OnInit {
     taxRate: 18,
     taxId: '',
     applyTaxToShipping: false,
-    pricesIncludeTax: false,
-    rules: this.fb.array([])
+    pricesIncludeTax: false
   });
 
   readonly policiesForm = this.fb.nonNullable.group({
@@ -133,13 +131,8 @@ export class SettingsComponent implements OnInit {
       next: (s) => {
       this.settings.set(s);
       this.generalForm.patchValue({
-        storeName: s.general.storeName || '',
-        tagline: s.general.tagline || '',
         timezone: s.general.timezone || '',
-        currency: s.general.currency || '',
-        storeUrl: s.general.storeUrl || '',
-        supportEmail: s.general.supportEmail || '',
-        supportPhone: s.general.supportPhone || ''
+        currency: s.general.currency || ''
       });
       this.shippingForm.patchValue({
         enabled: s.shipping.enabled,
@@ -275,16 +268,8 @@ export class SettingsComponent implements OnInit {
     return v.razorpay && (!v.razorpayApiKey?.trim() || !v.razorpaySecretKey?.trim());
   }
 
-  getWebhookUrl(provider: 'stripe' | 'razorpay'): string {
-    const baseUrl = this.settings()?.general?.storeUrl || '';
-    if (!baseUrl) return '';
-
-    const webhookPath: Record<string, string> = {
-      stripe: '/api/webhooks/stripe',
-      razorpay: '/api/webhooks/razorpay'
-    };
-
-    return baseUrl.replace(/\/$/, '') + (webhookPath[provider] || '');
+  getWebhookPath(provider: 'stripe' | 'razorpay'): string {
+    return provider === 'stripe' ? '/api/webhooks/stripe' : '/api/webhooks/razorpay';
   }
 
   getPaymentMethodsDisplay(): string {
@@ -309,6 +294,17 @@ export class SettingsComponent implements OnInit {
   getPolicyValue(key: string): string {
     const p = this.settings()?.policies as Record<string, string> | undefined;
     return p?.[key] || '';
+  }
+
+  timezoneLabel(value?: string | null): string {
+    if (!value) return '—';
+    return this.timezoneOptions.find(t => t.value === value)?.label ?? value;
+  }
+
+  currencyLabel(value?: string | null): string {
+    if (!value) return '—';
+    const c = this.currencyOptions.find(c => c.value === value);
+    return c ? `${c.value} — ${c.label} (${c.symbol})` : value;
   }
 
 }

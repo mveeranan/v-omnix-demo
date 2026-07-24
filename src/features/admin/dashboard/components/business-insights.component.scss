@@ -1,0 +1,197 @@
+.business-insights {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-0);
+  grid-column: 1 / -1;
+}
+
+.business-insights__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.business-insights__title {
+  margin: 0;
+  font-size: var(--font-size-body-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.business-insights__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.business-insights__card {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border-left: 4px solid transparent;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
+  position: relative;
+
+  @media (max-width: 640px) {
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  &--success {
+    background: rgba(16, 185, 129, 0.1);
+    border-left-color: var(--success, #10b981);
+  }
+
+  &--warning {
+    background: rgba(251, 191, 36, 0.1);
+    border-left-color: var(--warning, #fbbf24);
+  }
+
+  &--info {
+    background: rgba(96, 165, 250, 0.1);
+    border-left-color: var(--info, #60a5fa);
+  }
+
+  &--action {
+    background: rgba(0, 102, 204, 0.1);
+    border-left-color: var(--accent, #0066cc);
+  }
+
+  &--high {
+    border-left-width: 6px;
+    padding-right: 80px;
+
+    @media (max-width: 768px) {
+      padding-right: var(--space-4);
+    }
+  }
+}
+
+.business-insights__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  color: var(--accent);
+
+  .business-insights__card--success & {
+    color: var(--success, #10b981);
+  }
+
+  .business-insights__card--warning & {
+    color: var(--warning, #fbbf24);
+  }
+
+  .business-insights__card--info & {
+    color: var(--info, #60a5fa);
+  }
+
+  .business-insights__card--action & {
+    color: var(--accent, #0066cc);
+  }
+}
+
+.business-insights__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.business-insights__insight-title {
+  margin: 0;
+  font-size: var(--font-size-body-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.business-insights__message {
+  margin: 0;
+  font-size: var(--font-size-body-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.business-insights__action {
+  display: inline-flex;
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--accent);
+  text-decoration: none;
+  margin-top: var(--space-2);
+  transition: opacity var(--transition-fast);
+  width: fit-content;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.business-insights__priority-badge {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: inline-block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--danger, #ef4444);
+  color: white;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  @media (max-width: 768px) {
+    position: static;
+    width: fit-content;
+  }
+}
+
+.business-insights__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  color: var(--text-muted);
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .business-insights {
+    background: var(--surface-0);
+  }
+
+  .business-insights__card {
+    &--success {
+      background: rgba(16, 185, 129, 0.15);
+    }
+
+    &--warning {
+      background: rgba(251, 191, 36, 0.15);
+    }
+
+    &--info {
+      background: rgba(96, 165, 250, 0.15);
+    }
+
+    &--action {
+      background: rgba(0, 102, 204, 0.15);
+    }
+  }
+}

@@ -31,7 +31,7 @@
               <a
                 [routerLink]="['/admin', 'billing']"
                 (click)="onNavClick()"
-                class="admin-nav-item group relative flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium no-underline opacity-60"
+                class="admin-nav-item group relative flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium no-underline text-[var(--text-primary)] opacity-60"
                 title="Upgrade plan to unlock">
                 <lucide-icon [img]="item.icon" class="h-[18px] w-[18px] shrink-0" />
                 @if (!collapsed() || mobile()) {
@@ -44,7 +44,7 @@
                 routerLinkActive="admin-nav-item--active"
                 [routerLinkActiveOptions]="{ exact: item.path === 'dashboard' }"
                 (click)="onNavClick()"
-                class="admin-nav-item group relative flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium no-underline"
+                class="admin-nav-item group relative flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium no-underline text-[var(--text-primary)]"
                 [attr.title]="collapsed() && !mobile() ? item.label : null">
                 <lucide-icon [img]="item.icon" class="h-[18px] w-[18px] shrink-0" />
                 @if (!collapsed() || mobile()) {

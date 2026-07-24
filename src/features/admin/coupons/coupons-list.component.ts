@@ -38,10 +38,6 @@ import { LucideAngularModule, Ticket } from 'lucide-angular';
             <span class="text-sm font-medium">Code</span>
             <input class="pf-editor-input w-full font-mono uppercase" formControlName="code" />
           </label>
-          <label class="block space-y-1">
-            <span class="text-sm font-medium">Description</span>
-            <input class="pf-editor-input w-full" formControlName="description" />
-          </label>
           <div class="grid gap-4 sm:grid-cols-2">
             <label class="block space-y-1">
               <span class="text-sm font-medium">Discount type</span>
@@ -57,12 +53,22 @@ import { LucideAngularModule, Ticket } from 'lucide-angular';
           </div>
           <div class="grid gap-4 sm:grid-cols-2">
             <label class="block space-y-1">
-              <span class="text-sm font-medium">Min order</span>
-              <input class="pf-editor-input w-full" type="number" formControlName="minOrderAmount" />
+              <span class="text-sm font-medium">Min order amount</span>
+              <input class="pf-editor-input w-full" type="number" formControlName="minimumOrderAmount" />
             </label>
             <label class="block space-y-1">
-              <span class="text-sm font-medium">Max uses</span>
-              <input class="pf-editor-input w-full" type="number" formControlName="maxUses" placeholder="Unlimited" />
+              <span class="text-sm font-medium">Usage limit</span>
+              <input class="pf-editor-input w-full" type="number" formControlName="usageLimit" placeholder="Unlimited" />
+            </label>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">Start date</span>
+              <input class="pf-editor-input w-full" type="datetime-local" formControlName="startDate" />
+            </label>
+            <label class="block space-y-1">
+              <span class="text-sm font-medium">End date</span>
+              <input class="pf-editor-input w-full" type="datetime-local" formControlName="endDate" />
             </label>
           </div>
           <label class="flex items-center gap-2 text-sm">
@@ -97,6 +103,7 @@ import { LucideAngularModule, Ticket } from 'lucide-angular';
             </thead>
             <tbody>
               @for (c of coupons(); track c.id; let i = $index) {
+                @if (editingId() !== c.id) {
                 <tr class="admin-data-table__row">
                   <td class="admin-data-table__index">{{ i + 1 }}</td>
                   <td>
@@ -108,7 +115,7 @@ import { LucideAngularModule, Ticket } from 'lucide-angular';
                     </div>
                   </td>
                   <td>{{ formatDiscount(c) }}</td>
-                  <td>{{ c.useCount }}{{ c.maxUses ? ' / ' + c.maxUses : '' }}</td>
+                  <td>{{ c.usageCount }}{{ c.usageLimit ? ' / ' + c.usageLimit : '' }}</td>
                   <td class="admin-data-table__col-status">
                     <app-admin-status-badge
                       [label]="c.isActive ? 'Active' : 'Inactive'"
@@ -122,6 +129,7 @@ import { LucideAngularModule, Ticket } from 'lucide-angular';
                     </div>
                   </td>
                 </tr>
+                }
               }
             </tbody>
           </table>
@@ -154,11 +162,13 @@ export class CouponsListComponent implements OnInit {
 
   readonly form = this.fb.nonNullable.group({
     code: ['', Validators.required],
-    description: [''],
     discountType: ['Percentage' as DiscountType],
     discountValue: [10, Validators.min(0)],
-    minOrderAmount: [0],
-    maxUses: [null as number | null],
+    minimumOrderAmount: [null as number | null],
+    maximumDiscountAmount: [null as number | null],
+    usageLimit: [null as number | null],
+    startDate: ['', Validators.required],
+    endDate: ['', Validators.required],
     isActive: [true]
   });
 
@@ -184,13 +194,17 @@ export class CouponsListComponent implements OnInit {
 
   openCreate(): void {
     this.editingId.set(null);
+    const now = new Date();
+    const tomorrow = new Date(now.getTime() + 86400000);
     this.form.reset({
       code: '',
-      description: '',
       discountType: 'Percentage',
       discountValue: 10,
-      minOrderAmount: 0,
-      maxUses: null,
+      minimumOrderAmount: null,
+      maximumDiscountAmount: null,
+      usageLimit: null,
+      startDate: now.toISOString().slice(0, 16),
+      endDate: tomorrow.toISOString().slice(0, 16),
       isActive: true
     });
     this.formOpen.set(true);
@@ -200,11 +214,13 @@ export class CouponsListComponent implements OnInit {
     this.editingId.set(c.id);
     this.form.patchValue({
       code: c.code,
-      description: c.description ?? '',
       discountType: c.discountType,
       discountValue: c.discountValue,
-      minOrderAmount: c.minOrderAmount ?? 0,
-      maxUses: c.maxUses ?? null,
+      minimumOrderAmount: c.minimumOrderAmount ?? null,
+      maximumDiscountAmount: c.maximumDiscountAmount ?? null,
+      usageLimit: c.usageLimit ?? null,
+      startDate: c.startDate.slice(0, 16),
+      endDate: c.endDate.slice(0, 16),
       isActive: c.isActive
     });
     this.formOpen.set(true);
@@ -212,19 +228,21 @@ export class CouponsListComponent implements OnInit {
 
   closeForm(): void {
     this.formOpen.set(false);
+    this.editingId.set(null);
   }
 
   save(): void {
     if (this.form.invalid) return;
     const v = this.form.getRawValue();
     const payload = {
-      tenantId: 'default',
       code: v.code.trim().toUpperCase(),
-      description: v.description,
       discountType: v.discountType,
       discountValue: v.discountValue,
-      minOrderAmount: v.minOrderAmount,
-      maxUses: v.maxUses ?? undefined,
+      minimumOrderAmount: v.minimumOrderAmount ?? undefined,
+      maximumDiscountAmount: v.maximumDiscountAmount ?? undefined,
+      usageLimit: v.usageLimit ?? undefined,
+      startDate: new Date(v.startDate).toISOString(),
+      endDate: new Date(v.endDate).toISOString(),
       isActive: v.isActive
     };
     const id = this.editingId();

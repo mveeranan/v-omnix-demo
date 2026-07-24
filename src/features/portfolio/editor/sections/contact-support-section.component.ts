@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { Clock, Headphones, Mail, Phone } from 'lucide-angular';
 import { AdminDetailCardComponent } from '@features/admin/shared/admin-detail-card.component';
 import { AdminDetailItemComponent } from '@features/admin/shared/admin-detail-item.component';
-import { AdminDetailMediaComponent } from '@features/admin/shared/admin-detail-media.component';
 import { SectionToggleComponent } from '@features/portfolio/shared/ui/section-toggle.component';
 import { WebsiteSectionShellComponent } from '@features/portfolio/editor/shared/website-section-shell.component';
 import { PortfolioStateService } from '../../data-access/portfolio-state.service';
@@ -14,8 +13,7 @@ import { PortfolioContactSupport } from '../../models/portfolio.model';
   selector: 'app-contact-support-section',
   standalone: true,
   imports: [FormsModule, WebsiteSectionShellComponent, SectionToggleComponent, AdminDetailCardComponent,
-    AdminDetailItemComponent,
-    AdminDetailMediaComponent],
+    AdminDetailItemComponent],
   template: `
     <app-website-section-shell
       sectionId="contactSupport"

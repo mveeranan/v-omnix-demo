@@ -41,6 +41,20 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(storeToken ? addAuthorizationHeader(req, storeToken) : req);
   }
 
+  // Return endpoints are shared between storefront customers and admins. A customer has a
+  // store_access_token but no admin token; an admin has an admin token but no store token.
+  // Pick whichever is available rather than forcing both paths through isGuestStorefrontRequest
+  // (which would break admin sub-routes like /returns/{id}/approve).
+  if (isReturnEndpoint(req.url)) {
+    const storeAuthService = inject(StoreAuthService);
+    const customerToken = storeAuthService.getAccessToken();
+    const adminToken = authService.getAccessToken();
+    if (customerToken && !adminToken) {
+      return next(addAuthorizationHeader(req, customerToken));
+    }
+    // Admin path falls through to normal token attachment below.
+  }
+
   const accessToken = authService.getAccessToken();
   const tenantId = authService.getTenantId();
   let finalReq = accessToken ? addAuthorizationHeader(req, accessToken) : req;
@@ -82,6 +96,10 @@ function isPortfolioRequest(url: string): boolean {
  */
 function isGuestStorefrontRequest(url: string): boolean {
   return /\/checkout\//i.test(url);
+}
+
+function isReturnEndpoint(url: string): boolean {
+  return /\/returns(?:\/|$|\?)/i.test(url);
 }
 
 function handleUnauthorized(

@@ -68,6 +68,8 @@ import { isDataUrl } from '@shared/files/upload-document.model';
 
       [(expanded)]="expanded"
 
+      [noCollapse]="true"
+
       [editing]="editing()"
 
       [saving]="state.saving()"
@@ -463,7 +465,7 @@ export class PersonalInfoSectionComponent implements OnInit {
   readonly phoneIcon = Phone;
   readonly emailIcon = Mail;
 
-  readonly expanded = signal(false);
+  readonly expanded = signal(true);
 
   readonly editing = signal(false);
 
