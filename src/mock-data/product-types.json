@@ -1,0 +1,46 @@
+[
+  {
+    "id": "ptype-perfume",
+    "tenantId": "demo-tenant-1",
+    "name": "Perfume",
+    "description": "Fragrances and attars",
+    "attributes": [
+      { "id": "attr-vol", "name": "Volume", "dataType": 3, "isRequired": true, "displayOrder": 0, "possibleValues": ["30ml", "50ml", "100ml"] }
+    ]
+  },
+  {
+    "id": "ptype-clothing",
+    "tenantId": "demo-tenant-1",
+    "name": "Clothing",
+    "description": "Apparel for men, women and kids",
+    "attributes": [
+      { "id": "attr-size", "name": "Size", "dataType": 3, "isRequired": true, "displayOrder": 0, "possibleValues": ["S", "M", "L", "XL", "XXL"] },
+      { "id": "attr-color", "name": "Color", "dataType": 1, "isRequired": false, "displayOrder": 1, "possibleValues": [] }
+    ]
+  },
+  {
+    "id": "ptype-footwear",
+    "tenantId": "demo-tenant-1",
+    "name": "Footwear",
+    "description": "Shoes, sandals and slippers",
+    "attributes": [
+      { "id": "attr-shoesize", "name": "Size", "dataType": 3, "isRequired": true, "displayOrder": 0, "possibleValues": ["6", "7", "8", "9", "10", "11"] }
+    ]
+  },
+  {
+    "id": "ptype-electronics",
+    "tenantId": "demo-tenant-1",
+    "name": "Electronics",
+    "description": "Mobiles, accessories and appliances",
+    "attributes": [
+      { "id": "attr-warranty", "name": "Warranty", "dataType": 1, "isRequired": false, "displayOrder": 0, "possibleValues": [] }
+    ]
+  },
+  {
+    "id": "ptype-general",
+    "tenantId": "demo-tenant-1",
+    "name": "General Store",
+    "description": "Groceries and daily essentials",
+    "attributes": []
+  }
+]

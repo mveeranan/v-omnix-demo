@@ -1,0 +1,8 @@
+{
+  "buildCommand": "npm run build -- --configuration=demo",
+  "outputDirectory": "dist/my-angular19-app/browser",
+  "installCommand": "npm ci",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

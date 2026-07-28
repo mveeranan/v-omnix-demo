@@ -2,5 +2,7 @@ export const environment = {
   production: false,
   apiBaseUrl: 'https://localhost:7084',
   /** When false, all admin nav items are usable (frontend demo). Enable when billing API gates features. */
-  enablePlanGating: false
+  enablePlanGating: false,
+  /** When true, a demo HTTP interceptor serves every API call from LocalStorage instead of the real backend. */
+  demoMode: false
 } as const;

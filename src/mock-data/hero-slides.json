@@ -1,0 +1,35 @@
+[
+  {
+    "id": "slide-1",
+    "tenantId": "demo-tenant-1",
+    "isDisplaySlideshow": true,
+    "eyebrow": "Premium Collection",
+    "headline": "Discover Our Exclusive Range",
+    "subHeadline": "Shop the finest products curated for you",
+    "sortOrder": 0,
+    "slideImageDocumentId": null,
+    "slideImageDocumentUrl": "https://images.unsplash.com/photo-1445205170230-053b83016050?w=1200&h=500&fit=crop"
+  },
+  {
+    "id": "slide-2",
+    "tenantId": "demo-tenant-1",
+    "isDisplaySlideshow": true,
+    "eyebrow": "New Arrivals",
+    "headline": "Fresh Styles Just In",
+    "subHeadline": "Be the first to get our latest products",
+    "sortOrder": 1,
+    "slideImageDocumentId": null,
+    "slideImageDocumentUrl": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=500&fit=crop"
+  },
+  {
+    "id": "slide-3",
+    "tenantId": "demo-tenant-1",
+    "isDisplaySlideshow": true,
+    "eyebrow": "Special Offer",
+    "headline": "Up to 50% Off",
+    "subHeadline": "Limited time sale on selected items",
+    "sortOrder": 2,
+    "slideImageDocumentId": null,
+    "slideImageDocumentUrl": "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&h=500&fit=crop"
+  }
+]

@@ -1,0 +1,80 @@
+[
+  {
+    "id": "order-1", "orderNumber": "ORD-10001", "customerId": "cust-1",
+    "status": "Delivered", "paymentStatus": "Paid", "paymentMethod": "Stripe", "placedDaysAgo": 21,
+    "items": [ { "productId": "prod-1", "quantity": 1 }, { "productId": "prod-7", "quantity": 1 } ],
+    "shippingAmount": 0, "discountAmount": 0, "couponCode": null
+  },
+  {
+    "id": "order-2", "orderNumber": "ORD-10002", "customerId": "cust-2",
+    "status": "Delivered", "paymentStatus": "Paid", "paymentMethod": "UPI", "placedDaysAgo": 18,
+    "items": [ { "productId": "prod-3", "quantity": 2 } ],
+    "shippingAmount": 50, "discountAmount": 100, "couponCode": "WELCOME100"
+  },
+  {
+    "id": "order-3", "orderNumber": "ORD-10003", "customerId": "cust-3",
+    "status": "Delivered", "paymentStatus": "Paid", "paymentMethod": "COD", "placedDaysAgo": 15,
+    "items": [ { "productId": "prod-9", "quantity": 2 }, { "productId": "prod-10", "quantity": 1 } ],
+    "shippingAmount": 40, "discountAmount": 0, "couponCode": null
+  },
+  {
+    "id": "order-4", "orderNumber": "ORD-10004", "customerId": "cust-4",
+    "status": "Shipped", "paymentStatus": "Paid", "paymentMethod": "Razorpay", "placedDaysAgo": 9,
+    "items": [ { "productId": "prod-5", "quantity": 1 } ],
+    "shippingAmount": 0, "discountAmount": 190, "couponCode": "FESTIVE10"
+  },
+  {
+    "id": "order-5", "orderNumber": "ORD-10005", "customerId": "cust-5",
+    "status": "Processing", "paymentStatus": "Paid", "paymentMethod": "Stripe", "placedDaysAgo": 7,
+    "items": [ { "productId": "prod-13", "quantity": 1 }, { "productId": "prod-8", "quantity": 2 } ],
+    "shippingAmount": 0, "discountAmount": 0, "couponCode": null
+  },
+  {
+    "id": "order-6", "orderNumber": "ORD-10006", "customerId": "cust-2",
+    "status": "Delivered", "paymentStatus": "Paid", "paymentMethod": "UPI", "placedDaysAgo": 6,
+    "items": [ { "productId": "prod-2", "quantity": 3 } ],
+    "shippingAmount": 30, "discountAmount": 0, "couponCode": null
+  },
+  {
+    "id": "order-7", "orderNumber": "ORD-10007", "customerId": "cust-1",
+    "status": "Confirmed", "paymentStatus": "Paid", "paymentMethod": "COD", "placedDaysAgo": 4,
+    "items": [ { "productId": "prod-4", "quantity": 1 } ],
+    "shippingAmount": 60, "discountAmount": 0, "couponCode": null
+  },
+  {
+    "id": "order-8", "orderNumber": "ORD-10008", "customerId": "cust-5",
+    "status": "Pending", "paymentStatus": "Pending", "paymentMethod": "COD", "placedDaysAgo": 3,
+    "items": [ { "productId": "prod-12", "quantity": 2 }, { "productId": "prod-6", "quantity": 1 } ],
+    "shippingAmount": 40, "discountAmount": 0, "couponCode": null
+  },
+  {
+    "id": "order-9", "orderNumber": "ORD-10009", "customerId": "cust-3",
+    "status": "Delivered", "paymentStatus": "Paid", "paymentMethod": "Stripe", "placedDaysAgo": 2,
+    "items": [ { "productId": "prod-15", "quantity": 1 } ],
+    "shippingAmount": 0, "discountAmount": 250, "couponCode": "SAREE10"
+  },
+  {
+    "id": "order-10", "orderNumber": "ORD-10010", "customerId": "cust-6",
+    "status": "Cancelled", "paymentStatus": "Refunded", "paymentMethod": "Razorpay", "placedDaysAgo": 2,
+    "items": [ { "productId": "prod-16", "quantity": 1 } ],
+    "shippingAmount": 40, "discountAmount": 0, "couponCode": null
+  },
+  {
+    "id": "order-11", "orderNumber": "ORD-10011", "customerId": "cust-7",
+    "status": "Confirmed", "paymentStatus": "Paid", "paymentMethod": "UPI", "placedDaysAgo": 1,
+    "items": [ { "productId": "prod-14", "quantity": 2 }, { "productId": "prod-9", "quantity": 1 } ],
+    "shippingAmount": 40, "discountAmount": 0, "couponCode": null
+  },
+  {
+    "id": "order-12", "orderNumber": "ORD-10012", "customerId": "cust-6",
+    "status": "Pending", "paymentStatus": "Paid", "paymentMethod": "Stripe", "placedDaysAgo": 0,
+    "items": [ { "productId": "prod-7", "quantity": 1 } ],
+    "shippingAmount": 0, "discountAmount": 0, "couponCode": null
+  },
+  {
+    "id": "order-13", "orderNumber": "ORD-10013", "customerId": "cust-3",
+    "status": "Confirmed", "paymentStatus": "Paid", "paymentMethod": "COD", "placedDaysAgo": 0,
+    "items": [ { "productId": "prod-1", "quantity": 1 }, { "productId": "prod-3", "quantity": 1 } ],
+    "shippingAmount": 0, "discountAmount": 0, "couponCode": null
+  }
+]

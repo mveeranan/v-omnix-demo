@@ -1,0 +1,51 @@
+[
+  {
+    "id": "cust-1", "name": "Priya Sharma", "email": "priya.sharma@example.in", "phone": "+91 98765 43210",
+    "signupDaysAgo": 210, "lastOrderDaysAgo": 2,
+    "addresses": [
+      { "id": "addr-1a", "label": "Home", "street": "12, MG Road, Koramangala", "city": "Bengaluru", "state": "Karnataka", "zip": "560034", "country": "India", "isDefault": true }
+    ]
+  },
+  {
+    "id": "cust-2", "name": "Rahul Verma", "email": "rahul.verma@example.in", "phone": "+91 98123 45678",
+    "signupDaysAgo": 150, "lastOrderDaysAgo": 6,
+    "addresses": [
+      { "id": "addr-2a", "label": "Home", "street": "45, Sector 22", "city": "Noida", "state": "Uttar Pradesh", "zip": "201301", "country": "India", "isDefault": true }
+    ]
+  },
+  {
+    "id": "cust-3", "name": "Anjali Iyer", "email": "anjali.iyer@example.in", "phone": "+91 99887 76655",
+    "signupDaysAgo": 95, "lastOrderDaysAgo": 1,
+    "addresses": [
+      { "id": "addr-3a", "label": "Home", "street": "8, T Nagar Main Street", "city": "Chennai", "state": "Tamil Nadu", "zip": "600017", "country": "India", "isDefault": true }
+    ]
+  },
+  {
+    "id": "cust-4", "name": "Vikram Singh", "email": "vikram.singh@example.in", "phone": "+91 97654 32109",
+    "signupDaysAgo": 60, "lastOrderDaysAgo": 14,
+    "addresses": [
+      { "id": "addr-4a", "label": "Home", "street": "23, Civil Lines", "city": "Jaipur", "state": "Rajasthan", "zip": "302006", "country": "India", "isDefault": true }
+    ]
+  },
+  {
+    "id": "cust-5", "name": "Sneha Patil", "email": "sneha.patil@example.in", "phone": "+91 96543 21098",
+    "signupDaysAgo": 30, "lastOrderDaysAgo": 3,
+    "addresses": [
+      { "id": "addr-5a", "label": "Home", "street": "101, FC Road", "city": "Pune", "state": "Maharashtra", "zip": "411005", "country": "India", "isDefault": true }
+    ]
+  },
+  {
+    "id": "cust-6", "name": "Arjun Nair", "email": "arjun.nair@example.in", "phone": "+91 95432 10987",
+    "signupDaysAgo": 12, "lastOrderDaysAgo": 0,
+    "addresses": [
+      { "id": "addr-6a", "label": "Home", "street": "56, Marine Drive", "city": "Kochi", "state": "Kerala", "zip": "682031", "country": "India", "isDefault": true }
+    ]
+  },
+  {
+    "id": "cust-7", "name": "Kavya Reddy", "email": "kavya.reddy@example.in", "phone": "+91 94321 09876",
+    "signupDaysAgo": 5, "lastOrderDaysAgo": 5,
+    "addresses": [
+      { "id": "addr-7a", "label": "Home", "street": "78, Banjara Hills", "city": "Hyderabad", "state": "Telangana", "zip": "500034", "country": "India", "isDefault": true }
+    ]
+  }
+]

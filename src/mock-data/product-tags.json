@@ -1,0 +1,8 @@
+[
+  { "id": "tag-new", "tenantId": "demo-tenant-1", "name": "New Arrival", "slug": "new-arrival", "isActive": true },
+  { "id": "tag-bestseller", "tenantId": "demo-tenant-1", "name": "Best Seller", "slug": "best-seller", "isActive": true },
+  { "id": "tag-sale", "tenantId": "demo-tenant-1", "name": "On Sale", "slug": "on-sale", "isActive": true },
+  { "id": "tag-festive", "tenantId": "demo-tenant-1", "name": "Festive Special", "slug": "festive-special", "isActive": true },
+  { "id": "tag-premium", "tenantId": "demo-tenant-1", "name": "Premium", "slug": "premium", "isActive": true },
+  { "id": "tag-limited", "tenantId": "demo-tenant-1", "name": "Limited Stock", "slug": "limited-stock", "isActive": true }
+]

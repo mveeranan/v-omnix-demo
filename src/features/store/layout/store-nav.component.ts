@@ -24,20 +24,20 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
           <div class="msp-topbar__left">
             @if (portfolio().contactSupport.phone) {
               <a [href]="'tel:' + portfolio().contactSupport.phone" class="msp-topbar__item">
-                <lucide-icon [img]="phoneIcon" class="msp-topbar__icon" />
+                <lucide-icon [img]="phoneIcon" [size]="14" class="msp-topbar__icon" />
                 {{ portfolio().contactSupport.phone }}
               </a>
             }
             @if (portfolio().contactSupport.email) {
               <a [href]="'mailto:' + portfolio().contactSupport.email" class="msp-topbar__item">
-                <lucide-icon [img]="mailIcon" class="msp-topbar__icon" />
+                <lucide-icon [img]="mailIcon" [size]="14" class="msp-topbar__icon" />
                 {{ portfolio().contactSupport.email }}
               </a>
             }
           </div>
           <div class="msp-topbar__right">
             <span class="msp-topbar__item">
-              <lucide-icon [img]="truckIcon" class="msp-topbar__icon" />
+              <lucide-icon [img]="truckIcon" [size]="14" class="msp-topbar__icon" />
               {{ deliveryText() }}
             </span>
           </div>
@@ -173,8 +173,9 @@ import { CartDrawerComponent } from '../commerce/cart-drawer.component';
       font-size: 0.8rem;
     }
     .msp-topbar__icon {
-      width: 1rem;
-      height: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
       opacity: 0.8;
     }

@@ -38,7 +38,7 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
       position: relative;
       overflow: hidden;
       height: clamp(28rem, 82vh, 46.875rem);
-      background: var(--mox-hero-bg, var(--mox-accent, #dbcc8f));
+      background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 50%, #ffa347 100%);
     }
 
     .msp-hero__grid {
@@ -53,8 +53,10 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
     .msp-hero__content {
       position: absolute;
       left: 0;
+      right: 0;
       max-width: 26rem;
       padding-left: 1.5rem;
+      padding-right: 1.5rem;
       text-align: left;
     }
     @media (min-width: 640px) {
@@ -89,22 +91,19 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
     .msp-hero__cta {
       display: inline-flex;
       align-items: center;
-      /* Exact reference .btn-custom: plain rectangle, larger text, no tracking —
-         deliberately different from the pill CTAs used elsewhere on the site. */
-      padding: 0.625rem 1.25rem;
-      font-size: 1.4375rem;
-      font-weight: 400;
+      padding: 0.75rem 1.75rem;
+      font-size: 1rem;
+      font-weight: 600;
       color: #fff;
-      /* Always a shade darker than the hero band itself (which uses the same
-         --mox-accent variable) so the button reads as a distinct control
-         instead of blending into the background until hovered. */
-      background: color-mix(in srgb, var(--mox-accent, #c2a942) 85%, #000);
-      border-radius: 0;
+      background: rgba(255, 255, 255, 0.25);
+      border: 2px solid #fff;
+      border-radius: 4px;
       text-decoration: none;
-      transition: background 0.2s ease;
+      transition: all 0.3s ease;
     }
     .msp-hero__cta:hover {
-      background: color-mix(in srgb, var(--mox-accent, #c2a942) 70%, #000);
+      background: rgba(255, 255, 255, 0.4);
+      transform: translateY(-2px);
     }
 
     .msp-hero__media {
@@ -121,12 +120,20 @@ import { Portfolio, PortfolioHeroSlide } from '../../models/portfolio.model';
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: contain;
-      object-position: center bottom;
+      object-fit: cover;
+      object-position: center;
       opacity: 0;
       transform: translateX(6%) scale(0.96);
       transition: opacity 0.7s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
       pointer-events: none;
+    }
+    /* Below 768px the 65%-width floating product image has no room to sit beside the text
+       without overlapping it — drop the image and let the gradient carry the banner instead.
+       Must come after the base .msp-hero__content/.msp-hero__media rules above: equal-specificity
+       selectors resolve by source order, so a media query placed earlier gets silently overridden. */
+    @media (max-width: 767.98px) {
+      .msp-hero__content { right: auto; padding-right: 1.5rem; }
+      .msp-hero__media { display: none; }
     }
     .msp-hero__image--active {
       opacity: 1;

@@ -1,0 +1,44 @@
+[
+  {
+    "planId": "plan-starter",
+    "name": "Starter",
+    "prices": [
+      { "planPriceId": "price-starter-m", "billingCycle": "Monthly", "amount": 29, "currency": "USD", "stripePriceId": "price_demo_starter_monthly" },
+      { "planPriceId": "price-starter-y", "billingCycle": "Yearly", "amount": 290, "currency": "USD", "stripePriceId": "price_demo_starter_yearly" }
+    ],
+    "features": [
+      { "id": "f-starter-1", "name": "Up to 50 products" },
+      { "id": "f-starter-2", "name": "Basic website builder" },
+      { "id": "f-starter-3", "name": "Order management" },
+      { "id": "f-starter-4", "name": "Email support" }
+    ]
+  },
+  {
+    "planId": "plan-studio",
+    "name": "Studio",
+    "prices": [
+      { "planPriceId": "price-studio-m", "billingCycle": "Monthly", "amount": 79, "currency": "USD", "stripePriceId": "price_demo_studio_monthly" },
+      { "planPriceId": "price-studio-y", "billingCycle": "Yearly", "amount": 790, "currency": "USD", "stripePriceId": "price_demo_studio_yearly" }
+    ],
+    "features": [
+      { "id": "f-studio-1", "name": "Unlimited products" },
+      { "id": "f-studio-2", "name": "Advanced website builder" },
+      { "id": "f-studio-3", "name": "Coupons & reviews" },
+      { "id": "f-studio-4", "name": "Priority support" }
+    ]
+  },
+  {
+    "planId": "plan-master",
+    "name": "Master",
+    "prices": [
+      { "planPriceId": "price-master-m", "billingCycle": "Monthly", "amount": 149, "currency": "USD", "stripePriceId": "price_demo_master_monthly" },
+      { "planPriceId": "price-master-y", "billingCycle": "Yearly", "amount": 1490, "currency": "USD", "stripePriceId": "price_demo_master_yearly" }
+    ],
+    "features": [
+      { "id": "f-master-1", "name": "Everything in Studio" },
+      { "id": "f-master-2", "name": "Multi-branch" },
+      { "id": "f-master-3", "name": "Tax rules" },
+      { "id": "f-master-4", "name": "Dedicated account manager" }
+    ]
+  }
+]

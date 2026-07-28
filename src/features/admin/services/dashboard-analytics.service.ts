@@ -4,6 +4,7 @@ import { map, switchMap, catchError, tap } from 'rxjs/operators';
 import { Order, OrderStatus, PaymentStatus } from '../orders/models/order.model';
 import { OrderService } from '../orders/data-access/order.service';
 import { ProductAdminService } from '../products/data-access/product-admin.service';
+import { ProductStatus } from '@features/catalog/models/product-status.enum';
 import {
   PremiumDashboardData,
   RevenueMetrics,
@@ -241,8 +242,8 @@ export class DashboardAnalyticsService {
   private calculateProductMetrics(products: any[]): ProductMetrics {
     return {
       totalProducts: products.length,
-      activeProducts: products.filter((p) => p.status === 'Published').length,
-      draftProducts: products.filter((p) => p.status === 'Draft').length,
+      activeProducts: products.filter((p) => p.status === ProductStatus.Active).length,
+      draftProducts: products.filter((p) => p.status === ProductStatus.Draft).length,
       productsWithoutImages: products.filter((p) => !p.primaryImageUrl).length,
       productsWithoutDescription: products.filter((p) => !p.description).length,
       lowStockProducts: 0 // Would need inventory data
@@ -484,6 +485,18 @@ export class DashboardAnalyticsService {
         title: 'Launch Your Store',
         message: 'You haven\'t received any orders yet. Make sure your website is published and share the link.',
         priority: 'high'
+      });
+    }
+
+    // Every check above passed — say so instead of leaving the panel blank.
+    if (insights.length === 0) {
+      const monthRevenueLabel = monthRevenue.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+      insights.push({
+        id: 'all-clear',
+        type: 'success',
+        title: 'Your Store Is Healthy',
+        message: `${products.length} products live, ${orders.length} orders received, ${monthRevenueLabel} in revenue this month. No action needed right now.`,
+        priority: 'low'
       });
     }
 

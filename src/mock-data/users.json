@@ -1,0 +1,19 @@
+[
+  {
+    "id": "user-demo-1",
+    "email": "demo@vomnix.com",
+    "password": "demo1234",
+    "firstName": "Demo",
+    "lastName": "Admin",
+    "mobile": "+91 90000 00000",
+    "tenantId": "demo-tenant-1",
+    "tenantName": "Demo Store",
+    "businessLogoUrl": null,
+    "roleName": "Admin",
+    "planName": "Studio",
+    "multiBranch": false,
+    "lastPlanId": "plan-studio",
+    "subscriptionStatus": "Active",
+    "profileImageUrl": null
+  }
+]

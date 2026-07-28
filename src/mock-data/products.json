@@ -1,0 +1,346 @@
+[
+  {
+    "id": "prod-1", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-perfume-men", "categoryName": "Men's Perfume",
+    "brandId": "brand-wildstone", "brandName": "Wild Stone",
+    "productTypeId": "ptype-perfume", "productTypeName": "Perfume",
+    "name": "Wild Stone Code Platinum", "slug": "wild-stone-code-platinum",
+    "shortDescription": "Long-lasting deodorant + perfume combo for men",
+    "description": "A bold, woody fragrance with notes of citrus and musk. Perfect for daily wear and special occasions.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "WS-CODE-PLT-100", "price": 449, "compareAtPrice": 599, "costPrice": 280,
+    "weight": 0.15, "trackInventory": true, "isNew": true, "displayOrder": 0, "status": 2,
+    "variants": [
+      { "id": "var-1a", "sku": "WS-CODE-PLT-50", "price": 299, "compareAtPrice": 399, "barcode": "8901030814521", "weight": 0.08, "isActive": true, "attributes": { "Volume": "50ml" } },
+      { "id": "var-1b", "sku": "WS-CODE-PLT-100", "price": 449, "compareAtPrice": 599, "barcode": "8901030814538", "weight": 0.15, "isActive": true, "attributes": { "Volume": "100ml" } }
+    ],
+    "images": [
+      { "id": "img-1a", "documentId": "doc-1a", "url": "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=500", "altText": "Wild Stone Code Platinum", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": ["tag-bestseller", "tag-new"],
+    "inventory": [
+      { "id": "inv-1a", "productId": "prod-1", "variantId": "var-1a", "variantSku": "WS-CODE-PLT-50", "quantityAvailable": 42, "quantityReserved": 2, "lowStockThreshold": 10 },
+      { "id": "inv-1b", "productId": "prod-1", "variantId": "var-1b", "variantSku": "WS-CODE-PLT-100", "quantityAvailable": 6, "quantityReserved": 0, "lowStockThreshold": 10 }
+    ]
+  },
+  {
+    "id": "prod-2", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-perfume-women", "categoryName": "Women's Perfume",
+    "brandId": "brand-fogg", "brandName": "Fogg",
+    "productTypeId": "ptype-perfume", "productTypeName": "Perfume",
+    "name": "Fogg Femme Blossom", "slug": "fogg-femme-blossom",
+    "shortDescription": "Floral fragrance for women, no gas technology",
+    "description": "A fresh floral bouquet designed for all-day confidence. 800+ sprays per bottle.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "FOGG-FEM-BLM-120", "price": 259, "compareAtPrice": 320, "costPrice": 150,
+    "weight": 0.14, "trackInventory": true, "isNew": false, "displayOrder": 1, "status": 2,
+    "variants": [],
+    "images": [
+      { "id": "img-2a", "documentId": "doc-2a", "url": "https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=500", "altText": "Fogg Femme Blossom", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": ["tag-sale"],
+    "inventory": [
+      { "id": "inv-2a", "productId": "prod-2", "variantId": null, "variantSku": null, "quantityAvailable": 58, "quantityReserved": 0, "lowStockThreshold": 15 }
+    ]
+  },
+  {
+    "id": "prod-3", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-clothing-men", "categoryName": "Men's Wear",
+    "brandId": "brand-vanheusen", "brandName": "Van Heusen",
+    "productTypeId": "ptype-clothing", "productTypeName": "Clothing",
+    "name": "Van Heusen Formal Shirt - Sky Blue", "slug": "van-heusen-formal-shirt-sky-blue",
+    "shortDescription": "Slim fit cotton-blend formal shirt",
+    "description": "Wrinkle-resistant cotton blend shirt, perfect for office wear. Machine washable.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "VH-SHIRT-SKYBLU", "price": 1299, "compareAtPrice": 1799, "costPrice": 650,
+    "weight": 0.3, "trackInventory": true, "isNew": false, "displayOrder": 2, "status": 2,
+    "variants": [
+      { "id": "var-3a", "sku": "VH-SHIRT-SKYBLU-M", "price": 1299, "compareAtPrice": 1799, "barcode": "8901063412345", "weight": 0.3, "isActive": true, "attributes": { "Size": "M", "Color": "Sky Blue" } },
+      { "id": "var-3b", "sku": "VH-SHIRT-SKYBLU-L", "price": 1299, "compareAtPrice": 1799, "barcode": "8901063412352", "weight": 0.31, "isActive": true, "attributes": { "Size": "L", "Color": "Sky Blue" } },
+      { "id": "var-3c", "sku": "VH-SHIRT-SKYBLU-XL", "price": 1349, "compareAtPrice": 1849, "barcode": "8901063412369", "weight": 0.32, "isActive": true, "attributes": { "Size": "XL", "Color": "Sky Blue" } }
+    ],
+    "images": [
+      { "id": "img-3a", "documentId": "doc-3a", "url": "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500", "altText": "Van Heusen Formal Shirt", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": ["tag-bestseller"],
+    "inventory": [
+      { "id": "inv-3a", "productId": "prod-3", "variantId": "var-3a", "variantSku": "VH-SHIRT-SKYBLU-M", "quantityAvailable": 20, "quantityReserved": 1, "lowStockThreshold": 8 },
+      { "id": "inv-3b", "productId": "prod-3", "variantId": "var-3b", "variantSku": "VH-SHIRT-SKYBLU-L", "quantityAvailable": 15, "quantityReserved": 0, "lowStockThreshold": 8 },
+      { "id": "inv-3c", "productId": "prod-3", "variantId": "var-3c", "variantSku": "VH-SHIRT-SKYBLU-XL", "quantityAvailable": 5, "quantityReserved": 0, "lowStockThreshold": 8 }
+    ]
+  },
+  {
+    "id": "prod-4", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-clothing-women", "categoryName": "Women's Wear",
+    "brandId": "brand-fabindia", "brandName": "FabIndia",
+    "productTypeId": "ptype-clothing", "productTypeName": "Clothing",
+    "name": "FabIndia Cotton Printed Kurti", "slug": "fabindia-cotton-printed-kurti",
+    "shortDescription": "Hand block printed cotton kurti",
+    "description": "Traditional hand block print on breathable cotton fabric. Ideal for daily and festive wear.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "FI-KURTI-PRINT-M", "price": 1499, "compareAtPrice": 1899, "costPrice": 780,
+    "weight": 0.25, "trackInventory": true, "isNew": true, "displayOrder": 3, "status": 2,
+    "variants": [
+      { "id": "var-4a", "sku": "FI-KURTI-PRINT-S", "price": 1499, "compareAtPrice": 1899, "barcode": "8901234567890", "weight": 0.24, "isActive": true, "attributes": { "Size": "S", "Color": "Indigo" } },
+      { "id": "var-4b", "sku": "FI-KURTI-PRINT-M", "price": 1499, "compareAtPrice": 1899, "barcode": "8901234567906", "weight": 0.25, "isActive": true, "attributes": { "Size": "M", "Color": "Indigo" } }
+    ],
+    "images": [
+      { "id": "img-4a", "documentId": "doc-4a", "url": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&fit=crop", "altText": "FabIndia Kurti", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": ["tag-new", "tag-festive"],
+    "inventory": [
+      { "id": "inv-4a", "productId": "prod-4", "variantId": "var-4a", "variantSku": "FI-KURTI-PRINT-S", "quantityAvailable": 12, "quantityReserved": 0, "lowStockThreshold": 6 },
+      { "id": "inv-4b", "productId": "prod-4", "variantId": "var-4b", "variantSku": "FI-KURTI-PRINT-M", "quantityAvailable": 4, "quantityReserved": 1, "lowStockThreshold": 6 }
+    ]
+  },
+  {
+    "id": "prod-5", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-footwear", "categoryName": "Footwear",
+    "brandId": "brand-bata", "brandName": "Bata",
+    "productTypeId": "ptype-footwear", "productTypeName": "Footwear",
+    "name": "Bata Comfit Formal Shoes", "slug": "bata-comfit-formal-shoes",
+    "shortDescription": "Genuine leather formal shoes with cushioned sole",
+    "description": "All-day comfort formal shoes with anti-skid sole. Available in black and brown.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "BATA-COMFIT-BLK-9", "price": 1899, "compareAtPrice": 2499, "costPrice": 950,
+    "weight": 0.9, "trackInventory": true, "isNew": false, "displayOrder": 4, "status": 2,
+    "variants": [
+      { "id": "var-5a", "sku": "BATA-COMFIT-BLK-8", "price": 1899, "compareAtPrice": 2499, "barcode": "8901111122233", "weight": 0.88, "isActive": true, "attributes": { "Size": "8" } },
+      { "id": "var-5b", "sku": "BATA-COMFIT-BLK-9", "price": 1899, "compareAtPrice": 2499, "barcode": "8901111122240", "weight": 0.9, "isActive": true, "attributes": { "Size": "9" } },
+      { "id": "var-5c", "sku": "BATA-COMFIT-BLK-10", "price": 1899, "compareAtPrice": 2499, "barcode": "8901111122257", "weight": 0.92, "isActive": true, "attributes": { "Size": "10" } }
+    ],
+    "images": [
+      { "id": "img-5a", "documentId": "doc-5a", "url": "https://images.unsplash.com/photo-1614253429340-98120bd6d753?w=500", "altText": "Bata Comfit Formal Shoes", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": ["tag-bestseller"],
+    "inventory": [
+      { "id": "inv-5a", "productId": "prod-5", "variantId": "var-5a", "variantSku": "BATA-COMFIT-BLK-8", "quantityAvailable": 9, "quantityReserved": 0, "lowStockThreshold": 5 },
+      { "id": "inv-5b", "productId": "prod-5", "variantId": "var-5b", "variantSku": "BATA-COMFIT-BLK-9", "quantityAvailable": 3, "quantityReserved": 0, "lowStockThreshold": 5 },
+      { "id": "inv-5c", "productId": "prod-5", "variantId": "var-5c", "variantSku": "BATA-COMFIT-BLK-10", "quantityAvailable": 11, "quantityReserved": 1, "lowStockThreshold": 5 }
+    ]
+  },
+  {
+    "id": "prod-6", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-footwear", "categoryName": "Footwear",
+    "brandId": "brand-generic", "brandName": "Local Store Brand",
+    "productTypeId": "ptype-footwear", "productTypeName": "Footwear",
+    "name": "Casual Rubber Slippers", "slug": "casual-rubber-slippers",
+    "shortDescription": "Everyday comfort slippers",
+    "description": "Lightweight, durable rubber slippers for home and outdoor use.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "GEN-SLIPPER-BLU-9", "price": 199, "compareAtPrice": 249, "costPrice": 90,
+    "weight": 0.2, "trackInventory": true, "isNew": false, "displayOrder": 5, "status": 2,
+    "variants": [],
+    "images": [
+      { "id": "img-6a", "documentId": "doc-6a", "url": "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=500", "altText": "Rubber Slippers", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": ["tag-sale"],
+    "inventory": [
+      { "id": "inv-6a", "productId": "prod-6", "variantId": null, "variantSku": null, "quantityAvailable": 75, "quantityReserved": 0, "lowStockThreshold": 20 }
+    ]
+  },
+  {
+    "id": "prod-7", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-electronics", "categoryName": "Electronics",
+    "brandId": "brand-boat", "brandName": "boAt",
+    "productTypeId": "ptype-electronics", "productTypeName": "Electronics",
+    "name": "boAt Airdopes 141", "slug": "boat-airdopes-141",
+    "shortDescription": "True wireless earbuds with 42h playback",
+    "description": "ENx technology for clear calls, IPX4 water resistance, and ASAP charge.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "BOAT-AD141-BLK", "price": 1299, "compareAtPrice": 2490, "costPrice": 700,
+    "weight": 0.05, "trackInventory": true, "isNew": true, "displayOrder": 6, "status": 2,
+    "variants": [],
+    "images": [
+      { "id": "img-7a", "documentId": "doc-7a", "url": "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500", "altText": "boAt Airdopes 141", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": ["tag-bestseller", "tag-new"],
+    "inventory": [
+      { "id": "inv-7a", "productId": "prod-7", "variantId": null, "variantSku": null, "quantityAvailable": 24, "quantityReserved": 2, "lowStockThreshold": 10 }
+    ]
+  },
+  {
+    "id": "prod-8", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-electronics", "categoryName": "Electronics",
+    "brandId": "brand-generic", "brandName": "Local Store Brand",
+    "productTypeId": "ptype-electronics", "productTypeName": "Electronics",
+    "name": "Fast Charging USB-C Cable (1m)", "slug": "fast-charging-usb-c-cable",
+    "shortDescription": "65W fast charging braided cable",
+    "description": "Durable braided USB-C cable, supports fast charging for phones and laptops.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "GEN-USBC-1M", "price": 249, "compareAtPrice": 399, "costPrice": 90,
+    "weight": 0.06, "trackInventory": true, "isNew": false, "displayOrder": 7, "status": 2,
+    "variants": [],
+    "images": [
+      { "id": "img-8a", "documentId": "doc-8a", "url": "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=500", "altText": "USB-C Cable", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": [],
+    "inventory": [
+      { "id": "inv-8a", "productId": "prod-8", "variantId": null, "variantSku": null, "quantityAvailable": 3, "quantityReserved": 0, "lowStockThreshold": 15 }
+    ]
+  },
+  {
+    "id": "prod-9", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-general", "categoryName": "General Store",
+    "brandId": null, "brandName": null,
+    "productTypeId": "ptype-general", "productTypeName": "General Store",
+    "name": "Basmati Rice (5kg)", "slug": "basmati-rice-5kg",
+    "shortDescription": "Premium aged basmati rice",
+    "description": "Long grain aged basmati rice, ideal for biryani and pulao.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "GEN-RICE-BASMATI-5KG", "price": 599, "compareAtPrice": null, "costPrice": 480,
+    "weight": 5, "trackInventory": true, "isNew": false, "displayOrder": 8, "status": 2,
+    "variants": [],
+    "images": [
+      { "id": "img-9a", "documentId": "doc-9a", "url": "https://images.unsplash.com/photo-1516684732162-798a0062be99?w=500", "altText": "Basmati Rice", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": [],
+    "inventory": [
+      { "id": "inv-9a", "productId": "prod-9", "variantId": null, "variantSku": null, "quantityAvailable": 130, "quantityReserved": 0, "lowStockThreshold": 30 }
+    ]
+  },
+  {
+    "id": "prod-10", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-general", "categoryName": "General Store",
+    "brandId": null, "brandName": null,
+    "productTypeId": "ptype-general", "productTypeName": "General Store",
+    "name": "Cold Pressed Groundnut Oil (1L)", "slug": "cold-pressed-groundnut-oil-1l",
+    "shortDescription": "100% natural, chemical-free cooking oil",
+    "description": "Traditionally extracted groundnut oil with no preservatives or additives.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "GEN-OIL-GNUT-1L", "price": 289, "compareAtPrice": 320, "costPrice": 220,
+    "weight": 1, "trackInventory": true, "isNew": true, "displayOrder": 9, "status": 2,
+    "variants": [],
+    "images": [
+      { "id": "img-10a", "documentId": "doc-10a", "url": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=500", "altText": "Groundnut Oil", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": ["tag-new"],
+    "inventory": [
+      { "id": "inv-10a", "productId": "prod-10", "variantId": null, "variantSku": null, "quantityAvailable": 64, "quantityReserved": 0, "lowStockThreshold": 20 }
+    ]
+  },
+  {
+    "id": "prod-11", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-perfume-men", "categoryName": "Men's Perfume",
+    "brandId": "brand-wildstone", "brandName": "Wild Stone",
+    "productTypeId": "ptype-perfume", "productTypeName": "Perfume",
+    "name": "Wild Stone Ultra Sport", "slug": "wild-stone-ultra-sport",
+    "shortDescription": "Fresh aquatic fragrance for active men",
+    "description": "Energizing scent designed for the modern, active man. 48-hour freshness.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "WS-ULTRA-SPORT-100", "price": 399, "compareAtPrice": 499, "costPrice": 240,
+    "weight": 0.15, "trackInventory": true, "isNew": false, "displayOrder": 10, "status": 1,
+    "variants": [],
+    "images": [
+      { "id": "img-11a", "documentId": "doc-11a", "url": "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500", "altText": "Wild Stone Ultra Sport", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": [],
+    "inventory": [
+      { "id": "inv-11a", "productId": "prod-11", "variantId": null, "variantSku": null, "quantityAvailable": 0, "quantityReserved": 0, "lowStockThreshold": 10 }
+    ]
+  },
+  {
+    "id": "prod-12", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-clothing-men", "categoryName": "Men's Wear",
+    "brandId": "brand-generic", "brandName": "Local Store Brand",
+    "productTypeId": "ptype-clothing", "productTypeName": "Clothing",
+    "name": "Cotton Casual T-Shirt (Pack of 2)", "slug": "cotton-casual-tshirt-pack-of-2",
+    "shortDescription": "Round neck cotton t-shirts, everyday comfort",
+    "description": "100% cotton, breathable round-neck t-shirts. Machine washable.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "GEN-TSHIRT-PACK2-L", "price": 499, "compareAtPrice": 699, "costPrice": 220,
+    "weight": 0.35, "trackInventory": true, "isNew": false, "displayOrder": 11, "status": 2,
+    "variants": [
+      { "id": "var-12a", "sku": "GEN-TSHIRT-PACK2-M", "price": 499, "compareAtPrice": 699, "barcode": "8909999012345", "weight": 0.34, "isActive": true, "attributes": { "Size": "M", "Color": "Assorted" } },
+      { "id": "var-12b", "sku": "GEN-TSHIRT-PACK2-L", "price": 499, "compareAtPrice": 699, "barcode": "8909999012352", "weight": 0.35, "isActive": true, "attributes": { "Size": "L", "Color": "Assorted" } }
+    ],
+    "images": [
+      { "id": "img-12a", "documentId": "doc-12a", "url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500", "altText": "Cotton T-Shirts", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": ["tag-sale"],
+    "inventory": [
+      { "id": "inv-12a", "productId": "prod-12", "variantId": "var-12a", "variantSku": "GEN-TSHIRT-PACK2-M", "quantityAvailable": 33, "quantityReserved": 0, "lowStockThreshold": 10 },
+      { "id": "inv-12b", "productId": "prod-12", "variantId": "var-12b", "variantSku": "GEN-TSHIRT-PACK2-L", "quantityAvailable": 8, "quantityReserved": 0, "lowStockThreshold": 10 }
+    ]
+  },
+  {
+    "id": "prod-13", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-electronics", "categoryName": "Electronics",
+    "brandId": "brand-boat", "brandName": "boAt",
+    "productTypeId": "ptype-electronics", "productTypeName": "Electronics",
+    "name": "boAt Wave Call Smartwatch", "slug": "boat-wave-call-smartwatch",
+    "shortDescription": "Bluetooth calling smartwatch with HR monitor",
+    "description": "1.69-inch HD display, Bluetooth calling, 7-day battery life, multiple sports modes.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "BOAT-WAVECALL-BLK", "price": 1999, "compareAtPrice": 3990, "costPrice": 1100,
+    "weight": 0.05, "trackInventory": true, "isNew": true, "displayOrder": 12, "status": 2,
+    "variants": [],
+    "images": [
+      { "id": "img-13a", "documentId": "doc-13a", "url": "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=500", "altText": "boAt Wave Call Smartwatch", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": ["tag-new", "tag-premium"],
+    "inventory": [
+      { "id": "inv-13a", "productId": "prod-13", "variantId": null, "variantSku": null, "quantityAvailable": 17, "quantityReserved": 1, "lowStockThreshold": 8 }
+    ]
+  },
+  {
+    "id": "prod-14", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-general", "categoryName": "General Store",
+    "brandId": null, "brandName": null,
+    "productTypeId": "ptype-general", "productTypeName": "General Store",
+    "name": "Assorted Spices Combo Pack", "slug": "assorted-spices-combo-pack",
+    "shortDescription": "7 essential spices for Indian cooking",
+    "description": "Turmeric, chilli, coriander, cumin, garam masala, mustard and black pepper powder.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "GEN-SPICE-COMBO7", "price": 349, "compareAtPrice": 420, "costPrice": 210,
+    "weight": 0.7, "trackInventory": true, "isNew": false, "displayOrder": 13, "status": 2,
+    "variants": [],
+    "images": [
+      { "id": "img-14a", "documentId": "doc-14a", "url": "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=500", "altText": "Spices Combo Pack", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": ["tag-festive"],
+    "inventory": [
+      { "id": "inv-14a", "productId": "prod-14", "variantId": null, "variantSku": null, "quantityAvailable": 41, "quantityReserved": 0, "lowStockThreshold": 15 }
+    ]
+  },
+  {
+    "id": "prod-15", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-clothing-women", "categoryName": "Women's Wear",
+    "brandId": "brand-fabindia", "brandName": "FabIndia",
+    "productTypeId": "ptype-clothing", "productTypeName": "Clothing",
+    "name": "FabIndia Handloom Cotton Saree", "slug": "fabindia-handloom-cotton-saree",
+    "shortDescription": "Pure handloom cotton saree with contrast border",
+    "description": "Traditionally woven cotton saree with a contrast zari border. Comes with matching blouse piece.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "FI-SAREE-HANDLOOM-01", "price": 2499, "compareAtPrice": 3200, "costPrice": 1400,
+    "weight": 0.6, "trackInventory": true, "isNew": false, "displayOrder": 14, "status": 2,
+    "variants": [],
+    "images": [
+      { "id": "img-15a", "documentId": "doc-15a", "url": "https://images.unsplash.com/photo-1610189844942-6b32ba9e5606?w=500", "altText": "Handloom Cotton Saree", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": ["tag-premium", "tag-limited"],
+    "inventory": [
+      { "id": "inv-15a", "productId": "prod-15", "variantId": null, "variantSku": null, "quantityAvailable": 7, "quantityReserved": 0, "lowStockThreshold": 5 }
+    ]
+  },
+  {
+    "id": "prod-16", "tenantId": "demo-tenant-1",
+    "categoryId": "cat-footwear", "categoryName": "Footwear",
+    "brandId": "brand-bata", "brandName": "Bata",
+    "productTypeId": "ptype-footwear", "productTypeName": "Footwear",
+    "name": "Bata Kids School Shoes", "slug": "bata-kids-school-shoes",
+    "shortDescription": "Durable black school shoes for kids",
+    "description": "Sturdy, comfortable school shoes with reinforced toe and anti-slip sole.",
+    "metaTitle": null, "metaDescription": null,
+    "sku": "BATA-KIDS-SCHOOL-2", "price": 799, "compareAtPrice": 999, "costPrice": 400,
+    "weight": 0.4, "trackInventory": true, "isNew": false, "displayOrder": 15, "status": 3,
+    "variants": [],
+    "images": [
+      { "id": "img-16a", "documentId": "doc-16a", "url": "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=500", "altText": "Kids School Shoes", "sortOrder": 0, "isPrimary": true }
+    ],
+    "tagIds": [],
+    "inventory": [
+      { "id": "inv-16a", "productId": "prod-16", "variantId": null, "variantSku": null, "quantityAvailable": 22, "quantityReserved": 0, "lowStockThreshold": 10 }
+    ]
+  }
+]

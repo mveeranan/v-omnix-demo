@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { StoreAuthService } from '../data-access/store-auth.service';
-import { CheckoutService, MyOrder, MyOrderItem } from '../data-access/checkout.service';
-import { ReturnApiService } from '@features/admin/data-access/return-api.service';
+import { CheckoutService, MyOrder } from '../data-access/checkout.service';
 import { LoadingSpinnerComponent } from '@shared/ui/loading-spinner.component';
 import { getApiErrorMessage } from '@shared/utils/api-error.util';
 
@@ -105,61 +104,11 @@ import { getApiErrorMessage } from '@shared/utils/api-error.util';
                         </div>
                       }
                     </div>
-                    @if (order.status === 'Delivered') {
-                      <div class="mt-3 border-t pt-3" style="border-color: var(--mox-border)">
-                        <button type="button" class="mox-btn mox-btn--outline text-xs" (click)="openReturnForm(order)">
-                          Request Return
-                        </button>
-                      </div>
-                    }
                   </div>
                 }
               </div>
             }
           </div>
-
-          @if (returnFormOpen()) {
-            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-              <div class="mox-card w-full max-w-md p-6">
-                <h3 class="mb-4 text-lg font-semibold" style="color: var(--mox-primary)">Request Return</h3>
-
-                @if (returnError()) {
-                  <div class="mb-4 rounded-lg border border-rose-300 bg-rose-50 p-3">
-                    <p class="text-sm text-rose-700">{{ returnError() }}</p>
-                  </div>
-                }
-
-                <form (ngSubmit)="submitReturnRequest()" class="space-y-4">
-                  <div>
-                    <label class="mb-1 block text-sm font-medium" style="color: var(--mox-text)">Select Item</label>
-                    <select class="mox-input w-full" [(ngModel)]="selectedItemId" name="item" required>
-                      <option value="">-- Choose an item --</option>
-                      @for (item of selectedReturnOrder()?.items; track item.id) {
-                        <option [value]="item.id">{{ item.productName }} ({{ item.quantity }}×)</option>
-                      }
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="mb-1 block text-sm font-medium" style="color: var(--mox-text)">Reason for Return *</label>
-                    <textarea class="mox-input w-full" [(ngModel)]="returnReason" name="reason" placeholder="Damaged, wrong item, doesn't fit, etc." required rows="2"></textarea>
-                  </div>
-
-                  <div>
-                    <label class="mb-1 block text-sm font-medium" style="color: var(--mox-text)">Additional Notes (optional)</label>
-                    <textarea class="mox-input w-full" [(ngModel)]="returnNotes" name="notes" placeholder="Any additional details..." rows="2"></textarea>
-                  </div>
-
-                  <div class="flex gap-2">
-                    <button type="button" class="mox-btn mox-btn--outline flex-1 text-sm" (click)="closeReturnForm()">Cancel</button>
-                    <button type="submit" class="mox-btn mox-btn--primary flex-1 text-sm" [disabled]="submittingReturn()">
-                      {{ submittingReturn() ? 'Submitting...' : 'Submit Return Request' }}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          }
         }
       </div>
     </div>
@@ -168,7 +117,6 @@ import { getApiErrorMessage } from '@shared/utils/api-error.util';
 export class StoreAccountPageComponent implements OnInit {
   readonly auth = inject(StoreAuthService);
   private readonly checkout = inject(CheckoutService);
-  private readonly returnApi = inject(ReturnApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -180,14 +128,6 @@ export class StoreAccountPageComponent implements OnInit {
   readonly orders = signal<MyOrder[]>([]);
   readonly ordersLoading = signal(false);
   readonly ordersError = signal('');
-
-  readonly returnFormOpen = signal(false);
-  readonly selectedReturnOrder = signal<MyOrder | null>(null);
-  selectedItemId = '';
-  returnReason = '';
-  returnNotes = '';
-  readonly submittingReturn = signal(false);
-  readonly returnError = signal('');
 
   private get storeSlug(): string {
     // ':slug' belongs to the parent 'store/:slug' route, not this child route.
@@ -244,51 +184,6 @@ export class StoreAccountPageComponent implements OnInit {
       error: (err) => {
         this.ordersError.set(getApiErrorMessage(err, 'Could not load your orders.'));
         this.ordersLoading.set(false);
-      }
-    });
-  }
-
-  openReturnForm(order: MyOrder): void {
-    this.selectedReturnOrder.set(order);
-    this.selectedItemId = order.items[0]?.id ?? '';
-    this.returnReason = '';
-    this.returnNotes = '';
-    this.returnError.set('');
-    this.returnFormOpen.set(true);
-  }
-
-  closeReturnForm(): void {
-    this.returnFormOpen.set(false);
-    this.selectedReturnOrder.set(null);
-  }
-
-  submitReturnRequest(): void {
-    const order = this.selectedReturnOrder();
-    if (!order || !this.selectedItemId || !this.returnReason.trim()) {
-      this.returnError.set('Please fill in all required fields.');
-      return;
-    }
-
-    this.submittingReturn.set(true);
-    this.returnError.set('');
-
-    this.returnApi.create({
-      orderId: order.id,
-      orderItemId: this.selectedItemId,
-      reason: this.returnReason.trim(),
-      customerNotes: this.returnNotes.trim() || undefined,
-      storeSlug: this.storeSlug
-    }).subscribe({
-      next: () => {
-        this.submittingReturn.set(false);
-        this.closeReturnForm();
-        // Show success message and reload orders
-        alert('Return request submitted successfully! You can track its status here.');
-        this.loadOrders();
-      },
-      error: (err) => {
-        this.submittingReturn.set(false);
-        this.returnError.set(getApiErrorMessage(err, 'Failed to submit return request.'));
       }
     });
   }

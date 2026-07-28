@@ -17,8 +17,8 @@ const DEFAULT_GALLERY: PortfolioGalleryItem[] = [
   {
     id: 'lb-1',
     type: 'image',
-    url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&q=80',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
+    url: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=1200&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=600&q=80',
     category: 'lookbook',
     featured: true,
     sortOrder: 0
@@ -26,8 +26,8 @@ const DEFAULT_GALLERY: PortfolioGalleryItem[] = [
   {
     id: 'lb-2',
     type: 'image',
-    url: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=1200&q=80',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&q=80',
+    url: 'https://images.unsplash.com/photo-1596993100471-c3905dafa78e?w=1200&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1596993100471-c3905dafa78e?w=600&q=80',
     category: 'lookbook',
     featured: false,
     sortOrder: 1
@@ -35,8 +35,8 @@ const DEFAULT_GALLERY: PortfolioGalleryItem[] = [
   {
     id: 'lb-3',
     type: 'image',
-    url: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=1200&q=80',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80',
+    url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=1200&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&q=80',
     category: 'lookbook',
     featured: false,
     sortOrder: 2
@@ -44,11 +44,29 @@ const DEFAULT_GALLERY: PortfolioGalleryItem[] = [
   {
     id: 'lb-4',
     type: 'image',
-    url: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=1200&q=80',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=600&q=80',
+    url: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=1200&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&q=80',
     category: 'lookbook',
     featured: false,
     sortOrder: 3
+  },
+  {
+    id: 'lb-5',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?w=1200&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?w=600&q=80',
+    category: 'lookbook',
+    featured: false,
+    sortOrder: 4
+  },
+  {
+    id: 'lb-6',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1200&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80',
+    category: 'lookbook',
+    featured: false,
+    sortOrder: 5
   }
 ];
 

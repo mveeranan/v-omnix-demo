@@ -228,9 +228,17 @@ import { CategorySectionBase } from './category-layouts/category-section-base';
       transition: background 0.3s ease;
     }
     .msp-mosaic__tile:hover::before { background: rgba(0, 0, 0, 0.42); }
-    .msp-mosaic__tile--main { min-height: 43.75rem; }
-    .msp-mosaic__tile--top { min-height: 21.875rem; }
-    .msp-mosaic__tile--half { min-height: 21.875rem; }
+    /* Smaller default heights so the single-column mobile layout (main + top + half-row all
+       stacked) doesn't force ~1400px of near-empty tiles; the full desktop heights only apply
+       once the mosaic switches to its side-by-side 2-column layout at 900px. */
+    .msp-mosaic__tile--main { min-height: 16rem; }
+    .msp-mosaic__tile--top { min-height: 12rem; }
+    .msp-mosaic__tile--half { min-height: 10rem; }
+    @media (min-width: 900px) {
+      .msp-mosaic__tile--main { min-height: 43.75rem; }
+      .msp-mosaic__tile--top { min-height: 21.875rem; }
+      .msp-mosaic__tile--half { min-height: 21.875rem; }
+    }
 
     .msp-mosaic__text {
       position: relative;

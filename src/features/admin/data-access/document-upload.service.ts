@@ -11,6 +11,7 @@ import {
 import { AuthService } from '@core/auth/auth.service';
 import { DocumentDto } from '@features/catalog/models/document.model';
 import { requireTenantId, unwrapApiResponse } from '@features/catalog/data-access/catalog-api.util';
+import { environment } from '@env/environment';
 
 interface UploadDocumentFile {
   fileName: string;
@@ -88,15 +89,78 @@ export class DocumentUploadService {
       reader.onload = () => {
         const result = reader.result as string;
         const base64Content = result.includes(',') ? result.split(',')[1] : result;
-        subscriber.next({
-          fileName: file.name,
-          contentType: file.type,
-          base64Content
-        });
-        subscriber.complete();
+        const isImage = file.type.startsWith('image/');
+
+        if (environment.demoMode && isImage) {
+          this.compressImageBase64(base64Content, file.type).then((compressed) => {
+            subscriber.next({
+              fileName: file.name,
+              contentType: file.type,
+              base64Content: compressed
+            });
+            subscriber.complete();
+          }).catch((err) => {
+            console.warn('Image compression failed, using original', err);
+            subscriber.next({
+              fileName: file.name,
+              contentType: file.type,
+              base64Content
+            });
+            subscriber.complete();
+          });
+        } else {
+          subscriber.next({
+            fileName: file.name,
+            contentType: file.type,
+            base64Content
+          });
+          subscriber.complete();
+        }
       };
       reader.onerror = () => subscriber.error(reader.error);
       reader.readAsDataURL(file);
+    });
+  }
+
+  private compressImageBase64(base64: string, contentType: string): Promise<string> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(base64);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const quality = contentType === 'image/png' ? undefined : 0.75;
+        const compressed = canvas.toDataURL(contentType, quality);
+        const compressedBase64 = compressed.includes(',') ? compressed.split(',')[1] : compressed;
+        resolve(compressedBase64);
+      };
+      img.onerror = () => resolve(base64);
+      img.src = `data:${contentType};base64,${base64}`;
     });
   }
 }

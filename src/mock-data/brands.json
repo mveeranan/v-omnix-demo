@@ -1,0 +1,9 @@
+[
+  { "id": "brand-fogg", "tenantId": "demo-tenant-1", "name": "Fogg", "slug": "fogg", "description": "No gas fragrances", "isActive": true },
+  { "id": "brand-wildstone", "tenantId": "demo-tenant-1", "name": "Wild Stone", "slug": "wild-stone", "description": "Premium men's deodorants and perfumes", "isActive": true },
+  { "id": "brand-vanheusen", "tenantId": "demo-tenant-1", "name": "Van Heusen", "slug": "van-heusen", "description": "Formal and casual menswear", "isActive": true },
+  { "id": "brand-fabindia", "tenantId": "demo-tenant-1", "name": "FabIndia", "slug": "fabindia", "description": "Ethnic and handcrafted clothing", "isActive": true },
+  { "id": "brand-bata", "tenantId": "demo-tenant-1", "name": "Bata", "slug": "bata", "description": "Footwear for the whole family", "isActive": true },
+  { "id": "brand-boat", "tenantId": "demo-tenant-1", "name": "boAt", "slug": "boat", "description": "Audio and wearable electronics", "isActive": true },
+  { "id": "brand-generic", "tenantId": "demo-tenant-1", "name": "Local Store Brand", "slug": "local-store-brand", "description": "Unbranded / house brand items", "isActive": true }
+]

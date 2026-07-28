@@ -9,9 +9,11 @@
       "@core/*": ["core/*"],
       "@features/*": ["features/*"],
       "@shared/*": ["shared/*"],
-      "@env/*": ["environments/*"]
+      "@env/*": ["environments/*"],
+      "@mock-data/*": ["mock-data/*"]
     },
     "outDir": "./dist/out-tsc",
+    "resolveJsonModule": true,
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
