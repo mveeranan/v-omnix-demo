@@ -1,5 +1,11 @@
 <div @pageFadeIn class="admin-page admin-page-shell mx-auto w-full">
   <header class="admin-page__header">
+    @if (backLink()) {
+      <a [routerLink]="backLink()" class="admin-page__back-link">
+        <lucide-icon [img]="backIcon" class="admin-page__back-icon" />
+        {{ backLabel() }}
+      </a>
+    }
     <div class="admin-page__title-row">
       <div>
         <p class="admin-page__eyebrow">{{ eyebrow() }}</p>

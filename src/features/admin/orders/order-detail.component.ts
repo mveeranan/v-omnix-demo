@@ -23,7 +23,7 @@ const NEXT_STATUSES: Record<OrderStatus, OrderStatus[]> = {
   standalone: true,
   imports: [FormsModule, RouterLink, AdminPageShellComponent, LoadingSpinnerComponent],
   template: `
-    <app-admin-page-shell eyebrow="Order" [title]="order()?.orderNumber ? '#' + order()!.orderNumber : 'Order detail'" description="Complete order information and actions.">
+    <app-admin-page-shell eyebrow="Order" [title]="order()?.orderNumber ? '#' + order()!.orderNumber : 'Order detail'" description="Complete order information and actions." backLink="/admin/orders" backLabel="Back to orders">
       @if (loading()) {
         <app-loading-spinner />
       } @else if (!order()) {

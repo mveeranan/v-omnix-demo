@@ -11,7 +11,7 @@ import { NotificationService } from '@core/notifications/notification.service';
   standalone: true,
   imports: [RouterLink, AdminPageShellComponent, LoadingSpinnerComponent],
   template: `
-    <app-admin-page-shell eyebrow="Customer" [title]="customer()?.name ?? 'Customer'" description="Profile and order history.">
+    <app-admin-page-shell eyebrow="Customer" [title]="customer()?.name ?? 'Customer'" description="Profile and order history." backLink="/admin/customers" backLabel="Back to customers">
       @if (loading()) {
         <app-loading-spinner />
       } @else if (!customer()) {

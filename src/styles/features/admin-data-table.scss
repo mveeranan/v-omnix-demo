@@ -60,8 +60,10 @@
   }
 
   .admin-data-table-scroll {
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     width: 100%;
+    -webkit-overflow-scrolling: touch;
   }
 
   .admin-data-table {
@@ -73,6 +75,24 @@
     table-layout: fixed;
     text-align: left;
     font-size: 0.875rem;
+
+    // Below this, table-layout: fixed + percentage columns crush every cell to an unreadable
+    // width regardless of how many columns a given page has. Switch to content-based sizing
+    // instead of guessing a single fixed min-width that would be wrong for some tables (8+
+    // columns) and wasteful for others (4-5 columns) — admin-data-table-scroll's overflow-x
+    // handles whatever width that naturally produces. 1024px (not just phone-width 767.98px)
+    // because the admin sidebar is already in its full expanded desktop form by 768px, leaving
+    // tablets just as little real width for the table as a phone gets.
+    @media (max-width: 1024px) {
+      table-layout: auto;
+      width: max-content;
+      min-width: 100%;
+
+      th, td {
+        width: auto !important;
+        white-space: nowrap;
+      }
+    }
   }
 
   .admin-data-table thead {

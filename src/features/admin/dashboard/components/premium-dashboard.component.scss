@@ -87,6 +87,13 @@
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: var(--space-6);
 
+  // Grid items default to min-width: auto, which refuses to shrink below the content's
+  // intrinsic width (e.g. a wide table) — without this the card blows out of its track
+  // and the table bleeds off-screen instead of using its own overflow-x scroll.
+  > * {
+    min-width: 0;
+  }
+
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
   }

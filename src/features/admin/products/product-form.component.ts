@@ -33,14 +33,13 @@ import { ProductInventorySectionComponent } from './sections/product-inventory-s
       eyebrow="Catalog"
       [title]="pageTitle()"
       [description]="pageDescription()"
+      backLink="/admin/products"
+      backLabel="Back to products"
     >
       <div admin-page-actions class="flex flex-wrap items-center gap-3">
         @if (state.product(); as product) {
           <app-admin-status-badge [label]="statusLabel(product.status)" [variant]="statusVariant(product.status)" />
         }
-        <a routerLink="/admin/products" class="admin-action-secondary rounded-lg px-4 py-2 text-sm">
-          Back to products
-        </a>
       </div>
 
       @if (!state.pageReady()) {
