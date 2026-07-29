@@ -7,8 +7,7 @@ import { environment } from '@env/environment';
   template: `
     @if (isDemo) {
       <div class="demo-banner">
-        <span>🎭 Demo Mode — Using Sample Data. Changes are saved to this browser only.</span>
-        <button type="button" (click)="resetData()">Reset demo data</button>
+        <button type="button" (click)="resetData()">Reset data</button>
       </div>
     }
   `,
@@ -19,26 +18,32 @@ import { environment } from '@env/environment';
       z-index: 9999;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      padding: 6px 12px;
+      justify-content: flex-end;
+      padding: 6px clamp(12px, 3vw, 24px);
       background: #7c3aed;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 500;
-      text-align: center;
     }
     .demo-banner button {
       border: 1px solid rgba(255, 255, 255, 0.6);
       background: transparent;
       color: #fff;
       border-radius: 6px;
-      padding: 2px 10px;
+      padding: 4px 12px;
       font-size: 12px;
+      font-weight: 500;
       cursor: pointer;
+      white-space: nowrap;
     }
     .demo-banner button:hover {
       background: rgba(255, 255, 255, 0.15);
+    }
+    @media (max-width: 480px) {
+      .demo-banner {
+        padding: 6px 12px;
+      }
+      .demo-banner button {
+        font-size: 11px;
+        padding: 3px 10px;
+      }
     }
   `]
 })
